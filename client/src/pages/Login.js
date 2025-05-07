@@ -1,0 +1,214 @@
+import React, { useState } from 'react';
+import { TextField, Container, Button, Typography, Paper, Box, CircularProgress, InputAdornment, IconButton } from '@mui/material';
+import { Person, Lock, Visibility, VisibilityOff } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { login } from "../service/Auth";
+import logo from '../assets/Logo.svg';
+
+
+const Login = ({ onLogin }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      await login(email, password);
+      onLogin();
+
+    } catch (err) {
+      setError('Credenciais inválidas');
+
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isEmailValid = () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  const passwordVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
+
+  return (
+    <Container
+      component="main"
+      maxWidth="false"
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        backgroundColor: '#F5FDFF',
+      }}
+    >
+      <Paper
+        elevation={5}
+        sx={{
+          p: 6,
+          borderRadius: 4,
+          width: '100%',
+          maxWidth: 450
+        }}
+      >
+        {/* Logo */}
+        <Box sx={{ mb: 2 }}>
+          <img
+            src={logo}
+            alt="logo"
+            style={{ width: 175, height: 'auto' }}
+          />
+        </Box>
+
+        {/* Título */}
+        <Typography
+          component="h1"
+          variant="h5"
+          sx={{
+            mb: 4,
+            fontWeight: 'bold',
+            textAlign: 'center',
+            color: '#666666'
+          }}
+        >
+          LOGIN
+        </Typography>
+
+        <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+          {/* Campo de Email */}
+          <Typography variant="subtitle1" position="start" sx={{  color: '#666666', textAlign: 'left' }}>
+						E-mail
+					</Typography>
+          <TextField
+            fullWidth
+            margin="normal"
+            type="email"
+            variant="outlined"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            error={!!email && !isEmailValid()}
+            helperText={!!email && !isEmailValid() ? 'Email inválido' : ''}
+            sx={{ 
+              mb: 1.5, 
+              marginTop: '-1px',
+              
+              '& .MuiOutlinedInput-root': {
+                '&.Mui-focused fieldset': { // borda verde
+                  borderColor: '#087619' 
+                },
+                '&.Mui-error fieldset': { // borda vermelha
+                  borderColor: '#d32f2f'
+                },
+                '&.Mui-focused.Mui-error fieldset': {
+                  borderColor: '#d32f2f'
+                }
+              }
+            }}
+            InputProps={{
+              startAdornment: <Person sx={{ color: '#666666', mr: 1 }} />
+            }}
+            InputLabelProps={{ 
+              sx: { color: '#666666' }
+            }}
+          />
+
+          {/* Campo de Senha */}
+          <Typography variant="subtitle1" position="start" sx={{  color: '#666666', textAlign: 'left' }}>
+						Senha
+					</Typography>
+          <TextField
+            fullWidth
+            margin="normal"
+            type={showPassword ? 'password' : 'text'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            variant="outlined"
+            sx={{ 
+              mb: 1.5, 
+              marginTop: '-1px',
+              
+              '& .MuiOutlinedInput-root': {
+                '&.Mui-focused fieldset': { // borda verde
+                  borderColor: '#087619' 
+                },
+                '&.Mui-error fieldset': { // borda vermelha
+                  borderColor: '#d32f2f'
+                },
+                '&.Mui-focused.Mui-error fieldset': {
+                  borderColor: '#d32f2f'
+                }
+              } 
+            }}
+            InputProps={{
+              startAdornment: <Lock sx={{ color: '#666666', mr: 1 }} />,
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={passwordVisibility}
+                    edge="end"
+                    sx={{ color: '#666666' }}
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              )
+            }}
+            InputLabelProps={{ 
+              sx: { color: '#666666' }
+            }}
+          />
+
+          {/* Errors */}
+          {error && (
+            <Typography color="error" variant="body2" sx={{ mt: 0 }}>
+              {error}
+            </Typography>
+          )}
+
+          {/* Entrar */}
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            disabled={loading || !isEmailValid() || !password}
+            onClick={() => navigate('/')}
+            sx={{ mt: 3, mb: 2, py: 1.5, bgcolor: '#087619', '&:hover': { bgcolor: '#066915' } }}
+          >
+            {loading ? <CircularProgress size={24} /> : 'Entrar'}
+          </Button>
+
+          {/* Recuperar Senha */}
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              mt: 0.5,
+            }}
+          >
+            <Button
+              sx={{
+                textTransform: 'none',
+                fontSize: '0.875rem',
+                color: '#087619',
+                '&:hover': { textDecoration: 'underline' }
+              }}
+              onClick={() => navigate('/')}
+            >
+              Recuperar Senha?
+            </Button>
+          </Box>
+        </Box>
+      </Paper>
+    </Container>
+  );
+};
+
+export default Login;

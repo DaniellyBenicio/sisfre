@@ -1,15 +1,24 @@
-import React, { useState } from 'react';
-import { TextField, Container, Button, Typography, Paper, Box, CircularProgress, InputAdornment, IconButton } from '@mui/material';
-import { Person, Lock, Visibility, VisibilityOff } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import {
+  TextField,
+  Container,
+  Button,
+  Typography,
+  Paper,
+  Box,
+  CircularProgress,
+  InputAdornment,
+  IconButton,
+} from "@mui/material";
+import { Person, Lock, Visibility, VisibilityOff } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 import { login } from "../service/Auth";
-import logo from '../assets/Logo.svg';
+import logo from "../assets/Logo.svg";
 
-
-const Login = ({ onLogin }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+const Login = ({ onLogin = () => {} }) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -18,15 +27,19 @@ const Login = ({ onLogin }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
-      await login(email, password);
-      onLogin();
-
+      const response = await login(email, password);
+      if (response.token) {
+        localStorage.setItem("token", response.token);
+        onLogin();
+        navigate("/");
+      } else {
+        setError(response.error || "Erro ao fazer login");
+      }
     } catch (err) {
-      setError('Credenciais inválidas');
-
+      setError(err.error || err.message || "Erro ao fazer login");
     } finally {
       setLoading(false);
     }
@@ -43,11 +56,11 @@ const Login = ({ onLogin }) => {
       component="main"
       maxWidth="false"
       sx={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        backgroundColor: '#F5FDFF',
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+        backgroundColor: "#F5FDFF",
       }}
     >
       <Paper
@@ -55,38 +68,33 @@ const Login = ({ onLogin }) => {
         sx={{
           p: 6,
           borderRadius: 4,
-          width: '100%',
-          maxWidth: 450
+          width: "100%",
+          maxWidth: 450,
         }}
       >
-        {/* Logo */}
         <Box sx={{ mb: 2 }}>
-          <img
-            src={logo}
-            alt="logo"
-            style={{ width: 175, height: 'auto' }}
-          />
+          <img src={logo} alt="logo" style={{ width: 175, height: "auto" }} />
         </Box>
-
-        {/* Título */}
         <Typography
           component="h1"
           variant="h5"
           sx={{
             mb: 4,
-            fontWeight: 'bold',
-            textAlign: 'center',
-            color: '#666666'
+            fontWeight: "bold",
+            textAlign: "center",
+            color: "#666666",
           }}
         >
           LOGIN
         </Typography>
-
-        <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
-          {/* Campo de Email */}
-          <Typography variant="subtitle1" position="start" sx={{  color: '#666666', textAlign: 'left' }}>
-						E-mail
-					</Typography>
+        <Box component="form" onSubmit={handleSubmit} sx={{ width: "100%" }}>
+          <Typography
+            variant="subtitle1"
+            position="start"
+            sx={{ color: "#666666", textAlign: "left" }}
+          >
+            E-mail
+          </Typography>
           <TextField
             fullWidth
             margin="normal"
@@ -95,112 +103,115 @@ const Login = ({ onLogin }) => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             error={!!email && !isEmailValid()}
-            helperText={!!email && !isEmailValid() ? 'Email inválido' : ''}
-            sx={{ 
-              mb: 1.5, 
-              marginTop: '-1px',
-              
-              '& .MuiOutlinedInput-root': {
-                '&.Mui-focused fieldset': { // borda verde
-                  borderColor: '#087619' 
+            helperText={!!email && !isEmailValid() ? "Email inválido" : ""}
+            sx={{
+              mb: 1.5,
+              marginTop: "-1px",
+              "& .MuiOutlinedInput-root": {
+                "&.Mui-focused fieldset": {
+                  borderColor: "#087619",
                 },
-                '&.Mui-error fieldset': { // borda vermelha
-                  borderColor: '#d32f2f'
+                "&.Mui-error fieldset": {
+                  borderColor: "#d32f2f",
                 },
-                '&.Mui-focused.Mui-error fieldset': {
-                  borderColor: '#d32f2f'
-                }
-              }
+                "&.Mui-focused.Mui-error fieldset": {
+                  borderColor: "#d32f2f",
+                },
+              },
             }}
             InputProps={{
-              startAdornment: <Person sx={{ color: '#666666', mr: 1 }} />
+              startAdornment: <Person sx={{ color: "#666666", mr: 1 }} />,
             }}
-            InputLabelProps={{ 
-              sx: { color: '#666666' }
+            InputLabelProps={{
+              sx: { color: "#666666" },
             }}
           />
-
-          {/* Campo de Senha */}
-          <Typography variant="subtitle1" position="start" sx={{  color: '#666666', textAlign: 'left' }}>
-						Senha
-					</Typography>
+          <Typography
+            variant="subtitle1"
+            position="start"
+            sx={{ color: "#666666", textAlign: "left" }}
+          >
+            Senha
+          </Typography>
           <TextField
             fullWidth
             margin="normal"
-            type={showPassword ? 'password' : 'text'}
+            type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             variant="outlined"
-            sx={{ 
-              mb: 1.5, 
-              marginTop: '-1px',
-              
-              '& .MuiOutlinedInput-root': {
-                '&.Mui-focused fieldset': { // borda verde
-                  borderColor: '#087619' 
+            sx={{
+              mb: 1.5,
+              marginTop: "-1px",
+              "& .MuiOutlinedInput-root": {
+                "&.Mui-focused fieldset": {
+                  borderColor: "#087619",
                 },
-                '&.Mui-error fieldset': { // borda vermelha
-                  borderColor: '#d32f2f'
+                "&.Mui-error fieldset": {
+                  borderColor: "#d32f2f",
                 },
-                '&.Mui-focused.Mui-error fieldset': {
-                  borderColor: '#d32f2f'
-                }
-              } 
+                "&.Mui-focused.Mui-error fieldset": {
+                  borderColor: "#d32f2f",
+                },
+              },
             }}
             InputProps={{
-              startAdornment: <Lock sx={{ color: '#666666', mr: 1 }} />,
+              startAdornment: <Lock sx={{ color: "#666666", mr: 1 }} />,
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton
                     onClick={passwordVisibility}
                     edge="end"
-                    sx={{ color: '#666666' }}
+                    sx={{ color: "#666666" }}
                   >
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 </InputAdornment>
-              )
+              ),
             }}
-            InputLabelProps={{ 
-              sx: { color: '#666666' }
+            InputLabelProps={{
+              sx: { color: "#666666" },
             }}
           />
-
-          {/* Errors */}
           {error && (
-            <Typography color="error" variant="body2" sx={{ mt: 0 }}>
+            <Typography
+              color="error"
+              variant="body2"
+              sx={{ mt: 1, textAlign: "center", fontWeight: "bold" }}
+            >
               {error}
             </Typography>
           )}
-
-          {/* Entrar */}
           <Button
             type="submit"
             fullWidth
             variant="contained"
             disabled={loading || !isEmailValid() || !password}
-            onClick={() => navigate('/')}
-            sx={{ mt: 3, mb: 2, py: 1.5, bgcolor: '#087619', '&:hover': { bgcolor: '#066915' } }}
+            sx={{
+              mt: 3,
+              mb: 2,
+              py: 1.5,
+              bgcolor: "#087619",
+              "&:hover": { bgcolor: "#066915" },
+            }}
           >
-            {loading ? <CircularProgress size={24} /> : 'Entrar'}
+            {loading ? <CircularProgress size={24} /> : "Entrar"}
           </Button>
-
-          {/* Recuperar Senha */}
           <Box
             sx={{
-              display: 'flex',
-              justifyContent: 'center',
+              display: "flex",
+              justifyContent: "center",
               mt: 0.5,
             }}
           >
             <Button
               sx={{
-                textTransform: 'none',
-                fontSize: '0.875rem',
-                color: '#087619',
-                '&:hover': { textDecoration: 'underline' }
+                textTransform: "none",
+                fontSize: "0.875rem",
+                color: "#087619",
+                "&:hover": { textDecoration: "underline" },
               }}
-              onClick={() => navigate('/')}
+              onClick={() => navigate("/forgot-password")}
             >
               Recuperar Senha?
             </Button>

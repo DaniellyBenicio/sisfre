@@ -4,7 +4,7 @@ import './App.css';
 import AppRoutes from "./routes/Routes";
 
 const App = () => {
-  const [isAuthenticated, setAuthenticated] = useState(false);
+  const [isAuthenticated, setAuthenticated] = useState(!!localStorage.getItem('token'))
 
   return (
     <Router>

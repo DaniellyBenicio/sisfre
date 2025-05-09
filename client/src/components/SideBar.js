@@ -3,16 +3,18 @@ import {
     Drawer, List, ListItem, ListItemText, Divider, Typography, Dialog, DialogActions, DialogContent, Button, IconButton,
     Toolbar, AppBar, Box
 } from '@mui/material';
-import { Menu, People } from '@mui/icons-material';
+import { Menu, People, School, ExitToApp } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useMediaQuery } from '@mui/material';
 import LogoMenu from '../assets/LogoMenu.svg';
+import { logout } from '../service/Auth.js';
 
 const Sidebar = ({ setAuthenticated, useRole }) => {
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
     const [mobileOpen, setMobileOpen] = useState(false);
     const navigate = useNavigate();
+
     const isMobile = useMediaQuery('(max-width:600px)');
 
     const handleOpenConfirmDialog = () => setOpenConfirmDialog(true);
@@ -31,10 +33,16 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
         },
     });
 
+    const handleLogout = () => {
+        logout(setAuthenticated);
+        handleCloseConfirmDialog();
+        setTimeout(() => navigate('/login'), 100);
+    };
+
     const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
 
     const drawerContent = (
-        <List>
+        <List textAlign='center'>
             {/* Logo */}
             <ListItem sx={{ justifyContent: 'center', marginLeft: '-12px' }}>
                 <Box sx={{ mb: 2 }}>
@@ -64,14 +72,16 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
                 onClick={() => handleItemClick('/courses', 'courses')}
                 sx={getListItemStyle(selectedItem, 'courses')}
             >
+                <School sx={{ mr: 1 }} />
                 <ListItemText primary="Cursos" />
             </ListItem>
 
             <ListItem
                 button
                 onClick={handleOpenConfirmDialog}
-                sx={getListItemStyle(selectedItem, 'sair')}
+                sx={getListItemStyle(selectedItem, 'exit')}
             >
+                <ExitToApp sx={{ mr: 1 }} />
                 <ListItemText primary="Sair" />
             </ListItem>
         </List>
@@ -85,7 +95,7 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
                         position="fixed"
                         sx={{
                             backgroundColor: '#087619',
-                            zIndex: (theme) => theme.zIndex.drawer + 1,
+                            zIndex: (theme) => theme.zIndex.drawer + 1
                         }}
                     >
                         <Toolbar>
@@ -109,6 +119,8 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
                                 width: 240,
                                 backgroundColor: '#087619',
                                 color: 'white',
+                                top: '54px',
+                                zIndex: (theme) => theme.zIndex.drawer + 2
                             },
                         }}
                     >
@@ -131,22 +143,30 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
                     {drawerContent}
                 </Drawer>
             )}
-            <Dialog
-                open={openConfirmDialog}
-                onClose={handleCloseConfirmDialog}
-            >
-                <DialogContent>
-                    <Typography>Tem certeza que deseja sair?</Typography>
+            <Dialog open={openConfirmDialog} onClose={handleCloseConfirmDialog} >
+                <DialogContent sx={{ textAlign: "center", width: "390px" }}>
+                    <Typography sx={{ fontSize: "1rem", paddingTop: "15px" }}>
+                        Tem certeza que deseja sair?
+                    </Typography>
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseConfirmDialog}>Sim</Button>
-                    <Button
-                        onClick={() => {
-                            setAuthenticated(false);
-                            navigate('/login');
-                            handleCloseConfirmDialog();
+                <DialogActions sx={{ justifyContent: "center", gap: 2, padding: "23px 70px", marginTop: "-20px" }}>
+                    <Button onClick={handleLogout}
+                        sx={{
+                            color: "white",
+                            backgroundColor: "#F01424",
+                            padding: "5px 25px",
+                            "&:hover": { backgroundColor: "#FF170F" }
                         }}
-                        color="primary"
+                    >
+                        Sim
+                    </Button>
+                    <Button onClick={handleCloseConfirmDialog}
+                        sx={{
+                            color: "white",
+                            backgroundColor: "#087619",
+                            padding: "5px 30px",
+                            "&:hover": { backgroundColor: "#066915" }
+                        }}
                     >
                         Não
                     </Button>

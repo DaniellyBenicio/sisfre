@@ -21,6 +21,7 @@ const Login = ({ onLogin = () => {} }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [errorInfo, setErrorInfo] = useState({ type: "error", message: "" });
 
   const navigate = useNavigate();
 
@@ -41,7 +42,7 @@ const Login = ({ onLogin = () => {} }) => {
       }
 
     } catch (err) {
-      setError(err.error || err.message || "Erro ao fazer login");
+      setErrorInfo({ type: "error", message: "Falha no login" });
     } finally {
       setLoading(false);
     }
@@ -75,8 +76,8 @@ const Login = ({ onLogin = () => {} }) => {
         }}
       >
         {/* Logo */}
-        <Box sx={{ mb: 2 }}>
-          <img src={logo} alt="logo" style={{ width: 175, height: "auto", marginLeft: "135px" }} />
+        <Box sx={{ mb: 2, textAlign: 'center', marginTop: '-15px' }}>
+          <img src={logo} alt="logo" style={{ width: 175, height: "auto" }} />
         </Box>
         <Typography
           component="h1"

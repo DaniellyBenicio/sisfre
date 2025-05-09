@@ -34,10 +34,12 @@ const Login = ({ onLogin = () => {} }) => {
       if (response.token) {
         localStorage.setItem("token", response.token);
         onLogin();
-        navigate("/");
+        navigate("/MainScreen");
+
       } else {
         setError(response.error || "Erro ao fazer login");
       }
+
     } catch (err) {
       setError(err.error || err.message || "Erro ao fazer login");
     } finally {
@@ -72,8 +74,9 @@ const Login = ({ onLogin = () => {} }) => {
           maxWidth: 450,
         }}
       >
+        {/* Logo */}
         <Box sx={{ mb: 2 }}>
-          <img src={logo} alt="logo" style={{ width: 175, height: "auto" }} />
+          <img src={logo} alt="logo" style={{ width: 175, height: "auto", marginLeft: "135px" }} />
         </Box>
         <Typography
           component="h1"

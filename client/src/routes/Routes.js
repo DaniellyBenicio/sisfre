@@ -1,6 +1,7 @@
 import React from "react";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
 import Login from "../pages/login/Login.js";
+import MainScreen from "../pages/MainScreen.js";
 
 const AppRoutes = ({ isAuthenticated, setAuthenticated }) => {
   const handleLogin = () => {
@@ -9,7 +10,25 @@ const AppRoutes = ({ isAuthenticated, setAuthenticated }) => {
 
   return (
     <Routes>
-      <Route index element={<Login />} />
+      <Route path="/" element={<Navigate to="/login" />} />
+      
+      <Route
+        path="/login"
+        element={
+          !isAuthenticated ? (
+            <Login onLogin={handleLogin} />
+          ) : (
+            <Navigate to="/MainScreen" />
+          )
+        }
+      />
+      
+      <Route
+        path="/MainScreen"
+        element={
+          isAuthenticated ? <MainScreen /> : <Navigate to="/login" />
+        }
+      />
     </Routes>
   );
 };

@@ -12,7 +12,7 @@ import {
 import { styled } from '@mui/material/styles';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
-import axios from 'axios'; // Importe o axios para fazer a requisição HTTP
+import api from "../../../service/api";
 
 const StyledTextField = styled(TextField)({
   '& .MuiOutlinedInput-root': {
@@ -77,7 +77,7 @@ const UserRegistrationPopup = ({ open, onClose, onRegister }) => {
     onSubmit: async (values) => { 
       try {
         
-        const response = await axios.post('api/users', { 
+        const response = await api.post('/users', { 
           username: values.nome, 
           email: values.email,
           password: values.senha, 

@@ -1,18 +1,22 @@
 import React from 'react';
-import { Box } from '@mui/material';
-import SideBar from '../components/SideBar.js'
+import { Box, Typography } from '@mui/material';
+import SideBar from '../components/SideBar.js';
 
 export const MainScreen = () => {
   return (
-    <Box>
+    <Box sx={{ display: 'flex' }}>
       <SideBar />
-
-      <div className="App">
-      <h1>Hello World React</h1>
-      </div>
-
+      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+        <Typography variant="h4" gutterBottom>
+          Tela Principal
+        </Typography>
+        <Typography variant="body1">
+          Bem-vindo à tela principal da sua aplicação.
+        </Typography>
+        {/* Adicione aqui qualquer conteúdo que você queira exibir na página principal */}
+      </Box>
     </Box>
   );
 };
 
-export default MainScreen; 
+export default MainScreen;

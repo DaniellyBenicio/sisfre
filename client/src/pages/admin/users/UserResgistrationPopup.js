@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -17,19 +17,18 @@ import api from "../../../service/api";
 const StyledTextField = styled(TextField)({
   '& .MuiOutlinedInput-root': {
     '& fieldset': {
-      borderColor: '#ced4da', // Cor da borda padrão
+      borderColor: '#ced4da',
     },
     '&:hover fieldset': {
-      borderColor: '#087619', // Cor da borda no hover
+      borderColor: '#087619',
     },
     '&.Mui-focused fieldset': {
-      borderColor: '#087619', // Cor da borda quando focado
-      boxShadow: '0 0 0 0.2rem rgba(8, 118, 25, 0.25)', // Sombra de foco verde
+      borderColor: '#087619',
+      boxShadow: '0 0 0 0.2rem rgba(8, 118, 25, 0.25)',
     },
   },
 });
 
-// Estilizando o Select
 const StyledSelect = styled(Select)({
   '& .MuiOutlinedInput-root': {
     '& fieldset': {
@@ -45,7 +44,6 @@ const StyledSelect = styled(Select)({
   },
 });
 
-// Esquema de validação usando Yup
 const validationSchema = yup.object({
   nome: yup.string().required('Nome é obrigatório'),
   email: yup
@@ -64,7 +62,6 @@ const validationSchema = yup.object({
 });
 
 const UserRegistrationPopup = ({ open, onClose, onRegister }) => {
-  // Configurando o Formik para lidar com o formulário
   const formik = useFormik({
     initialValues: {
       nome: '',
@@ -76,30 +73,43 @@ const UserRegistrationPopup = ({ open, onClose, onRegister }) => {
     validationSchema: validationSchema,
     onSubmit: async (values) => { 
       try {
-        
+        console.log('Enviando requisição para /users com dados:', values);
+        console.log('Configuração da API:', api.defaults); // Loga a configuração do axios
         const response = await api.post('/users', { 
           username: values.nome, 
           email: values.email,
           password: values.senha, 
           accessType: values.tipo,
-          
         });
-        console.log(response);
+        console.log('Resposta da API:', response);
 
-       
         if (response.status === 201) {
-          onRegister(response.data.user);
+          const newUser = {
+            id: response.data.user.id || Date.now().toString(),
+            username: values.nome,
+            email: values.email,
+            accessType: values.tipo,
+          };
+          onRegister(newUser);
           onClose();
           formik.resetForm();
         } else {
-         
-          console.error('Erro ao cadastrar usuário:', response.data);
-          alert('Erro ao cadastrar usuário. Por favor, tente novamente.'); // Alerta simples para feedback
+          console.error('Resposta inesperada da API:', response.data);
+          alert('Erro ao cadastrar usuário. Verifique os dados e tente novamente.');
         }
       } catch (error) {
-        // Captura erros de rede ou erros específicos do backend
-        console.error('Erro ao cadastrar usuário:', error);
-        alert('Erro ao cadastrar usuário. Verifique sua conexão e tente novamente.'); // Alerta para erros de conexão
+        console.error('Erro ao cadastrar usuário:', error.message);
+        if (error.response) {
+          console.error('Status do erro:', error.response.status);
+          console.error('Detalhes do erro da API:', error.response.data);
+          alert(`Erro ao cadastrar usuário: ${error.response.data.message || 'Verifique sua conexão e tente novamente.'}`);
+        } else if (error.request) {
+          console.error('Sem resposta do servidor:', error.request);
+          alert('Erro ao conectar com o servidor. Verifique sua conexão e tente novamente.');
+        } else {
+          console.error('Erro na configuração da requisição:', error.message);
+          alert('Erro inesperado. Tente novamente.');
+        }
       }
     },
   });
@@ -203,10 +213,10 @@ const UserRegistrationPopup = ({ open, onClose, onRegister }) => {
           onClick={onClose}
           variant="outlined"
           sx={{
-            color: '#FF1C1C', // Cor vermelha para Cancelar
+            color: '#FF1C1C',
             borderColor: '#FF1C1C',
             '&:hover': {
-              backgroundColor: 'rgba(255, 28, 28, 0.1)', // Efeito hover vermelho
+              backgroundColor: 'rgba(255, 28, 28, 0.1)',
             },
           }}
         >
@@ -216,10 +226,10 @@ const UserRegistrationPopup = ({ open, onClose, onRegister }) => {
           onClick={formik.handleSubmit}
           variant="contained"
           sx={{
-            backgroundColor: '#087619', // Cor verde para Salvar
+            backgroundColor: '#087619',
             color: 'white',
             '&:hover': {
-              backgroundColor: '#056012', // Tom mais escuro de verde no hover
+              backgroundColor: '#056012',
             },
           }}
           type="submit"

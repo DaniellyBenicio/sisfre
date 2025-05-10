@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Typography,
@@ -18,7 +18,7 @@ import {
 import { Edit, Delete, Search } from "@mui/icons-material";
 import { styled } from '@mui/material/styles';
 import UserRegistrationPopup from "./UserResgistrationPopup"; 
-
+import UserDelete from "./UserDelete";
 
 const SearchBar = ({ value, onChange, sx }) => (
   <TextField
@@ -79,7 +79,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-const UsersTable = ({ users, isMobileWidth }) => {
+const UsersTable = ({ users, isMobileWidth, onDelete }) => {
   return (
     <TableContainer component={Paper} style={{ borderRadius: '10px', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>
       <Table>
@@ -103,7 +103,11 @@ const UsersTable = ({ users, isMobileWidth }) => {
                 <IconButton aria-label="Editar" sx={{ mr: 1, color: '#087619' }}>
                   <Edit fontSize="small" />
                 </IconButton>
-                <IconButton aria-label="Excluir" sx={{ color: '#FF1C1C' }}>
+                <IconButton 
+                  aria-label="Excluir" 
+                  sx={{ color: '#FF1C1C' }}
+                  onClick={() => onDelete(user)}
+                >
                   <Delete fontSize="small" />
                 </IconButton>
               </StyledTableCell>
@@ -117,34 +121,35 @@ const UsersTable = ({ users, isMobileWidth }) => {
 
 // Componente Principal
 const UserList = () => {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState([]); // Lista inicial vazia
   const [search, setSearch] = useState("");
   const [openDialog, setOpenDialog] = useState(false); 
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
   const isMobileWidth = useMediaQuery("(max-width:600px)");
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      const data = [
-        { id: 'JO', username: "José Olinda", email: "jolinda@ifce.edu.br", accessType: "Coordenador" },
-        { id: 'SI', username: "Silvano", email: "silvano@ifce.edu.br", accessType: "Diretor Ensino" },
-        { id: 'JA', username: "Jamires Costa", email: "fcosta@ifce.edu.br", accessType: "Professor" },
-        { id: 'PE', username: "Pedro Barbosa", email: "plbs@ifce.edu.br", accessType: "Professor" },
-        { id: 'SA', username: "Saulo Lima", email: "saulol@ifce.edu.br", accessType: "Professor" },
-        { id: 'MI', username: "Michael Bastos", email: "michaelbast@ifce.edu.br", accessType: "Professor" },
-      ];
-      setUsers(data);
-    };
-    fetchUsers();
-  }, []);
 
   const filteredUsers = users.filter((user) =>
     user.username.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handleRegister = (newUser) => {
+    // Adiciona o novo usuário à lista de usuários
+    setUsers((prevUsers) => [...prevUsers, newUser]);
+    console.log('Novo usuário adicionado à lista:', newUser);
+  };
 
-  const handleRegister = (userData) => {
-    console.log('Dados do usuário a serem registrados:', userData);
-    
+  const handleDelete = (user) => {
+    setUserToDelete(user);
+    setOpenDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
+    if (userToDelete) {
+      setUsers(users.filter((user) => user.id !== userToDelete.id));
+      console.log(`Usuário ${userToDelete.username} excluído.`);
+    }
+    setOpenDeleteDialog(false);
+    setUserToDelete(null);
   };
 
   return (
@@ -179,12 +184,23 @@ const UserList = () => {
       <UsersTable
         users={filteredUsers}
         isMobileWidth={isMobileWidth}
+        onDelete={handleDelete}
       />
 
       <UserRegistrationPopup
         open={openDialog} 
         onClose={() => setOpenDialog(false)} 
         onRegister={handleRegister} 
+      />
+
+      <UserDelete
+        open={openDeleteDialog}
+        onClose={() => {
+          setOpenDeleteDialog(false);
+          setUserToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        userName={userToDelete ? userToDelete.username : ''}
       />
     </Box>
   );

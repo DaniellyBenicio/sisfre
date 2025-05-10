@@ -74,7 +74,7 @@ const UserRegistrationPopup = ({ open, onClose, onRegister }) => {
     onSubmit: async (values) => { 
       try {
         console.log('Enviando requisição para /users com dados:', values);
-        console.log('Configuração da API:', api.defaults); // Loga a configuração do axios
+        console.log('Configuração da API:', api.defaults);
         const response = await api.post('/users', { 
           username: values.nome, 
           email: values.email,
@@ -102,7 +102,12 @@ const UserRegistrationPopup = ({ open, onClose, onRegister }) => {
         if (error.response) {
           console.error('Status do erro:', error.response.status);
           console.error('Detalhes do erro da API:', error.response.data);
-          alert(`Erro ao cadastrar usuário: ${error.response.data.message || 'Verifique sua conexão e tente novamente.'}`);
+          const errorMessage = error.response.data.message || 'Erro desconhecido.';
+          if (error.response.status === 409) {
+            alert('Erro: Este e-mail já está cadastrado. Use um e-mail diferente.');
+          } else {
+            alert(`Erro ao cadastrar usuário: ${errorMessage}`);
+          }
         } else if (error.request) {
           console.error('Sem resposta do servidor:', error.request);
           alert('Erro ao conectar com o servidor. Verifique sua conexão e tente novamente.');

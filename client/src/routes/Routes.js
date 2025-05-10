@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Route, Routes, Navigate, useNavigate } from "react-router-dom";
 import Login from "../pages/login/Login.js";
 import UsersPage from "../pages/admin/users/UsersPage.js"; 
+import CoursePage from "../pages/admin/courses/CoursesPage.js";
 
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(false);
@@ -35,6 +36,11 @@ const AppRoutes = () => {
       <Route
         path="/users"
         element={isAuthenticated ? <UsersPage setAuthenticated={handleLogout} /> : <Navigate to="/login" />}
+      />
+
+      <Route
+        path="/courses"
+        element={isAuthenticated ? <CoursePage setAuthenticated={handleLogout} /> : <Navigate to="/login" />}
       />
     </Routes>
   );

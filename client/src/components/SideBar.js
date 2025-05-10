@@ -3,7 +3,7 @@ import {
     Drawer, List, ListItem, ListItemText, Divider, Typography, Dialog, DialogActions, DialogContent, Button, IconButton,
     Toolbar, AppBar, Box
 } from '@mui/material';
-import { Menu, People, School, ExitToApp } from '@mui/icons-material';
+import { Menu, People, School, ExitToApp, Warning } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useMediaQuery } from '@mui/material';
 import LogoMenu from '../assets/LogoMenu.svg';
@@ -143,9 +143,16 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
                     {drawerContent}
                 </Drawer>
             )}
-            <Dialog open={openConfirmDialog} onClose={handleCloseConfirmDialog} >
+            <Dialog open={openConfirmDialog} onClose={handleCloseConfirmDialog} 
+                PaperProps={{
+                    sx: { borderRadius: '9px' }
+                }}
+            >
                 <DialogContent sx={{ textAlign: "center", width: "390px" }}>
-                    <Typography sx={{ fontSize: "1rem", paddingTop: "15px" }}>
+                    <Box display="flex" justifyContent="center" mb={2}>
+                        <Warning sx={{ fontSize: 55, color: '#FFA000' }} />
+                    </Box>
+                    <Typography sx={{ fontSize: "1rem" }}>
                         Tem certeza que deseja sair?
                     </Typography>
                 </DialogContent>
@@ -153,9 +160,9 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
                     <Button onClick={handleLogout}
                         sx={{
                             color: "white",
-                            backgroundColor: "#F01424",
+                            backgroundColor: "#087619",
                             padding: "5px 25px",
-                            "&:hover": { backgroundColor: "#FF170F" }
+                            "&:hover": { backgroundColor: "#066915" }
                         }}
                     >
                         Sim
@@ -163,9 +170,9 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
                     <Button onClick={handleCloseConfirmDialog}
                         sx={{
                             color: "white",
-                            backgroundColor: "#087619",
-                            padding: "5px 30px",
-                            "&:hover": { backgroundColor: "#066915" }
+                            backgroundColor: "#F01424",
+                            padding: "5px 25px",
+                            "&:hover": { backgroundColor: "#FF170F" }
                         }}
                     >
                         Não

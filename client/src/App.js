@@ -1,17 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router} from 'react-router-dom';
 import './App.css';
 import AppRoutes from "./routes/Routes";
 
-function App() {
+const App = () => {
+  const [isAuthenticated, setAuthenticated] = useState(!!localStorage.getItem('token'))
 
-    return (
-      <Router>
-        <div className="App">
-            <AppRoutes />
-        </div>
-      </Router>
-    );
-}
+  return (
+    <Router>
+      <AppRoutes
+        isAuthenticated={isAuthenticated}
+        setAuthenticated={setAuthenticated}
+      />
+    </Router>
+  );
+};
 
 export default App;

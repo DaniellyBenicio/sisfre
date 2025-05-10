@@ -21,6 +21,7 @@ const Login = ({ onLogin = () => {} }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [errorInfo, setErrorInfo] = useState({ type: "error", message: "" });
 
   const navigate = useNavigate();
 
@@ -34,12 +35,14 @@ const Login = ({ onLogin = () => {} }) => {
       if (response.token) {
         localStorage.setItem("token", response.token);
         onLogin();
-        navigate("/");
+        navigate("/MainScreen");
+
       } else {
         setError(response.error || "Erro ao fazer login");
       }
+
     } catch (err) {
-      setError(err.error || err.message || "Erro ao fazer login");
+      setErrorInfo({ type: "error", message: "Falha no login" });
     } finally {
       setLoading(false);
     }
@@ -72,7 +75,8 @@ const Login = ({ onLogin = () => {} }) => {
           maxWidth: 450,
         }}
       >
-        <Box sx={{ mb: 2 }}>
+        {/* Logo */}
+        <Box sx={{ mb: 2, textAlign: 'center', marginTop: '-15px' }}>
           <img src={logo} alt="logo" style={{ width: 175, height: "auto" }} />
         </Box>
         <Typography

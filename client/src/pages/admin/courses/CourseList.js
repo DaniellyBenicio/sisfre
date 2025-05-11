@@ -2,12 +2,13 @@ import React, { useState, useEffect } from "react";
 import {
   Box, Typography, TextField, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, Paper, useMediaQuery,
-  IconButton, InputAdornment, Button
+  IconButton, InputAdornment, Button, CircularProgress
 } from "@mui/material";
 import { Edit, Delete, Search } from "@mui/icons-material";
 import { styled } from '@mui/material/styles';
 import DeleteConfirmationDialog from "../../../components/DeleteConfirmationDialog";
 import api from "../../../service/api";
+import CourseModal from "../../../components/CourseModal";
 
 const SearchBar = ({ value, onChange, sx }) => (
   <TextField
@@ -70,22 +71,30 @@ const CoursesTable = ({ courses, onDelete }) => (
         </TableRow>
       </StyledTableHead>
       <TableBody>
-        {courses.map((course) => (
-          <StyledTableRow key={course.id}>
-            <StyledTableCell>{course.id}</StyledTableCell>
-            <StyledTableCell>{course.coursename}</StyledTableCell>
-            <StyledTableCell>{course.email}</StyledTableCell>
-            <StyledTableCell>{course.accessType}</StyledTableCell>
-            <StyledTableCell>
-              <IconButton sx={{ mr: 1, color: '#087619' }}>
-                <Edit fontSize="small" />
-              </IconButton>
-              <IconButton sx={{ color: '#FF1C1C' }} onClick={() => onDelete(course)}>
-                <Delete fontSize="small" />
-              </IconButton>
-            </StyledTableCell>
-          </StyledTableRow>
-        ))}
+        {courses.length === 0 ? (
+          <TableRow>
+            <StyledTableCell colSpan={5}>Nenhum curso encontrado</StyledTableCell>
+          </TableRow>
+        ) : (
+          courses.map((course) => (
+            <StyledTableRow key={course.id}>
+              <StyledTableCell>{course.acronym}</StyledTableCell>
+              <StyledTableCell>{course.name}</StyledTableCell>
+              <StyledTableCell>{course.coordinatorName || course.coordinatorId || 'N/A'}</StyledTableCell>
+              <StyledTableCell>
+                {course.type === 'G' ? 'Graduação' : course.type === 'T' ? 'Técnico' : 'Integrado'}
+              </StyledTableCell>
+              <StyledTableCell>
+                <IconButton sx={{ mr: 1, color: '#087619' }}>
+                  <Edit fontSize="small" />
+                </IconButton>
+                <IconButton sx={{ color: '#FF1C1C' }} onClick={() => onDelete(course)}>
+                  <Delete fontSize="small" />
+                </IconButton>
+              </StyledTableCell>
+            </StyledTableRow>
+          ))
+        )}
       </TableBody>
     </Table>
   </TableContainer>
@@ -97,27 +106,97 @@ const CourseList = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState(null);
+  const [loading, setLoading] = useState(true);
   const isMobileWidth = useMediaQuery("(max-width:600px)");
 
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await api.get("/courses");
-        setCourses(response.data);
+        setLoading(true);
+        const [coursesResponse, usersResponse] = await Promise.all([
+          api.get("/courses"),
+          api.get("/users")
+        ]);
+        console.log("Resposta da API /courses:", coursesResponse.data);
+        console.log("Resposta da API /users:", usersResponse.data);
+
+        let courses = coursesResponse.data;
+        if (!Array.isArray(courses)) {
+          console.warn("coursesResponse.data não é um array:", courses);
+          courses = courses.courses || courses.data || [];
+        }
+
+        let users = usersResponse.data;
+        if (!Array.isArray(users)) {
+          console.warn("usersResponse.data não é um array:", users);
+          users = users.users || users.data || [];
+        }
+
+        const coursesWithCoordinators = courses.map(course => ({
+          ...course,
+          coordinatorName: users.find(user => user.id === course.coordinatorId)?.username || 'N/A'
+        }));
+
+        setCourses(coursesWithCoordinators);
+        if (courses.length === 0) {
+          console.warn("Nenhum curso encontrado na resposta da API");
+        }
+        if (users.length === 0) {
+          console.warn("Nenhum usuário encontrado na resposta da API");
+        }
       } catch (error) {
-        console.error("Erro ao buscar cursos:", error);
+        console.error("Erro ao buscar cursos:", error.message, error.response?.data);
+        setCourses([]);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchCourses();
   }, []);
 
-  const filteredCourses = courses.filter((course) =>
-    course.coursename.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredCourses = Array.isArray(courses)
+    ? courses.filter(
+        (course) =>
+          course.name &&
+          course.name.toLowerCase().includes(search.toLowerCase())
+      )
+    : [];
 
-  const handleRegister = (newCourse) => {
-    setCourses((prev) => [...prev, newCourse]);
+  const handleRegister = async (newCourse) => {
+    console.log('Novo curso registrado:', newCourse);
+    try {
+      const [coursesResponse, usersResponse] = await Promise.all([
+        api.get("/courses"),
+        api.get("/users")
+      ]);
+      console.log("Resposta da API /courses após registro:", coursesResponse.data);
+      console.log("Resposta da API /users após registro:", usersResponse.data);
+
+      let courses = coursesResponse.data;
+      if (!Array.isArray(courses)) {
+        console.warn("coursesResponse.data não é um array:", courses);
+        courses = courses.courses || courses.data || [];
+      }
+
+      let users = usersResponse.data;
+      if (!Array.isArray(users)) {
+        console.warn("usersResponse.data não é um array:", users);
+        users = users.users || users.data || [];
+      }
+
+      const coursesWithCoordinators = courses.map(course => ({
+        ...course,
+        coordinatorName: users.find(user => user.id === course.coordinatorId)?.username || 'N/A'
+      }));
+      setCourses(coursesWithCoordinators);
+    } catch (error) {
+      console.error("Erro ao refetch cursos após registro:", error.message, error.response?.data);
+      setCourses((prev) => [...prev, {
+        ...newCourse,
+        coordinatorName: newCourse.coordinatorId ? prev.find(c => c.coordinatorId === newCourse.coordinatorId)?.coordinatorName || 'N/A' : 'N/A'
+      }]);
+    }
   };
 
   const handleDeleteClick = (course) => {
@@ -129,8 +208,7 @@ const CourseList = () => {
     try {
       await api.delete(`/courses/${courseToDelete.id}`);
       setCourses(courses.filter((c) => c.id !== courseToDelete.id));
-      console.log(`Curso ${courseToDelete.coursename} excluído.`);
-    
+      console.log(`Curso ${courseToDelete.name} excluído.`);
     } catch (error) {
       console.error("Erro ao excluir curso:", error);
     } finally {
@@ -168,23 +246,29 @@ const CourseList = () => {
         </Button>
       </Box>
 
-      <CoursesTable
-        courses={filteredCourses}
-        onDelete={handleDeleteClick}
-      />
+      {loading ? (
+        <Box display="flex" justifyContent="center">
+          <CircularProgress />
+        </Box>
+      ) : (
+        <CoursesTable
+          courses={filteredCourses}
+          onDelete={handleDeleteClick}
+        />
+      )}
 
-      {/*<CourseRegistrationPopup
+      <CourseModal
         open={openDialog}
         onClose={() => setOpenDialog(false)}
-        onRegister={handleRegister}
-      />*/}
+        onUpdate={handleRegister}
+      />
 
       <DeleteConfirmationDialog
         open={openDeleteDialog}
         onClose={() => setOpenDeleteDialog(false)}
         onConfirm={handleConfirmDelete}
         title="Confirmar exclusão"
-        message={`Deseja realmente excluir o curso "${courseToDelete?.coursename}"?`}
+        message={`Deseja realmente excluir o curso "${courseToDelete?.name}"?`}
       />
     </Box>
   );

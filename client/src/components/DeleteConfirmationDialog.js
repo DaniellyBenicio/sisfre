@@ -17,8 +17,8 @@ const DeleteConfirmationDialog = ({ open, onClose, title, message, onConfirm, us
         </Typography>
       </DialogContent>
       
-      <DialogActions sx={{ gap: 2, padding: "23px 70px", marginTop: "-20px" }}>
-        <Button onClick={onClose}
+      <DialogActions sx={{ gap: 2, padding: "23px 70px", marginTop: "-20px", justifyContent: 'center' }}>
+        <Button onClick={onConfirm}
           sx={{
             color: "white",
             backgroundColor: "#087619",
@@ -28,7 +28,7 @@ const DeleteConfirmationDialog = ({ open, onClose, title, message, onConfirm, us
         >
           Sim
         </Button>
-        <Button onClick={onConfirm}
+        <Button onClick={onClose}
           sx={{
             color: "white",
             backgroundColor: "#F01424",

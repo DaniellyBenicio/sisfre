@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -14,11 +14,11 @@ import {
   IconButton,
   InputAdornment,
   Button,
-} from "@mui/material";
-import { Edit, Delete, Search } from "@mui/icons-material";
+} from '@mui/material';
+import { Edit, Delete, Search } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
-import UserRegistrationPopup from "./UserResgistrationPopup"; 
-import UserDelete from "./UserDelete";
+import UserRegistrationPopup from './UserResgistrationPopup';
+import UserDelete from './UserDelete';
 
 const SearchBar = ({ value, onChange, sx }) => (
   <TextField
@@ -28,9 +28,9 @@ const SearchBar = ({ value, onChange, sx }) => (
     variant="outlined"
     sx={{
       ...sx,
-      "& .MuiInputBase-root": {
-        height: "35px",
-        fontSize: "0.875rem",
+      '& .MuiInputBase-root': {
+        height: '35px',
+        fontSize: '0.875rem',
       },
       borderRadius: '10px',
       boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
@@ -42,7 +42,7 @@ const SearchBar = ({ value, onChange, sx }) => (
       },
       '& .MuiInputBase-input': {
         padding: '8px 12px',
-      }
+      },
     }}
     InputProps={{
       startAdornment: (
@@ -60,7 +60,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
     borderRight: 'none',
   },
   padding: '12px',
-  textAlign: 'center'
+  textAlign: 'center',
 }));
 
 const StyledTableHead = styled(TableHead)(({ theme }) => ({
@@ -69,7 +69,7 @@ const StyledTableHead = styled(TableHead)(({ theme }) => ({
     color: 'white',
     fontWeight: 'bold',
     padding: '12px',
-    textAlign: 'center' 
+    textAlign: 'center',
   },
 }));
 
@@ -93,47 +93,55 @@ const UsersTable = ({ users, isMobileWidth, onDelete }) => {
           </TableRow>
         </StyledTableHead>
         <TableBody>
-          {users.map((user) => (
-            <StyledTableRow key={user.id}>
-              <StyledTableCell>{user.id}</StyledTableCell>
-              <StyledTableCell>{user.username}</StyledTableCell>
-              <StyledTableCell>{user.email}</StyledTableCell>
-              <StyledTableCell>{user.accessType}</StyledTableCell>
-              <StyledTableCell>
-                <IconButton aria-label="Editar" sx={{ mr: 1, color: '#087619' }}>
-                  <Edit fontSize="small" />
-                </IconButton>
-                <IconButton 
-                  aria-label="Excluir" 
-                  sx={{ color: '#FF1C1C' }}
-                  onClick={() => onDelete(user)}
-                >
-                  <Delete fontSize="small" />
-                </IconButton>
+          {users.length === 0 ? (
+            <StyledTableRow>
+              <StyledTableCell colSpan={5} sx={{ textAlign: 'center', py: 2 }}>
+                <Typography variant="body1" color="black">
+                  Nenhum usuário cadastrado
+                </Typography>
               </StyledTableCell>
             </StyledTableRow>
-          ))}
+          ) : (
+            users.map((user) => (
+              <StyledTableRow key={user.id}>
+                <StyledTableCell>{user.id}</StyledTableCell>
+                <StyledTableCell>{user.username}</StyledTableCell>
+                <StyledTableCell>{user.email}</StyledTableCell>
+                <StyledTableCell>{user.accessType}</StyledTableCell>
+                <StyledTableCell>
+                  <IconButton aria-label="Editar" sx={{ mr: 1, color: '#087619' }}>
+                    <Edit fontSize="small" />
+                  </IconButton>
+                  <IconButton
+                    aria-label="Excluir"
+                    sx={{ color: '#FF1C1C' }}
+                    onClick={() => onDelete(user)}
+                  >
+                    <Delete fontSize="small" />
+                  </IconButton>
+                </StyledTableCell>
+              </StyledTableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </TableContainer>
   );
 };
 
-// Componente Principal
 const UserList = () => {
-  const [users, setUsers] = useState([]); // Lista inicial vazia
-  const [search, setSearch] = useState("");
-  const [openDialog, setOpenDialog] = useState(false); 
+  const [users, setUsers] = useState([]);
+  const [search, setSearch] = useState('');
+  const [openDialog, setOpenDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
-  const isMobileWidth = useMediaQuery("(max-width:600px)");
+  const isMobileWidth = useMediaQuery('(max-width:600px)');
 
   const filteredUsers = users.filter((user) =>
     user.username.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleRegister = (newUser) => {
-    // Adiciona o novo usuário à lista de usuários
     setUsers((prevUsers) => [...prevUsers, newUser]);
     console.log('Novo usuário adicionado à lista:', newUser);
   };
@@ -157,11 +165,11 @@ const UserList = () => {
       <Typography variant="h5" align="center" gutterBottom style={{ fontWeight: 'bold', color: '#2c3e50' }}>
         Usuários
       </Typography>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: 'center', mb: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <SearchBar
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          sx={{ width: isMobileWidth ? "100%" : "300px" }}
+          sx={{ width: isMobileWidth ? '100%' : '300px' }}
         />
         <Button
           variant="contained"
@@ -174,9 +182,9 @@ const UserList = () => {
               backgroundColor: '#056012',
             },
             textTransform: 'none',
-            padding: '8px 16px'
+            padding: '8px 16px',
           }}
-          onClick={() => setOpenDialog(true)} 
+          onClick={() => setOpenDialog(true)}
         >
           Cadastrar Usuário
         </Button>
@@ -186,13 +194,11 @@ const UserList = () => {
         isMobileWidth={isMobileWidth}
         onDelete={handleDelete}
       />
-
       <UserRegistrationPopup
-        open={openDialog} 
-        onClose={() => setOpenDialog(false)} 
-        onRegister={handleRegister} 
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        onRegister={handleRegister}
       />
-
       <UserDelete
         open={openDeleteDialog}
         onClose={() => {

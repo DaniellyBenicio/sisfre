@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -19,6 +19,7 @@ import { Edit, Delete, Search } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import UserRegistrationPopup from './UserResgistrationPopup';
 import UserDelete from './UserDelete';
+import api from "../../../service/api";
 
 const SearchBar = ({ value, onChange, sx }) => (
   <TextField
@@ -136,6 +137,27 @@ const UserList = () => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const isMobileWidth = useMediaQuery('(max-width:600px)');
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await api.get('/users/all');
+      console.log('Resposta da API:', response.data); 
+      if (!response.data || !Array.isArray(response.data.users)) {
+        throw new Error('Erro ao buscar usuários: Dados inválidos');
+      }
+      setUsers(response.data.users);
+    } catch (error) {
+      console.error('Erro ao buscar usuários:', error);
+      if (error.response) {
+        console.error('Status:', error.response.status);
+        console.error('Dados do erro:', error.response.data);
+      }
+    }
+  };
 
   const filteredUsers = users.filter((user) =>
     user.username.toLowerCase().includes(search.toLowerCase())

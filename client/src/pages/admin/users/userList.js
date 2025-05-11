@@ -19,6 +19,7 @@ import { Edit, Delete, Search } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import UserRegistrationPopup from './UserResgistrationPopup';
 import UserDelete from './UserDelete';
+import UserUpdatePopup from "./UserUpdatePopup";
 import api from "../../../service/api";
 
 const SearchBar = ({ value, onChange, sx }) => (
@@ -80,7 +81,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-const UsersTable = ({ users, isMobileWidth, onDelete }) => {
+const UsersTable = ({ users, isMobileWidth, onDelete, onEdit }) => {
   return (
     <TableContainer component={Paper} style={{ borderRadius: '10px', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>
       <Table>
@@ -110,7 +111,11 @@ const UsersTable = ({ users, isMobileWidth, onDelete }) => {
                 <StyledTableCell>{user.email}</StyledTableCell>
                 <StyledTableCell>{user.accessType}</StyledTableCell>
                 <StyledTableCell>
-                  <IconButton aria-label="Editar" sx={{ mr: 1, color: '#087619' }}>
+                  <IconButton
+                    aria-label="Editar"
+                    sx={{ mr: 1, color: '#087619' }}
+                    onClick={() => onEdit(user)}
+                  >
                     <Edit fontSize="small" />
                   </IconButton>
                   <IconButton
@@ -135,17 +140,21 @@ const UserList = () => {
   const [search, setSearch] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [openUpdateDialog, setOpenUpdateDialog] = useState(false);
+  const [userToEdit, setUserToEdit] = useState(null);
   const [userToDelete, setUserToDelete] = useState(null);
   const isMobileWidth = useMediaQuery('(max-width:600px)');
 
+  // Carregar usuários da API ao montar o componente
   useEffect(() => {
     fetchUsers();
   }, []);
 
+  // Função para buscar todos os usuários
   const fetchUsers = async () => {
     try {
       const response = await api.get('/users/all');
-      console.log('Resposta da API:', response.data); 
+      console.log('Resposta da API:', response.data);
       if (!response.data || !Array.isArray(response.data.users)) {
         throw new Error('Erro ao buscar usuários: Dados inválidos');
       }
@@ -159,6 +168,7 @@ const UserList = () => {
     }
   };
 
+  // Filtrar usuários com base na busca
   const filteredUsers = users.filter((user) =>
     user.username.toLowerCase().includes(search.toLowerCase())
   );
@@ -168,18 +178,25 @@ const UserList = () => {
     console.log('Novo usuário adicionado à lista:', newUser);
   };
 
+  const handleEdit = (user) => {
+    setUserToEdit(user);
+    setOpenUpdateDialog(true);
+  };
+
+  const handleUpdate = (updatedUser) => {
+    setUsers((prevUsers) =>
+      prevUsers.map((user) => (user.id === updatedUser.id ? updatedUser : user))
+    );
+    fetchUsers(); // Recarregar a lista para garantir sincronia
+  };
+
   const handleDelete = (user) => {
     setUserToDelete(user);
     setOpenDeleteDialog(true);
   };
 
-  const confirmDelete = () => {
-    if (userToDelete) {
-      setUsers(users.filter((user) => user.id !== userToDelete.id));
-      console.log(`Usuário ${userToDelete.username} excluído.`);
-    }
-    setOpenDeleteDialog(false);
-    setUserToDelete(null);
+  const handleDeleteSuccess = (userId) => {
+    fetchUsers(); // Recarregar a lista de usuários
   };
 
   return (
@@ -215,11 +232,21 @@ const UserList = () => {
         users={filteredUsers}
         isMobileWidth={isMobileWidth}
         onDelete={handleDelete}
+        onEdit={handleEdit}
       />
       <UserRegistrationPopup
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         onRegister={handleRegister}
+      />
+      <UserUpdatePopup
+        open={openUpdateDialog}
+        onClose={() => {
+          setOpenUpdateDialog(false);
+          setUserToEdit(null);
+        }}
+        user={userToEdit}
+        onUpdate={handleUpdate}
       />
       <UserDelete
         open={openDeleteDialog}
@@ -227,8 +254,9 @@ const UserList = () => {
           setOpenDeleteDialog(false);
           setUserToDelete(null);
         }}
-        onConfirm={confirmDelete}
+        userId={userToDelete ? userToDelete.id : null}
         userName={userToDelete ? userToDelete.username : ''}
+        onDeleteSuccess={handleDeleteSuccess}
       />
     </Box>
   );

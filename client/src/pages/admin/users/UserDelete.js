@@ -8,8 +8,54 @@ import {
   Typography,
 } from '@mui/material';
 import { Warning } from '@mui/icons-material';
+import api from '../../../service/api';
 
-const UserDelete = ({ open, onClose, onConfirm, userName }) => {
+const UserDelete = ({ open, onClose, userId, userName, onDeleteSuccess }) => {
+  const handleDelete = async () => {
+    if (!userId) {
+      console.error('Erro: userId não fornecido');
+      alert('Erro: ID do usuário não fornecido. Tente novamente.');
+      return;
+    }
+
+    try {
+      console.log(`Enviando requisição DELETE para /users/${userId}`);
+      const response = await api.delete(`/users/${userId}`);
+      console.log('Resposta da API:', response);
+
+      if (response.status === 200) {
+        alert('Usuário deletado com sucesso!');
+        if (onDeleteSuccess) {
+          onDeleteSuccess(userId);
+        }
+        onClose();
+      } else {
+        console.error('Resposta inesperada da API:', response.data);
+        alert('Erro ao deletar usuário. Verifique os dados e tente novamente.');
+      }
+    } catch (error) {
+      console.error('Erro ao deletar usuário:', error.message);
+      if (error.response) {
+        console.error('Status do erro:', error.response.status);
+        console.error('Detalhes do erro da API:', error.response.data);
+        const errorMessage = error.response.data.error || 'Erro desconhecido.';
+        if (error.response.status === 403) {
+          alert('Erro: Você não tem permissão para deletar este usuário.');
+        } else if (error.response.status === 404) {
+          alert('Erro: Usuário não encontrado.');
+        } else {
+          alert(`Erro ao deletar usuário: ${errorMessage}`);
+        }
+      } else if (error.request) {
+        console.error('Sem resposta do servidor:', error.request);
+        alert('Erro ao conectar com o servidor. Verifique sua conexão e tente novamente.');
+      } else {
+        console.error('Erro na configuração da requisição:', error.message);
+        alert('Erro inesperado. Tente novamente.');
+      }
+    }
+  };
+
   return (
     <Dialog
       open={open}
@@ -30,13 +76,15 @@ const UserDelete = ({ open, onClose, onConfirm, userName }) => {
         </Typography>
       </DialogTitle>
       <DialogContent sx={{ padding: '20px 24px' }}>
-        {/* O nome do usuário não aparece na imagem, então removi essa parte */}
+        <Typography>
+          Esta ação não pode ser desfeita. O usuário {userName} será removido permanentemente.
+        </Typography>
       </DialogContent>
       <DialogActions sx={{ padding: '16px 24px', justifyContent: 'flex-end' }}>
         <Button
-          onClick={onConfirm} // Corrigido: "Sim" agora chama onConfirm
+          onClick={handleDelete}
           sx={{
-            backgroundColor: '#4CAF50', // Cor do botão "Sim"
+            backgroundColor: '#4CAF50',
             color: 'white',
             textTransform: 'none',
             fontWeight: 'bold',
@@ -51,9 +99,9 @@ const UserDelete = ({ open, onClose, onConfirm, userName }) => {
           Sim
         </Button>
         <Button
-          onClick={onClose} // Corrigido: "Não" agora chama onClose
+          onClick={onClose}
           sx={{
-            backgroundColor: '#f44336', // Cor do botão "Não"
+            backgroundColor: '#f44336',
             color: 'white',
             textTransform: 'none',
             fontWeight: 'bold',

@@ -23,18 +23,16 @@ module.exports = {
         type: Sequelize.ENUM("G", "T", "I"),
         allowNull: false,
       },
-      /*
       coordinatorId: {
         type: Sequelize.INTEGER,
-        allowNull: true,
         references: {
-          model: "users", // Nome da tabela de referência
-          key: "id", // Chave primária da tabela de referência
+          model: "users",
+          key: "id",
         },
         onUpdate: "CASCADE",
         onDelete: "SET NULL",
+        allowNull: true,
       },
-      */
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,

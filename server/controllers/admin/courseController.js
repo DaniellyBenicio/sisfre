@@ -11,23 +11,31 @@ exports.createCourse = async (req, res) => {
       .json({ error: "Os campos nome, sigla e tipo são obrigatórios." });
   }
 
+  if (!["G", "T", "I"].includes(type)) {
+    return res
+      .status(400)
+      .json({ error: "O tipo do curso deve ser 'G', 'T' ou 'I'." });
+  }
+
   try {
-    
-    /*
-    // Verificar se o coordenador existe, se fornecido
+    const existingCourse = await Course.findOne({ where: { acronym } });
+    if (existingCourse) {
+      return res
+        .status(400)
+        .json({ error: "Sigla já cadastrada. Tente outra." });
+    }
+
     if (coordinatorId) {
       const coordinator = await User.findByPk(coordinatorId);
       if (!coordinator) {
-        return res.status(404).json({ error: "Coordenador não encontrado." });
+        return res.status(404).json({ error: "Coordenador não encontrado" });
       }
     }
-    */
-
     const course = await Course.create({ name, acronym, type, coordinatorId });
-    res.status(201).json({ message: "Curso criado com sucesso.", course });
+    res.status(201).json({ course });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Erro ao criar o curso." });
+    res.status(500).json({ error: "Erro ao cadastrar curso" });
   }
 };
 
@@ -48,7 +56,13 @@ exports.getCourses = async (req, res) => {
 
     const { rows, count } = await Course.findAndCountAll({
       where,
-      include: [{ model: User, as: "coordinator", attributes: ["id", "username", "email"] }],
+      include: [
+        {
+          model: User,
+          as: "coordinator",
+          attributes: ["id", "username", "email"],
+        },
+      ],
       limit: parseInt(limit),
       offset,
       order: [["name", "ASC"]],
@@ -71,7 +85,13 @@ exports.getCourseById = async (req, res) => {
 
   try {
     const course = await Course.findByPk(courseId, {
-      include: [{ model: User, as: "coordinator", attributes: ["id", "username", "email"] }],
+      include: [
+        {
+          model: User,
+          as: "coordinator",
+          attributes: ["id", "username", "email"],
+        },
+      ],
     });
 
     if (!course) {

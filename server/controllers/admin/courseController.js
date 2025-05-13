@@ -18,11 +18,20 @@ exports.createCourse = async (req, res) => {
   }
 
   try {
-    const existingCourse = await Course.findOne({ where: { acronym } });
+    const existingCourse = await Course.findOne({
+      where: {
+        [Sequelize.Op.or]: [{ acronym }, { name }],
+      },
+    });
+
     if (existingCourse) {
+      const duplicatedField =
+        existingCourse.acronym === acronym ? "sigla" : "nome";
       return res
         .status(400)
-        .json({ error: "Sigla já cadastrada. Tente outra." });
+        .json({
+          error: `A ${duplicatedField} já está cadastrada. Tente outra.`,
+        });
     }
 
     if (coordinatorId) {

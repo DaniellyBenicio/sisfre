@@ -3,19 +3,21 @@ const User = require("../../models/admin/User");
 const bcrypt = require("bcryptjs");
 
 exports.registerUser = async (req, res) => {
-  const { email, password, username, accessType } = req.body;
+  const { email, username, accessType } = req.body;
 
-  if (!email || !password || !username || !accessType) {
-    return res
-      .status(400)
-      .json({
-        error:
-          "Todos os campos (email, senha, nome e tipo de acesso) são obrigatórios",
-      });
+  if (!email || !username || !accessType) {
+    return res.status(400).json({
+      error: "Email, nome e tipo de acesso são obrigatórios",
+    });
+  }
+
+  if (!email.endsWith("@ifce.edu.br")) {
+    return res.status(400).json({
+      error: "Apenas e-mails institucionais (@ifce.edu.br) são permitidos",
+    });
   }
 
   try {
-    // Verificar se já existe um usuário com o e-mail informado
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       return res
@@ -23,15 +25,23 @@ exports.registerUser = async (req, res) => {
         .json({ error: "E-mail já cadastrado. Tente outro." });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const defaultPassword = "123456"; //mudar posteriormente para primeiro acesso
+    const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+
     const user = await User.create({
       email,
       password: hashedPassword,
-      accessType,
       username,
+      accessType,
     });
-    res.status(201).json({ user });
+
+    res.status(201).json({
+      message:
+        "Usuário cadastrado com sucesso. Use a senha padrão '123456' para o primeiro login.",
+      user,
+    });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "Erro ao cadastrar usuário" });
   }
 };
@@ -41,12 +51,10 @@ exports.updateUser = async (req, res) => {
   const userId = req.params.id;
 
   if (!email && !password && !username && !accessType) {
-    return res
-      .status(400)
-      .json({
-        error:
-          "Pelo menos um campo (email, senha, nome e tipo de acesso) deve ser fornecido para atualização",
-      });
+    return res.status(400).json({
+      error:
+        "Pelo menos um campo (email, senha, nome e tipo de acesso) deve ser fornecido para atualização",
+    });
   }
 
   try {

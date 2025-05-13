@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from "react";
 import {
   Dialog,
   DialogTitle,
@@ -10,119 +10,227 @@ import {
   Select,
   FormControl,
   InputLabel,
-} from '@mui/material';
-import { toast } from 'react-toastify';
-import api from '../../../service/api';
+} from "@mui/material";
+import { styled } from "@mui/material/styles";
+import { useFormik } from "formik";
+import * as yup from "yup";
+import { toast } from "react-toastify";
+import api from "../../../service/api";
+
+const StyledTextField = styled(TextField)({
+  "& .MuiOutlinedInput-root": {
+    "& fieldset": {
+      borderColor: "#ced4da",
+    },
+    "&:hover fieldset": {
+      borderColor: "#087619",
+    },
+    "&.Mui-focused fieldset": {
+      borderColor: "#087619",
+      boxShadow: "0 0 0 0.2rem rgba(8, 118, 25, 0.25)",
+    },
+    "&.Mui-error fieldset": {
+      borderColor: "#d32f2f",
+    },
+  },
+  "& .MuiFormHelperText-root": {
+    color: "#d32f2f",
+    fontSize: "0.75rem",
+  },
+});
+
+const StyledSelect = styled(Select)({
+  "& .MuiOutlinedInput-root": {
+    "& fieldset": {
+      borderColor: "#ced4da",
+    },
+    "&:hover fieldset": {
+      borderColor: "#087619",
+    },
+    "&.Mui-focused fieldset": {
+      borderColor: "#087619",
+      boxShadow: "0 0 0 0.2rem rgba(8, 118, 25, 0.25)",
+    },
+    "&.Mui-error fieldset": {
+      borderColor: "#d32f2f",
+    },
+  },
+});
+
+const StyledDialog = styled(Dialog)(({ theme }) => ({
+  "& .MuiDialog-paper": {
+    borderRadius: "8px",
+    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
+    width: "90%",
+    maxWidth: "450px",
+    [theme.breakpoints.down("sm")]: {
+      margin: "16px",
+      width: "100%",
+    },
+  },
+}));
+
+const StyledDialogTitle = styled(DialogTitle)({
+  padding: "16px",
+  fontWeight: "bold",
+  fontSize: "1.2rem",
+  textAlign: "center",
+});
+
+const StyledDialogContent = styled(DialogContent)(({ theme }) => ({
+  padding: "20px",
+  [theme.breakpoints.down("sm")]: {
+    padding: "16px",
+  },
+}));
+
+const StyledDialogActions = styled(DialogActions)(({ theme }) => ({
+  padding: "20px",
+  justifyContent: "center",
+  gap: "16px",
+  [theme.breakpoints.down("sm")]: {
+    padding: "16px",
+    flexDirection: "row",
+  },
+}));
+
+const validationSchema = yup.object({
+  username: yup.string().required("Nome é obrigatório"),
+  email: yup
+    .string()
+    .email("E-mail inválido")
+    .matches(/@ifce\.edu\.br$/, "Use um e-mail institucional (@ifce.edu.br)")
+    .required("E-mail é obrigatório"),
+  accessType: yup.string().required("Tipo de usuário é obrigatório"),
+});
 
 const UserUpdatePopup = ({ open, onClose, user, onUpdate }) => {
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    accessType: '',
+  const formik = useFormik({
+    initialValues: {
+      username: user?.username || "",
+      email: user?.email || "",
+      accessType: user?.accessType || "",
+    },
+    validationSchema: validationSchema,
+    enableReinitialize: true,
+    onSubmit: async (values) => {
+      try {
+        const response = await api.put(`/users/${user.id}`, {
+          username: values.username,
+          email: values.email,
+          accessType: values.accessType,
+        });
+        toast.success("Usuário atualizado com sucesso!");
+        onUpdate(response.data.user);
+        onClose();
+      } catch (error) {
+        const errorMessage =
+          error.response?.data?.error || "Erro ao atualizar usuário";
+        toast.error(errorMessage);
+      }
+    },
   });
 
-  // Preencher o formulário com os dados do usuário
-  useEffect(() => {
-    if (user) {
-      // Criar placeholder com asteriscos baseado no passwordLength
-      const passwordPlaceholder = user.passwordLength
-        ? '*'.repeat(user.passwordLength)
-        : '********';
-      setFormData({
-        username: user.username || '',
-        email: user.email || '',
-        password: passwordPlaceholder,
-        accessType: user.accessType || '',
-      });
-    }
-  }, [user]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // Criar objeto apenas com os campos editáveis preenchidos
-    const updatedData = {};
-    if (formData.username) updatedData.username = formData.username;
-    if (formData.email) updatedData.email = formData.email;
-    if (formData.accessType) updatedData.accessType = formData.accessType;
-    // Senha não é incluída, pois não é editável
-
-    try {
-      const response = await api.put(`/users/${user.id}`, updatedData);
-      toast.success('Usuário atualizado com sucesso!');
-      onUpdate(response.data.user);
-      onClose();
-    } catch (error) {
-      const errorMessage = error.response?.data?.error || 'Erro ao atualizar usuário';
-      toast.error(errorMessage);
-    }
-  };
-
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Editar Usuário</DialogTitle>
-      <DialogContent>
-        <form onSubmit={handleSubmit}>
-          <TextField
+    <StyledDialog open={open} onClose={onClose}>
+      <StyledDialogTitle>Editar Usuário</StyledDialogTitle>
+      <StyledDialogContent>
+        <form onSubmit={formik.handleSubmit}>
+          <StyledTextField
             label="Nome de Usuário"
             name="username"
-            value={formData.username}
-            onChange={handleChange}
+            value={formik.values.username}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched.username && Boolean(formik.errors.username)}
+            helperText={formik.touched.username && formik.errors.username}
             fullWidth
             margin="normal"
-            required
+            variant="outlined"
+            size="small"
           />
-          <TextField
+          <StyledTextField
             label="E-mail"
             name="email"
-            value={formData.email}
-            onChange={handleChange}
+            value={formik.values.email}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched.email && Boolean(formik.errors.email)}
+            helperText={formik.touched.email && formik.errors.email}
             fullWidth
             margin="normal"
-            required
-          />
-          <TextField
-            label="Senha"
-            name="password"
-            type="password"
-            value={formData.password}
-            disabled
-            fullWidth
-            margin="normal"
+            variant="outlined"
+            size="small"
           />
           <FormControl fullWidth margin="normal">
             <InputLabel>Tipo de Acesso</InputLabel>
-            <Select
+            <StyledSelect
               name="accessType"
-              value={formData.accessType}
-              onChange={handleChange}
-              required
+              value={formik.values.accessType}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={
+                formik.touched.accessType && Boolean(formik.errors.accessType)
+              }
+              displayEmpty
+              renderValue={(selected) => {
+                if (!selected) {
+                  return <em>Selecione o tipo</em>;
+                }
+                return selected.charAt(0).toUpperCase() + selected.slice(1);
+              }}
+              variant="outlined"
+              size="small"
             >
-              <MenuItem value="professor">Professor</MenuItem>
-              <MenuItem value="diretor">Diretor</MenuItem>
-              <MenuItem value="coordenador">Coordenador</MenuItem>
-            </Select>
+              <MenuItem disabled value="">
+                <em>Selecione o tipo</em>
+              </MenuItem>
+              <MenuItem value="Professor">Professor</MenuItem>
+              <MenuItem value="Coordenador">Coordenador</MenuItem>
+            </StyledSelect>
+            {formik.touched.accessType && formik.errors.accessType && (
+              <span
+                style={{
+                  color: "#d32f2f",
+                  fontSize: "0.75rem",
+                  marginTop: "4px",
+                }}
+              >
+                {formik.errors.accessType}
+              </span>
+            )}
           </FormControl>
         </form>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
+      </StyledDialogContent>
+      <StyledDialogActions>
+        <Button
+          onClick={onClose}
+          variant="outlined"
+          sx={{
+            color: "#FF1C1C",
+            borderColor: "#FF1C1C",
+            width: { xs: "100%", sm: "auto" },
+            "&:hover": {
+              backgroundColor: "rgba(255, 28, 28, 0.1)",
+            },
+          }}
+        >
+          Cancelar
+        </Button>
         <Button
           type="submit"
-          onClick={handleSubmit}
+          onClick={formik.handleSubmit}
           variant="contained"
-          sx={{ backgroundColor: '#087619', '&:hover': { backgroundColor: '#056012' } }}
+          sx={{
+            backgroundColor: "#087619",
+            width: { xs: "100%", sm: "auto" },
+            "&:hover": { backgroundColor: "#056012" },
+          }}
         >
           Atualizar
         </Button>
-      </DialogActions>
-    </Dialog>
+      </StyledDialogActions>
+    </StyledDialog>
   );
 };
 

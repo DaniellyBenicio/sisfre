@@ -12,4 +12,7 @@ router.get("/users/all", authMiddleware, isAdmin, userController.getAllUsers);
 router.get("/users/:id", authMiddleware, isAdmin, userController.getUserById);
 router.delete("/users/:id", authMiddleware, isAdmin, userController.deleteUser);
 
+//router.post("/forgot-password", userController.forgotPassword);
+//router.post("/reset-password", userController.resetPassword);
+
 module.exports = router;

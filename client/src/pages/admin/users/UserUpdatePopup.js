@@ -1,236 +1,257 @@
-import React from "react";
+import React, { useState } from 'react';
 import {
   Dialog,
-  DialogTitle,
-  DialogContent,
+  Typography,
   DialogActions,
+  DialogContent,
+  DialogTitle,
   TextField,
   Button,
+  CircularProgress,
+  Box,
+  FormControl,
   MenuItem,
   Select,
-  FormControl,
-  InputLabel,
-} from "@mui/material";
-import { styled } from "@mui/material/styles";
-import { useFormik } from "formik";
-import * as yup from "yup";
-import { toast } from "react-toastify";
-import api from "../../../service/api";
-
-const StyledTextField = styled(TextField)({
-  "& .MuiOutlinedInput-root": {
-    "& fieldset": {
-      borderColor: "#ced4da",
-    },
-    "&:hover fieldset": {
-      borderColor: "#087619",
-    },
-    "&.Mui-focused fieldset": {
-      borderColor: "#087619",
-      boxShadow: "0 0 0 0.2rem rgba(8, 118, 25, 0.25)",
-    },
-    "&.Mui-error fieldset": {
-      borderColor: "#d32f2f",
-    },
-  },
-  "& .MuiFormHelperText-root": {
-    color: "#d32f2f",
-    fontSize: "0.75rem",
-  },
-});
-
-const StyledSelect = styled(Select)({
-  "& .MuiOutlinedInput-root": {
-    "& fieldset": {
-      borderColor: "#ced4da",
-    },
-    "&:hover fieldset": {
-      borderColor: "#087619",
-    },
-    "&.Mui-focused fieldset": {
-      borderColor: "#087619",
-      boxShadow: "0 0 0 0.2rem rgba(8, 118, 25, 0.25)",
-    },
-    "&.Mui-error fieldset": {
-      borderColor: "#d32f2f",
-    },
-  },
-});
-
-const StyledDialog = styled(Dialog)(({ theme }) => ({
-  "& .MuiDialog-paper": {
-    borderRadius: "8px",
-    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
-    width: "90%",
-    maxWidth: "450px",
-    [theme.breakpoints.down("sm")]: {
-      margin: "16px",
-      width: "100%",
-    },
-  },
-}));
-
-const StyledDialogTitle = styled(DialogTitle)({
-  padding: "16px",
-  fontWeight: "bold",
-  fontSize: "1.2rem",
-  textAlign: "center",
-});
-
-const StyledDialogContent = styled(DialogContent)(({ theme }) => ({
-  padding: "20px",
-  [theme.breakpoints.down("sm")]: {
-    padding: "16px",
-  },
-}));
-
-const StyledDialogActions = styled(DialogActions)(({ theme }) => ({
-  padding: "20px",
-  justifyContent: "center",
-  gap: "16px",
-  [theme.breakpoints.down("sm")]: {
-    padding: "16px",
-    flexDirection: "row",
-  },
-}));
+  IconButton,
+} from '@mui/material';
+import { Close } from '@mui/icons-material';
+import { useFormik } from 'formik';
+import * as yup from 'yup';
+import api from '../../../service/api';
 
 const validationSchema = yup.object({
-  username: yup.string().required("Nome é obrigatório"),
+  username: yup.string().required('Nome é obrigatório'),
   email: yup
     .string()
-    .email("E-mail inválido")
-    .matches(/@ifce\.edu\.br$/, "Use um e-mail institucional (@ifce.edu.br)")
-    .required("E-mail é obrigatório"),
-  accessType: yup.string().required("Tipo de usuário é obrigatório"),
+    .email('E-mail inválido')
+    .matches(/@ifce\.edu\.br$/, 'Use um e-mail institucional (@ifce.edu.br)')
+    .required('E-mail é obrigatório'),
+  accessType: yup.string().required('Tipo de usuário é obrigatório'),
 });
 
 const UserUpdatePopup = ({ open, onClose, user, onUpdate }) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [successOpen, setSuccessOpen] = useState(false);
+
   const formik = useFormik({
     initialValues: {
-      username: user?.username || "",
-      email: user?.email || "",
-      accessType: user?.accessType || "",
+      username: user?.username || '',
+      email: user?.email || '',
+      accessType: user?.accessType || '',
     },
     validationSchema: validationSchema,
     enableReinitialize: true,
     onSubmit: async (values) => {
+      setLoading(true);
+      setError(null);
       try {
         const response = await api.put(`/users/${user.id}`, {
           username: values.username,
           email: values.email,
           accessType: values.accessType,
         });
-        toast.success("Usuário atualizado com sucesso!");
         onUpdate(response.data.user);
+        setSuccessOpen(true);
         onClose();
       } catch (error) {
         const errorMessage =
-          error.response?.data?.error || "Erro ao atualizar usuário";
-        toast.error(errorMessage);
+          error.response?.data?.error || 'Erro ao atualizar usuário';
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
       }
     },
   });
 
+  const handleSuccessClose = () => {
+    setSuccessOpen(false);
+    onClose();
+  };
+
   return (
-    <StyledDialog open={open} onClose={onClose}>
-      <StyledDialogTitle>Editar Usuário</StyledDialogTitle>
-      <StyledDialogContent>
-        <form onSubmit={formik.handleSubmit}>
-          <StyledTextField
-            label="Nome de Usuário"
-            name="username"
-            value={formik.values.username}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={formik.touched.username && Boolean(formik.errors.username)}
-            helperText={formik.touched.username && formik.errors.username}
-            fullWidth
-            margin="normal"
-            variant="outlined"
-            size="small"
-          />
-          <StyledTextField
-            label="E-mail"
-            name="email"
-            value={formik.values.email}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={formik.touched.email && Boolean(formik.errors.email)}
-            helperText={formik.touched.email && formik.errors.email}
-            fullWidth
-            margin="normal"
-            variant="outlined"
-            size="small"
-          />
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Tipo de Acesso</InputLabel>
-            <StyledSelect
-              name="accessType"
-              value={formik.values.accessType}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              error={
-                formik.touched.accessType && Boolean(formik.errors.accessType)
-              }
-              displayEmpty
-              renderValue={(selected) => {
-                if (!selected) {
-                  return <em>Selecione o tipo</em>;
-                }
-                return selected.charAt(0).toUpperCase() + selected.slice(1);
-              }}
-              variant="outlined"
-              size="small"
-            >
-              <MenuItem disabled value="">
-                <em>Selecione o tipo</em>
-              </MenuItem>
-              <MenuItem value="Professor">Professor</MenuItem>
-              <MenuItem value="Coordenador">Coordenador</MenuItem>
-            </StyledSelect>
-            {formik.touched.accessType && formik.errors.accessType && (
-              <span
-                style={{
-                  color: "#d32f2f",
-                  fontSize: "0.75rem",
-                  marginTop: "4px",
+    <>
+      <Dialog
+        open={open}
+        onClose={onClose}
+        maxWidth={false}
+        sx={{ '& .MuiDialog-paper': { width: 500 } }}
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 4, height: '480px' } }}
+      >
+        <DialogTitle sx={{ fontWeight: 'bold', textAlign: 'center', marginTop: '19px' }}>
+          Editar Usuário
+          <IconButton
+            onClick={onClose}
+            sx={{ position: 'absolute', right: 8, top: 8 }}
+            aria-label="Fechar modal"
+          >
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ px: 5 }}>
+          {loading ? (
+            <Box display="flex" justifyContent="center">
+              <CircularProgress />
+            </Box>
+          ) : (
+            <form onSubmit={formik.handleSubmit}>
+              {error && <Box sx={{ color: 'red', marginBottom: 2 }}>{error}</Box>}
+              <Typography variant="subtitle1" mt="15px" sx={{ color: '#2B2B2B' }}>
+                Nome
+              </Typography>
+              <TextField
+                name="username"
+                size="small"
+                variant="outlined"
+                fullWidth
+                margin="normal"
+                value={formik.values.username}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={formik.touched.username && Boolean(formik.errors.username)}
+                helperText={formik.touched.username && formik.errors.username}
+                required
+                sx={{ mb: 1.5, marginTop: '-1px' }}
+                InputProps={{
+                  sx: {
+                    borderRadius: 2,
+                    border: '1px solid #999999',
+                    '& input': {
+                      color: '#2B2B2B',
+                    },
+                  },
+                }}
+              />
+              <Typography variant="subtitle1" sx={{ color: '#2B2B2B' }}>
+                E-mail
+              </Typography>
+              <TextField
+                name="email"
+                size="small"
+                variant="outlined"
+                fullWidth
+                margin="normal"
+                value={formik.values.email}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={formik.touched.email && Boolean(formik.errors.email)}
+                helperText={formik.touched.email && formik.errors.email}
+                required
+                sx={{ mb: 1.5, marginTop: '-1px' }}
+                InputProps={{
+                  sx: {
+                    borderRadius: 2,
+                    border: '1px solid #999999',
+                    '& input': {
+                      color: '#2B2B2B',
+                    },
+                  },
+                }}
+              />
+              <Typography variant="subtitle1" sx={{ color: '#2B2B2B' }}>
+                Tipo
+              </Typography>
+              <FormControl fullWidth margin="normal" size="small" sx={{ mb: 1.5, marginTop: '-1px' }}>
+                <Select
+                  name="accessType"
+                  value={formik.values.accessType}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  error={formik.touched.accessType && Boolean(formik.errors.accessType)}
+                  displayEmpty
+                  required
+                  sx={{
+                    borderRadius: 2,
+                    backgroundColor: '#fff',
+                    color: '#2B2B2B',
+                    border: '1px solid #999999',
+                    '& .MuiSelect-select': {
+                      padding: '8px 14px',
+                    },
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>Selecione o tipo</em>
+                  </MenuItem>
+                  <MenuItem value="professor">Professor</MenuItem>
+                  <MenuItem value="coordenador">Coordenador</MenuItem>
+                </Select>
+                {formik.touched.accessType && formik.errors.accessType && (
+                  <Typography sx={{ color: '#d32f2f', fontSize: '0.75rem', mt: '4px' }}>
+                    {formik.errors.accessType}
+                  </Typography>
+                )}
+              </FormControl>
+              <DialogActions
+                sx={{
+                  justifyContent: 'center',
+                  gap: 2,
+                  padding: '10px 24px',
+                  marginTop: '50px',
                 }}
               >
-                {formik.errors.accessType}
-              </span>
-            )}
-          </FormControl>
-        </form>
-      </StyledDialogContent>
-      <StyledDialogActions>
-        <Button
-          onClick={onClose}
-          variant="outlined"
-          sx={{
-            color: "#FF1C1C",
-            borderColor: "#FF1C1C",
-            width: { xs: "100%", sm: "auto" },
-            "&:hover": {
-              backgroundColor: "rgba(255, 28, 28, 0.1)",
-            },
-          }}
-        >
-          Cancelar
-        </Button>
-        <Button
-          type="submit"
-          onClick={formik.handleSubmit}
-          variant="contained"
-          sx={{
-            backgroundColor: "#087619",
-            width: { xs: "100%", sm: "auto" },
-            "&:hover": { backgroundColor: "#056012" },
-          }}
-        >
-          Atualizar
-        </Button>
-      </StyledDialogActions>
-    </StyledDialog>
+                <Button
+                  onClick={onClose}
+                  variant="contained"
+                  sx={{
+                    backgroundColor: '#FF1C1C',
+                    color: '#fff',
+                    '&:hover': {
+                      backgroundColor: '#FF2018',
+                    },
+                    padding: '6px 30px',
+                    borderRadius: 2,
+                    textTransform: 'capitalize',
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  sx={{
+                    padding: '6px 35px',
+                    borderRadius: 2,
+                    backgroundColor: '#087619',
+                    textTransform: 'capitalize',
+                  }}
+                >
+                  Atualizar
+                </Button>
+              </DialogActions>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={successOpen}
+        onClose={handleSuccessClose}
+        maxWidth={false}
+        sx={{ '& .MuiDialog-paper': { width: 500 } }}
+        fullWidth
+      >
+        <DialogTitle>Sucesso</DialogTitle>
+        <DialogContent>
+          <Typography>Usuário atualizado com sucesso!</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={handleSuccessClose}
+            variant="contained"
+            sx={{
+              backgroundColor: '#087619',
+              color: '#fff',
+              padding: '6px 30px',
+              borderRadius: 2,
+              textTransform: 'capitalize',
+            }}
+          >
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 

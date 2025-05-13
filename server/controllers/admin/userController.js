@@ -26,11 +26,10 @@ exports.registerUser = async (req, res) => {
     }
 
     const defaultPassword = "123456"; //mudar posteriormente para primeiro acesso
-    const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
     const user = await User.create({
       email,
-      password: hashedPassword,
+      password: defaultPassword,
       username,
       accessType,
     });

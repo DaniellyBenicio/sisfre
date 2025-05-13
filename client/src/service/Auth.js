@@ -13,15 +13,6 @@ export const login = async (email, password) => {
     }
 };
 
-export const signUp = async (username, email, password, acessType) => {
-    try {
-        const response = await api.post('/auth/singup', { username, email, password, acessType });
-        return response.data;
-    } catch (error) {
-        throw new Error('Falha na criação de conta');
-    }
-};
-
 export const logout = (setAuthenticated) => {
     try {
         localStorage.removeItem('token');

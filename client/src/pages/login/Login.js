@@ -35,7 +35,7 @@ const Login = ({ onLogin = () => {} }) => {
       if (response.token) {
         localStorage.setItem("token", response.token);
         onLogin();
-        navigate("/MainScreen");
+        navigate("/users");
 
       } else {
         setError(response.error || "Erro ao fazer login");

@@ -2,7 +2,6 @@ import React from 'react';
 import { Box, CssBaseline } from '@mui/material';
 import SideBar from "../../../components/SideBar";
 import CourseList from './CourseList';
-import DeleteConfirmationDialog from '../../../components/DeleteConfirmationDialog';
 
 const CoursePage = ({ setAuthenticated }) => {
   return (

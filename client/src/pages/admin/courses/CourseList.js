@@ -218,7 +218,7 @@ const CourseList = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 5 }}>
       <Typography variant="h5" align="center" gutterBottom sx={{ fontWeight: 'bold', color: '#2c3e50' }}>
         Cursos
       </Typography>

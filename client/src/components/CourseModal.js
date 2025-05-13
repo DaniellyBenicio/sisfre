@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, Typography, DialogActions, DialogContent, DialogTitle, TextField, Button, CircularProgress, Box,
-  FormControl, MenuItem, Select
+  FormControl, MenuItem, Select, IconButton
 } from '@mui/material';
+import { Close } from '@mui/icons-material';
 import api from '../service/api';
 
 const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
@@ -118,11 +119,19 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 
 	return (
 		<>
-			<Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 4 } }}>
-				<DialogTitle sx={{ fontWeight: 'bold', textAlign: 'center', marginTop: '5px' }}>
+			<Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 4, height: '520px' } }}>
+				<DialogTitle sx={{ fontWeight: 'bold', textAlign: 'center', marginTop: '19px' }}>
 					{courseToEdit ? "Edição de Curso" : "Cadastro de Curso"}
+
+					<IconButton
+						onClick={onClose}
+						sx={{ position: 'absolute', right: 8, top: 8 }}
+					>
+						<Close />
+					</IconButton>
 				</DialogTitle>
-				<DialogContent sx={{ px: 8 }}>
+
+				<DialogContent sx={{ px: 5 }}>
 					{loading ? (
 						<Box display="flex" justifyContent="center">
 							<CircularProgress />
@@ -130,8 +139,8 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 					) : (
 						<form onSubmit={handleSubmit}>
 							{error && <Box sx={{ color: 'red', marginBottom: 2 }}>{error}</Box>}
-							<Typography variant="subtitle1" sx={{ color: '#2B2B2B' }}>
-								Nome:
+							<Typography variant="subtitle1"  mt='15px' sx={{ color: '#2B2B2B' }}>
+								Nome
 							</Typography>
 							<TextField 
 								name="name"
@@ -242,7 +251,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 									justifyContent: 'center',
 									gap: 2, 
 									padding: '10px 24px',
-									marginTop: '8px'
+									marginTop: '15px'
 								}}
 							>
 								<Button onClick={onClose} variant="contained"
@@ -254,6 +263,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 										},
 										padding: '6px 30px',
 										borderRadius: 2,
+										textTransform: 'capitalize'
 									}}
 								>
 									Cancelar
@@ -262,7 +272,8 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 									sx={{
 										padding: '6px 35px',
 										borderRadius: 2,
-										backgroundColor: '#087619'
+										backgroundColor: '#087619',
+										textTransform: 'capitalize'
 									}}
 								>
 									{courseToEdit ? "Salvar" : "Cadastrar"}

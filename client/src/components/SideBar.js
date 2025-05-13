@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Drawer, List, ListItem, ListItemText, Divider, Typography, Dialog, DialogActions, DialogContent, Button, IconButton,
     Toolbar, AppBar, Box
@@ -14,8 +14,14 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
     const [selectedItem, setSelectedItem] = useState(null);
     const [mobileOpen, setMobileOpen] = useState(false);
     const navigate = useNavigate();
+    const [username, setUsername] = useState("");
 
     const isMobile = useMediaQuery('(max-width:600px)');
+
+    useEffect(() => {
+        const name = localStorage.getItem("username");
+        if (name) setUsername(name);
+    }, []);
 
     const handleOpenConfirmDialog = () => setOpenConfirmDialog(true);
     const handleCloseConfirmDialog = () => setOpenConfirmDialog(false);
@@ -53,7 +59,7 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
             <Divider sx={{ backgroundColor: 'white', marginBottom: 1 }} />
 
             <Typography variant="subtitle1" sx={{ color: "white", marginTop: "10px", textAlign: "center" }}>
-                Bem vindo(a)!
+                Bem vindo(a), {username}!
             </Typography>
 
             <Divider sx={{ backgroundColor: 'white', marginBottom: 1, marginTop: '5px' }} />

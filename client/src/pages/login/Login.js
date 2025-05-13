@@ -14,6 +14,7 @@ import { Person, Lock, Visibility, VisibilityOff } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { login } from "../../service/Auth";
 import logo from "../../assets/Logo.svg";
+import { jwtDecode } from "jwt-decode";
 
 const Login = ({ onLogin = () => {} }) => {
   const [email, setEmail] = useState("");
@@ -21,7 +22,6 @@ const Login = ({ onLogin = () => {} }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [errorInfo, setErrorInfo] = useState({ type: "error", message: "" });
 
   const navigate = useNavigate();
 
@@ -32,17 +32,23 @@ const Login = ({ onLogin = () => {} }) => {
 
     try {
       const response = await login(email, password);
+
       if (response.token) {
         localStorage.setItem("token", response.token);
+
+        const decoded = jwtDecode(response.token);
+        localStorage.setItem("username", decoded.username);
+
         onLogin();
         navigate("/users");
 
       } else {
-        setError(response.error || "Erro ao fazer login");
+        setError("Credenciais inválidas");
       }
 
     } catch (err) {
-      setErrorInfo({ type: "error", message: "Falha no login" });
+      setError( "Falha no login" );
+
     } finally {
       setLoading(false);
     }

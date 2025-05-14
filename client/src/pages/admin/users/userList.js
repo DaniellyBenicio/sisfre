@@ -19,8 +19,9 @@ import { Edit, Delete, Search } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import UserRegistrationPopup from './UserResgistrationPopup';
 import UserDelete from './UserDelete';
-import UserUpdatePopup from "./UserUpdatePopup";
-import api from "../../../service/api";
+import UserUpdatePopup from './UserUpdatePopup';
+import api from '../../../service/api';
+import Paginate from "../../../components/paginate/Paginate";
 
 const SearchBar = ({ value, onChange, sx }) => (
   <TextField
@@ -109,7 +110,7 @@ const UsersTable = ({ users, isMobileWidth, onDelete, onEdit }) => {
                 <StyledTableCell>{user.id}</StyledTableCell>
                 <StyledTableCell>{user.username}</StyledTableCell>
                 <StyledTableCell>{user.email}</StyledTableCell>
-                <StyledTableCell>{user.accessType}</StyledTableCell>
+                <StyledTableCell>{user.accessType}</StyledTableCell> {/* Corrigido: </StyledCell> para </StyledTableCell> */}
                 <StyledTableCell>
                   <IconButton
                     aria-label="Editar"
@@ -144,13 +145,13 @@ const UserList = () => {
   const [userToEdit, setUserToEdit] = useState(null);
   const [userToDelete, setUserToDelete] = useState(null);
   const isMobileWidth = useMediaQuery('(max-width:600px)');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
-  // Carregar usuários da API ao montar o componente
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  // Função para buscar todos os usuários
   const fetchUsers = async () => {
     try {
       const response = await api.get('/users/all');
@@ -168,10 +169,17 @@ const UserList = () => {
     }
   };
 
-  // Filtrar usuários com base na busca
   const filteredUsers = users.filter((user) =>
     user.username.toLowerCase().includes(search.toLowerCase())
   );
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentUsers = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+
+  const handlePageChange = (event, newPage) => {
+    setCurrentPage(newPage);
+  };
 
   const handleRegister = (newUser) => {
     setUsers((prevUsers) => [...prevUsers, newUser]);
@@ -187,7 +195,7 @@ const UserList = () => {
     setUsers((prevUsers) =>
       prevUsers.map((user) => (user.id === updatedUser.id ? updatedUser : user))
     );
-    fetchUsers(); // Recarregar a lista para garantir sincronia
+    fetchUsers();
   };
 
   const handleDelete = (user) => {
@@ -196,7 +204,7 @@ const UserList = () => {
   };
 
   const handleDeleteSuccess = (userId) => {
-    fetchUsers(); // Recarregar a lista de usuários
+    fetchUsers();
   };
 
   return (
@@ -229,10 +237,15 @@ const UserList = () => {
         </Button>
       </Box>
       <UsersTable
-        users={filteredUsers}
+        users={currentUsers}
         isMobileWidth={isMobileWidth}
         onDelete={handleDelete}
         onEdit={handleEdit}
+      />
+      <Paginate
+        count={totalPages}
+        page={currentPage}
+        onChange={handlePageChange}
       />
       <UserRegistrationPopup
         open={openDialog}

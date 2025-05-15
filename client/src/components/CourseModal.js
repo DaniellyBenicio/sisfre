@@ -4,8 +4,24 @@ import { Dialog, Typography, DialogActions, DialogContent, DialogTitle, TextFiel
 } from '@mui/material';
 import { Close } from '@mui/icons-material';
 import api from '../service/api';
+import CustomAlert from './alert/CustomAlert';
+
 
 const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
+	const [alert, setAlert] = useState(null);
+
+	const handleSubmitSuccess = (newCourse) => {
+		setAlert({
+		  message: courseToEdit ? 'Curso atualizado com sucesso!' : 'Curso cadastrado com sucesso!',
+		  type: 'success',
+		});
+		onClose();
+	};
+
+	const handleAlertClose = () => {
+    	setAlert(null);
+  	};
+	
 	const [course, setCourse] = useState({
 		acronym: '',
 		name: '',
@@ -14,8 +30,8 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 	});
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(null);
-  const [coordinators, setCoordinators] = useState([]);
-  const [successOpen, setSuccessOpen] = useState(false);
+	const [coordinators, setCoordinators] = useState([]);
+	const [successOpen, setSuccessOpen] = useState(false);
 
 	useEffect(() => {
 		if (courseToEdit) {
@@ -101,8 +117,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 			}
 
 			onUpdate(response.data);
-			setSuccessOpen(true);
-      onClose();
+			handleSubmitSuccess();
       
 		} catch (err) {
 			console.log('Erro completo:', err.response);
@@ -119,7 +134,13 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 
 	return (
 		<>
-			<Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 4, height: '520px' } }}>
+			<Dialog 
+				open={open} 
+				onClose={onClose} 
+				maxWidth="sm" 
+				fullWidth 
+				onSubmitSuccess={handleSubmitSuccess}
+				PaperProps={{ sx: { borderRadius: 4, height: '520px' } }}>
 				<DialogTitle sx={{ fontWeight: 'bold', textAlign: 'center', marginTop: '19px' }}>
 					{courseToEdit ? "Edição de Curso" : "Cadastro de Curso"}
 
@@ -283,6 +304,14 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 					)}
 				</DialogContent>
 			</Dialog>
+			{alert && (
+				<CustomAlert
+					message={alert.message}
+					type={alert.type}
+					onClose={handleAlertClose}
+				/>
+			)}
+
 		</>
 	);
 };

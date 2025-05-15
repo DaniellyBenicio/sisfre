@@ -3,9 +3,11 @@ import { Route, Routes, Navigate, useNavigate } from "react-router-dom";
 import Login from "../pages/login/Login.js";
 import UsersPage from "../pages/admin/users/UsersPage.js"; 
 import CoursePage from "../pages/admin/courses/CoursesPage.js";
+import MainScreen from "../pages/MainScreen.js";
 
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(false);
+  const accessType = localStorage.getItem('accessType');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -33,14 +35,24 @@ const AppRoutes = () => {
         path="/login"
         element={!isAuthenticated ? <Login onLogin={handleLogin} /> : <Navigate to="/users" />}
       />
+
       <Route
         path="/users"
-        element={isAuthenticated ? <UsersPage setAuthenticated={handleLogout} /> : <Navigate to="/login" />}
+        element={
+          isAuthenticated && accessType === 'Admin'
+          ? <UsersPage setAuthenticated={handleLogout} />
+          : <Navigate to="/MainScreen" />
+        }
       />
 
       <Route
         path="/courses"
         element={isAuthenticated ? <CoursePage setAuthenticated={handleLogout} /> : <Navigate to="/login" />}
+      />
+
+      <Route
+        path="/MainScreen"
+        element={isAuthenticated ? <MainScreen setAuthenticated={handleLogout} /> : <Navigate to="/login" />}
       />
     </Routes>
   );

@@ -15,12 +15,16 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
     const [mobileOpen, setMobileOpen] = useState(false);
     const navigate = useNavigate();
     const [username, setUsername] = useState("");
+    const [accessType, setAccessType] = useState("");
 
     const isMobile = useMediaQuery('(max-width:600px)');
 
     useEffect(() => {
         const name = localStorage.getItem("username");
         if (name) setUsername(name);
+
+        const type = localStorage.getItem("accessType");
+        if (type) setAccessType(type);
     }, []);
 
     const handleOpenConfirmDialog = () => setOpenConfirmDialog(true);
@@ -64,24 +68,28 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
 
             <Divider sx={{ backgroundColor: 'white', marginBottom: 1, marginTop: '5px' }} />
             
-            {/* colocar verificação do tipo de usuário */}
-            <ListItem
-                button
-                onClick={() => handleItemClick('/users', 'users')}
-                sx={getListItemStyle(selectedItem, 'users')}
-            >
-                <People sx={{ mr: 1 }} />
-                <ListItemText primary="Usuários" />
-            </ListItem>
-            <ListItem
-                button
-                onClick={() => handleItemClick('/courses', 'courses')}
-                sx={getListItemStyle(selectedItem, 'courses')}
-            >
-                <School sx={{ mr: 1 }} />
-                <ListItemText primary="Cursos" />
-            </ListItem>
+            {accessType === 'Admin' && (
+            <>
+                <ListItem
+                    button
+                    onClick={() => handleItemClick('/users', 'users')}
+                    sx={getListItemStyle(selectedItem, 'users')}
+                >
+                    <People sx={{ mr: 1 }} />
+                    <ListItemText primary="Usuários" />
+                </ListItem>
 
+                <ListItem
+                    button
+                    onClick={() => handleItemClick('/courses', 'courses')}
+                    sx={getListItemStyle(selectedItem, 'courses')}
+                >
+                    <School sx={{ mr: 1 }} />
+                    <ListItemText primary="Cursos" />
+                </ListItem>
+            </>
+        )}
+            {/* Sair */}
             <ListItem
                 button
                 onClick={handleOpenConfirmDialog}

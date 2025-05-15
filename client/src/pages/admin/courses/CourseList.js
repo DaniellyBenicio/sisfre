@@ -9,6 +9,7 @@ import { styled } from '@mui/material/styles';
 import DeleteConfirmationDialog from "../../../components/DeleteConfirmationDialog";
 import api from "../../../service/api";
 import CourseModal from "../../../components/CourseModal";
+import Paginate from "../../../components/paginate/Paginate";
 
 const SearchBar = ({ value, onChange, sx }) => (
   <TextField
@@ -108,6 +109,8 @@ const CourseList = () => {
   const [courseToDelete, setCourseToDelete] = useState(null);
   const [loading, setLoading] = useState(true);
   const isMobileWidth = useMediaQuery("(max-width:600px)");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -162,6 +165,15 @@ const CourseList = () => {
           course.name.toLowerCase().includes(search.toLowerCase())
       )
     : [];
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentCorses = filteredCourses.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);
+
+  const handlePageChange = (event, newPage) => {
+    setCurrentPage(newPage);
+  };
 
   const handleRegister = async (newCourse) => {
     console.log('Novo curso registrado:', newCourse);
@@ -252,10 +264,16 @@ const CourseList = () => {
         </Box>
       ) : (
         <CoursesTable
-          courses={filteredCourses}
+          courses={currentCorses}
           onDelete={handleDeleteClick}
         />
       )}
+
+      <Paginate
+        count={totalPages}
+        page={currentPage}
+        onChange={handlePageChange}
+      />
 
       <CourseModal
         open={openDialog}

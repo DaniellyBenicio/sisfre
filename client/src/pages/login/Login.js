@@ -38,16 +38,22 @@ const Login = ({ onLogin = () => {} }) => {
 
         const decoded = jwtDecode(response.token);
         localStorage.setItem("username", decoded.username);
+        localStorage.setItem("accessType", decoded.accessType);
+
+        if (decoded.accessType === 'Admin') {
+          navigate('/users');
+        } else {
+          navigate('/MainScreen');
+        }
 
         onLogin();
-        navigate("/users");
 
       } else {
         setError("Credenciais inválidas");
       }
 
     } catch (err) {
-      setError( "Falha no login" );
+      setError( "Credenciais Inválidas!" );
 
     } finally {
       setLoading(false);

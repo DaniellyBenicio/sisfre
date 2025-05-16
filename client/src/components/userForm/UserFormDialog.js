@@ -93,7 +93,7 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
       setError(null);
       formik.resetForm();
     }
-  }, [open, formik]); // Adiciona 'formik' ao array de dependências
+  }, [open]); 
 
   return (
     <Dialog
@@ -104,6 +104,8 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
       sx={{ '& .MuiDialog-paper': { width: 500 } }}
       fullWidth
       PaperProps={{ sx: { borderRadius: 4, height: '480px' } }}
+      disableEnforceFocus 
+      disableBackdropClick 
     >
       <DialogTitle sx={{ fontWeight: 'bold', textAlign: 'center', marginTop: '19px' }}>
         {isEditMode ? 'Editar Usuário' : 'Cadastro de Usuário'}
@@ -245,5 +247,6 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
     </Dialog>
   );
 };
+
 
 export default UserFormDialog;

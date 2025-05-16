@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   Typography,
@@ -17,7 +17,7 @@ import {
 import { Close } from '@mui/icons-material';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
-import api from "../../service/api";
+import api from '../../service/api';
 
 const validationSchema = yup.object({
   username: yup.string().required('Nome é obrigatório'),
@@ -57,7 +57,7 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
         };
 
         if (isEditMode) {
-          response = await api.put(`/users/${userToEdit.id}`, payload);
+          response = await api.put(`/users/${userToEdit?.id}`, payload);
         } else {
           response = await api.post(`/users`, payload);
         }
@@ -68,30 +68,39 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
           email: values.email,
           accessType: values.accessType,
         };
+
         onSubmitSuccess(newUser);
-        onClose(); // Fecha o diálogo imediatamente após o sucesso
+        onClose();
       } catch (err) {
         const errorMessage =
           err.response?.data?.error || `Erro ao ${isEditMode ? 'atualizar' : 'cadastrar'} usuário: ${err.message}`;
-        if (errorMessage.includes('E-mail já cadastrado')) {
-          setError('Este e-mail já está cadastrado. Use um e-mail diferente.');
-        } else if (errorMessage.includes('Apenas e-mails institucionais')) {
-          setError('Use um e-mail institucional (@ifce.edu.br).');
-        } else {
-          setError(errorMessage);
-        }
+        setError(
+          errorMessage.includes('E-mail já cadastrado')
+            ? 'Este e-mail já está cadastrado. Use um e-mail diferente.'
+            : errorMessage.includes('Apenas e-mails institucionais')
+            ? 'Use um e-mail institucional (@ifce.edu.br).'
+            : errorMessage
+        );
       } finally {
         setLoading(false);
       }
     },
   });
 
+  useEffect(() => {
+    if (!open) {
+      setLoading(false);
+      setError(null);
+      formik.resetForm();
+    }
+  }, [open, formik]); // Adiciona 'formik' ao array de dependências
+
   return (
     <Dialog
       open={open}
       onClose={onClose}
       maxWidth={false}
-      BackdropProps={{ invisible: true }} // Remove o backdrop (fundo escuro)
+      BackdropProps={{ invisible: true }}
       sx={{ '& .MuiDialog-paper': { width: 500 } }}
       fullWidth
       PaperProps={{ sx: { borderRadius: 4, height: '480px' } }}
@@ -225,6 +234,7 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
                   backgroundColor: '#087619',
                   textTransform: 'capitalize',
                 }}
+                disabled={loading}
               >
                 {isEditMode ? 'Atualizar' : 'Cadastrar'}
               </Button>

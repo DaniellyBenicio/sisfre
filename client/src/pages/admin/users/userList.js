@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -14,13 +14,13 @@ import {
   IconButton,
   InputAdornment,
   Button,
-} from '@mui/material';
-import { Edit, Delete, Search } from '@mui/icons-material';
-import { styled } from '@mui/material/styles';
-import UserRegistrationPopup from './UserResgistrationPopup';
-import UserDelete from './UserDelete';
-import UserUpdatePopup from './UserUpdatePopup';
-import api from '../../../service/api';
+} from "@mui/material";
+import { Edit, Delete, Search } from "@mui/icons-material";
+import { styled } from "@mui/material/styles";
+import UserRegistrationPopup from "./UserResgistrationPopup";
+import UserDelete from "./UserDelete";
+import UserUpdatePopup from "./UserUpdatePopup";
+import api from "../../../service/api";
 import Paginate from "../../../components/paginate/Paginate";
 
 const SearchBar = ({ value, onChange, sx }) => (
@@ -31,26 +31,26 @@ const SearchBar = ({ value, onChange, sx }) => (
     variant="outlined"
     sx={{
       ...sx,
-      '& .MuiInputBase-root': {
-        height: '35px',
-        fontSize: '0.875rem',
+      "& .MuiInputBase-root": {
+        height: "35px",
+        fontSize: "0.875rem",
       },
-      borderRadius: '10px',
-      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-      '& .MuiOutlinedInput-notchedOutline': {
-        borderColor: '#ced4da',
+      borderRadius: "10px",
+      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+      "& .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#ced4da",
       },
-      '&:hover .MuiOutlinedInput-notchedOutline': {
-        borderColor: '#087619',
+      "&:hover .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#087619",
       },
-      '& .MuiInputBase-input': {
-        padding: '8px 12px',
+      "& .MuiInputBase-input": {
+        padding: "8px 12px",
       },
     }}
     InputProps={{
       startAdornment: (
         <InputAdornment position="start">
-          <Search sx={{ color: 'action.active' }} />
+          <Search sx={{ color: "action.active" }} />
         </InputAdornment>
       ),
     }}
@@ -59,36 +59,38 @@ const SearchBar = ({ value, onChange, sx }) => (
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   borderRight: `1px solid ${theme.palette.divider}`,
-  '&:last-child': {
-    borderRight: 'none',
+  "&:last-child": {
+    borderRight: "none",
   },
-  padding: '12px',
-  textAlign: 'center',
+  padding: "12px",
+  textAlign: "center",
 }));
 
 const StyledTableHead = styled(TableHead)(({ theme }) => ({
-  backgroundColor: '#087619',
-  '& th': {
-    color: 'white',
-    fontWeight: 'bold',
-    padding: '12px',
-    textAlign: 'center',
+  backgroundColor: "#087619",
+  "& th": {
+    color: "white",
+    fontWeight: "bold",
+    padding: "12px",
+    textAlign: "center",
   },
 }));
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  '&:hover': {
-    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+  "&:hover": {
+    backgroundColor: "rgba(0, 0, 0, 0.04)",
   },
 }));
 
 const UsersTable = ({ users, isMobileWidth, onDelete, onEdit }) => {
   return (
-    <TableContainer component={Paper} style={{ borderRadius: '10px', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>
+    <TableContainer
+      component={Paper}
+      style={{ borderRadius: "10px", boxShadow: "0 4px 8px rgba(0,0,0,0.1)" }}
+    >
       <Table>
         <StyledTableHead>
           <TableRow>
-            <StyledTableCell>Cód.</StyledTableCell>
             <StyledTableCell>Nome</StyledTableCell>
             <StyledTableCell>Email</StyledTableCell>
             <StyledTableCell>Tipo</StyledTableCell>
@@ -98,7 +100,7 @@ const UsersTable = ({ users, isMobileWidth, onDelete, onEdit }) => {
         <TableBody>
           {users.length === 0 ? (
             <StyledTableRow>
-              <StyledTableCell colSpan={5} sx={{ textAlign: 'center', py: 2 }}>
+              <StyledTableCell colSpan={5} sx={{ textAlign: "center", py: 2 }}>
                 <Typography variant="body1" color="black">
                   Nenhum usuário cadastrado
                 </Typography>
@@ -107,21 +109,21 @@ const UsersTable = ({ users, isMobileWidth, onDelete, onEdit }) => {
           ) : (
             users.map((user) => (
               <StyledTableRow key={user.id}>
-                <StyledTableCell>{user.id}</StyledTableCell>
                 <StyledTableCell>{user.username}</StyledTableCell>
                 <StyledTableCell>{user.email}</StyledTableCell>
-                <StyledTableCell>{user.accessType}</StyledTableCell> {/* Corrigido: </StyledCell> para </StyledTableCell> */}
+                <StyledTableCell>{user.accessType}</StyledTableCell>{" "}
+                {/* Corrigido: </StyledCell> para </StyledTableCell> */}
                 <StyledTableCell>
                   <IconButton
                     aria-label="Editar"
-                    sx={{ mr: 1, color: '#087619' }}
+                    sx={{ mr: 1, color: "#087619" }}
                     onClick={() => onEdit(user)}
                   >
                     <Edit fontSize="small" />
                   </IconButton>
                   <IconButton
                     aria-label="Excluir"
-                    sx={{ color: '#FF1C1C' }}
+                    sx={{ color: "#FF1C1C" }}
                     onClick={() => onDelete(user)}
                   >
                     <Delete fontSize="small" />
@@ -138,13 +140,13 @@ const UsersTable = ({ users, isMobileWidth, onDelete, onEdit }) => {
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openUpdateDialog, setOpenUpdateDialog] = useState(false);
   const [userToEdit, setUserToEdit] = useState(null);
   const [userToDelete, setUserToDelete] = useState(null);
-  const isMobileWidth = useMediaQuery('(max-width:600px)');
+  const isMobileWidth = useMediaQuery("(max-width:600px)");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
@@ -154,17 +156,17 @@ const UserList = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await api.get('/users/all');
-      console.log('Resposta da API:', response.data);
+      const response = await api.get("/users/all");
+      console.log("Resposta da API:", response.data);
       if (!response.data || !Array.isArray(response.data.users)) {
-        throw new Error('Erro ao buscar usuários: Dados inválidos');
+        throw new Error("Erro ao buscar usuários: Dados inválidos");
       }
       setUsers(response.data.users);
     } catch (error) {
-      console.error('Erro ao buscar usuários:', error);
+      console.error("Erro ao buscar usuários:", error);
       if (error.response) {
-        console.error('Status:', error.response.status);
-        console.error('Dados do erro:', error.response.data);
+        console.error("Status:", error.response.status);
+        console.error("Dados do erro:", error.response.data);
       }
     }
   };
@@ -183,7 +185,7 @@ const UserList = () => {
 
   const handleRegister = (newUser) => {
     setUsers((prevUsers) => [...prevUsers, newUser]);
-    console.log('Novo usuário adicionado à lista:', newUser);
+    console.log("Novo usuário adicionado à lista:", newUser);
   };
 
   const handleEdit = (user) => {
@@ -209,27 +211,39 @@ const UserList = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h5" align="center" gutterBottom style={{ fontWeight: 'bold', color: '#2c3e50' }}>
+      <Typography
+        variant="h5"
+        align="center"
+        gutterBottom
+        style={{ fontWeight: "bold", color: "#2c3e50" }}
+      >
         Usuários
       </Typography>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
         <SearchBar
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          sx={{ width: isMobileWidth ? '100%' : '300px' }}
+          sx={{ width: isMobileWidth ? "100%" : "300px" }}
         />
         <Button
           variant="contained"
           sx={{
-            backgroundColor: '#087619',
-            color: 'white',
-            borderRadius: '10px',
-            boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)',
-            '&:hover': {
-              backgroundColor: '#056012',
+            backgroundColor: "#087619",
+            color: "white",
+            borderRadius: "10px",
+            boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
+            "&:hover": {
+              backgroundColor: "#056012",
             },
-            textTransform: 'none',
-            padding: '8px 16px',
+            textTransform: "none",
+            padding: "8px 16px",
           }}
           onClick={() => setOpenDialog(true)}
         >
@@ -268,7 +282,7 @@ const UserList = () => {
           setUserToDelete(null);
         }}
         userId={userToDelete ? userToDelete.id : null}
-        userName={userToDelete ? userToDelete.username : ''}
+        userName={userToDelete ? userToDelete.username : ""}
         onDeleteSuccess={handleDeleteSuccess}
       />
     </Box>

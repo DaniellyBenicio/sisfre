@@ -1,20 +1,32 @@
-import React, { useState } from 'react';
-import UserFormDialog from '../../../components/userForm/UserFormDialog';
+import React, { useState, useMemo } from 'react';
+import UserEditDialog from "../../../components/userForm/UserEditDialog";
 import { CustomAlert } from '../../../components/alert/CustomAlert';
 
 const UserUpdatePopup = ({ open, onClose, user, onUpdate }) => {
   const [alert, setAlert] = useState(null);
 
-  // Normalizar user para garantir que todos os campos estejam presentes
-  const normalizedUser = {
-    id: user?.id || '',
-    username: user?.username || '',
-    email: user?.email || '',
-    accessType: user?.accessType || '',
-  };
+  // Memoize normalizedUser para evitar novas referências
+  const normalizedUser = useMemo(
+    () => ({
+      id: user?.id || '',
+      username: user?.username || '',
+      email: user?.email || '',
+      accessType: user?.accessType || '',
+    }),
+    [user]
+  );
+
+  // Log para depuração
+  console.log('UserUpdatePopup user:', user);
 
   const handleSubmitSuccess = (updatedUser) => {
-    onUpdate(updatedUser);
+    const completeUser = {
+      id: updatedUser.id,
+      username: updatedUser.username,
+      email: updatedUser.email,
+      accessType: updatedUser.accessType,
+    };
+    onUpdate(completeUser);
     setAlert({
       message: 'Usuário atualizado com sucesso!',
       type: 'success',
@@ -28,12 +40,11 @@ const UserUpdatePopup = ({ open, onClose, user, onUpdate }) => {
 
   return (
     <>
-      <UserFormDialog
+      <UserEditDialog
         open={open}
         onClose={onClose}
         userToEdit={normalizedUser}
         onSubmitSuccess={handleSubmitSuccess}
-        isEditMode={true} // Forçar modo de edição
       />
       {alert && (
         <CustomAlert

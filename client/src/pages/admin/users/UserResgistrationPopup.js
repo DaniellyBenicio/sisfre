@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import UserFormDialog from "../../../components/userForm/UserFormDialog";
-import { CustomAlert } from "../../../components/alert/CustomAlert";
+import UserFormDialog from '../../../components/userForm/UserFormDialog';
+import { CustomAlert } from '../../../components/alert/CustomAlert';
 
-const UserRegistrationPopup = ({ open, onClose, userToEdit, onRegister }) => {
+const UserRegistrationPopup = ({ open, onClose, onRegister }) => {
   const [alert, setAlert] = useState(null);
 
   const handleSubmitSuccess = (newUser) => {
     onRegister(newUser);
     setAlert({
-      message: userToEdit ? 'Usuário atualizado com sucesso!' : 'Usuário cadastrado com sucesso!',
+      message: 'Usuário cadastrado com sucesso!',
       type: 'success',
     });
     onClose();
@@ -23,9 +23,9 @@ const UserRegistrationPopup = ({ open, onClose, userToEdit, onRegister }) => {
       <UserFormDialog
         open={open}
         onClose={onClose}
-        userToEdit={userToEdit}
+        userToEdit={null} // Sempre null para criação
         onSubmitSuccess={handleSubmitSuccess}
-        isEditMode={!!userToEdit}
+        isEditMode={false} // Forçar modo de criação
       />
       {alert && (
         <CustomAlert

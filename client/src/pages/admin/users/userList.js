@@ -1,24 +1,24 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
   TextField,
   InputAdornment,
   Button,
-} from "@mui/material";
-import { Search } from "@mui/icons-material";
-import UserRegistrationPopup from "./UserResgistrationPopup";
-import UserDelete from "./UserDelete";
-import UserUpdatePopup from "./UserUpdatePopup";
-import api from "../../../service/api";
-import UsersTable from "./UsersTable";
+} from '@mui/material';
+import { Search } from '@mui/icons-material';
+import UserRegistrationPopup from './UserResgistrationPopup';
+import UserDelete from './UserDelete';
+import UserUpdatePopup from './UserUpdatePopup';
+import api from '../../../service/api';
+import UsersTable from './UsersTable';
 
 const SearchBar = ({ value, onChange }) => (
   <TextField
     value={value}
     onChange={onChange}
-    placeholder="Buscar..."
-    variant="outlined"
+    placeholder='Buscar...'
+    variant='outlined'
     sx={{
       width: '400px',
       '& .MuiInputBase-root': {
@@ -32,7 +32,7 @@ const SearchBar = ({ value, onChange }) => (
     }}
     InputProps={{
       startAdornment: (
-        <InputAdornment position="start">
+        <InputAdornment position='start'>
           <Search />
         </InputAdornment>
       ),
@@ -42,7 +42,7 @@ const SearchBar = ({ value, onChange }) => (
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openUpdateDialog, setOpenUpdateDialog] = useState(false);
@@ -55,17 +55,17 @@ const UserList = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await api.get("/users/all");
-      console.log("UserList - Resposta da API:", response.data);
+      const response = await api.get('/users/all');
+      console.log('UserList - Resposta da API:', response.data);
       if (!response.data || !Array.isArray(response.data.users)) {
-        throw new Error("Erro ao buscar usuários: Dados inválidos");
+        throw new Error('Erro ao buscar usuários: Dados inválidos');
       }
       setUsers(response.data.users);
     } catch (error) {
-      console.error("Erro ao buscar usuários:", error);
+      console.error('Erro ao buscar usuários:', error);
       if (error.response) {
-        console.error("Status:", error.response.status);
-        console.error("Dados do erro:", error.response.data);
+        console.error('Status:', error.response.status);
+        console.error('Dados do erro:', error.response.data);
       }
       setUsers([]);
     }
@@ -78,81 +78,69 @@ const UserList = () => {
     : [];
 
   const handleRegister = (newUser) => {
+    console.log('UserList - Novo usuário adicionado:', newUser);
     setUsers((prevUsers) => [...prevUsers, newUser]);
-    console.log("UserList - Novo usuário adicionado:", newUser);
   };
 
   const handleEdit = (user) => {
-    console.log("UserList - Usuário para edição:", user);
+    console.log('UserList - Usuário para edição:', user);
     setUserToEdit(user);
     setOpenUpdateDialog(true);
   };
 
   const handleUpdate = (updatedUser) => {
-    console.log("UserList - Usuário atualizado:", updatedUser);
-    setUsers((prevUsers) =>
-      prevUsers.map((user) =>
-        user.id === updatedUser.id
-          ? {
-              ...user,
-              username: updatedUser.username,
-              email: updatedUser.email,
-              accessType: updatedUser.accessType,
-            }
-          : user
-      )
-    );
+    console.log('UserList - Usuário atualizado:', updatedUser);
+    setUsers((prevUsers) => {
+      const newUsers = prevUsers.map((user) =>
+        String(user.id) === String(updatedUser.id) ? updatedUser : user
+      );
+      console.log('UserList - Nova lista de usuários:', newUsers);
+      console.log('UserList - filteredUsers após atualização:', newUsers.filter((user) =>
+        user.username.toLowerCase().includes(search.toLowerCase())
+      ));
+      return newUsers;
+    });
     setOpenUpdateDialog(false);
     setUserToEdit(null);
   };
 
   const handleDelete = (userId) => {
+    console.log('UserList - Usuário para deleção:', userId);
     setUserToDelete(users.find((u) => u.id === userId));
     setOpenDeleteDialog(true);
   };
 
   const handleDeleteSuccess = (userId) => {
+    console.log('UserList - Usuário deletado:', userId);
     fetchUsers();
   };
 
   return (
     <Box padding={3}>
-      <Typography
-        variant="h5"
-        align="center"
-        gutterBottom
-        sx={{ mb: 3 }}
-      >
+      <Typography variant='h5' align='center' gutterBottom sx={{ mb: 3 }}>
         Usuários
       </Typography>
       <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
+        display='flex'
+        justifyContent='space-between'
+        alignItems='center'
         marginBottom={2}
         gap={2}
       >
-        <SearchBar
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <SearchBar value={search} onChange={(e) => setSearch(e.target.value)} />
         <Button
-          variant="contained"
+          variant='contained'
           onClick={() => setOpenDialog(true)}
           sx={{
             backgroundColor: '#087619',
             '&:hover': { backgroundColor: '#065412' },
-            textTransform: 'none', // Impede letras maiúsculas automáticas
+            textTransform: 'none',
           }}
         >
           Cadastrar Usuário
         </Button>
       </Box>
-      <UsersTable
-        users={filteredUsers}
-        onDelete={handleDelete}
-        onUpdate={handleEdit}
-      />
+      <UsersTable users={filteredUsers} onDelete={handleDelete} onUpdate={handleEdit} />
       <UserRegistrationPopup
         open={openDialog}
         onClose={() => setOpenDialog(false)}
@@ -174,7 +162,7 @@ const UserList = () => {
           setUserToDelete(null);
         }}
         userId={userToDelete ? userToDelete.id : null}
-        userName={userToDelete ? userToDelete.username : ""}
+        userName={userToDelete ? userToDelete.username : ''}
         onDeleteSuccess={handleDeleteSuccess}
       />
     </Box>

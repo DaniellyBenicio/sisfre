@@ -23,79 +23,79 @@ import * as yup from 'yup';
 import { styled } from '@mui/material/styles';
 import api from '../../service/api';
 
-const INSTITUTIONAL_COLOR = "#307c34";
+const INSTITUTIONAL_COLOR = '#307c34';
 
 const StyledButton = styled(Button)(({ theme }) => ({
-  borderRadius: "8px",
+  borderRadius: '8px',
   padding: theme.spacing(1, 3),
-  textTransform: "none",
-  fontWeight: "bold",
-  fontSize: "0.875rem",
-  display: "flex",
-  alignItems: "center",
-  gap: "8px",
+  textTransform: 'none',
+  fontWeight: 'bold',
+  fontSize: '0.875rem',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
 }));
 
 const StyledSelect = styled(Select)(({ theme }) => ({
-  height: "50px",
-  fontSize: "0.875rem",
-  "& .MuiSelect-select": {
-    padding: "8px 14px",
+  height: '50px',
+  fontSize: '0.875rem',
+  '& .MuiSelect-select': {
+    padding: '8px 14px',
   },
-  "& .MuiOutlinedInput-root": {
-    borderRadius: "8px",
-    "& fieldset": {
-      borderColor: "#E0E0E0",
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '8px',
+    '& fieldset': {
+      borderColor: '#E0E0E0',
     },
-    "&:hover fieldset": {
-      borderColor: "#27AE60",
+    '&:hover fieldset': {
+      borderColor: '#27AE60',
     },
-    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#27AE60 !important",
-      borderWidth: "2px",
+    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+      borderColor: '#27AE60 !important',
+      borderWidth: '2px',
     },
   },
-  "& .MuiInputLabel-root": {
-    fontSize: "0.875rem",
-    transform: "translate(14px, 10px) scale(1)",
-    "&.MuiInputLabel-shrink": {
-      transform: "translate(14px, -6px) scale(0.75)",
-      fontWeight: "bold",
-      color: "#27AE60",
+  '& .MuiInputLabel-root': {
+    fontSize: '0.875rem',
+    transform: 'translate(14px, 10px) scale(1)',
+    '&.MuiInputLabel-shrink': {
+      transform: 'translate(14px, -6px) scale(0.75)',
+      fontWeight: 'bold',
+      color: '#27AE60',
     },
-    "&.Mui-focused": {
-      color: "#27AE60",
+    '&.Mui-focused': {
+      color: '#27AE60',
     },
   },
 }));
 
 const StyledTextField = styled(TextField)({
-  "& .MuiInputLabel-root": {
-    color: "text.secondary",
-    fontSize: { xs: "0.9rem", md: "1rem" },
-    transition: "color 0.3s ease, transform 0.3s ease",
+  '& .MuiInputLabel-root': {
+    color: 'text.secondary',
+    fontSize: { xs: '0.9rem', md: '1rem' },
+    transition: 'color 0.3s ease, transform 0.3s ease',
   },
-  "& .MuiInputLabel-root.Mui-focused, & .MuiInputLabel-root.MuiInputLabel-shrink": {
-    color: "#27AE60",
+  '& .MuiInputLabel-root.Mui-focused, & .MuiInputLabel-root.MuiInputLabel-shrink': {
+    color: '#27AE60',
   },
-  "& .MuiOutlinedInput-root": {
-    borderRadius: "8px",
-    backgroundColor: "transparent",
-    "& input": {
-      backgroundColor: "transparent !important",
-      WebkitBoxShadow: "0 0 0 1000px transparent inset",
-      WebkitTextFillColor: "#000",
-      transition: "background-color 5000s ease-in-out 0s",
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '8px',
+    backgroundColor: 'transparent',
+    '& input': {
+      backgroundColor: 'transparent !important',
+      WebkitBoxShadow: '0 0 0 1000px transparent inset',
+      WebkitTextFillColor: '#000',
+      transition: 'background-color 5000s ease-in-out 0s',
     },
-    "& fieldset": {
-      borderColor: "#E0E0E0",
+    '& fieldset': {
+      borderColor: '#E0E0E0',
     },
-    "&:hover fieldset": {
-      borderColor: "#27AE60",
+    '&:hover fieldset': {
+      borderColor: '#27AE60',
     },
-    "&.Mui-focused fieldset": {
-      borderColor: "#27AE60",
-      borderWidth: "2px",
+    '&.Mui-focused fieldset': {
+      borderColor: '#27AE60',
+      borderWidth: '2px',
     },
   },
 });
@@ -144,12 +144,16 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
           response = await api.post(`/users`, payload);
         }
 
+        console.log('UserFormDialog - Resposta da API:', response.data); // Log para depuração
+
         const newUser = {
-          id: response.data.id || response.data.user?.id || Date.now().toString(),
+          id: isEditMode ? String(userToEdit?.id) : String(response.data.id || response.data.user?.id || Date.now().toString()),
           username: values.username,
           email: values.email,
           accessType: values.accessType,
         };
+
+        console.log('UserFormDialog - newUser:', newUser); // Log para depuração
 
         onSubmitSuccess(newUser);
         onClose();
@@ -163,6 +167,7 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
             ? 'Use um e-mail institucional (@ifce.edu.br).'
             : errorMessage
         );
+        console.error('UserFormDialog - Erro:', err); // Log para depuração
       } finally {
         setLoading(false);
       }
@@ -170,17 +175,17 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
   });
 
   useEffect(() => {
-    console.log("UserFormDialog - Estado open:", open); // Log para depuração
+    console.log('UserFormDialog - Estado open:', open);
     if (!open) {
       setLoading(false);
       setError(null);
       setFocusedField(null);
     }
-  }, [open]); // Removido formik das dependências
+  }, [open]);
 
   const handleDialogClose = () => {
-    console.log("UserFormDialog - Fechando diálogo"); // Log para depuração
-    formik.resetForm(); // Movido para handleDialogClose
+    console.log('UserFormDialog - Fechando diálogo');
+    formik.resetForm();
     onClose();
   };
 
@@ -188,13 +193,13 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
     <Dialog
       open={open}
       onClose={handleDialogClose}
-      disablePortal // Renderiza dentro do DOM pai
-      autoFocus={false} // Evita foco automático
+      disablePortal // Mantido para evitar interferência no sidebar
+      autoFocus={false}
       fullWidth={false}
       TransitionComponent={Fade}
       TransitionProps={{
         onExited: () => {
-          console.log("UserFormDialog - Transição de saída concluída"); // Log para depuração
+          console.log('UserFormDialog - Transição de saída concluída');
           setLoading(false);
           setError(null);
           formik.resetForm();
@@ -205,7 +210,7 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
     >
       <DialogTitle sx={{ padding: '15px 24px' }}>
         <Typography
-          variant="h6"
+          variant='h6'
           sx={{ textAlign: 'center', color: '#087619' }}
         >
           {isEditMode ? 'Editar Usuário' : 'Cadastrar Usuário'}
@@ -213,29 +218,29 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
         <IconButton
           onClick={handleDialogClose}
           sx={{ position: 'absolute', right: 8, top: 8 }}
-          aria-label="Fechar modal"
+          aria-label='Fechar modal'
         >
           <Close />
         </IconButton>
       </DialogTitle>
       <DialogContent sx={{ padding: '15px' }}>
         {loading ? (
-          <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+          <Box display='flex' justifyContent='center' alignItems='center' minHeight='200px'>
             <CircularProgress />
           </Box>
         ) : (
           <form onSubmit={formik.handleSubmit}>
             {error && (
-              <Typography color="error" sx={{ mb: 1, fontSize: '0.875rem' }}>
+              <Typography color='error' sx={{ mb: 1, fontSize: '0.875rem' }}>
                 {error}
               </Typography>
             )}
             <StyledTextField
               fullWidth
-              margin="normal"
+              margin='normal'
               sx={{ my: 1.5 }}
-              label="Nome"
-              name="username"
+              label='Nome'
+              name='username'
               value={formik.values.username}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -243,15 +248,15 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
               error={formik.touched.username && Boolean(formik.errors.username)}
               helperText={formik.touched.username && formik.errors.username}
               InputLabelProps={{ required: false }}
-              variant="outlined"
+              variant='outlined'
             />
             <StyledTextField
               fullWidth
-              margin="normal"
+              margin='normal'
               sx={{ my: 1.5 }}
-              label="E-mail"
-              name="email"
-              type="email"
+              label='E-mail'
+              name='email'
+              type='email'
               value={formik.values.email}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -259,45 +264,45 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
               error={formik.touched.email && Boolean(formik.errors.email)}
               helperText={formik.touched.email && formik.errors.email}
               InputLabelProps={{ required: false }}
-              variant="outlined"
+              variant='outlined'
             />
             <FormControl
               fullWidth
-              margin="normal"
+              margin='normal'
               sx={{
                 my: 1.5,
-                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#27AE60 !important",
-                  borderWidth: "2px",
+                '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#27AE60 !important',
+                  borderWidth: '2px',
                 },
               }}
               error={formik.touched.accessType && Boolean(formik.errors.accessType)}
-              variant="outlined"
+              variant='outlined'
             >
               <InputLabel
-                id="accessType-label"
-                sx={{ "&.Mui-focused, &.MuiInputLabel-shrink": { color: "#27AE60" } }}
+                id='accessType-label'
+                sx={{ '&.Mui-focused, &.MuiInputLabel-shrink': { color: '#27AE60' } }}
               >
                 Tipo de Usuário
               </InputLabel>
               <StyledSelect
-                labelId="accessType-label"
-                name="accessType"
+                labelId='accessType-label'
+                name='accessType'
                 value={formik.values.accessType}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
                 onFocus={() => {
-                  console.log("Select focado: Tipo de Usuário"); // Log para depuração
+                  console.log('Select focado: Tipo de Usuário');
                   setFocusedField('accessType');
                 }}
-                label="Tipo de Usuário"
+                label='Tipo de Usuário'
                 required
               >
-                <MenuItem value="">
+                <MenuItem value=''>
                   <em>Selecione o tipo</em>
                 </MenuItem>
-                <MenuItem value="professor">Professor</MenuItem>
-                <MenuItem value="coordenador">Coordenador</MenuItem>
+                <MenuItem value='professor'>Professor</MenuItem>
+                <MenuItem value='coordenador'>Coordenador</MenuItem>
               </StyledSelect>
               {formik.touched.accessType && formik.errors.accessType && (
                 <FormHelperText>{formik.errors.accessType}</FormHelperText>
@@ -315,8 +320,8 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
       >
         <StyledButton
           onClick={handleDialogClose}
-          color="error"
-          variant="contained"
+          color='error'
+          variant='contained'
           disabled={loading}
         >
           <Close sx={{ fontSize: 20 }} />
@@ -324,7 +329,7 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
         </StyledButton>
         <StyledButton
           onClick={formik.handleSubmit}
-          variant="contained"
+          variant='contained'
           disabled={loading || !formik.isValid}
           sx={{
             bgcolor: loading || !formik.isValid ? '#E0E0E0' : INSTITUTIONAL_COLOR,

@@ -18,14 +18,12 @@ import Paginate from "../../../components/paginate/Paginate";
 const UsersTable = ({ users, onDelete, onUpdate }) => {
   const isMobile = useMediaQuery("(max-width:600px)");
   const [page, setPage] = useState(1);
-  const [rowsPerPage] = useState(8);
+  const [rowsPerPage] = useState(6);
 
   const handleChangePage = (newPage) => {
     setPage(newPage);
   };
 
-  // Função para gerar o código em maiúsculas
-  // Ex.: "Amanda Correia" → "AC", "Amanda" → "AM"
   const generateCode = (username) => {
     if (!username) return "";
     const parts = username.trim().split(" ");
@@ -38,7 +36,7 @@ const UsersTable = ({ users, onDelete, onUpdate }) => {
   };
 
   const visibleUsers = useMemo(() => {
-    // Verifica se users é um array; se não, retorna array vazio
+    
     if (!Array.isArray(users)) return [];
     const startIndex = (page - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;

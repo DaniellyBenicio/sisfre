@@ -13,11 +13,92 @@ import {
   MenuItem,
   Select,
   IconButton,
+  InputLabel,
+  FormHelperText,
+  Fade,
 } from '@mui/material';
-import { Close } from '@mui/icons-material';
+import { Close, Save as SaveIcon } from '@mui/icons-material';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
+import { styled } from '@mui/material/styles';
 import api from '../../service/api';
+
+const INSTITUTIONAL_COLOR = "#307c34";
+
+const StyledButton = styled(Button)(({ theme }) => ({
+  borderRadius: "8px",
+  padding: theme.spacing(1, 3),
+  textTransform: "none",
+  fontWeight: "bold",
+  fontSize: "0.875rem",
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+}));
+
+const StyledSelect = styled(Select)(({ theme }) => ({
+  height: "50px",
+  fontSize: "0.875rem",
+  "& .MuiSelect-select": {
+    padding: "8px 14px",
+  },
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "8px",
+    "& fieldset": {
+      borderColor: "#E0E0E0",
+    },
+    "&:hover fieldset": {
+      borderColor: "#27AE60",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#27AE60 !important",
+      borderWidth: "2px",
+    },
+  },
+  "& .MuiInputLabel-root": {
+    fontSize: "0.875rem",
+    transform: "translate(14px, 10px) scale(1)",
+    "&.MuiInputLabel-shrink": {
+      transform: "translate(14px, -6px) scale(0.75)",
+      fontWeight: "bold",
+      color: "#27AE60",
+    },
+    "&.Mui-focused": {
+      color: "#27AE60",
+    },
+  },
+}));
+
+const StyledTextField = styled(TextField)({
+  "& .MuiInputLabel-root": {
+    color: "text.secondary",
+    fontSize: { xs: "0.9rem", md: "1rem" },
+    transition: "color 0.3s ease, transform 0.3s ease",
+  },
+  "& .MuiInputLabel-root.Mui-focused, & .MuiInputLabel-root.MuiInputLabel-shrink": {
+    color: "#27AE60",
+  },
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "8px",
+    backgroundColor: "transparent",
+    "& input": {
+      backgroundColor: "transparent !important",
+      WebkitBoxShadow: "0 0 0 1000px transparent inset",
+      WebkitTextFillColor: "#000",
+      transition: "background-color 5000s ease-in-out 0s",
+    },
+    "& fieldset": {
+      borderColor: "#E0E0E0",
+    },
+    "&:hover fieldset": {
+      borderColor: "#27AE60",
+    },
+    "&.Mui-focused fieldset": {
+      borderColor: "#27AE60",
+      borderWidth: "2px",
+    },
+  },
+});
 
 const validationSchema = yup.object({
   username: yup.string().required('Nome é obrigatório'),
@@ -35,6 +116,7 @@ const validationSchema = yup.object({
 const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [focusedField, setFocusedField] = useState(null);
 
   const formik = useFormik({
     initialValues: {
@@ -92,23 +174,27 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
       setLoading(false);
       setError(null);
       formik.resetForm();
+      setFocusedField(null);
     }
-  }, [open]); 
+  }, [open, formik]);
 
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth={false}
-      BackdropProps={{ invisible: true }}
-      sx={{ '& .MuiDialog-paper': { width: 500 } }}
-      fullWidth
-      PaperProps={{ sx: { borderRadius: 4, height: '480px' } }}
-      disableEnforceFocus 
-      disableBackdropClick 
+      fullWidth={false}
+      TransitionComponent={Fade}
+      PaperProps={{ sx: { width: 480, borderRadius: '8px' } }}
+      disableEnforceFocus
+      disableBackdropClick
     >
-      <DialogTitle sx={{ fontWeight: 'bold', textAlign: 'center', marginTop: '19px' }}>
-        {isEditMode ? 'Editar Usuário' : 'Cadastro de Usuário'}
+      <DialogTitle sx={{ padding: '15px 24px' }}>
+        <Typography
+          variant="h6"
+          sx={{ textAlign: 'center', color: '#087619' }}
+        >
+          {isEditMode ? 'Editar Usuário' : 'Cadastrar Usuário'}
+        </Typography>
         <IconButton
           onClick={onClose}
           sx={{ position: 'absolute', right: 8, top: 8 }}
@@ -117,136 +203,130 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
           <Close />
         </IconButton>
       </DialogTitle>
-      <DialogContent sx={{ px: 5 }}>
+      <DialogContent sx={{ padding: '15px' }}>
         {loading ? (
-          <Box display="flex" justifyContent="center">
+          <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
             <CircularProgress />
           </Box>
         ) : (
           <form onSubmit={formik.handleSubmit}>
-            {error && <Box sx={{ color: 'red', marginBottom: 2 }}>{error}</Box>}
-            <Typography variant="subtitle1" mt="15px" sx={{ color: '#2B2B2B' }}>
-              Nome
-            </Typography>
-            <TextField
-              name="username"
-              size="small"
-              variant="outlined"
+            {error && (
+              <Typography color="error" sx={{ mb: 1, fontSize: '0.875rem' }}>
+                {error}
+              </Typography>
+            )}
+            <StyledTextField
               fullWidth
               margin="normal"
+              sx={{ my: 1.5 }}
+              label="Nome"
+              name="username"
               value={formik.values.username}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
+              onFocus={() => setFocusedField('username')}
               error={formik.touched.username && Boolean(formik.errors.username)}
               helperText={formik.touched.username && formik.errors.username}
-              required
-              sx={{ mb: 1.5, marginTop: '-1px' }}
-              InputProps={{
-                sx: {
-                  borderRadius: 2,
-                  border: '1px solid #999999',
-                  '& input': { color: '#2B2B2B' },
-                },
-              }}
-            />
-            <Typography variant="subtitle1" sx={{ color: '#2B2B2B' }}>
-              E-mail
-            </Typography>
-            <TextField
-              name="email"
-              size="small"
+              InputLabelProps={{ required: false }}
               variant="outlined"
+            />
+            <StyledTextField
               fullWidth
               margin="normal"
+              sx={{ my: 1.5 }}
+              label="E-mail"
+              name="email"
+              type="email"
               value={formik.values.email}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
+              onFocus={() => setFocusedField('email')}
               error={formik.touched.email && Boolean(formik.errors.email)}
               helperText={formik.touched.email && formik.errors.email}
-              required
-              sx={{ mb: 1.5, marginTop: '-1px' }}
-              InputProps={{
-                sx: {
-                  borderRadius: 2,
-                  border: '1px solid #999999',
-                  '& input': { color: '#2B2B2B' },
+              InputLabelProps={{ required: false }}
+              variant="outlined"
+            />
+            <FormControl
+              fullWidth
+              margin="normal"
+              sx={{
+                my: 1.5,
+                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#27AE60 !important",
+                  borderWidth: "2px",
                 },
               }}
-            />
-            <Typography variant="subtitle1" sx={{ color: '#2B2B2B' }}>
-              Tipo
-            </Typography>
-            <FormControl fullWidth margin="normal" size="small" sx={{ mb: 1.5, marginTop: '-1px' }}>
-              <Select
+              error={formik.touched.accessType && Boolean(formik.errors.accessType)}
+              variant="outlined"
+            >
+              <InputLabel
+                id="accessType-label"
+                sx={{ "&.Mui-focused, &.MuiInputLabel-shrink": { color: "#27AE60" } }}
+              >
+                Tipo de Usuário
+              </InputLabel>
+              <StyledSelect
+                labelId="accessType-label"
                 name="accessType"
                 value={formik.values.accessType}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                error={formik.touched.accessType && Boolean(formik.errors.accessType)}
-                displayEmpty
-                required
-                sx={{
-                  borderRadius: 2,
-                  backgroundColor: '#fff',
-                  color: '#2B2B2B',
-                  border: '1px solid #999999',
-                  '& .MuiSelect-select': { padding: '8px 14px' },
+                onFocus={() => {
+                  console.log("Select focado: Tipo de Usuário"); // Log para depuração
+                  setFocusedField('accessType');
                 }}
+                label="Tipo de Usuário"
+                required
               >
                 <MenuItem value="">
                   <em>Selecione o tipo</em>
                 </MenuItem>
                 <MenuItem value="professor">Professor</MenuItem>
                 <MenuItem value="coordenador">Coordenador</MenuItem>
-              </Select>
+              </StyledSelect>
               {formik.touched.accessType && formik.errors.accessType && (
-                <Typography sx={{ color: '#d32f2f', fontSize: '0.75rem', mt: '4px' }}>
-                  {formik.errors.accessType}
-                </Typography>
+                <FormHelperText>{formik.errors.accessType}</FormHelperText>
               )}
             </FormControl>
-            <DialogActions
-              sx={{
-                justifyContent: 'center',
-                gap: 2,
-                padding: '10px 24px',
-                marginTop: '50px',
-              }}
-            >
-              <Button
-                onClick={onClose}
-                variant="contained"
-                sx={{
-                  backgroundColor: '#FF1C1C',
-                  color: '#fff',
-                  '&:hover': { backgroundColor: '#FF2018' },
-                  padding: '6px 30px',
-                  borderRadius: 2,
-                  textTransform: 'capitalize',
-                }}
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                variant="contained"
-                sx={{
-                  padding: '6px 35px',
-                  borderRadius: 2,
-                  backgroundColor: '#087619',
-                  textTransform: 'capitalize',
-                }}
-                disabled={loading}
-              >
-                {isEditMode ? 'Atualizar' : 'Cadastrar'}
-              </Button>
-            </DialogActions>
           </form>
         )}
       </DialogContent>
+      <DialogActions
+        sx={{
+          justifyContent: 'center',
+          padding: '15px 24px',
+          gap: 3,
+        }}
+      >
+        <StyledButton
+          onClick={onClose}
+          color="error"
+          variant="contained"
+          disabled={loading}
+        >
+          <Close sx={{ fontSize: 20 }} />
+          Cancelar
+        </StyledButton>
+        <StyledButton
+          onClick={formik.handleSubmit}
+          variant="contained"
+          disabled={loading || !formik.isValid}
+          sx={{
+            bgcolor: loading || !formik.isValid ? '#E0E0E0' : INSTITUTIONAL_COLOR,
+          }}
+        >
+          {loading ? (
+            <CircularProgress size={24} />
+          ) : (
+            <>
+              <SaveIcon sx={{ fontSize: 20 }} />
+              {isEditMode ? 'Atualizar' : 'Cadastrar'}
+            </>
+          )}
+        </StyledButton>
+      </DialogActions>
     </Dialog>
   );
 };
-
 
 export default UserFormDialog;

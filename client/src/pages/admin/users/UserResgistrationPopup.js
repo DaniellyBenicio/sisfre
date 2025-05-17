@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import UserCreateDialog from "../../../components/userForm/UserCreateDialog";
+import UserFormDialog from "../../../components/userForm/UserFormDialog";
 import { CustomAlert } from '../../../components/alert/CustomAlert';
 
 const UserRegistrationPopup = ({ open, onClose, onRegister }) => {
@@ -20,10 +20,11 @@ const UserRegistrationPopup = ({ open, onClose, onRegister }) => {
 
   return (
     <>
-      <UserCreateDialog
+      <UserFormDialog
         open={open}
         onClose={onClose}
         onSubmitSuccess={handleSubmitSuccess}
+        isEditMode={false}
       />
       {alert && (
         <CustomAlert

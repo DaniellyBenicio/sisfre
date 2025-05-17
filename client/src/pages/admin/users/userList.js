@@ -121,7 +121,7 @@ const UserList = () => {
         variant="h5"
         align="center"
         gutterBottom
-        sx={{ mb: 3 }} // Aumenta o espaço abaixo do título (24px)
+        sx={{ mb: 3 }}
       >
         Usuários
       </Typography>
@@ -142,6 +142,7 @@ const UserList = () => {
           sx={{
             backgroundColor: '#087619',
             '&:hover': { backgroundColor: '#065412' },
+            textTransform: 'none', // Impede letras maiúsculas automáticas
           }}
         >
           Cadastrar Usuário

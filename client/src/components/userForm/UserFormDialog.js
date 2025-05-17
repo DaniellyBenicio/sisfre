@@ -170,23 +170,38 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
   });
 
   useEffect(() => {
+    console.log("UserFormDialog - Estado open:", open); // Log para depuração
     if (!open) {
       setLoading(false);
       setError(null);
-      formik.resetForm();
       setFocusedField(null);
     }
-  }, [open, formik]);
+  }, [open]); // Removido formik das dependências
+
+  const handleDialogClose = () => {
+    console.log("UserFormDialog - Fechando diálogo"); // Log para depuração
+    formik.resetForm(); // Movido para handleDialogClose
+    onClose();
+  };
 
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={handleDialogClose}
+      disablePortal // Renderiza dentro do DOM pai
+      autoFocus={false} // Evita foco automático
       fullWidth={false}
       TransitionComponent={Fade}
+      TransitionProps={{
+        onExited: () => {
+          console.log("UserFormDialog - Transição de saída concluída"); // Log para depuração
+          setLoading(false);
+          setError(null);
+          formik.resetForm();
+          setFocusedField(null);
+        },
+      }}
       PaperProps={{ sx: { width: 480, borderRadius: '8px' } }}
-      disableEnforceFocus
-      disableBackdropClick
     >
       <DialogTitle sx={{ padding: '15px 24px' }}>
         <Typography
@@ -196,7 +211,7 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
           {isEditMode ? 'Editar Usuário' : 'Cadastrar Usuário'}
         </Typography>
         <IconButton
-          onClick={onClose}
+          onClick={handleDialogClose}
           sx={{ position: 'absolute', right: 8, top: 8 }}
           aria-label="Fechar modal"
         >
@@ -299,7 +314,7 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
         }}
       >
         <StyledButton
-          onClick={onClose}
+          onClick={handleDialogClose}
           color="error"
           variant="contained"
           disabled={loading}

@@ -113,6 +113,33 @@ const validationSchema = yup.object({
     .required('Tipo de usuário é obrigatório'),
 });
 
+const formatName = (name) => {
+  if (!name) return '';
+  return name
+    .trim()
+    .split(' ')
+    .map((word) => {
+      if (word.length === 0) return word;
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(' ');
+};
+const generateCode = (name) => {
+  if (!name) return '';
+  const parts = name.trim().split(' ');
+  let code = '';
+  
+  if (parts.length > 1) {
+    const firstName = parts[0];
+    const lastName = parts[parts.length - 1];
+    code = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+  } else {
+    const firstName = parts[0];
+    code = firstName.length >= 2 ? firstName.substring(0, 2).toUpperCase() : firstName.toUpperCase();
+  }
+  
+  return code;
+};
 const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -131,29 +158,31 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
       setError(null);
 
       try {
-        let response;
+        const formattedUsername = formatName(values.username);
+        const generatedCode = generateCode(formattedUsername);
         const payload = {
-          username: values.username,
+          username: formattedUsername,
           email: values.email,
           accessType: values.accessType,
         };
 
+        let response;
         if (isEditMode) {
           response = await api.put(`/users/${userToEdit?.id}`, payload);
         } else {
           response = await api.post(`/users`, payload);
         }
 
-        console.log('UserFormDialog - Resposta da API:', response.data); // Log para depuração
+        console.log('UserFormDialog - Resposta da API:', response.data);
 
         const newUser = {
-          id: isEditMode ? String(userToEdit?.id) : String(response.data.id || response.data.user?.id || Date.now().toString()),
-          username: values.username,
+          id: isEditMode ? userToEdit?.id : generatedCode, 
+          username: formattedUsername,
           email: values.email,
           accessType: values.accessType,
         };
 
-        console.log('UserFormDialog - newUser:', newUser); // Log para depuração
+        console.log('UserFormDialog - newUser:', newUser);
 
         onSubmitSuccess(newUser);
         onClose();
@@ -167,7 +196,7 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
             ? 'Use um e-mail institucional (@ifce.edu.br).'
             : errorMessage
         );
-        console.error('UserFormDialog - Erro:', err); // Log para depuração
+        console.error('UserFormDialog - Erro:', err);
       } finally {
         setLoading(false);
       }
@@ -193,7 +222,7 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
     <Dialog
       open={open}
       onClose={handleDialogClose}
-      disablePortal // Mantido para evitar interferência no sidebar
+      disablePortal
       autoFocus={false}
       fullWidth={false}
       TransitionComponent={Fade}

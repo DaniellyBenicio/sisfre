@@ -48,10 +48,10 @@ const StyledSelect = styled(Select)(({ theme }) => ({
       borderColor: '#E0E0E0',
     },
     '&:hover fieldset': {
-      borderColor: '#27AE60',
+      borderColor: '#000000',
     },
     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-      borderColor: '#27AE60 !important',
+      borderColor: '#000000 !important',
       borderWidth: '2px',
     },
   },
@@ -61,10 +61,10 @@ const StyledSelect = styled(Select)(({ theme }) => ({
     '&.MuiInputLabel-shrink': {
       transform: 'translate(14px, -6px) scale(0.75)',
       fontWeight: 'bold',
-      color: '#27AE60',
+      color: '#000000',
     },
     '&.Mui-focused': {
-      color: '#27AE60',
+      color: '#000000',
     },
   },
 }));
@@ -76,7 +76,7 @@ const StyledTextField = styled(TextField)({
     transition: 'color 0.3s ease, transform 0.3s ease',
   },
   '& .MuiInputLabel-root.Mui-focused, & .MuiInputLabel-root.MuiInputLabel-shrink': {
-    color: '#27AE60',
+    color: '#000000',
   },
   '& .MuiOutlinedInput-root': {
     borderRadius: '8px',
@@ -91,10 +91,10 @@ const StyledTextField = styled(TextField)({
       borderColor: '#E0E0E0',
     },
     '&:hover fieldset': {
-      borderColor: '#27AE60',
+      borderColor: '#000000',
     },
     '&.Mui-focused fieldset': {
-      borderColor: '#27AE60',
+      borderColor: '#000000',
       borderWidth: '2px',
     },
   },
@@ -124,6 +124,7 @@ const formatName = (name) => {
     })
     .join(' ');
 };
+
 const generateCode = (name) => {
   if (!name) return '';
   const parts = name.trim().split(' ');
@@ -140,6 +141,7 @@ const generateCode = (name) => {
   
   return code;
 };
+
 const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -218,6 +220,9 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
     onClose();
   };
 
+  // Verifica se pelo menos um campo está preenchido
+  const isAnyFieldFilled = formik.values.username || formik.values.email || formik.values.accessType;
+
   return (
     <Dialog
       open={open}
@@ -274,8 +279,8 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               onFocus={() => setFocusedField('username')}
-              error={formik.touched.username && Boolean(formik.errors.username)}
-              helperText={formik.touched.username && formik.errors.username}
+              error={formik.submitCount > 0 && formik.touched.username && Boolean(formik.errors.username)}
+              helperText={formik.submitCount > 0 && formik.touched.username && formik.errors.username}
               InputLabelProps={{ required: false }}
               variant='outlined'
             />
@@ -290,8 +295,8 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               onFocus={() => setFocusedField('email')}
-              error={formik.touched.email && Boolean(formik.errors.email)}
-              helperText={formik.touched.email && formik.errors.email}
+              error={formik.submitCount > 0 && formik.touched.email && Boolean(formik.errors.email)}
+              helperText={formik.submitCount > 0 && formik.touched.email && formik.errors.email}
               InputLabelProps={{ required: false }}
               variant='outlined'
             />
@@ -301,16 +306,16 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
               sx={{
                 my: 1.5,
                 '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                  borderColor: '#27AE60 !important',
+                  borderColor: '#000000 !important',
                   borderWidth: '2px',
                 },
               }}
-              error={formik.touched.accessType && Boolean(formik.errors.accessType)}
+              error={formik.submitCount > 0 && formik.touched.accessType && Boolean(formik.errors.accessType)}
               variant='outlined'
             >
               <InputLabel
                 id='accessType-label'
-                sx={{ '&.Mui-focused, &.MuiInputLabel-shrink': { color: '#27AE60' } }}
+                sx={{ '&.Mui-focused, &.MuiInputLabel-shrink': { color: '#000000' } }}
               >
                 Tipo de Usuário
               </InputLabel>
@@ -333,7 +338,7 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
                 <MenuItem value='professor'>Professor</MenuItem>
                 <MenuItem value='coordenador'>Coordenador</MenuItem>
               </StyledSelect>
-              {formik.touched.accessType && formik.errors.accessType && (
+              {formik.submitCount > 0 && formik.touched.accessType && formik.errors.accessType && (
                 <FormHelperText>{formik.errors.accessType}</FormHelperText>
               )}
             </FormControl>
@@ -359,9 +364,9 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
         <StyledButton
           onClick={formik.handleSubmit}
           variant='contained'
-          disabled={loading || !formik.isValid}
+          disabled={loading || !isAnyFieldFilled} // Alterado para verificar se pelo menos um campo está preenchido
           sx={{
-            bgcolor: loading || !formik.isValid ? '#E0E0E0' : INSTITUTIONAL_COLOR,
+            bgcolor: loading || !isAnyFieldFilled ? '#E0E0E0' : INSTITUTIONAL_COLOR,
           }}
         >
           {loading ? (

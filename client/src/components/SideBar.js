@@ -218,7 +218,7 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
               color: "white",
               backgroundColor: "#F01424",
               padding: "5px 25px",
-              "&:hover": { backgroundColor: "#FF170F" },
+              "&:hover": { backgroundColor: "#D4000F" },
             }}
           >
             Não

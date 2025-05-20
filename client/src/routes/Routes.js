@@ -6,15 +6,17 @@ import CoursePage from "../pages/admin/courses/CoursesPage.js";
 import MainScreen from "../pages/MainScreen.js";
 
 const AppRoutes = () => {
-  const [isAuthenticated, setAuthenticated] = useState(false);
+  // Inicializa isAuthenticated com base no token no localStorage
+  const [isAuthenticated, setAuthenticated] = useState(() => {
+    const token = localStorage.getItem("token");
+    return !!token; // true se existe, false se não
+  });
   const accessType = localStorage.getItem("accessType");
   const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) {
-      setAuthenticated(true);
-    }
+    setAuthenticated(!!token);
   }, []);
 
   const handleLogin = () => {
@@ -24,6 +26,7 @@ const AppRoutes = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("accessType");
     setAuthenticated(false);
     navigate("/login");
   };
@@ -50,7 +53,6 @@ const AppRoutes = () => {
           )
         }
       />
-
       <Route
         path="/users"
         element={
@@ -61,7 +63,6 @@ const AppRoutes = () => {
           )
         }
       />
-
       <Route
         path="/courses"
         element={
@@ -72,7 +73,6 @@ const AppRoutes = () => {
           )
         }
       />
-
       <Route
         path="/MainScreen"
         element={

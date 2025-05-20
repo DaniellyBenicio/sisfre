@@ -19,8 +19,7 @@ module.exports = {
         unique: true,
       },
       type: {
-        // G - 'GRADUAÇÃO', T - 'TÉCNICO', I - 'INTEGRADO'
-        type: Sequelize.ENUM("G", "T", "I"),
+        type: Sequelize.STRING,
         allowNull: false,
       },
       coordinatorId: {

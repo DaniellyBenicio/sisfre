@@ -18,8 +18,8 @@ const Course = sequelize.define("course", {
     unique: true,
   },
   type: {
-    // G - 'GRADUAÇÃO', T - 'TÉCNICO', I - 'INTEGRADO'
-    type: DataTypes.ENUM("G", "T", "I"),
+    // Ex: G - 'GRADUAÇÃO', T - 'TÉCNICO', I - 'INTEGRADO', ou qualquer outro
+    type: DataTypes.STRING,
     allowNull: false,
   },
   coordinatorId: {

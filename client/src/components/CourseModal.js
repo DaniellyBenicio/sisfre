@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, Typography, DialogActions, DialogContent, DialogTitle, TextField, Button, CircularProgress, Box,
-  FormControl, MenuItem, Select, IconButton
+import {
+	Dialog, Typography, DialogActions, DialogContent, DialogTitle, TextField, Button, CircularProgress, Box,
+	FormControl, MenuItem, Select, IconButton
 } from '@mui/material';
 import { Close } from '@mui/icons-material';
 import api from '../service/api';
@@ -12,16 +13,16 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 
 	const handleSubmitSuccess = (newCourse) => {
 		setAlert({
-		  message: courseToEdit ? 'Curso atualizado com sucesso!' : 'Curso cadastrado com sucesso!',
-		  type: 'success',
+			message: courseToEdit ? 'Curso atualizado com sucesso!' : 'Curso cadastrado com sucesso!',
+			type: 'success',
 		});
 		onClose();
 	};
 
 	const handleAlertClose = () => {
-    	setAlert(null);
-  	};
-	
+		setAlert(null);
+	};
+
 	const [course, setCourse] = useState({
 		acronym: '',
 		name: '',
@@ -32,6 +33,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 	const [error, setError] = useState(null);
 	const [coordinators, setCoordinators] = useState([]);
 	const [successOpen, setSuccessOpen] = useState(false);
+	const [customType, setCustomType] = useState('');
 
 	useEffect(() => {
 		if (courseToEdit) {
@@ -51,32 +53,32 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 		}
 	}, [courseToEdit, open]);
 
-  useEffect(() => {
-    const fetchCoordinators = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get('/users');
-        console.log('Resposta da API /users:', response.data);
-        let allUsers = response.data;
+	useEffect(() => {
+		const fetchCoordinators = async () => {
+			try {
+				setLoading(true);
+				const response = await api.get('/users');
+				console.log('Resposta da API /users:', response.data);
+				let allUsers = response.data;
 
-        if (!Array.isArray(allUsers)) {
-          console.warn('response.data não é um array:', allUsers);
-          allUsers = allUsers.users || [];
-        }
+				if (!Array.isArray(allUsers)) {
+					console.warn('response.data não é um array:', allUsers);
+					allUsers = allUsers.users || [];
+				}
 
-        const filtered = allUsers.filter(user => user.accessType === 'Coordenador');
-        console.log('Coordenadores filtrados:', filtered);
-        setCoordinators(filtered);
-      } catch (err) {
-        console.error('Erro ao buscar coordenadores:', err);
-        setError('Erro ao carregar coordenadores');
-      } finally {
-        setLoading(false);
-      }
-    };
+				const filtered = allUsers.filter(user => user.accessType === 'Coordenador');
+				console.log('Coordenadores filtrados:', filtered);
+				setCoordinators(filtered);
+			} catch (err) {
+				console.error('Erro ao buscar coordenadores:', err);
+				setError('Erro ao carregar coordenadores');
+			} finally {
+				setLoading(false);
+			}
+		};
 
-    fetchCoordinators();
-  }, [open]);
+		fetchCoordinators();
+	}, [open]);
 
 	const handleInputChange = (e) => {
 		setCourse({ ...course, [e.target.name]: e.target.value });
@@ -93,8 +95,8 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 			return;
 		}
 
-		if (!['G', 'T', 'I'].includes(course.type)) {
-			setError("O tipo do curso deve ser 'G', 'T' ou 'I'.");
+		if (!course.type || (course.type === "OUTRO" && !customType)) {
+			setError("O tipo do curso é obrigatório.");
 			setLoading(false);
 			return;
 		}
@@ -104,7 +106,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 			const payload = {
 				acronym: course.acronym,
 				name: course.name,
-				type: course.type,
+				type: course.type === "OUTRO" ? customType : course.type,
 				coordinatorId: course.coordinatorId ? Number(course.coordinatorId) : null
 			};
 
@@ -118,7 +120,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 
 			onUpdate(response.data);
 			handleSubmitSuccess();
-      
+
 		} catch (err) {
 			console.log('Erro completo:', err.response);
 			setError(err.response?.data?.error || 'Erro ao salvar curso: ' + err.message);
@@ -134,11 +136,11 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 
 	return (
 		<>
-			<Dialog 
-				open={open} 
-				onClose={onClose} 
-				maxWidth="sm" 
-				fullWidth 
+			<Dialog
+				open={open}
+				onClose={onClose}
+				maxWidth="sm"
+				fullWidth
 				onSubmitSuccess={handleSubmitSuccess}
 				PaperProps={{ sx: { borderRadius: 4, height: '520px' } }}>
 				<DialogTitle sx={{ fontWeight: 'bold', textAlign: 'center', marginTop: '19px' }}>
@@ -160,10 +162,10 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 					) : (
 						<form onSubmit={handleSubmit}>
 							{error && <Box sx={{ color: 'red', marginBottom: 2 }}>{error}</Box>}
-							<Typography variant="subtitle1"  mt='15px' sx={{ color: '#2B2B2B' }}>
+							<Typography variant="subtitle1" mt='15px' sx={{ color: '#2B2B2B' }}>
 								Nome
 							</Typography>
-							<TextField 
+							<TextField
 								name="name"
 								size="small"
 								variant="outlined"
@@ -187,7 +189,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 							<Typography variant="subtitle1" sx={{ color: '#2B2B2B' }}>
 								Sigla
 							</Typography>
-							<TextField 
+							<TextField
 								name="acronym"
 								fullWidth
 								variant="outlined"
@@ -234,7 +236,31 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 									<MenuItem value="G">Graduação</MenuItem>
 									<MenuItem value="T">Técnico</MenuItem>
 									<MenuItem value="I">Integrado</MenuItem>
+									<MenuItem value="OUTRO">Outros</MenuItem>
 								</Select>
+								{course.type === "OUTRO" && (
+									<TextField
+										name="customType"
+										label="Digite o novo tipo"
+										fullWidth
+										size="small"
+										padding="5px"
+										margin="normal"
+										value={customType}
+										onChange={e => setCustomType(e.target.value)}
+										required
+										sx={{ mb: 1.5, marginTop: '-1px' }}
+										InputProps={{
+											sx: {
+												borderRadius: 2,
+												border: '1px solid #999999',
+												'& input': {
+													color: '#2B2B2B',
+												},
+											},
+										}}
+									/>
+								)}
 							</FormControl>
 
 							<Typography variant="subtitle1" sx={{ color: '#2B2B2B' }}>
@@ -270,7 +296,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 							<DialogActions
 								sx={{
 									justifyContent: 'center',
-									gap: 2, 
+									gap: 2,
 									padding: '10px 24px',
 									marginTop: '15px'
 								}}
@@ -289,7 +315,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 								>
 									Cancelar
 								</Button>
-								<Button type="submit" color="primary" variant="contained" 
+								<Button type="submit" color="primary" variant="contained"
 									sx={{
 										padding: '6px 35px',
 										borderRadius: 2,

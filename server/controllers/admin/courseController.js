@@ -11,12 +11,6 @@ exports.createCourse = async (req, res) => {
       .json({ error: "Os campos nome, sigla e tipo são obrigatórios." });
   }
 
-  if (!["G", "T", "I"].includes(type)) {
-    return res
-      .status(400)
-      .json({ error: "O tipo do curso deve ser 'G', 'T' ou 'I'." });
-  }
-
   try {
     const existingCourse = await Course.findOne({
       where: {

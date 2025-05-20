@@ -7,7 +7,7 @@ import {
   Button,
 } from '@mui/material';
 import { Search } from '@mui/icons-material';
-import UserRegistrationPopup from './UserResgistrationPopup';
+import UserRegistrationPopup from './UserResgistrationPopup'; // Note: Typo in filename ("Resgistration" should be "Registration")
 import UserDelete from './UserDelete';
 import UserUpdatePopup from './UserUpdatePopup';
 import api from '../../../service/api';
@@ -20,7 +20,8 @@ const SearchBar = ({ value, onChange }) => (
     placeholder='Buscar...'
     variant='outlined'
     sx={{
-      width: '400px',
+      width: { xs: '100%', sm: '50%', md: '400px' }, // Responsive width
+      maxWidth: '100%', // Prevent overflow
       '& .MuiInputBase-root': {
         height: '36px',
       },
@@ -116,14 +117,22 @@ const UserList = () => {
   };
 
   return (
-    <Box padding={3}>
-      <Typography variant='h5' align='center' gutterBottom sx={{ mb: 3 }}>
+    <Box
+      padding={3}
+      sx={{
+        width: '100%',
+        maxWidth: '1200px', // Match table maxWidth
+        margin: '0 auto', // Center the content
+      }}
+    >
+      <Typography variant='h5' align='center' gutterBottom sx={{ mb: 3, fontWeight: 'bold' }}>
         Usuários
       </Typography>
       <Box
         display='flex'
+        flexDirection={{ xs: 'column', sm: 'row' }} // Stack on mobile, row on larger screens
         justifyContent='space-between'
-        alignItems='center'
+        alignItems={{ xs: 'stretch', sm: 'center' }} // Stretch on mobile, center on larger screens
         marginBottom={2}
         gap={2}
       >
@@ -135,6 +144,7 @@ const UserList = () => {
             backgroundColor: '#087619',
             '&:hover': { backgroundColor: '#065412' },
             textTransform: 'none',
+            width: { xs: '100%', sm: 'auto' }, // Full width on mobile
           }}
         >
           Cadastrar Usuário

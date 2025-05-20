@@ -67,7 +67,7 @@ const UsersTable = ({ users, onDelete, onUpdate }) => {
           <Paper key={user.id} sx={{ p: 1 }}>
             <Stack spacing={0.5}>
               <Typography>
-                <strong>Cód:</strong> {generateCode(user.username)}
+                <strong>Sigla:</strong> {generateCode(user.username)}
               </Typography>
               <Typography>
                 <strong>Nome:</strong> {user.username}
@@ -120,7 +120,7 @@ const UsersTable = ({ users, onDelete, onUpdate }) => {
           <TableHead>
             <TableRow>
               <TableCell align="center" sx={tableHeadStyle}>
-                Cód
+                Sigla
               </TableCell>
               <TableCell align="center" sx={tableHeadStyle}>
                 Nome

@@ -123,6 +123,9 @@ const UserList = () => {
         width: '100%',
         maxWidth: '1200px', // Match table maxWidth
         margin: '0 auto', // Center the content
+        isplay: 'flex',
+        flexDirection: 'column',
+        gap: 2,
       }}
     >
       <Typography variant='h5' align='center' gutterBottom sx={{ mb: 3, fontWeight: 'bold' }}>
@@ -135,6 +138,13 @@ const UserList = () => {
         alignItems={{ xs: 'stretch', sm: 'center' }} // Stretch on mobile, center on larger screens
         marginBottom={2}
         gap={2}
+        sx={{
+          width: '100%',
+          maxWidth: '1200px', // Mesma largura máxima da tabela
+          '& > *': {
+            flexShrink: 0, // Evita que os componentes encolham
+          },
+        }}
       >
         <SearchBar value={search} onChange={(e) => setSearch(e.target.value)} />
         <Button

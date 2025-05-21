@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogActions, DialogContent, DialogTitle, TextField, Button, CircularProgress, Box,
-  FormControl, MenuItem, Select, IconButton, InputLabel
+  FormControl, MenuItem, IconButton, InputLabel
 } from '@mui/material';
 import { Close, Save } from '@mui/icons-material';
 import api from '../service/api';
@@ -34,6 +34,19 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
     setAlert(null);
   };
 
+  {/* Limpar informações */}
+  const handleClose = () => {
+    setError(null);
+    setAlert(null); 
+    setCourse({ 
+      acronym: '',
+      name: '',
+      type: '',
+      coordinatorId: ''
+    });
+    onClose();
+  };
+
   useEffect(() => {
     if (courseToEdit) {
       setCourse({
@@ -42,6 +55,8 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
         type: courseToEdit.type || '',
         coordinatorId: courseToEdit.coordinatorId || ''
       });
+      setError(null);
+
     } else {
       setCourse({
         acronym: '',
@@ -49,6 +64,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
         type: '',
         coordinatorId: ''
       });
+      setError(null);
     }
   }, [courseToEdit, open]);
 
@@ -68,6 +84,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
         const filtered = allUsers.filter(user => user.accessType === 'Coordenador');
         console.log('Coordenadores filtrados:', filtered);
         setCoordinators(filtered);
+
       } catch (err) {
         console.error('Erro ao buscar capas:', err);
         setError('Erro ao carregar coordenadores');
@@ -124,6 +141,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
   const handleSuccessClose = () => {
     onClose();
     setSuccessOpen(false);
+    handleClose();
   };
 
   return (
@@ -133,9 +151,9 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
         onClose={onClose} 
         maxWidth="sm" 
         fullWidth 
-        PaperProps={{ sx: { borderRadius: 4, height: '520px' } }}
+        PaperProps={{ sx: { borderRadius: 4, height: '489px' } }}
       >
-        <DialogTitle sx={{ textAlign: 'center', marginTop: '19px', color: '#087619' }}>
+        <DialogTitle sx={{ textAlign: 'center', marginTop: '19px', color: '#087619', fontWeight: 'bold' }}>
           {courseToEdit ? "Editar Curso" : "Cadastrar Curso"}
           <IconButton
             onClick={onClose}
@@ -231,10 +249,33 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                   onChange={handleInputChange}
                   label='Tipo de Curso *'
                   required
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        width: 'auto',
+                        '& .MuiMenuItem-root:hover': {
+                          backgroundColor: '#D5FFDB'
+                        }
+                      },
+                    },
+                  }}
                 >
-                  <MenuItem value="G">Graduação</MenuItem>
-                  <MenuItem value="T">Técnico</MenuItem>
-                  <MenuItem value="I">Integrado</MenuItem>
+                  <MenuItem value="DOUTORADO">Doutorado</MenuItem>
+                  <MenuItem value="EAD">EAD</MenuItem>
+                  <MenuItem value="ESPECIALIZAÇÃO">Especialização</MenuItem>
+                  <MenuItem value="EXTENSÃO">Extensão</MenuItem>
+                  <MenuItem value="GRADUAÇÃO">Graduação</MenuItem>
+                  <MenuItem value="INTEGRADO">Integrado</MenuItem>
+                  <MenuItem value="LATO SENSU">Lato Sensu</MenuItem>
+                  <MenuItem value="MESTRADO">Mestrado</MenuItem>
+                  <MenuItem value="PROEJA">PROEJA</MenuItem>
+                  <MenuItem value="PÓS-GRADUAÇÃO">Pós-Graduação</MenuItem>
+                  <MenuItem value="RESIDÊNCIA">Residência</MenuItem>
+                  <MenuItem value="SEQUENCIAL">Sequencial</MenuItem>
+                  <MenuItem value="STRICTO SENSU">Stricto Sensu</MenuItem>
+                  <MenuItem value="TÉCNICO">Técnico</MenuItem>
                 </StyledSelect>
               </FormControl>
 
@@ -260,6 +301,18 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                   label="Coordenador"
                   value={course.coordinatorId}
                   onChange={handleInputChange}
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        width: 'auto',
+                        '& .MuiMenuItem-root:hover': {
+                          backgroundColor: '#D5FFDB'
+                        }
+                      },
+                    },
+                  }}
                 >
                   {coordinators.map((user) => (
                     <MenuItem key={user.id} value={user.id}>

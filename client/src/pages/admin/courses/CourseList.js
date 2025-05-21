@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from "react";
 import {
-  Box, Typography, TextField, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, Paper, useMediaQuery,
-  IconButton, InputAdornment, Button, CircularProgress
+  Box, Typography, TextField, useMediaQuery, InputAdornment, Button
 } from "@mui/material";
-import { Edit, Delete, Search } from "@mui/icons-material";
-import { styled } from '@mui/material/styles';
+import { Search } from "@mui/icons-material";
 import DeleteConfirmationDialog from "../../../components/DeleteConfirmationDialog";
 import api from "../../../service/api";
 import CourseModal from "../../../components/CourseModal";
-import Paginate from "../../../components/paginate/Paginate";
+import CoursesTable from "./CoursesTable";
+import { CustomAlert } from "../../../components/alert/CustomAlert";
 
 const SearchBar = ({ value, onChange }) => (
   <TextField
@@ -18,7 +16,7 @@ const SearchBar = ({ value, onChange }) => (
     placeholder='Buscar...'
     variant='outlined'
     sx={{
-      width: '400px',
+      width: { xs: "100%", sm: "50%", md: "400px" },
       '& .MuiInputBase-root': {
         height: '36px',
       },
@@ -38,71 +36,6 @@ const SearchBar = ({ value, onChange }) => (
   />
 );
 
-const StyledTableCell = styled(TableCell)({
-  padding: '12px',
-  textAlign: 'center',
-  borderRight: '1px solid #e0e0e0',
-  '&:last-child': { borderRight: 'none' }
-});
-
-const StyledTableHead = styled(TableHead)({
-  backgroundColor: '#087619',
-  '& th': {
-    color: 'white',
-    fontWeight: 'bold',
-    padding: '12px',
-    textAlign: 'center'
-  },
-});
-
-const StyledTableRow = styled(TableRow)({
-  '&:hover': {
-    backgroundColor: 'rgba(0, 0, 0, 0.04)',
-  },
-});
-
-const CoursesTable = ({ courses, onDelete }) => (
-  <TableContainer component={Paper} style={{ borderRadius: '10px', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>
-    <Table>
-      <StyledTableHead>
-        <TableRow>
-          <StyledTableCell>Sigla</StyledTableCell>
-          <StyledTableCell>Nome</StyledTableCell>
-          <StyledTableCell>Coordenador</StyledTableCell>
-          <StyledTableCell>Tipo</StyledTableCell>
-          <StyledTableCell>Ações</StyledTableCell>
-        </TableRow>
-      </StyledTableHead>
-      <TableBody>
-        {courses.length === 0 ? (
-          <TableRow>
-            <StyledTableCell colSpan={5}>Nenhum curso encontrado</StyledTableCell>
-          </TableRow>
-        ) : (
-          courses.map((course) => (
-            <StyledTableRow key={course.id}>
-              <StyledTableCell>{course.acronym}</StyledTableCell>
-              <StyledTableCell>{course.name}</StyledTableCell>
-              <StyledTableCell>{course.coordinatorName || course.coordinatorId || 'N/A'}</StyledTableCell>
-              <StyledTableCell>
-                {course.type === 'G' ? 'Graduação' : course.type === 'T' ? 'Técnico' : 'Integrado'}
-              </StyledTableCell>
-              <StyledTableCell>
-                <IconButton sx={{ mr: 1, color: '#087619' }}>
-                  <Edit fontSize="small" />
-                </IconButton>
-                <IconButton sx={{ color: '#FF1C1C' }} onClick={() => onDelete(course)}>
-                  <Delete fontSize="small" />
-                </IconButton>
-              </StyledTableCell>
-            </StyledTableRow>
-          ))
-        )}
-      </TableBody>
-    </Table>
-  </TableContainer>
-);
-
 const CourseList = () => {
   const [courses, setCourses] = useState([]);
   const [search, setSearch] = useState("");
@@ -111,8 +44,11 @@ const CourseList = () => {
   const [courseToDelete, setCourseToDelete] = useState(null);
   const [loading, setLoading] = useState(true);
   const isMobileWidth = useMediaQuery("(max-width:600px)");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const [alert, setAlert] = useState(null);
+
+  const handleAlertClose = () => {
+    setAlert(null);
+  };
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -168,15 +104,6 @@ const CourseList = () => {
       )
     : [];
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentCorses = filteredCourses.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);
-
-  const handlePageChange = (event, newPage) => {
-    setCurrentPage(newPage);
-  };
-
   const handleRegister = async (newCourse) => {
     console.log('Novo curso registrado:', newCourse);
     try {
@@ -204,6 +131,7 @@ const CourseList = () => {
         coordinatorName: users.find(user => user.id === course.coordinatorId)?.username || 'N/A'
       }));
       setCourses(coursesWithCoordinators);
+
     } catch (error) {
       console.error("Erro ao refetch cursos após registro:", error.message, error.response?.data);
       setCourses((prev) => [...prev, {
@@ -214,6 +142,7 @@ const CourseList = () => {
   };
 
   const handleDeleteClick = (course) => {
+    console.log("Curso recebido para exclusão:", course);
     setCourseToDelete(course);
     setOpenDeleteDialog(true);
   };
@@ -222,23 +151,56 @@ const CourseList = () => {
     try {
       await api.delete(`/courses/${courseToDelete.id}`);
       setCourses(courses.filter((c) => c.id !== courseToDelete.id));
-      console.log(`Curso ${courseToDelete.name} excluído.`);
+      setAlert({
+        message: `Curso ${courseToDelete.name} excluído com sucesso!`,
+        type: "success"
+      });
+    
     } catch (error) {
       console.error("Erro ao excluir curso:", error);
+      setAlert({
+        message: "Erro ao excluir curso.",
+        type: "error"
+      });
+
     } finally {
       setOpenDeleteDialog(false);
       setCourseToDelete(null);
     }
   };
 
+
   return (
-    <Box sx={{ p: 5 }}>
-      <Typography variant="h5" align="center" gutterBottom sx={{ fontWeight: 'bold', color: '#2c3e50' }}>
+    <Box 
+      sx={{ 
+        p: 3,
+        width: "100%",
+        maxWidth: "1200px",
+        margin: "0 auto",
+        display: "flex",
+        flexDirection: "column",
+        gap: 2
+      }}
+    >
+      <Typography variant="h5" align="center" gutterBottom sx={{ fontWeight: 'bold', mt: 2, mb: 2 }}>
         Cursos
       </Typography>
 
-      <Box marginBottom={2} gap={2}
-        sx={{ display: "flex", justifyContent: "space-between", alignItems: 'center', mb: 2, marginTop: "25px" }}>
+      <Box
+        display="flex"
+        flexDirection={{ xs: "column", sm: "row" }}
+        justifyContent="space-between"
+        alignItems={{ xs: "stretch", sm: "center" }}
+        marginBottom={0.5}
+        gap={2}
+        sx={{
+          width: "100%",
+          maxWidth: "1200px",
+          "& > *": {
+            flexShrink: 0,
+          }
+        }}
+      >
         <SearchBar
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -249,33 +211,22 @@ const CourseList = () => {
           onClick={() => setOpenDialog(true)}
           sx={{
             backgroundColor: '#087619',
-            color: 'white',
             textTransform: 'none',
             padding: '8px 20px',
             fontWeight: 'bold',
             boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)',
-            '&:hover': { backgroundColor: '#056012' }
+            '&:hover': { backgroundColor: '#065412' }
           }}
         >
           Cadastrar Curso
         </Button>
       </Box>
 
-      {loading ? (
-        <Box display="flex" justifyContent="center">
-          <CircularProgress />
-        </Box>
-      ) : (
-        <CoursesTable
-          courses={currentCorses}
-          onDelete={handleDeleteClick}
-        />
-      )}
-
-      <Paginate
-        count={totalPages}
-        page={currentPage}
-        onChange={handlePageChange}
+      <CoursesTable
+        courses={filteredCourses}
+        onDelete={handleDeleteClick}
+        search={search}
+        setAlert={setAlert}
       />
 
       <CourseModal
@@ -288,9 +239,16 @@ const CourseList = () => {
         open={openDeleteDialog}
         onClose={() => setOpenDeleteDialog(false)}
         onConfirm={handleConfirmDelete}
-        title="Confirmar exclusão"
         message={`Deseja realmente excluir o curso "${courseToDelete?.name}"?`}
       />
+
+      {alert && (
+        <CustomAlert
+          message={alert.message}
+          type={alert.type}
+          onClose={handleAlertClose}
+        />
+      )}
     </Box>
   );
 };

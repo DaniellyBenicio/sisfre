@@ -33,10 +33,10 @@ export const CustomAlert = ({ message, type, onClose }) => {
   };
 
   const borderColor = {
-    success: "#4caf50",
+    success: "#A9E4B2",
     info: "#2196f3",
     warning: "#ff9800",
-    error: "#f44336",
+    error: "#F2C5C5",
   }
   [alertType];
 
@@ -58,10 +58,10 @@ export const CustomAlert = ({ message, type, onClose }) => {
         padding: "5px 10px",
         borderRadius: "8px",
         boxShadow: 1,
-        backgroundColor: "transparent",
+        backgroundColor: borderColor,
         borderColor: borderColor,
         borderWidth: "1px",
-        color: borderColor,
+        color: "#000",
         display: "flex",
         alignItems: "center",
         "& .MuiAlert-icon": {

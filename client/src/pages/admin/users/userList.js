@@ -20,8 +20,8 @@ const SearchBar = ({ value, onChange }) => (
     placeholder='Buscar...'
     variant='outlined'
     sx={{
-      width: { xs: '100%', sm: '50%', md: '400px' }, // Responsive width
-      maxWidth: '100%', // Prevent overflow
+      width: { xs: '100%', sm: '50%', md: '400px' },
+      maxWidth: '100%',
       '& .MuiInputBase-root': {
         height: '36px',
       },
@@ -121,9 +121,9 @@ const UserList = () => {
       padding={3}
       sx={{
         width: '100%',
-        maxWidth: '1200px', // Match table maxWidth
-        margin: '0 auto', // Center the content
-        isplay: 'flex',
+        maxWidth: '1200px',
+        margin: '0 auto',
+        display: 'flex',
         flexDirection: 'column',
         gap: 2,
       }}
@@ -133,16 +133,16 @@ const UserList = () => {
       </Typography>
       <Box
         display='flex'
-        flexDirection={{ xs: 'column', sm: 'row' }} // Stack on mobile, row on larger screens
+        flexDirection={{ xs: 'column', sm: 'row' }}
         justifyContent='space-between'
-        alignItems={{ xs: 'stretch', sm: 'center' }} // Stretch on mobile, center on larger screens
+        alignItems={{ xs: 'stretch', sm: 'center' }}
         marginBottom={2}
         gap={2}
         sx={{
           width: '100%',
-          maxWidth: '1200px', // Mesma largura máxima da tabela
+          maxWidth: '1200px',
           '& > *': {
-            flexShrink: 0, // Evita que os componentes encolham
+            flexShrink: 0,
           },
         }}
       >
@@ -154,13 +154,19 @@ const UserList = () => {
             backgroundColor: '#087619',
             '&:hover': { backgroundColor: '#065412' },
             textTransform: 'none',
-            width: { xs: '100%', sm: 'auto' }, // Full width on mobile
+            width: { xs: '100%', sm: 'auto' },
+            fontWeight: 'bold',
           }}
         >
           Cadastrar Usuário
         </Button>
       </Box>
-      <UsersTable users={filteredUsers} onDelete={handleDelete} onUpdate={handleEdit} />
+      <UsersTable
+        users={filteredUsers}
+        onDelete={handleDelete}
+        onUpdate={handleEdit}
+        search={search} // Passando o valor de search
+      />
       <UserRegistrationPopup
         open={openDialog}
         onClose={() => setOpenDialog(false)}

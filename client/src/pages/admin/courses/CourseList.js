@@ -11,25 +11,27 @@ import api from "../../../service/api";
 import CourseModal from "../../../components/CourseModal";
 import Paginate from "../../../components/paginate/Paginate";
 
-const SearchBar = ({ value, onChange, sx }) => (
+const SearchBar = ({ value, onChange }) => (
   <TextField
     value={value}
     onChange={onChange}
-    placeholder="Buscar..."
-    variant="outlined"
+    placeholder='Buscar...'
+    variant='outlined'
     sx={{
-      ...sx,
-      "& .MuiInputBase-root": { height: "35px", fontSize: "0.875rem" },
-      borderRadius: '10px',
-      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-      '& .MuiOutlinedInput-notchedOutline': { borderColor: '#ced4da' },
-      '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#087619' },
-      '& .MuiInputBase-input': { padding: '8px 12px' }
+      width: '400px',
+      '& .MuiInputBase-root': {
+        height: '36px',
+      },
+      '& .MuiOutlinedInput-root': {
+        '&.Mui-focused fieldset': {
+          borderColor: '#087619',
+        },
+      },
     }}
     InputProps={{
       startAdornment: (
-        <InputAdornment position="start">
-          <Search sx={{ color: 'action.active' }} />
+        <InputAdornment position='start'>
+          <Search />
         </InputAdornment>
       ),
     }}
@@ -235,7 +237,8 @@ const CourseList = () => {
         Cursos
       </Typography>
 
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: 'center', mb: 2 }}>
+      <Box marginBottom={2} gap={2}
+        sx={{ display: "flex", justifyContent: "space-between", alignItems: 'center', mb: 2, marginTop: "25px" }}>
         <SearchBar
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -247,9 +250,9 @@ const CourseList = () => {
           sx={{
             backgroundColor: '#087619',
             color: 'white',
-            borderRadius: '10px',
             textTransform: 'none',
-            padding: '8px 16px',
+            padding: '8px 20px',
+            fontWeight: 'bold',
             boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)',
             '&:hover': { backgroundColor: '#056012' }
           }}

@@ -19,8 +19,25 @@ module.exports = {
         unique: true,
       },
       type: {
-        // G - 'GRADUAÇÃO', T - 'TÉCNICO', I - 'INTEGRADO'
-        type: Sequelize.ENUM("G", "T", "I"),
+        type: Sequelize.ENUM(
+          "GRADUAÇÃO",
+          "TÉCNICO",
+          "INTEGRADO",
+          "PÓS-GRADUAÇÃO",
+          "MESTRADO",
+          "DOUTORADO",
+          "EAD",
+          "PROEJA",
+          "ESPECIALIZAÇÃO",
+          "EXTENSÃO",
+          "RESIDÊNCIA",
+          "SEQUENCIAL",
+          "BACHARELADO",
+          "LICENCIATURA",
+          "TECNOLOGIA",
+          "LATO SENSU",
+          "STRICTO SENSU",
+        ),
         allowNull: false,
       },
       coordinatorId: {

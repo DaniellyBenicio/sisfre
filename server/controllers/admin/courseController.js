@@ -11,10 +11,30 @@ exports.createCourse = async (req, res) => {
       .json({ error: "Os campos nome, sigla e tipo são obrigatórios." });
   }
 
-  if (!["G", "T", "I"].includes(type)) {
+  const validTypes = [
+    "GRADUAÇÃO",
+    "TÉCNICO",
+    "INTEGRADO",
+    "PÓS-GRADUAÇÃO",
+    "MESTRADO",
+    "DOUTORADO",
+    "EAD",
+    "PROEJA",
+    "ESPECIALIZAÇÃO",
+    "EXTENSÃO",
+    "RESIDÊNCIA",
+    "SEQUENCIAL",
+    "BACHARELADO",
+    "LICENCIATURA",
+    "TECNOLOGIA",
+    "LATO SENSU",
+    "STRICTO SENSU",
+  ];
+
+  if (!validTypes.includes(type)) {
     return res
       .status(400)
-      .json({ error: "O tipo do curso deve ser 'G', 'T' ou 'I'." });
+      .json({ error: `O tipo do curso deve ser um dos seguintes: ${validTypes.join(", ")}.` });
   }
 
   try {

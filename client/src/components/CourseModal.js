@@ -93,12 +93,6 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 			return;
 		}
 
-		if (!['G', 'T', 'I'].includes(course.type)) {
-			setError("O tipo do curso deve ser 'G', 'T' ou 'I'.");
-			setLoading(false);
-			return;
-		}
-
 		try {
 			let response;
 			const payload = {

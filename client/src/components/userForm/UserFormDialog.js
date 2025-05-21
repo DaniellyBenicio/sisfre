@@ -147,12 +147,14 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
   const [error, setError] = useState(null);
   const [focusedField, setFocusedField] = useState(null);
 
+  const normalizedUser = {
+    username: userToEdit?.username || '',
+    email: userToEdit?.email || '',
+    accessType: userToEdit?.accessType ? userToEdit.accessType.toLowerCase() : '',
+  };
+
   const formik = useFormik({
-    initialValues: {
-      username: userToEdit?.username || '',
-      email: userToEdit?.email || '',
-      accessType: userToEdit?.accessType || '',
-    },
+    initialValues: normalizedUser,
     validationSchema: validationSchema,
     enableReinitialize: true,
     onSubmit: async (values) => {
@@ -165,8 +167,10 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
         const payload = {
           username: formattedUsername,
           email: values.email,
-          accessType: values.accessType,
+          accessType: values.accessType.toLowerCase(),
         };
+
+        console.log('UserFormDialog - Payload enviado:', payload);
 
         let response;
         if (isEditMode) {
@@ -177,12 +181,7 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
 
         console.log('UserFormDialog - Resposta da API:', response.data);
 
-        const newUser = {
-          id: isEditMode ? userToEdit?.id : generatedCode, 
-          username: formattedUsername,
-          email: values.email,
-          accessType: values.accessType,
-        };
+        const newUser = response.data.user;
 
         console.log('UserFormDialog - newUser:', newUser);
 
@@ -220,7 +219,6 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
     onClose();
   };
 
-  // Verifica se pelo menos um campo está preenchido
   const isAnyFieldFilled = formik.values.username || formik.values.email || formik.values.accessType;
 
   return (
@@ -364,7 +362,7 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
         <StyledButton
           onClick={formik.handleSubmit}
           variant='contained'
-          disabled={loading || !isAnyFieldFilled} // Alterado para verificar se pelo menos um campo está preenchido
+          disabled={loading || !isAnyFieldFilled}
           sx={{
             bgcolor: loading || !isAnyFieldFilled ? '#E0E0E0' : INSTITUTIONAL_COLOR,
           }}

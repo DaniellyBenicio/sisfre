@@ -88,23 +88,21 @@ const UserList = () => {
     setOpenUpdateDialog(true);
   };
 
-  const handleUpdate = (updatedUser) => {
-    console.log("UserList - Usuário atualizado:", updatedUser);
-    setUsers((prevUsers) => {
-      const newUsers = prevUsers.map((user) =>
-        String(user.id) === String(updatedUser.id) ? updatedUser : user
-      );
-      console.log("UserList - Nova lista de usuários:", newUsers);
-      console.log(
-        "UserList - filteredUsers após atualização:",
-        newUsers.filter((user) =>
-          user.username.toLowerCase().includes(search.toLowerCase())
+  const handleUpdate = async (updatedUser) => {
+    try {
+      const response = await api.get(`/users/${updatedUser.id}`);
+      const freshUser = response.data.user;
+
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          String(user.id) === String(freshUser.id) ? freshUser : user
         )
       );
-      return newUsers;
-    });
-    setOpenUpdateDialog(false);
-    setUserToEdit(null);
+      setOpenUpdateDialog(false);
+      setUserToEdit(null);
+    } catch (error) {
+      console.error("Erro ao buscar usuário atualizado:", error);
+    }
   };
 
   const handleDelete = (userId) => {

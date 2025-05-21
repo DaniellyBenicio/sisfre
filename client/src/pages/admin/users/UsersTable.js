@@ -24,17 +24,6 @@ const UsersTable = ({ users, onDelete, onUpdate, search }) => {
     setPage(newPage);
   };
 
-  const generateCode = (username) => {
-    if (!username) return "";
-    const parts = username.trim().split(" ");
-    const firstName = parts[0] || "";
-    const lastName = parts[1] || "";
-    if (lastName) {
-      return (firstName[0] || "") + (lastName[0] || "").toUpperCase();
-    }
-    return (firstName.slice(0, 2) || "").toUpperCase();
-  };
-
   const visibleUsers = useMemo(() => {
     if (!Array.isArray(users)) return [];
     const startIndex = (page - 1) * rowsPerPage;
@@ -71,7 +60,7 @@ const UsersTable = ({ users, onDelete, onUpdate, search }) => {
             <Paper key={user.id} sx={{ p: 1 }}>
               <Stack spacing={0.5}>
                 <Typography>
-                  <strong>Sigla:</strong> {generateCode(user.username)}
+                  <strong>Sigla:</strong> {user.acronym}
                 </Typography>
                 <Typography>
                   <strong>Nome:</strong> {user.username}
@@ -101,7 +90,9 @@ const UsersTable = ({ users, onDelete, onUpdate, search }) => {
           ))
         )}
         <Paginate
-          count={Math.ceil((Array.isArray(users) ? users.length : 0) / rowsPerPage)}
+          count={Math.ceil(
+            (Array.isArray(users) ? users.length : 0) / rowsPerPage
+          )}
           page={page}
           onChange={(event, newPage) => {
             handleChangePage(newPage);
@@ -152,7 +143,7 @@ const UsersTable = ({ users, onDelete, onUpdate, search }) => {
               visibleUsers.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell align="center" sx={tableBodyCellStyle}>
-                    {generateCode(user.username)}
+                    {user.acronym}
                   </TableCell>
                   <TableCell align="center" sx={tableBodyCellStyle}>
                     {user.username}
@@ -184,7 +175,9 @@ const UsersTable = ({ users, onDelete, onUpdate, search }) => {
         </Table>
       </TableContainer>
       <Paginate
-        count={Math.ceil((Array.isArray(users) ? users.length : 0) / rowsPerPage)}
+        count={Math.ceil(
+          (Array.isArray(users) ? users.length : 0) / rowsPerPage
+        )}
         page={page}
         onChange={(event, newPage) => {
           handleChangePage(newPage);

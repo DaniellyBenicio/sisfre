@@ -2,6 +2,38 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../../config/database");
 const bcrypt = require("bcryptjs");
 
+const generateCode = async (username, sequelize) => {
+  if (!username || typeof username !== "string") return "XX";
+  const parts = username.trim().split(/\s+/);
+  const firstName = parts[0] || "";
+  if (!firstName) return "XX";
+
+  const firstLetter = firstName[0]?.toUpperCase() || "X";
+
+  const allLetters = username.replace(/\s+/g, "").toUpperCase().split("");
+  if (allLetters.length === 0) return firstLetter + "X";
+
+  const randomIndex = Math.floor(Math.random() * allLetters.length);
+  const secondLetter = allLetters[randomIndex];
+
+  let acronym = firstLetter + secondLetter;
+
+  let suffix = 1;
+  let uniqueAcronym = acronym;
+  while (
+    await sequelize.models.user.findOne({ where: { acronym: uniqueAcronym } })
+  ) {
+    const newRandomIndex = Math.floor(Math.random() * allLetters.length);
+    uniqueAcronym = firstLetter + allLetters[newRandomIndex];
+    if (suffix++ > 10) {
+      uniqueAcronym = firstLetter + "X";
+      break;
+    }
+  }
+
+  return uniqueAcronym;
+};
+
 const User = sequelize.define("user", {
   id: {
     type: DataTypes.INTEGER,
@@ -11,6 +43,11 @@ const User = sequelize.define("user", {
   username: {
     type: DataTypes.STRING,
     allowNull: false,
+  },
+  acronym: {
+    type: DataTypes.STRING(2),
+    allowNull: true,
+    unique: true,
   },
   email: {
     type: DataTypes.STRING,
@@ -29,8 +66,15 @@ const User = sequelize.define("user", {
 });
 
 User.beforeCreate(async (user) => {
+  user.acronym = await generateCode(user.username, sequelize);
   const hashedPassword = await bcrypt.hash(user.password, 10);
   user.password = hashedPassword;
+});
+
+User.beforeUpdate(async (user) => {
+  if (user.changed("username")) {
+    user.acronym = await generateCode(user.username, sequelize);
+  }
 });
 
 module.exports = User;

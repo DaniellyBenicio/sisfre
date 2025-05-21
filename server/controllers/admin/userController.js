@@ -17,6 +17,12 @@ exports.registerUser = async (req, res) => {
     });
   }
 
+  if (!/^[a-zA-ZÀ-ÿ\s]+$/.test(username)) {
+    return res.status(400).json({
+      error: "O nome deve conter apenas letras (incluindo acentos) e espaços",
+    });
+  }
+
   try {
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
@@ -27,17 +33,19 @@ exports.registerUser = async (req, res) => {
 
     const defaultPassword = "123456"; //mudar posteriormente para primeiro acesso
 
-    const user = await User.create({
+    const newUser = await User.create({
       email,
       password: defaultPassword,
       username,
       accessType,
     });
 
+    const createdUser = await User.findByPk(newUser.id);
+
     res.status(201).json({
       message:
         "Usuário cadastrado com sucesso. Use a senha padrão '123456' para o primeiro login.",
-      user,
+      user: createdUser,
     });
   } catch (error) {
     console.error(error);
@@ -89,6 +97,12 @@ exports.updateUser = async (req, res) => {
 
     if (accessType) {
       user.accessType = accessType;
+    }
+
+    if (!/^[a-zA-ZÀ-ÿ\s]+$/.test(username)) {
+      return res.status(400).json({
+        error: "O nome deve conter apenas letras (incluindo acentos) e espaços",
+      });
     }
 
     // Salvar as alterações no banco de dados

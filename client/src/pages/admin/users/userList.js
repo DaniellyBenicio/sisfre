@@ -7,7 +7,7 @@ import {
   Button,
 } from "@mui/material";
 import { Search } from "@mui/icons-material";
-import UserRegistrationPopup from "./UserResgistrationPopup"; // Note: Typo in filename ("Resgistration" should be "Registration")
+import UserRegistrationPopup from "./UserResgistrationPopup"; 
 import UserDelete from "./UserDelete";
 import UserUpdatePopup from "./UserUpdatePopup";
 import api from "../../../service/api";
@@ -132,7 +132,7 @@ const UserList = () => {
         variant="h5"
         align="center"
         gutterBottom
-        sx={{ mb: 3, fontWeight: "bold" }}
+        sx={{ mt: 2, mb: 2, fontWeight: "bold" }}
       >
         Usuários
       </Typography>
@@ -141,7 +141,7 @@ const UserList = () => {
         flexDirection={{ xs: "column", sm: "row" }}
         justifyContent="space-between"
         alignItems={{ xs: "stretch", sm: "center" }}
-        marginBottom={2}
+        marginBottom={0.5}
         gap={2}
         sx={{
           width: "100%",

@@ -15,10 +15,10 @@ import {
 import { Delete, Edit } from "@mui/icons-material";
 import Paginate from "../../../components/paginate/Paginate";
 
-const UsersTable = ({ users, onDelete, onUpdate }) => {
+const UsersTable = ({ users, onDelete, onUpdate, search }) => {
   const isMobile = useMediaQuery("(max-width:600px)");
   const [page, setPage] = useState(1);
-  const [rowsPerPage] = useState(6);
+  const [rowsPerPage] = useState(5);
 
   const handleChangePage = (newPage) => {
     setPage(newPage);
@@ -36,7 +36,6 @@ const UsersTable = ({ users, onDelete, onUpdate }) => {
   };
 
   const visibleUsers = useMemo(() => {
-    
     if (!Array.isArray(users)) return [];
     const startIndex = (page - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
@@ -63,38 +62,44 @@ const UsersTable = ({ users, onDelete, onUpdate }) => {
   if (isMobile) {
     return (
       <Stack spacing={1} sx={{ width: "100%" }}>
-        {visibleUsers.map((user) => (
-          <Paper key={user.id} sx={{ p: 1 }}>
-            <Stack spacing={0.5}>
-              <Typography>
-                <strong>Sigla:</strong> {generateCode(user.username)}
-              </Typography>
-              <Typography>
-                <strong>Nome:</strong> {user.username}
-              </Typography>
-              <Typography>
-                <strong>Tipo:</strong> {user.accessType}
-              </Typography>
-              <Typography>
-                <strong>Email:</strong> {user.email}
-              </Typography>
-              <Stack direction="row" spacing={1} justifyContent="center">
-                <IconButton
-                  onClick={() => onUpdate(user)}
-                  sx={{
-                    color: '#087619',
-                    '&:hover': { color: '#065412' },
-                  }}
-                >
-                  <Edit />
-                </IconButton>
-                <IconButton color="error" onClick={() => onDelete(user.id)}>
-                  <Delete />
-                </IconButton>
-              </Stack>
-            </Stack>
+        {visibleUsers.length === 0 && search ? (
+          <Paper sx={{ p: 1 }}>
+            <Typography align="center">Usuário não encontrado!</Typography>
           </Paper>
-        ))}
+        ) : (
+          visibleUsers.map((user) => (
+            <Paper key={user.id} sx={{ p: 1 }}>
+              <Stack spacing={0.5}>
+                <Typography>
+                  <strong>Sigla:</strong> {generateCode(user.username)}
+                </Typography>
+                <Typography>
+                  <strong>Nome:</strong> {user.username}
+                </Typography>
+                <Typography>
+                  <strong>Tipo:</strong> {user.accessType}
+                </Typography>
+                <Typography>
+                  <strong>Email:</strong> {user.email}
+                </Typography>
+                <Stack direction="row" spacing={1} justifyContent="center">
+                  <IconButton
+                    onClick={() => onUpdate(user)}
+                    sx={{
+                      color: "#087619",
+                      "&:hover": { color: "#065412" },
+                    }}
+                  >
+                    <Edit />
+                  </IconButton>
+                  <IconButton color="error" onClick={() => onDelete(user.id)}>
+                    <Delete />
+                  </IconButton>
+                </Stack>
+              </Stack>
+            </Paper>
+          ))
+        )}
         <Paginate
           count={Math.ceil((Array.isArray(users) ? users.length : 0) / rowsPerPage)}
           page={page}
@@ -137,36 +142,44 @@ const UsersTable = ({ users, onDelete, onUpdate }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {visibleUsers.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell align="center" sx={tableBodyCellStyle}>
-                  {generateCode(user.username)}
-                </TableCell>
-                <TableCell align="center" sx={tableBodyCellStyle}>
-                  {user.username}
-                </TableCell>
-                <TableCell align="center" sx={tableBodyCellStyle}>
-                  {user.accessType}
-                </TableCell>
-                <TableCell align="center" sx={tableBodyCellStyle}>
-                  {user.email}
-                </TableCell>
-                <TableCell align="center" sx={tableBodyCellStyle}>
-                  <IconButton
-                    onClick={() => onUpdate(user)}
-                    sx={{
-                      color: '#087619',
-                      '&:hover': { color: '#065412' },
-                    }}
-                  >
-                    <Edit />
-                  </IconButton>
-                  <IconButton color="error" onClick={() => onDelete(user.id)}>
-                    <Delete />
-                  </IconButton>
+            {visibleUsers.length === 0 && search ? (
+              <TableRow>
+                <TableCell colSpan={5} align="center" sx={tableBodyCellStyle}>
+                  Usuário não encontrado
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              visibleUsers.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell align="center" sx={tableBodyCellStyle}>
+                    {generateCode(user.username)}
+                  </TableCell>
+                  <TableCell align="center" sx={tableBodyCellStyle}>
+                    {user.username}
+                  </TableCell>
+                  <TableCell align="center" sx={tableBodyCellStyle}>
+                    {user.accessType}
+                  </TableCell>
+                  <TableCell align="center" sx={tableBodyCellStyle}>
+                    {user.email}
+                  </TableCell>
+                  <TableCell align="center" sx={tableBodyCellStyle}>
+                    <IconButton
+                      onClick={() => onUpdate(user)}
+                      sx={{
+                        color: "#087619",
+                        "&:hover": { color: "#065412" },
+                      }}
+                    >
+                      <Edit />
+                    </IconButton>
+                    <IconButton color="error" onClick={() => onDelete(user.id)}>
+                      <Delete />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>

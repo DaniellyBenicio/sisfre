@@ -1,45 +1,11 @@
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  TextField,
-  InputAdornment,
-  Button,
-} from "@mui/material";
-import { Search } from "@mui/icons-material";
+import { Box, Typography } from "@mui/material";
+import SearchAndCreateBar from "../../../components/homeScreen/SearchAndCreateBar"; 
 import UserRegistrationPopup from "./UserResgistrationPopup";
 import UserDelete from "./UserDelete";
 import UserUpdatePopup from "./UserUpdatePopup";
 import api from "../../../service/api";
 import UsersTable from "./UsersTable";
-
-const SearchBar = ({ value, onChange }) => (
-  <TextField
-    value={value}
-    onChange={onChange}
-    placeholder="Buscar..."
-    variant="outlined"
-    sx={{
-      width: { xs: "100%", sm: "50%", md: "400px" },
-      maxWidth: "100%",
-      "& .MuiInputBase-root": {
-        height: "36px",
-      },
-      "& .MuiOutlinedInput-root": {
-        "&.Mui-focused fieldset": {
-          borderColor: "#087619",
-        },
-      },
-    }}
-    InputProps={{
-      startAdornment: (
-        <InputAdornment position="start">
-          <Search />
-        </InputAdornment>
-      ),
-    }}
-  />
-);
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -157,41 +123,17 @@ const UserList = () => {
       >
         Usuários
       </Typography>
-      <Box
-        display="flex"
-        flexDirection={{ xs: "column", sm: "row" }}
-        justifyContent="space-between"
-        alignItems={{ xs: "stretch", sm: "center" }}
-        marginBottom={0.5}
-        gap={2}
-        sx={{
-          width: "100%",
-          maxWidth: "1200px",
-          "& > *": {
-            flexShrink: 0,
-          },
-        }}
-      >
-        <SearchBar value={search} onChange={(e) => setSearch(e.target.value)} />
-        <Button
-          variant="contained"
-          onClick={() => setOpenDialog(true)}
-          sx={{
-            backgroundColor: "#087619",
-            "&:hover": { backgroundColor: "#065412" },
-            textTransform: "none",
-            width: { xs: "100%", sm: "auto" },
-            fontWeight: "bold",
-          }}
-        >
-          Cadastrar Usuário
-        </Button>
-      </Box>
+      <SearchAndCreateBar
+        searchValue={search}
+        onSearchChange={(e) => setSearch(e.target.value)}
+        createButtonLabel="Cadastrar Usuário"
+        onCreateClick={() => setOpenDialog(true)}
+      />
       <UsersTable
         users={filteredUsers}
         onDelete={handleDelete}
         onUpdate={handleEdit}
-        search={search} // Passando o valor de search
+        search={search}
       />
       <UserRegistrationPopup
         open={openDialog}

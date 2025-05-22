@@ -7,7 +7,7 @@ import {
   Button,
 } from "@mui/material";
 import { Search } from "@mui/icons-material";
-import UserRegistrationPopup from "./UserResgistrationPopup"; 
+import UserRegistrationPopup from "./UserResgistrationPopup";
 import UserDelete from "./UserDelete";
 import UserUpdatePopup from "./UserUpdatePopup";
 import api from "../../../service/api";
@@ -73,9 +73,30 @@ const UserList = () => {
   };
 
   const filteredUsers = Array.isArray(users)
-    ? users.filter((user) =>
-        user.username.toLowerCase().includes(search.toLowerCase())
-      )
+    ? users.filter((user) => {
+        const normalizedSearch = search
+          .trim()
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "");
+
+        const normalizedUsername =
+          user.username
+            ?.toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "") || "";
+
+        const normalizedAccessType =
+          user.accessType
+            ?.toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "") || "";
+
+        return (
+          normalizedUsername.includes(normalizedSearch) ||
+          normalizedAccessType.includes(normalizedSearch)
+        );
+      })
     : [];
 
   const handleRegister = async () => {

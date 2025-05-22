@@ -38,7 +38,7 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
   });
   const [error, setError] = useState(null);
 
-  const isFormFilled = user.username && user.email && user.accessType;
+  const isFormFilled = user.username || user.email || user.accessType;
 
   const formatName = (name) => {
     if (!name) return '';

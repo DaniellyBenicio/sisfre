@@ -11,11 +11,25 @@ exports.createCourse = async (req, res) => {
       .json({ error: "Os campos nome, sigla e tipo são obrigatórios." });
   }
 
+  const validNameRegex = /^[A-Za-zÀ-ÿ\s]*$/;
+  if (!validNameRegex.test(name)) {
+    return res
+      .status(400)
+      .json({ error: "O nome deve conter apenas letras, acentos e espaços." });
+  }
+
+  const validAcronymRegex = /^[A-Za-z0-9]*$/;
+  if (!validAcronymRegex.test(acronym)) {
+    return res.status(400).json({
+      error:
+        "A sigla deve conter apenas letras e números (sem acentos ou caracteres especiais).",
+    });
+  }
+
   const validTypes = [
     "GRADUAÇÃO",
     "TÉCNICO",
     "INTEGRADO",
-    "PÓS-GRADUAÇÃO",
     "MESTRADO",
     "DOUTORADO",
     "EAD",
@@ -24,17 +38,16 @@ exports.createCourse = async (req, res) => {
     "EXTENSÃO",
     "RESIDÊNCIA",
     "SEQUENCIAL",
-    "BACHARELADO",
-    "LICENCIATURA",
-    "TECNOLOGIA",
-    "LATO SENSU",
-    "STRICTO SENSU",
+    "PÓS-DOUTORADO",
+    "CURSO LIVRE",
   ];
 
   if (!validTypes.includes(type)) {
-    return res
-      .status(400)
-      .json({ error: `O tipo do curso deve ser um dos seguintes: ${validTypes.join(", ")}.` });
+    return res.status(400).json({
+      error: `O tipo do curso deve ser um dos seguintes: ${validTypes.join(
+        ", "
+      )}.`,
+    });
   }
 
   try {
@@ -47,11 +60,9 @@ exports.createCourse = async (req, res) => {
     if (existingCourse) {
       const duplicatedField =
         existingCourse.acronym === acronym ? "sigla" : "nome";
-      return res
-        .status(400)
-        .json({
-          error: `A ${duplicatedField} já está cadastrada. Tente outra.`,
-        });
+      return res.status(400).json({
+        error: `A ${duplicatedField} já está cadastrada. Tente outra.`,
+      });
     }
 
     if (coordinatorId) {
@@ -143,6 +154,23 @@ exports.updateCourse = async (req, res) => {
 
     if (!course) {
       return res.status(404).json({ error: "Curso não encontrado." });
+    }
+
+    if (name && !/^[A-Za-zÀ-ÿ\s]*$/.test(name)) {
+      return res
+        .status(400)
+        .json({
+          error: "O nome deve conter apenas letras, acentos e espaços.",
+        });
+    }
+
+    if (acronym && !/^[A-Za-z0-9]*$/.test(acronym)) {
+      return res
+        .status(400)
+        .json({
+          error:
+            "A sigla deve conter apenas letras e números (sem acentos ou caracteres especiais).",
+        });
     }
 
     // Verificar se o coordenador existe, se fornecido

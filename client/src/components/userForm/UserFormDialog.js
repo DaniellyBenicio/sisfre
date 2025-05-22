@@ -1,23 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Dialog, 
-  DialogActions, 
-  DialogContent, 
-  DialogTitle, 
-  Button, 
-  CircularProgress, 
-  Box, 
-  FormControl, 
-  MenuItem, 
-  IconButton, 
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Button,
+  Box,
+  FormControl,
+  MenuItem,
+  IconButton,
   InputLabel,
-  Typography 
+  Typography,
 } from '@mui/material';
 import { Close, Save } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import api from '../../service/api';
-import CustomAlert from "../../components/alert/CustomAlert";
-import { StyledTextField, StyledSelect } from "../../components/inputs/Input";
+import { StyledTextField, StyledSelect } from '../../components/inputs/Input';
 
 const INSTITUTIONAL_COLOR = '#307c34';
 
@@ -36,13 +34,11 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
   const [user, setUser] = useState({
     username: '',
     email: '',
-    accessType: ''
+    accessType: '',
   });
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [alert, setAlert] = useState(null);
 
-  const isFormFilled = user.username || user.email || user.accessType;
+  const isFormFilled = user.username && user.email && user.accessType;
 
   const formatName = (name) => {
     if (!name) return '';
@@ -60,7 +56,7 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
     if (!name) return '';
     const parts = name.trim().split(' ');
     let code = '';
-    
+
     if (parts.length > 1) {
       const firstName = parts[0];
       const lastName = parts[parts.length - 1];
@@ -69,7 +65,7 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
       const firstName = parts[0];
       code = firstName.length >= 2 ? firstName.substring(0, 2).toUpperCase() : firstName.toUpperCase();
     }
-    
+
     return code;
   };
 
@@ -79,24 +75,20 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
 
     if (!user.username || !user.email || !user.accessType) {
       setError('Os campos nome, e-mail e tipo de usuário são obrigatórios.');
-      setLoading(false);
       return;
     }
 
     if (!user.email.match(/@ifce\.edu\.br$/)) {
       setError('Use um e-mail institucional (@ifce.edu.br).');
-      setLoading(false);
       return;
     }
 
     if (!['professor', 'coordenador'].includes(user.accessType.toLowerCase())) {
       setError("O tipo de usuário deve ser 'Professor' ou 'Coordenador'.");
-      setLoading(false);
       return;
     }
 
@@ -120,11 +112,7 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
 
       console.log('UserFormDialog - Resposta da API:', response.data);
 
-      setAlert({
-        message: isEditMode ? 'Usuário atualizado com sucesso!' : 'Usuário cadastrado com sucesso!',
-        type: 'success',
-      });
-      onSubmitSuccess(response.data.user);
+      onSubmitSuccess(response.data.user, isEditMode);
       onClose();
     } catch (err) {
       const errorMessage =
@@ -137,13 +125,7 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
           : errorMessage
       );
       console.error('UserFormDialog - Erro:', err);
-    } finally {
-      setLoading(false);
     }
-  };
-
-  const handleAlertClose = () => {
-    setAlert(null);
   };
 
   useEffect(() => {
@@ -151,197 +133,181 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
       setUser({
         username: userToEdit.username || '',
         email: userToEdit.email || '',
-        accessType: userToEdit.accessType ? userToEdit.accessType.toLowerCase() : ''
+        accessType: userToEdit.accessType ? userToEdit.accessType.toLowerCase() : '',
       });
       setError(null);
     } else {
       setUser({
         username: '',
         email: '',
-        accessType: ''
+        accessType: '',
       });
       setError(null);
     }
   }, [userToEdit, open]);
 
   return (
-    <>
-      <Dialog 
-        open={open} 
-        onClose={onClose}
-        fullWidth 
-        PaperProps={{ 
-          sx: { 
-            borderRadius: '8px', 
-            width: '520px',
-            maxWidth: '90vw'
-          } 
-        }}
-      >
-        <DialogTitle sx={{ textAlign: 'center', marginTop: '15px', color: '#087619', fontWeight: 'bold' }}>
-          {isEditMode ? 'Editar Usuário' : 'Cadastrar Usuário'}
-          <IconButton
-            onClick={onClose}
-            sx={{ position: 'absolute', right: 8, top: 8 }}
-          >
-            <Close />
-          </IconButton>
-        </DialogTitle>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: '8px',
+          width: '520px',
+          maxWidth: '90vw',
+        },
+      }}
+    >
+      <DialogTitle sx={{ textAlign: 'center', marginTop: '15px', color: '#087619', fontWeight: 'bold' }}>
+        {isEditMode ? 'Editar Usuário' : 'Cadastrar Usuário'}
+        <IconButton
+          onClick={onClose}
+          sx={{ position: 'absolute', right: 8, top: 8 }}
+        >
+          <Close />
+        </IconButton>
+      </DialogTitle>
 
-        <DialogContent sx={{ px: 5 }}>
-          {loading ? (
-            <Box display="flex" justifyContent="center">
-              <CircularProgress />
+      <DialogContent sx={{ px: 5 }}>
+        <form onSubmit={handleSubmit}>
+          {error && (
+            <Box sx={{ color: 'red', marginBottom: 2, fontSize: '0.875rem' }}>
+              {error}
             </Box>
-          ) : (
-            <form onSubmit={handleSubmit}>
-              {error && (
-                <Box sx={{ color: 'red', marginBottom: 2, fontSize: '0.875rem' }}>
-                  {error}
-                </Box>
-              )}
-              
-              <StyledTextField 
-                sx={{ 
-                  my: 1.5, 
-                  '& .MuiInputBase-root': { 
-                    height: '56px',
-                  },
-                  '& .MuiInputLabel-root': { 
-                    top: '50%',
-                    transform: 'translate(14px, -50%)',
-                    fontSize: '1rem',
-                  },
-                  '& .MuiInputLabel-shrink': { 
-                    top: 0,
-                    transform: 'translate(14px, -9px) scale(0.75)',
-                  },
-                }}
-                name="username"
-                size="small"
-                variant="outlined"
-                fullWidth
-                label='Nome'
-                margin="normal"
-                value={user.username}
-                onChange={handleInputChange}
-                required
-              />
-
-              <StyledTextField 
-                sx={{ 
-                  my: 1.5, 
-                  '& .MuiInputBase-root': { 
-                    height: '56px',
-                  },
-                  '& .MuiInputLabel-root': { 
-                    top: '50%',
-                    transform: 'translate(14px, -50%)',
-                    fontSize: '1rem',
-                  },
-                  '& .MuiInputLabel-shrink': { 
-                    top: 0,
-                    transform: 'translate(14px, -9px) scale(0.75)',
-                  },
-                }}
-                name="email"
-                type="email"
-                size="small"
-                variant="outlined"
-                fullWidth
-                label='E-mail'
-                margin="normal"
-                value={user.email}
-                onChange={handleInputChange}
-                required
-              />
-
-              <FormControl
-                fullWidth
-                margin='normal'
-                sx={{
-                  my: 1.5,
-                  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#000000 !important',
-                    borderWidth: '2px',
-                  },
-                }}
-              >
-                <InputLabel
-                  id='accessType-label'
-                  sx={{ '&.Mui-focused, &.MuiInputLabel-shrink': { color: '#000000' } }}
-                >
-                  Tipo de Usuário
-                </InputLabel>
-                <StyledSelect
-                  name='accessType'
-                  value={user.accessType}
-                  onChange={handleInputChange}
-                  label='Tipo de Usuário'
-                  required
-                  MenuProps={{
-                    PaperProps: {
-                      sx: {
-                        maxHeight: '200px',
-                        overflowY: 'auto',
-                        width: 'auto',
-                        '& .MuiMenuItem-root:hover': {
-                          backgroundColor: '#D5FFDB'
-                        }
-                      },
-                    },
-                  }}
-                >
-                  <MenuItem value="professor">Professor</MenuItem>
-                  <MenuItem value="coordenador">Coordenador</MenuItem>
-                </StyledSelect>
-              </FormControl>
-
-              <DialogActions
-                sx={{
-                  justifyContent: 'center',
-                  gap: 2,
-                  padding: '10px 24px',
-                  marginTop: '10px'
-                }}
-              >
-                <StyledButton
-                  onClick={onClose}
-                  variant="contained"
-                  disabled={loading}
-                  sx={{
-                    backgroundColor: '#F01424',
-                    "&:hover": { backgroundColor: "#D4000F" }
-                  }}
-                >
-                  <Close sx={{ fontSize: 24 }} />
-                  Cancelar
-                </StyledButton>
-                <StyledButton
-                  type="submit"
-                  variant="contained"
-                  disabled={loading || !isFormFilled}
-                  sx={{
-                    backgroundColor: loading || !isFormFilled ? '#E0E0E0' : INSTITUTIONAL_COLOR,
-                    "&:hover": { backgroundColor: loading || !isFormFilled ? '#E0E0E0' : '#26692b' }
-                  }}
-                >
-                  <Save sx={{ fontSize: 24 }} />
-                  {isEditMode ? "Atualizar" : "Cadastrar"}
-                </StyledButton>
-              </DialogActions>
-            </form>
           )}
-        </DialogContent>
-      </Dialog>
-      {alert && (
-        <CustomAlert
-          message={alert.message}
-          type={alert.type}
-          onClose={handleAlertClose}
-        />
-      )}
-    </>
+
+          <StyledTextField
+            sx={{
+              my: 1.5,
+              '& .MuiInputBase-root': {
+                height: '56px',
+              },
+              '& .MuiInputLabel-root': {
+                top: '50%',
+                transform: 'translate(14px, -50%)',
+                fontSize: '1rem',
+              },
+              '& .MuiInputLabel-shrink': {
+                top: 0,
+                transform: 'translate(14px, -9px) scale(0.75)',
+              },
+            }}
+            name="username"
+            size="small"
+            variant="outlined"
+            fullWidth
+            label="Nome"
+            margin="normal"
+            value={user.username}
+            onChange={handleInputChange}
+            required
+          />
+
+          <StyledTextField
+            sx={{
+              my: 1.5,
+              '& .MuiInputBase-root': {
+                height: '56px',
+              },
+              '& .MuiInputLabel-root': {
+                top: '50%',
+                transform: 'translate(14px, -50%)',
+                fontSize: '1rem',
+              },
+              '& .MuiInputLabel-shrink': {
+                top: 0,
+                transform: 'translate(14px, -9px) scale(0.75)',
+              },
+            }}
+            name="email"
+            type="email"
+            size="small"
+            variant="outlined"
+            fullWidth
+            label="E-mail"
+            margin="normal"
+            value={user.email}
+            onChange={handleInputChange}
+            required
+          />
+
+          <FormControl
+            fullWidth
+            margin="normal"
+            sx={{
+              my: 1.5,
+              '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#000000 !important',
+                borderWidth: '2px',
+              },
+            }}
+          >
+            <InputLabel
+              id="accessType-label"
+              sx={{ '&.Mui-focused, &.MuiInputLabel-shrink': { color: '#000000' } }}
+            >
+              Tipo de Usuário
+            </InputLabel>
+            <StyledSelect
+              name="accessType"
+              value={user.accessType}
+              onChange={handleInputChange}
+              label="Tipo de Usuário"
+              required
+              MenuProps={{
+                PaperProps: {
+                  sx: {
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    width: 'auto',
+                    '& .MuiMenuItem-root:hover': {
+                      backgroundColor: '#D5FFDB',
+                    },
+                  },
+                },
+              }}
+            >
+              <MenuItem value="professor">Professor</MenuItem>
+              <MenuItem value="coordenador">Coordenador</MenuItem>
+            </StyledSelect>
+          </FormControl>
+
+          <DialogActions
+            sx={{
+              justifyContent: 'center',
+              gap: 2,
+              padding: '10px 24px',
+              marginTop: '10px',
+            }}
+          >
+            <StyledButton
+              onClick={onClose}
+              variant="contained"
+              sx={{
+                backgroundColor: '#F01424',
+                '&:hover': { backgroundColor: '#D4000F' },
+              }}
+            >
+              <Close sx={{ fontSize: 24 }} />
+              Cancelar
+            </StyledButton>
+            <StyledButton
+              type="submit"
+              variant="contained"
+              disabled={!isFormFilled}
+              sx={{
+                backgroundColor: !isFormFilled ? '#E0E0E0' : INSTITUTIONAL_COLOR,
+                '&:hover': { backgroundColor: !isFormFilled ? '#E0E0E0' : '#26692b' },
+              }}
+            >
+              <Save sx={{ fontSize: 24 }} />
+              {isEditMode ? 'Atualizar' : 'Cadastrar'}
+            </StyledButton>
+          </DialogActions>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
 

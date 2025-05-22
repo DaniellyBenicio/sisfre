@@ -35,13 +35,7 @@ const AppRoutes = () => {
     <Routes>
       <Route
         path="/"
-        element={
-          isAuthenticated ? (
-            <MainScreen setAuthenticated={setAuthenticated} />
-          ) : (
-            <Navigate to="/login" />
-          )
-        }
+        element={ <Navigate to="/login" /> }
       />
       <Route
         path="/login"

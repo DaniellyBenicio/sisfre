@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogActions, DialogContent, DialogTitle, TextField, Button, CircularProgress, Box,
+import { Dialog, DialogActions, DialogContent, DialogTitle, Button, CircularProgress, Box,
   FormControl, MenuItem, IconButton, InputLabel
 } from '@mui/material';
 import { Close, Save } from '@mui/icons-material';
@@ -18,7 +18,6 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [coordinators, setCoordinators] = useState([]);
-  const [successOpen, setSuccessOpen] = useState(false);
 
   const isFormFilled = course.name && course.name.trim() !== '';
 
@@ -32,19 +31,6 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 
   const handleAlertClose = () => {
     setAlert(null);
-  };
-
-  {/* Limpar informações */}
-  const handleClose = () => {
-    setError(null);
-    setAlert(null); 
-    setCourse({ 
-      acronym: '',
-      name: '',
-      type: '',
-      coordinatorId: ''
-    });
-    onClose();
   };
 
   useEffect(() => {
@@ -138,20 +124,20 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
     }
   };
 
-  const handleSuccessClose = () => {
-    onClose();
-    setSuccessOpen(false);
-    handleClose();
-  };
-
   return (
     <>
       <Dialog 
         open={open} 
-        onClose={onClose} 
-        maxWidth="sm" 
+        onClose={onClose}
         fullWidth 
-        PaperProps={{ sx: { borderRadius: 4, height: '489px' } }}
+        PaperProps={{ 
+          sx: { 
+            borderRadius: 4, 
+            height: '489px',
+            width: '520px',
+            maxWidth: '90vw'
+          } 
+        }}
       >
         <DialogTitle sx={{ textAlign: 'center', marginTop: '19px', color: '#087619', fontWeight: 'bold' }}>
           {courseToEdit ? "Editar Curso" : "Cadastrar Curso"}
@@ -262,19 +248,18 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                     },
                   }}
                 >
+                  <MenuItem value="CURSO LIVRE">Curso Livre</MenuItem>
                   <MenuItem value="DOUTORADO">Doutorado</MenuItem>
                   <MenuItem value="EAD">EAD</MenuItem>
                   <MenuItem value="ESPECIALIZAÇÃO">Especialização</MenuItem>
                   <MenuItem value="EXTENSÃO">Extensão</MenuItem>
                   <MenuItem value="GRADUAÇÃO">Graduação</MenuItem>
                   <MenuItem value="INTEGRADO">Integrado</MenuItem>
-                  <MenuItem value="LATO SENSU">Lato Sensu</MenuItem>
                   <MenuItem value="MESTRADO">Mestrado</MenuItem>
                   <MenuItem value="PROEJA">PROEJA</MenuItem>
                   <MenuItem value="PÓS-GRADUAÇÃO">Pós-Graduação</MenuItem>
                   <MenuItem value="RESIDÊNCIA">Residência</MenuItem>
                   <MenuItem value="SEQUENCIAL">Sequencial</MenuItem>
-                  <MenuItem value="STRICTO SENSU">Stricto Sensu</MenuItem>
                   <MenuItem value="TÉCNICO">Técnico</MenuItem>
                 </StyledSelect>
               </FormControl>

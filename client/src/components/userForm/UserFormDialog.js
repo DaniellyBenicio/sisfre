@@ -68,7 +68,7 @@ const StyledTextField = styled(TextField)({
 });
 
 const StyledSelect = styled(Select)(({ theme }) => ({
-  height: '65px',
+  height: '57px',
   fontSize: '0.875rem',
   '& .MuiSelect-select': {
     padding: '8px 14px',
@@ -266,7 +266,7 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
           </Box>
         ) : (
           <form onSubmit={formik.handleSubmit}>
-            <Box sx={{ width: '430px', mx: 'auto' }}>
+            <Box sx={{ width: '432px', mx: 'auto' }}>
               {error && (
                 <Typography color='error' sx={{ mb: 1, fontSize: '0.875rem' }}>
                   {error}

@@ -18,11 +18,11 @@ exports.createCourse = async (req, res) => {
       .json({ error: "O nome deve conter apenas letras, acentos e espaços." });
   }
 
-  const validAcronymRegex = /^[A-Za-z0-9]*$/;
+  const validAcronymRegex = /^[A-Za-z]*$/;
   if (!validAcronymRegex.test(acronym)) {
     return res.status(400).json({
       error:
-        "A sigla deve conter apenas letras e números (sem acentos ou caracteres especiais).",
+        "A sigla deve conter apenas letras (sem acentos ou caracteres especiais).",
     });
   }
 

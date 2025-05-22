@@ -18,7 +18,7 @@ import Paginate from "../../../components/paginate/Paginate";
 const CoursesTable = ({ courses, onDelete, onUpdate, search, setAlert  }) => {
 	const isMobile = useMediaQuery("(max-width:600px)");
 	const [page, setPage] = useState(1);
-	const [rowsPerPage] = useState(7);
+	const [rowsPerPage] = useState(5);
 
 	const handleChangePage = (newPage) => {
     setPage(newPage);

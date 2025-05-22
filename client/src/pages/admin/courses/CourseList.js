@@ -239,7 +239,7 @@ const CourseList = () => {
           sx={{
             backgroundColor: "#087619",
             textTransform: "none",
-            padding: "8px 20px",
+            width: { xs: "100%", sm: "auto" },
             fontWeight: "bold",
             boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
             "&:hover": { backgroundColor: "#065412" },

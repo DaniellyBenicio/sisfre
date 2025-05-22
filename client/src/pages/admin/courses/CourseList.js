@@ -10,36 +10,11 @@ import {
 import { Search } from "@mui/icons-material";
 import DeleteConfirmationDialog from "../../../components/DeleteConfirmationDialog";
 import api from "../../../service/api";
+import SearchAndCreateBar from "../../../components/homeScreen/SearchAndCreateBar";
 import CourseModal from "../../../components/CourseModal";
 import CoursesTable from "./CoursesTable";
 import { CustomAlert } from "../../../components/alert/CustomAlert";
 
-const SearchBar = ({ value, onChange }) => (
-  <TextField
-    value={value}
-    onChange={onChange}
-    placeholder="Buscar..."
-    variant="outlined"
-    sx={{
-      width: { xs: "100%", sm: "50%", md: "400px" },
-      "& .MuiInputBase-root": {
-        height: "36px",
-      },
-      "& .MuiOutlinedInput-root": {
-        "&.Mui-focused fieldset": {
-          borderColor: "#087619",
-        },
-      },
-    }}
-    InputProps={{
-      startAdornment: (
-        <InputAdornment position="start">
-          <Search />
-        </InputAdornment>
-      ),
-    }}
-  />
-);
 
 const CourseList = () => {
   const [courses, setCourses] = useState([]);
@@ -50,6 +25,7 @@ const CourseList = () => {
   const [loading, setLoading] = useState(true);
   const isMobileWidth = useMediaQuery("(max-width:600px)");
   const [alert, setAlert] = useState(null);
+  const [courseToEdit, setCourseToEdit] = useState(null);
 
   const handleAlertClose = () => {
     setAlert(null);
@@ -166,6 +142,28 @@ const CourseList = () => {
     }
   };
 
+  const handleUpdate = async (updatedCourse) => {
+    try {
+      const response = await api.get(`/courses/${updatedCourse.id}`);
+      const freshCourse = response.data.course;
+
+      setCourses((prevCourses) =>
+        prevCourses.map((course) =>
+          String(course.id) === String(freshCourse.id) ? freshCourse : course
+        )
+      );
+      setOpenDialog(false);
+      setCourseToEdit(null);
+    } catch (error) {
+      console.error("Erro ao buscar curso atualizado:", error);
+    }
+  };
+
+  const handleEditCourse = (course) => {
+    setCourseToEdit(course);
+    setOpenDialog(true);
+  };
+
   const handleDeleteClick = (course) => {
     console.log("Curso recebido para exclusão:", course);
     setCourseToDelete(course);
@@ -213,45 +211,18 @@ const CourseList = () => {
         Cursos
       </Typography>
 
-      <Box
-        display="flex"
-        flexDirection={{ xs: "column", sm: "row" }}
-        justifyContent="space-between"
-        alignItems={{ xs: "stretch", sm: "center" }}
-        marginBottom={0.5}
-        gap={2}
-        sx={{
-          width: "100%",
-          maxWidth: "1200px",
-          "& > *": {
-            flexShrink: 0,
-          },
-        }}
-      >
-        <SearchBar
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          sx={{ width: isMobileWidth ? "100%" : "300px" }}
-        />
-        <Button
-          variant="contained"
-          onClick={() => setOpenDialog(true)}
-          sx={{
-            backgroundColor: "#087619",
-            textTransform: "none",
-            width: { xs: "100%", sm: "auto" },
-            fontWeight: "bold",
-            boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
-            "&:hover": { backgroundColor: "#065412" },
-          }}
-        >
-          Cadastrar Curso
-        </Button>
-      </Box>
+      {/* Barra de pesquisa e botão de cadastro */}
+      <SearchAndCreateBar
+        searchValue={search}
+        onSearchChange={(e) => setSearch(e.target.value)}
+        createButtonLabel="Cadastrar Curso"
+        onCreateClick={() => setOpenDialog(true)}
+      />
 
       <CoursesTable
         courses={filteredCourses}
         onDelete={handleDeleteClick}
+        onUpdate={handleEditCourse}
         search={search}
         setAlert={setAlert}
       />
@@ -260,6 +231,7 @@ const CourseList = () => {
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         onUpdate={handleRegister}
+        courseToEdit={courseToEdit}
       />
 
       <DeleteConfirmationDialog

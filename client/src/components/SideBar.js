@@ -15,7 +15,7 @@ import {
   AppBar,
   Box,
 } from "@mui/material";
-import { Menu, People, School, ExitToApp, Warning } from "@mui/icons-material";
+import { Menu, People, School, ExitToApp, Warning, Class, LibraryBooks} from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useMediaQuery } from "@mui/material";
 import LogoMenu from "../assets/LogoMenu.svg";
@@ -108,8 +108,53 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
             <School sx={{ mr: 1 }} />
             <ListItemText primary="Cursos" />
           </ListItem>
+
+          <ListItem
+            button
+            onClick={() => handleItemClick("/disciplines", "disciplines")}
+            sx={getListItemStyle(selectedItem, "disciplines")}
+          >
+            <LibraryBooks sx={{ mr: 1 }} />
+            <ListItemText primary="Disciplinas" />
+          </ListItem>
+
+          <ListItem
+            button
+            onClick={() => handleItemClick("/classes", "classes")}
+            sx={getListItemStyle(selectedItem, "classes")}
+          >
+            <Class sx={{ mr: 1 }} />
+            <ListItemText primary="Turmas" />
+          </ListItem>
         </>
       )}
+
+      {accessType === "Coordenador" && (
+        <>
+          <ListItem
+            button
+            onClick={() => handleItemClick("/classes", "classes")}
+            sx={getListItemStyle(selectedItem, "classes")}
+          >
+            <Class sx={{ mr: 1 }} />
+            <ListItemText primary="Turmas" />
+          </ListItem>
+        </>
+      )}
+
+      {accessType === "Professor" && (
+        <>
+          <ListItem
+            button
+            onClick={() => handleItemClick("/disciplines", "disciplines")}
+            sx={getListItemStyle(selectedItem, "disciplines")}
+          >
+            <LibraryBooks sx={{ mr: 1 }} />
+            <ListItemText primary="Disciplinas" />
+          </ListItem>
+        </>
+      )}
+
       {/* Sair */}
       <ListItem
         button

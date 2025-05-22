@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import {
-  Box, Typography, TextField, useMediaQuery, InputAdornment, Button
+  Box,
+  Typography,
+  TextField,
+  useMediaQuery,
+  InputAdornment,
+  Button,
 } from "@mui/material";
 import { Search } from "@mui/icons-material";
 import DeleteConfirmationDialog from "../../../components/DeleteConfirmationDialog";
@@ -13,22 +18,22 @@ const SearchBar = ({ value, onChange }) => (
   <TextField
     value={value}
     onChange={onChange}
-    placeholder='Buscar...'
-    variant='outlined'
+    placeholder="Buscar..."
+    variant="outlined"
     sx={{
       width: { xs: "100%", sm: "50%", md: "400px" },
-      '& .MuiInputBase-root': {
-        height: '36px',
+      "& .MuiInputBase-root": {
+        height: "36px",
       },
-      '& .MuiOutlinedInput-root': {
-        '&.Mui-focused fieldset': {
-          borderColor: '#087619',
+      "& .MuiOutlinedInput-root": {
+        "&.Mui-focused fieldset": {
+          borderColor: "#087619",
         },
       },
     }}
     InputProps={{
       startAdornment: (
-        <InputAdornment position='start'>
+        <InputAdornment position="start">
           <Search />
         </InputAdornment>
       ),
@@ -56,7 +61,7 @@ const CourseList = () => {
         setLoading(true);
         const [coursesResponse, usersResponse] = await Promise.all([
           api.get("/courses"),
-          api.get("/users")
+          api.get("/users"),
         ]);
         console.log("Resposta da API /courses:", coursesResponse.data);
         console.log("Resposta da API /users:", usersResponse.data);
@@ -73,9 +78,11 @@ const CourseList = () => {
           users = users.users || users.data || [];
         }
 
-        const coursesWithCoordinators = courses.map(course => ({
+        const coursesWithCoordinators = courses.map((course) => ({
           ...course,
-          coordinatorName: users.find(user => user.id === course.coordinatorId)?.username || 'N/A'
+          coordinatorName:
+            users.find((user) => user.id === course.coordinatorId)?.username ||
+            "N/A",
         }));
 
         setCourses(coursesWithCoordinators);
@@ -86,7 +93,11 @@ const CourseList = () => {
           console.warn("Nenhum usuário encontrado na resposta da API");
         }
       } catch (error) {
-        console.error("Erro ao buscar cursos:", error.message, error.response?.data);
+        console.error(
+          "Erro ao buscar cursos:",
+          error.message,
+          error.response?.data
+        );
         setCourses([]);
       } finally {
         setLoading(false);
@@ -99,19 +110,22 @@ const CourseList = () => {
   const filteredCourses = Array.isArray(courses)
     ? courses.filter(
         (course) =>
-          course.name &&
-          course.name.toLowerCase().includes(search.toLowerCase())
+          course.name?.toLowerCase().includes(search.trim().toLowerCase()) ||
+          course.type?.toLowerCase().includes(search.trim().toLowerCase())
       )
     : [];
 
   const handleRegister = async (newCourse) => {
-    console.log('Novo curso registrado:', newCourse);
+    console.log("Novo curso registrado:", newCourse);
     try {
       const [coursesResponse, usersResponse] = await Promise.all([
         api.get("/courses"),
-        api.get("/users")
+        api.get("/users"),
       ]);
-      console.log("Resposta da API /courses após registro:", coursesResponse.data);
+      console.log(
+        "Resposta da API /courses após registro:",
+        coursesResponse.data
+      );
       console.log("Resposta da API /users após registro:", usersResponse.data);
 
       let courses = coursesResponse.data;
@@ -126,18 +140,29 @@ const CourseList = () => {
         users = users.users || users.data || [];
       }
 
-      const coursesWithCoordinators = courses.map(course => ({
+      const coursesWithCoordinators = courses.map((course) => ({
         ...course,
-        coordinatorName: users.find(user => user.id === course.coordinatorId)?.username || 'N/A'
+        coordinatorName:
+          users.find((user) => user.id === course.coordinatorId)?.username ||
+          "N/A",
       }));
       setCourses(coursesWithCoordinators);
-
     } catch (error) {
-      console.error("Erro ao refetch cursos após registro:", error.message, error.response?.data);
-      setCourses((prev) => [...prev, {
-        ...newCourse,
-        coordinatorName: newCourse.coordinatorId ? prev.find(c => c.coordinatorId === newCourse.coordinatorId)?.coordinatorName || 'N/A' : 'N/A'
-      }]);
+      console.error(
+        "Erro ao refetch cursos após registro:",
+        error.message,
+        error.response?.data
+      );
+      setCourses((prev) => [
+        ...prev,
+        {
+          ...newCourse,
+          coordinatorName: newCourse.coordinatorId
+            ? prev.find((c) => c.coordinatorId === newCourse.coordinatorId)
+                ?.coordinatorName || "N/A"
+            : "N/A",
+        },
+      ]);
     }
   };
 
@@ -153,36 +178,38 @@ const CourseList = () => {
       setCourses(courses.filter((c) => c.id !== courseToDelete.id));
       setAlert({
         message: `Curso ${courseToDelete.name} excluído com sucesso!`,
-        type: "success"
+        type: "success",
       });
-    
     } catch (error) {
       console.error("Erro ao excluir curso:", error);
       setAlert({
         message: "Erro ao excluir curso.",
-        type: "error"
+        type: "error",
       });
-
     } finally {
       setOpenDeleteDialog(false);
       setCourseToDelete(null);
     }
   };
 
-
   return (
-    <Box 
-      sx={{ 
+    <Box
+      sx={{
         p: 3,
         width: "100%",
         maxWidth: "1200px",
         margin: "0 auto",
         display: "flex",
         flexDirection: "column",
-        gap: 2
+        gap: 2,
       }}
     >
-      <Typography variant="h5" align="center" gutterBottom sx={{ fontWeight: 'bold', mt: 2, mb: 2 }}>
+      <Typography
+        variant="h5"
+        align="center"
+        gutterBottom
+        sx={{ fontWeight: "bold", mt: 2, mb: 2 }}
+      >
         Cursos
       </Typography>
 
@@ -198,7 +225,7 @@ const CourseList = () => {
           maxWidth: "1200px",
           "& > *": {
             flexShrink: 0,
-          }
+          },
         }}
       >
         <SearchBar
@@ -210,12 +237,12 @@ const CourseList = () => {
           variant="contained"
           onClick={() => setOpenDialog(true)}
           sx={{
-            backgroundColor: '#087619',
-            textTransform: 'none',
-            padding: '8px 20px',
-            fontWeight: 'bold',
-            boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)',
-            '&:hover': { backgroundColor: '#065412' }
+            backgroundColor: "#087619",
+            textTransform: "none",
+            padding: "8px 20px",
+            fontWeight: "bold",
+            boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
+            "&:hover": { backgroundColor: "#065412" },
           }}
         >
           Cadastrar Curso

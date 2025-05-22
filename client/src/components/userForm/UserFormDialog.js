@@ -36,39 +36,6 @@ const StyledButton = styled(Button)(({ theme }) => ({
   gap: '8px',
 }));
 
-const StyledSelect = styled(Select)(({ theme }) => ({
-  height: '50px',
-  fontSize: '0.875rem',
-  '& .MuiSelect-select': {
-    padding: '8px 14px',
-  },
-  '& .MuiOutlinedInput-root': {
-    borderRadius: '8px',
-    '& fieldset': {
-      borderColor: '#E0E0E0',
-    },
-    '&:hover fieldset': {
-      borderColor: '#000000',
-    },
-    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-      borderColor: '#000000 !important',
-      borderWidth: '2px',
-    },
-  },
-  '& .MuiInputLabel-root': {
-    fontSize: '0.875rem',
-    transform: 'translate(14px, 10px) scale(1)',
-    '&.MuiInputLabel-shrink': {
-      transform: 'translate(14px, -6px) scale(0.75)',
-      fontWeight: 'bold',
-      color: '#000000',
-    },
-    '&.Mui-focused': {
-      color: '#000000',
-    },
-  },
-}));
-
 const StyledTextField = styled(TextField)({
   '& .MuiInputLabel-root': {
     color: 'text.secondary',
@@ -99,6 +66,43 @@ const StyledTextField = styled(TextField)({
     },
   },
 });
+
+const StyledSelect = styled(Select)(({ theme }) => ({
+  height: '65px',
+  fontSize: '0.875rem',
+  '& .MuiSelect-select': {
+    padding: '8px 14px',
+  },
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '8px',
+    '& fieldset': {
+      borderColor: '#E0E0E0',
+    },
+    '&:hover fieldset': {
+      borderColor: '#000000',
+    },
+    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+      borderColor: '#000000 !important',
+      borderWidth: '2px',
+      outline: 'none',
+    },
+  },
+  '& .MuiInputLabel-root': {
+    fontSize: '0.875rem',
+    transform: 'translate(14px, 10px) scale(1)',
+    '&.MuiInputLabel-shrink': {
+      transform: 'translate(14px, -6px) scale(0.75)',
+      fontWeight: 'bold',
+      color: '#000000',
+    },
+    '&.Mui-focused': {
+      color: '#000000',
+    },
+  },
+  '& .MuiMenuItem-root:hover': {
+    backgroundColor: '#D5FFDB',
+  },
+}));
 
 const validationSchema = yup.object({
   username: yup.string().required('Nome é obrigatório'),
@@ -238,12 +242,12 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
           setFocusedField(null);
         },
       }}
-      PaperProps={{ sx: { width: 480, borderRadius: '8px' } }}
+      PaperProps={{ sx: { width: 520, borderRadius: '8px' } }}
     >
       <DialogTitle sx={{ padding: '15px 24px' }}>
         <Typography
           variant='h6'
-          sx={{ textAlign: 'center', color: '#087619' }}
+          sx={{ textAlign: 'center', color: '#087619', fontWeight: 'bold' }}
         >
           {isEditMode ? 'Editar Usuário' : 'Cadastrar Usuário'}
         </Typography>
@@ -262,84 +266,95 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
           </Box>
         ) : (
           <form onSubmit={formik.handleSubmit}>
-            {error && (
-              <Typography color='error' sx={{ mb: 1, fontSize: '0.875rem' }}>
-                {error}
-              </Typography>
-            )}
-            <StyledTextField
-              fullWidth
-              margin='normal'
-              sx={{ my: 1.5 }}
-              label='Nome'
-              name='username'
-              value={formik.values.username}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              onFocus={() => setFocusedField('username')}
-              error={formik.submitCount > 0 && formik.touched.username && Boolean(formik.errors.username)}
-              helperText={formik.submitCount > 0 && formik.touched.username && formik.errors.username}
-              InputLabelProps={{ required: false }}
-              variant='outlined'
-            />
-            <StyledTextField
-              fullWidth
-              margin='normal'
-              sx={{ my: 1.5 }}
-              label='E-mail'
-              name='email'
-              type='email'
-              value={formik.values.email}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              onFocus={() => setFocusedField('email')}
-              error={formik.submitCount > 0 && formik.touched.email && Boolean(formik.errors.email)}
-              helperText={formik.submitCount > 0 && formik.touched.email && formik.errors.email}
-              InputLabelProps={{ required: false }}
-              variant='outlined'
-            />
-            <FormControl
-              fullWidth
-              margin='normal'
-              sx={{
-                my: 1.5,
-                '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                  borderColor: '#000000 !important',
-                  borderWidth: '2px',
-                },
-              }}
-              error={formik.submitCount > 0 && formik.touched.accessType && Boolean(formik.errors.accessType)}
-              variant='outlined'
-            >
-              <InputLabel
-                id='accessType-label'
-                sx={{ '&.Mui-focused, &.MuiInputLabel-shrink': { color: '#000000' } }}
-              >
-                Tipo de Usuário
-              </InputLabel>
-              <StyledSelect
-                labelId='accessType-label'
-                name='accessType'
-                value={formik.values.accessType}
+            <Box sx={{ width: '430px', mx: 'auto' }}>
+              {error && (
+                <Typography color='error' sx={{ mb: 1, fontSize: '0.875rem' }}>
+                  {error}
+                </Typography>
+              )}
+              <StyledTextField
+                fullWidth
+                margin='normal'
+                sx={{ my: 1.5 }}
+                label='Nome *'
+                name='username'
+                value={formik.values.username}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                onFocus={() => {
-                  console.log('Select focado: Tipo de Usuário');
-                  setFocusedField('accessType');
+                onFocus={() => setFocusedField('username')}
+                error={formik.submitCount > 0 && formik.touched.username && Boolean(formik.errors.username)}
+                helperText={formik.submitCount > 0 && formik.touched.username && formik.errors.username}
+                InputLabelProps={{ required: false }}
+                variant='outlined'
+              />
+              <StyledTextField
+                fullWidth
+                margin='normal'
+                sx={{ my: 1.5 }}
+                label='E-mail *'
+                name='email'
+                type='email'
+                value={formik.values.email}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                onFocus={() => setFocusedField('email')}
+                error={formik.submitCount > 0 && formik.touched.email && Boolean(formik.errors.email)}
+                helperText={formik.submitCount > 0 && formik.touched.email && formik.errors.email}
+                InputLabelProps={{ required: false }}
+                variant='outlined'
+              />
+              <FormControl
+                fullWidth
+                margin='normal'
+                sx={{
+                  my: 1.5,
+                  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#000000 !important',
+                    borderWidth: '2px',
+                  },
                 }}
-                label='Tipo de Usuário'
-                required
+                error={formik.submitCount > 0 && formik.touched.accessType && Boolean(formik.errors.accessType)}
+                variant='outlined'
               >
-                <MenuItem value=''>
-                  <em>Selecione o tipo</em>
-                </MenuItem>
-                <MenuItem value='professor'>Professor</MenuItem>
-                <MenuItem value='coordenador'>Coordenador</MenuItem>
-              </StyledSelect>
-              {formik.submitCount > 0 && formik.touched.accessType && formik.errors.accessType && (
-                <FormHelperText>{formik.errors.accessType}</FormHelperText>
-              )}
-            </FormControl>
+                <InputLabel
+                  id='accessType-label'
+                  sx={{ '&.Mui-focused, &.MuiInputLabel-shrink': { color: '#000000' } }}
+                >
+                  Tipo de Usuário *
+                </InputLabel>
+                <StyledSelect
+                  labelId='accessType-label'
+                  name='accessType'
+                  value={formik.values.accessType}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  onFocus={() => {
+                    console.log('Select focado: Tipo de Usuário');
+                    setFocusedField('accessType');
+                  }}
+                  label='Tipo de Usuário *'
+                  required
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        width: 'auto',
+                        '& .MuiMenuItem-root:hover': {
+                          backgroundColor: '#D5FFDB',
+                        },
+                      },
+                    },
+                  }}
+                >
+                  <MenuItem value='professor'>Professor</MenuItem>
+                  <MenuItem value='coordenador'>Coordenador</MenuItem>
+                </StyledSelect>
+                {formik.submitCount > 0 && formik.touched.accessType && formik.errors.accessType && (
+                  <FormHelperText>{formik.errors.accessType}</FormHelperText>
+                )}
+              </FormControl>
+            </Box>
           </form>
         )}
       </DialogContent>

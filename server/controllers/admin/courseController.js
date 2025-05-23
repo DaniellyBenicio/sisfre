@@ -61,7 +61,7 @@ exports.createCourse = async (req, res) => {
       const duplicatedField =
         existingCourse.acronym === acronym ? "sigla" : "nome";
       return res.status(400).json({
-        error: `A ${duplicatedField} já está cadastrada. Tente outra.`,
+        error: `A ${duplicatedField}  informada já está cadastrada. Por favor, verifique os dados e tente novamente.`,
       });
     }
 
@@ -157,20 +157,16 @@ exports.updateCourse = async (req, res) => {
     }
 
     if (name && !/^[A-Za-zÀ-ÿ\s]*$/.test(name)) {
-      return res
-        .status(400)
-        .json({
-          error: "O nome deve conter apenas letras, acentos e espaços.",
-        });
+      return res.status(400).json({
+        error: "O nome deve conter apenas letras, acentos e espaços.",
+      });
     }
 
     if (acronym && !/^[A-Za-z0-9]*$/.test(acronym)) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "A sigla deve conter apenas letras e números (sem acentos ou caracteres especiais).",
-        });
+      return res.status(400).json({
+        error:
+          "A sigla deve conter apenas letras e números (sem acentos ou caracteres especiais).",
+      });
     }
 
     // Verificar se o coordenador existe, se fornecido

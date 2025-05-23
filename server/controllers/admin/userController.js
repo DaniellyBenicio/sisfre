@@ -201,7 +201,7 @@ exports.getUserById = async (req, res) => {
   }
 };
 
-// Deletar disciplina
+
 exports.deleteUser = async (req, res) => {
   const userId = req.params.id;
 

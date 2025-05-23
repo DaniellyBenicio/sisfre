@@ -1,6 +1,7 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../../config/database");
 const User = require("./User");
+const Discipline = require("./Discipline");
 
 const Course = sequelize.define("course", {
   id: {
@@ -31,7 +32,7 @@ const Course = sequelize.define("course", {
       "RESIDÊNCIA",
       "SEQUENCIAL",
       "PÓS-DOUTORADO",
-      "CURSO LIVRE",
+      "CURSO LIVRE"
     ),
     allowNull: false,
   },
@@ -49,6 +50,15 @@ const Course = sequelize.define("course", {
 
 // Estabelecendo a relação: um curso pertence a um coordenador (usuário)
 Course.belongsTo(User, { as: "coordinator", foreignKey: "coordinatorId" });
+
+Course.associate = (models) => {
+  Course.belongsToMany(models.Discipline, {
+    through: "CourseDisciplines",
+    foreignKey: "courseId",
+    otherKey: "disciplineId",
+    as: "disciplines",
+  });
+};
 
 // Exportando o modelo
 module.exports = Course;

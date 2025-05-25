@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Route, Routes, Navigate, useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 import Login from "../pages/login/Login.js";
 import UsersPage from "../pages/admin/users/UsersPage.js";
 import CoursePage from "../pages/admin/courses/CoursesPage.js";
 import MainScreen from "../pages/MainScreen.js";
+
 
 const AppRoutes = () => {
   // Inicializa isAuthenticated com base no token no localStorage
@@ -15,9 +17,30 @@ const AppRoutes = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    setAuthenticated(!!token);
-  }, []);
+  const token = localStorage.getItem("token");
+
+  if (token) {
+    try {
+      const decoded = jwtDecode(token);
+      const currentTime = Date.now() / 1000;
+
+      if (decoded.exp < currentTime) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("accessType");
+        setAuthenticated(false);
+        alert("Sua sessão expirou. Faça login novamente.");
+        navigate("/login");
+      }
+    } catch (err) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("accessType");
+      setAuthenticated(false);
+      alert("Erro com o token de autenticação. Faça login novamente.");
+      navigate("/login");
+    }
+  }
+}, []);
+
 
   const handleLogin = () => {
     setAuthenticated(true);

@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  TextField,
-  useMediaQuery,
-  InputAdornment,
-  Button,
-} from "@mui/material";
-import { Search } from "@mui/icons-material";
+import { Box, Typography } from "@mui/material";
 import DeleteConfirmationDialog from "../../../components/DeleteConfirmationDialog";
 import api from "../../../service/api";
 import SearchAndCreateBar from "../../../components/homeScreen/SearchAndCreateBar";
@@ -23,7 +15,6 @@ const CourseList = () => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState(null);
   const [loading, setLoading] = useState(true);
-  const isMobileWidth = useMediaQuery("(max-width:600px)");
   const [alert, setAlert] = useState(null);
   const [courseToEdit, setCourseToEdit] = useState(null);
 

@@ -257,7 +257,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                   <MenuItem value="INTEGRADO">Integrado</MenuItem>
                   <MenuItem value="MESTRADO">Mestrado</MenuItem>
                   <MenuItem value="PROEJA">PROEJA</MenuItem>
-                  <MenuItem value="PÓS-GRADUAÇÃO">Pós-Graduação</MenuItem>
+                  <MenuItem value="PÓS-DOUTORADO">Pós-Doutorado</MenuItem>
                   <MenuItem value="RESIDÊNCIA">Residência</MenuItem>
                   <MenuItem value="SEQUENCIAL">Sequencial</MenuItem>
                   <MenuItem value="TÉCNICO">Técnico</MenuItem>

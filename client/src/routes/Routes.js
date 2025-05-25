@@ -4,43 +4,41 @@ import { jwtDecode } from "jwt-decode";
 import Login from "../pages/login/Login.js";
 import UsersPage from "../pages/admin/users/UsersPage.js";
 import CoursePage from "../pages/admin/courses/CoursesPage.js";
+import ClassesPage from "../pages/admin/classes/ClassesPages.js"; 
 import MainScreen from "../pages/MainScreen.js";
 
-
 const AppRoutes = () => {
-  // Inicializa isAuthenticated com base no token no localStorage
   const [isAuthenticated, setAuthenticated] = useState(() => {
     const token = localStorage.getItem("token");
-    return !!token; // true se existe, false se não
+    return !!token; // true se existe token, false se não
   });
   const accessType = localStorage.getItem("accessType");
   const navigate = useNavigate();
 
   useEffect(() => {
-  const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
 
-  if (token) {
-    try {
-      const decoded = jwtDecode(token);
-      const currentTime = Date.now() / 1000;
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        const currentTime = Date.now() / 1000;
 
-      if (decoded.exp < currentTime) {
+        if (decoded.exp < currentTime) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("accessType");
+          setAuthenticated(false);
+          alert("Sua sessão expirou. Faça login novamente.");
+          navigate("/login");
+        }
+      } catch (err) {
         localStorage.removeItem("token");
         localStorage.removeItem("accessType");
         setAuthenticated(false);
-        alert("Sua sessão expirou. Faça login novamente.");
+        alert("Erro com o token de autenticação. Faça login novamente.");
         navigate("/login");
       }
-    } catch (err) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("accessType");
-      setAuthenticated(false);
-      alert("Erro com o token de autenticação. Faça login novamente.");
-      navigate("/login");
     }
-  }
-}, []);
-
+  }, [navigate]);
 
   const handleLogin = () => {
     setAuthenticated(true);
@@ -56,10 +54,7 @@ const AppRoutes = () => {
 
   return (
     <Routes>
-      <Route
-        path="/"
-        element={ <Navigate to="/login" /> }
-      />
+      <Route path="/" element={<Navigate to="/login" />} />
       <Route
         path="/login"
         element={
@@ -85,6 +80,16 @@ const AppRoutes = () => {
         element={
           isAuthenticated ? (
             <CoursePage setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
+        path="/classes"
+        element={
+          isAuthenticated ? (
+            <ClassesPage setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
           )

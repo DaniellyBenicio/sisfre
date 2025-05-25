@@ -4,9 +4,10 @@ import { jwtDecode } from "jwt-decode";
 import Login from "../pages/login/Login.js";
 import UsersPage from "../pages/admin/users/UsersPage.js";
 import CoursePage from "../pages/admin/courses/CoursesPage.js";
-import ClassesPage from "../pages/admin/classes/ClassesPages.js"; 
+import ClassesPage from "../pages/admin/classes/ClassesPages.js";
 import MainScreen from "../pages/MainScreen.js";
 import ForgotPassword from "../pages/password/ForgotPassword.js";
+import ResetPassword from "../pages/password/ResetPassword.js";
 
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
@@ -69,11 +70,13 @@ const AppRoutes = () => {
       <Route
         path="/forgot-password"
         element={
-          !isAuthenticated ? (
-            <ForgotPassword />
-          ) : (
-            <Navigate to="/MainScreen" />
-          )
+          !isAuthenticated ? <ForgotPassword /> : <Navigate to="/MainScreen" />
+        }
+      />
+      <Route
+        path="/resetPassword/:token"
+        element={
+          !isAuthenticated ? <ResetPassword /> : <Navigate to="/login" />
         }
       />
       <Route
@@ -106,6 +109,7 @@ const AppRoutes = () => {
           )
         }
       />
+      <Route path="/resetPassword/:token" element={<ResetPassword />} />
       <Route
         path="/MainScreen"
         element={

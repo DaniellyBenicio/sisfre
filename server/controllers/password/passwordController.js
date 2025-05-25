@@ -65,62 +65,51 @@ exports.forgotPassword = async (req, res) => {
   }
 };
 
+
 exports.resetPassword = async (req, res) => {
-  const { newPassword, confirmPassword } = req.body;
-  const { token } = req.params;
-  const { expires, email } = req.query;
-
-  if (
-    !newPassword ||
-    !confirmPassword ||
-    newPassword !== confirmPassword ||
-    newPassword.length < 6
-  ) {
-    return res.status(400).json({
-      message:
-        "Senhas inválidas ou diferentes. A senha deve ter pelo menos 6 caracteres.",
-    });
-  }
-
-  if (Date.now() > Number(expires)) {
-    return res.status(400).json({ message: "Token expirado." });
-  }
-
-  if (!email) {
-    return res.status(400).json({ message: "E-mail não fornecido." });
-  }
-
   try {
-    const decodedEmail = Buffer.from(
-      decodeURIComponent(email),
-      "base64"
-    ).toString("ascii");
+    const { email: encodedEmail, expires } = req.query;
+    if (!encodedEmail) {
+      return res.status(400).json({ error: "E-mail não fornecido na URL." });
+    }
+    const email = Buffer.from(encodedEmail, "base64").toString("utf-8");
+    if (!email) {
+      return res.status(400).json({ error: "E-mail inválido." });
+    }
+
+    if (Date.now() > parseInt(expires)) {
+      return res.status(400).json({ error: "Link de redefinição expirado." });
+    }
+
+    const { newPassword, confirmPassword } = req.body;
+    if (!newPassword || !confirmPassword) {
+      return res.status(400).json({ error: "Nova senha e confirmação são obrigatórias." });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ error: "As senhas não coincidem." });
+    }
+
     const user = await User.findOne({
       where: {
-        email: decodedEmail,
-        resetPasswordToken: token,
-        resetPasswordExpires: { [Sequelize.Op.gt]: Date.now() },
+        email: email,
       },
     });
 
     if (!user) {
-      return res
-        .status(400)
-        .json({ message: "Usuário não encontrado ou token inválido." });
+      return res.status(404).json({ error: "Usuário não encontrado." });
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
     await user.update({
-      senha: hashedPassword,
-      resetPasswordToken: null,
-      resetPasswordExpires: null,
+      password: hashedPassword,
     });
 
-    return res
-      .status(200)
-      .json({ message: "Senha redefinida com sucesso no SisFre!" });
+    return res.status(200).json({ message: "Senha atualizada com sucesso!" });
   } catch (error) {
-    console.error("Erro no resetPassword:", error);
-    return res.status(500).json({ message: "Erro ao redefinir a senha!" });
+    console.error("Erro ao redefinir senha:", error);
+    return res.status(500).json({ error: "Erro interno no servidor." });
   }
 };

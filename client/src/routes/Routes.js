@@ -6,6 +6,7 @@ import UsersPage from "../pages/admin/users/UsersPage.js";
 import CoursePage from "../pages/admin/courses/CoursesPage.js";
 import ClassesPage from "../pages/admin/classes/ClassesPages.js"; 
 import MainScreen from "../pages/MainScreen.js";
+import ForgotPassword from "../pages/password/ForgotPassword.js";
 
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
@@ -62,6 +63,16 @@ const AppRoutes = () => {
             <Login onLogin={handleLogin} />
           ) : (
             <Navigate to="/users" />
+          )
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          !isAuthenticated ? (
+            <ForgotPassword />
+          ) : (
+            <Navigate to="/MainScreen" />
           )
         }
       />

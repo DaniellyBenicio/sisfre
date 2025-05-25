@@ -7,6 +7,7 @@ const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/admin/userRoutes");
 const courseRoutes = require("./routes/admin/courseRoutes"); // Importar as rotas de Course
 const disciplineRoutes = require("./routes/admin/disciplineRoutes");
+const passwordRoutes = require("./routes/password/passwordRoutes");
 
 //Models
 const User = require("./models/admin/User");
@@ -25,6 +26,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api", userRoutes);
 app.use("/api", courseRoutes);
 app.use("/api", disciplineRoutes);
+app.use("/api", passwordRoutes);
 
 // Função para criar o usuário administrador, se não existir
 const createAdminIfNotExists = async () => {

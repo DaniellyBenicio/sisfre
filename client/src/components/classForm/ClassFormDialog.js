@@ -10,9 +10,13 @@ import {
   MenuItem,
   IconButton,
   InputLabel,
+  InputAdornment,
 } from '@mui/material';
-import { Close, Save } from '@mui/icons-material';
+import { Close, Save, CalendarToday } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { ptBR } from 'date-fns/locale';
 import api from '../../service/api';
 import { StyledTextField, StyledSelect } from '../../components/inputs/Input';
 
@@ -34,11 +38,12 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
     course: '',
     semester: '',
     year: '',
+    period: '',
     type: '',
   });
   const [error, setError] = useState(null);
 
-  const isFormFilled = classData.course && classData.semester && classData.year && classData.type;
+  const isFormFilled = classData.course && classData.semester && classData.year && classData.period && classData.type;
 
   const handleInputChange = (e) => {
     setClassData({ ...classData, [e.target.name]: e.target.value });
@@ -48,14 +53,18 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
     e.preventDefault();
     setError(null);
 
-    if (!classData.course || !classData.semester || !classData.year || !classData.type) {
+    if (!classData.course || !classData.semester || !classData.year || !classData.period || !classData.type) {
       setError('Todos os campos são obrigatórios.');
       return;
     }
 
-    // Validação do formato do ano (ex.: 2020.1)
-    if (!classData.year.match(/^\d{4}\.[1-2]$/)) {
-      setError('O ano deve estar no formato AAAA.S, onde S é 1 ou 2 (ex.: 2020.1).');
+    if (!classData.year.match(/^\d{4}$/)) {
+      setError('O ano deve estar no formato AAAA (ex.: 2020).');
+      return;
+    }
+
+    if (!['1', '2'].includes(classData.period)) {
+      setError('O período deve ser 1 ou 2.');
       return;
     }
 
@@ -64,6 +73,7 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
         course: classData.course,
         semester: classData.semester,
         year: classData.year,
+        period: classData.period,
         type: classData.type,
       };
 
@@ -90,10 +100,12 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
 
   useEffect(() => {
     if (classToEdit) {
+      const [year, period] = classToEdit.year ? classToEdit.year.split('.') : ['', ''];
       setClassData({
         course: classToEdit.course || '',
         semester: classToEdit.semester || '',
-        year: classToEdit.year || '',
+        year: year || '',
+        period: period || '',
         type: classToEdit.type || '',
       });
       setError(null);
@@ -102,241 +114,398 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
         course: '',
         semester: '',
         year: '',
+        period: '',
         type: '',
       });
       setError(null);
     }
   }, [classToEdit, open]);
 
+  // Generate years from 2020 to 2029
+  const years = Array.from({ length: 10 }, (_, i) => (2020 + i).toString());
+
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: '8px',
-          width: '520px',
-          maxWidth: '90vw',
-        },
-      }}
-    >
-      <DialogTitle sx={{ textAlign: 'center', marginTop: '15px', color: '#087619', fontWeight: 'bold' }}>
-        {isEditMode ? 'Editar Turma' : 'Cadastrar Turma'}
-        <IconButton
-          onClick={onClose}
-          sx={{ position: 'absolute', right: 8, top: 8 }}
-        >
-          <Close />
-        </IconButton>
-      </DialogTitle>
-
-      <DialogContent sx={{ px: 5 }}>
-        <form onSubmit={handleSubmit}>
-          {error && (
-            <Box sx={{ color: 'red', marginBottom: 2, fontSize: '0.875rem' }}>
-              {error}
-            </Box>
-          )}
-
-          <StyledTextField
-            sx={{
-              my: 1.5,
-              '& .MuiInputBase-root': {
-                height: '56px',
-              },
-              '& .MuiInputLabel-root': {
-                top: '50%',
-                transform: 'translate(14px, -50%)',
-                fontSize: '1rem',
-              },
-              '& .MuiInputLabel-shrink': {
-                top: 0,
-                transform: 'translate(14px, -9px) scale(0.75)',
-              },
-            }}
-            name="course"
-            size="small"
-            variant="outlined"
-            fullWidth
-            label="Curso"
-            margin="normal"
-            value={classData.course}
-            onChange={handleInputChange}
-            required
-          />
-
-          <Box sx={{ display: 'flex', gap: 2, my: 1.5 }}>
-            <FormControl
-              fullWidth
-              margin="normal"
-              sx={{
-                '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                  borderColor: '#000000 !important',
-                  borderWidth: '2px',
-                },
-              }}
-            >
-              <InputLabel
-                id="semester-label"
-                sx={{ '&.Mui-focused, &.MuiInputLabel-shrink': { color: '#000000' } }}
-              >
-                Semestre
-              </InputLabel>
-              <StyledSelect
-                name="semester"
-                value={classData.semester}
-                onChange={handleInputChange}
-                label="Semestre"
-                required
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      maxHeight: '200px',
-                      overflowY: 'auto',
-                      width: 'auto',
-                      '& .MuiMenuItem-root:hover': {
-                        backgroundColor: '#D5FFDB',
-                      },
-                    },
-                  },
-                }}
-              >
-                {['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8'].map((sem) => (
-                  <MenuItem key={sem} value={sem}>
-                    {sem}
-                  </MenuItem>
-                ))}
-              </StyledSelect>
-            </FormControl>
-
-            <FormControl
-              fullWidth
-              margin="normal"
-              sx={{
-                '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                  borderColor: '#000000 !important',
-                  borderWidth: '2px',
-                },
-              }}
-            >
-              <InputLabel
-                id="year-label"
-                sx={{ '&.Mui-focused, &.MuiInputLabel-shrink': { color: '#000000' } }}
-              >
-                Ano
-              </InputLabel>
-              <StyledSelect
-                name="year"
-                value={classData.year}
-                onChange={handleInputChange}
-                label="Ano"
-                required
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      maxHeight: '200px',
-                      overflowY: 'auto',
-                      width: 'auto',
-                      '& .MuiMenuItem-root:hover': {
-                        backgroundColor: '#D5FFDB',
-                      },
-                    },
-                  },
-                }}
-              >
-                {Array.from({ length: 10 }, (_, i) => {
-                  const year = 2020 + i;
-                  return [
-                    `${year}.1`,
-                    `${year}.2`,
-                  ];
-                }).flat().map((yr) => (
-                  <MenuItem key={yr} value={yr}>
-                    {yr}
-                  </MenuItem>
-                ))}
-              </StyledSelect>
-            </FormControl>
-          </Box>
-
-          <FormControl
-            fullWidth
-            margin="normal"
-            sx={{
-              my: 1.5,
-              '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#000000 !important',
-                borderWidth: '2px',
-              },
-            }}
+    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
+      <Dialog
+        open={open}
+        onClose={onClose}
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: '8px',
+            width: '520px',
+            maxWidth: '90vw',
+          },
+        }}
+      >
+        <DialogTitle sx={{ textAlign: 'center', marginTop: '15px', color: '#087619', fontWeight: 'bold' }}>
+          {isEditMode ? 'Editar Turma' : 'Cadastrar Turma'}
+          <IconButton
+            onClick={onClose}
+            sx={{ position: 'absolute', right: 8, top: 8 }}
           >
-            <InputLabel
-              id="type-label"
-              sx={{ '&.Mui-focused, &.MuiInputLabel-shrink': { color: '#000000' } }}
-            >
-              Tipo
-            </InputLabel>
-            <StyledSelect
-              name="type"
-              value={classData.type}
+            <Close />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent sx={{ px: 5 }}>
+          <Box component="form" onSubmit={handleSubmit}>
+            {error && (
+              <Box sx={{ color: 'red', marginBottom: 2, fontSize: '0.875rem' }}>
+                {error}
+              </Box>
+            )}
+
+            <StyledTextField
+              sx={{
+                my: 1.5,
+                '& .MuiInputBase-root': {
+                  height: '56px',
+                },
+                '& .MuiInputLabel-root': {
+                  top: '50%',
+                  transform: 'translate(14px, -50%)',
+                  fontSize: '1rem',
+                  color: '#757575', // Gray color for label by default
+                  '&::after': { content: '" *"', color: '#757575' }, // Gray asterisk
+                },
+                '& .MuiInputLabel-shrink': {
+                  top: 0,
+                  transform: 'translate(14px, -9px) scale(0.75)',
+                  color: '#000000', // Black when shrunk
+                  '&::after': { content: '" *"', color: '#000000' }, // Black asterisk when shrunk
+                },
+                '& .MuiInputLabel-root.Mui-focused': {
+                  color: '#000000', // Black when focused
+                  '&::after': { content: '" *"', color: '#000000' }, // Black asterisk when focused
+                },
+                '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#000000 !important',
+                  borderWidth: '2px',
+                },
+              }}
+              name="course"
+              size="small"
+              variant="outlined"
+              fullWidth
+              label="Curso"
+              margin="normal"
+              value={classData.course}
               onChange={handleInputChange}
-              label="Tipo"
               required
-              MenuProps={{
-                PaperProps: {
-                  sx: {
-                    maxHeight: '200px',
-                    overflowY: 'auto',
-                    width: 'auto',
-                    '& .MuiMenuItem-root:hover': {
-                      backgroundColor: '#D5FFDB',
-                    },
+            />
+
+            <Box sx={{ display: 'flex', gap: 2, my: 1.5, alignItems: 'center' }}>
+              <FormControl
+                fullWidth
+                margin="normal"
+                sx={{
+                  flex: 1,
+                  '& .MuiOutlinedInput-root': {
+                    height: '56px',
                   },
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderWidth: '1px',
+                  },
+                  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#000000 !important',
+                    borderWidth: '2px',
+                  },
+                }}
+              >
+                <InputLabel
+                  id="semester-label"
+                  sx={{
+                    color: '#757575', // Gray by default
+                    '&::after': { content: '" *"', color: '#757575' }, // Gray asterisk
+                    top: '50%',
+                    transform: 'translate(14px, -50%)',
+                    fontSize: '1rem',
+                    '&.Mui-focused, &.MuiInputLabel-shrink': {
+                      color: '#000000', // Black when focused or shrunk
+                      '&::after': { content: '" *"', color: '#000000' }, // Black asterisk
+                    },
+                    '&.MuiInputLabel-shrink': {
+                      top: 0,
+                      transform: 'translate(14px, -9px) scale(0.75)',
+                    },
+                  }}
+                >
+                  Semestre
+                </InputLabel>
+                <StyledSelect
+                  name="semester"
+                  value={classData.semester}
+                  onChange={handleInputChange}
+                  label="Semestre"
+                  required
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        width: 'auto',
+                        '& .MuiMenuItem-root:hover': {
+                          backgroundColor: '#D5FFDB',
+                        },
+                      },
+                    },
+                  }}
+                >
+                  {['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8'].map((sem) => (
+                    <MenuItem key={sem} value={sem}>
+                      {sem}
+                    </MenuItem>
+                  ))}
+                </StyledSelect>
+              </FormControl>
+
+              <FormControl
+                fullWidth
+                margin="normal"
+                sx={{
+                  flex: 1,
+                  '& .MuiOutlinedInput-root': {
+                    height: '56px',
+                  },
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderWidth: '1px',
+                  },
+                  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#000000 !important',
+                    borderWidth: '2px',
+                  },
+                  '& .MuiSelect-icon': {
+                    display: 'none', // Hide default dropdown arrow
+                  },
+                }}
+              >
+                <InputLabel
+                  id="year-label"
+                  sx={{
+                    color: '#757575', // Gray by default
+                    '&::after': { content: '" *"', color: '#757575' }, // Gray asterisk
+                    top: '50%',
+                    transform: 'translate(14px, -50%)',
+                    fontSize: '1rem',
+                    '&.Mui-focused, &.MuiInputLabel-shrink': {
+                      color: '#000000', // Black when focused or shrunk
+                      '&::after': { content: '" *"', color: '#000000' }, // Black asterisk
+                    },
+                    '&.MuiInputLabel-shrink': {
+                      top: 0,
+                      transform: 'translate(14px, -9px) scale(0.75)',
+                    },
+                  }}
+                >
+                  Ano
+                </InputLabel>
+                <StyledSelect
+                  name="year"
+                  value={classData.year}
+                  onChange={handleInputChange}
+                  label="Ano"
+                  required
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        width: 'auto',
+                        '& .MuiMenuItem-root:hover': {
+                          backgroundColor: '#D5FFDB',
+                        },
+                      },
+                    },
+                  }}
+                  endAdornment={
+                    <InputAdornment position="end" sx={{ marginRight: '-10px' }}>
+                      <IconButton
+                        onClick={(e) => {
+                          // Programmatically open the dropdown by simulating a click on the select
+                          const select = e.currentTarget.parentElement?.parentElement?.querySelector('select');
+                          if (select) {
+                            select.focus();
+                            select.click();
+                          }
+                        }}
+                      >
+                        <CalendarToday sx={{ fontSize: '20px', color: '#000000' }} />
+                      </IconButton>
+                    </InputAdornment>
+                  }
+                >
+                  {years.map((year) => (
+                    <MenuItem key={year} value={year}>
+                      {year}
+                    </MenuItem>
+                  ))}
+                </StyledSelect>
+              </FormControl>
+
+              <FormControl
+                fullWidth
+                margin="normal"
+                sx={{
+                  flex: 1,
+                  '& .MuiOutlinedInput-root': {
+                    height: '56px',
+                  },
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderWidth: '1px',
+                  },
+                  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#000000 !important',
+                    borderWidth: '2px',
+                  },
+                }}
+              >
+                <InputLabel
+                  id="period-label"
+                  sx={{
+                    color: '#757575', // Gray by default
+                    '&::after': { content: '" *"', color: '#757575' }, // Gray asterisk
+                    top: '50%',
+                    transform: 'translate(14px, -50%)',
+                    fontSize: '1rem',
+                    '&.Mui-focused, &.MuiInputLabel-shrink': {
+                      color: '#000000', // Black when focused or shrunk
+                      '&::after': { content: '" *"', color: '#000000' }, // Black asterisk
+                    },
+                    '&.MuiInputLabel-shrink': {
+                      top: 0,
+                      transform: 'translate(14px, -9px) scale(0.75)',
+                    },
+                  }}
+                >
+                  Período
+                </InputLabel>
+                <StyledSelect
+                  name="period"
+                  value={classData.period}
+                  onChange={handleInputChange}
+                  label="Período"
+                  required
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        width: 'auto',
+                        '& .MuiMenuItem-root:hover': {
+                          backgroundColor: '#D5FFDB',
+                        },
+                      },
+                    },
+                  }}
+                >
+                  {['1', '2'].map((period) => (
+                    <MenuItem key={period} value={period}>
+                      {period}
+                    </MenuItem>
+                  ))}
+                </StyledSelect>
+              </FormControl>
+            </Box>
+
+            <FormControl
+              fullWidth
+              margin="normal"
+              sx={{
+                my: 1.5,
+                '& .MuiOutlinedInput-root': {
+                  height: '56px',
+                },
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderWidth: '1px',
+                },
+                '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#000000 !important',
+                  borderWidth: '2px',
                 },
               }}
             >
-              <MenuItem value="Regular">Regular</MenuItem>
-              <MenuItem value="Convencional">Convencional</MenuItem>
-              <MenuItem value="Pós Greve">Pós Greve</MenuItem>
-            </StyledSelect>
-          </FormControl>
+              <InputLabel
+                id="type-label"
+                sx={{
+                  color: '#757575', // Gray by default
+                  '&::after': { content: '" *"', color: '#757575' }, // Gray asterisk
+                  top: '50%',
+                  transform: 'translate(14px, -50%)',
+                  fontSize: '1rem',
+                  '&.Mui-focused, &.MuiInputLabel-shrink': {
+                    color: '#000000', // Black when focused or shrunk
+                    '&::after': { content: '" *"', color: '#000000' }, // Black asterisk
+                  },
+                  '&.MuiInputLabel-shrink': {
+                    top: 0,
+                    transform: 'translate(14px, -9px) scale(0.75)',
+                  },
+                }}
+              >
+                Tipo
+              </InputLabel>
+              <StyledSelect
+                name="type"
+                value={classData.type}
+                onChange={handleInputChange}
+                label="Tipo"
+                required
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      maxHeight: '200px',
+                      overflowY: 'auto',
+                      width: 'auto',
+                      '& .MuiMenuItem-root:hover': {
+                        backgroundColor: '#D5FFDB',
+                      },
+                    },
+                  },
+                }}
+              >
+                <MenuItem value="Regular">Regular</MenuItem>
+                <MenuItem value="Convencional">Convencional</MenuItem>
+                <MenuItem value="Pós Greve">Pós Greve</MenuItem>
+              </StyledSelect>
+            </FormControl>
 
-          <DialogActions
-            sx={{
-              justifyContent: 'center',
-              gap: 2,
-              padding: '10px 24px',
-              marginTop: '10px',
-            }}
-          >
-            <StyledButton
-              onClick={onClose}
-              variant="contained"
+            <DialogActions
               sx={{
-                backgroundColor: '#F01424',
-                '&:hover': { backgroundColor: '#D4000F' },
+                justifyContent: 'center',
+                gap: 2,
+                padding: '10px 24px',
+                marginTop: '10px',
               }}
             >
-              <Close sx={{ fontSize: 24 }} />
-              Cancelar
-            </StyledButton>
-            <StyledButton
-              type="submit"
-              variant="contained"
-              disabled={!isFormFilled}
-              sx={{
-                backgroundColor: !isFormFilled ? '#E0E0E0' : INSTITUTIONAL_COLOR,
-                '&:hover': { backgroundColor: !isFormFilled ? '#E0E0E0' : '#26692b' },
-              }}
-            >
-              <Save sx={{ fontSize: 24 }} />
-              {isEditMode ? 'Atualizar' : 'Salvar'}
-            </StyledButton>
-          </DialogActions>
-        </form>
-      </DialogContent>
-    </Dialog>
+              <StyledButton
+                onClick={onClose}
+                variant="contained"
+                sx={{
+                  backgroundColor: '#F01424',
+                  '&:hover': { backgroundColor: '#D4000F' },
+                }}
+              >
+                <Close sx={{ fontSize: 24 }} />
+                Cancelar
+              </StyledButton>
+              <StyledButton
+                type="submit"
+                variant="contained"
+                disabled={!isFormFilled}
+                sx={{
+                  backgroundColor: !isFormFilled ? '#E0E0E0' : INSTITUTIONAL_COLOR,
+                  '&:hover': { backgroundColor: !isFormFilled ? '#E0E0E0' : '#26692b' },
+                }}
+              >
+                <Save sx={{ fontSize: 24 }} />
+                {isEditMode ? 'Atualizar' : 'Salvar'}
+              </StyledButton>
+            </DialogActions>
+          </Box>
+        </DialogContent>
+      </Dialog>
+    </LocalizationProvider>
   );
 };
 

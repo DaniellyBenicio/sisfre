@@ -3,10 +3,13 @@ import { Box, Typography } from "@mui/material";
 import SearchAndCreateBar from "../../../components/homeScreen/SearchAndCreateBar";
 import api from "../../../service/api";
 import ClassesTable from "./ClassesTable";
+import ClassFormDialog from "../../../components/classForm/ClassFormDialog"; 
 
 const ClassesList = () => {
   const [classes, setClasses] = useState([]);
   const [search, setSearch] = useState("");
+  const [openDialog, setOpenDialog] = useState(false);
+  const [classToEdit, setClassToEdit] = useState(null);
 
   useEffect(() => {
     fetchClasses();
@@ -28,6 +31,21 @@ const ClassesList = () => {
       }
       setClasses([]);
     }
+  };
+
+  const handleRegisterOrUpdateSuccess = (updatedClass, isEditMode) => {
+    if (isEditMode) {
+      setClasses((prevClasses) =>
+        prevClasses.map((c) => (c.id === updatedClass.id ? updatedClass : c))
+      );
+    } else {
+      setClasses((prevClasses) => [...prevClasses, updatedClass]);
+    }
+  };
+
+  const handleEdit = (classItem) => {
+    setClassToEdit(classItem);
+    setOpenDialog(true);
   };
 
   const filteredClasses = Array.isArray(classes)
@@ -81,9 +99,26 @@ const ClassesList = () => {
         searchValue={search}
         onSearchChange={(e) => setSearch(e.target.value)}
         createButtonLabel="Cadastrar Turma"
-        onCreateClick={() => {}}
+        onCreateClick={() => {
+          setClassToEdit(null);
+          setOpenDialog(true);
+        }}
       />
-      <ClassesTable classes={filteredClasses} search={search} />
+      <ClassesTable
+        classes={filteredClasses}
+        search={search}
+        onEdit={handleEdit} // Passa a função de edição
+      />
+      <ClassFormDialog
+        open={openDialog}
+        onClose={() => {
+          setOpenDialog(false);
+          setClassToEdit(null);
+        }}
+        classToEdit={classToEdit}
+        onSubmitSuccess={handleRegisterOrUpdateSuccess}
+        isEditMode={!!classToEdit}
+      />
     </Box>
   );
 };

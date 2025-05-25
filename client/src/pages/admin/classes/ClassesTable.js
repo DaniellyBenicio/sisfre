@@ -1,8 +1,9 @@
 import React from "react";
-import { Stack, Typography } from "@mui/material";
+import { Stack, Typography, IconButton } from "@mui/material"; // Adicionei IconButton aqui
 import DataTable from "../../../components/homeScreen/DataTable";
+import { Edit } from "@mui/icons-material";
 
-const ClassesTable = ({ classes, search }) => {
+const ClassesTable = ({ classes, search, onEdit }) => {
   const headers = [
     { key: "year", label: "Ano" },
     { key: "course", label: "Curso" },
@@ -24,6 +25,14 @@ const ClassesTable = ({ classes, search }) => {
       <Typography>
         <strong>Semestre:</strong> {classItem.semester}
       </Typography>
+      {onEdit && (
+        <IconButton
+          onClick={() => onEdit(classItem)}
+          sx={{ color: "#087619", "&:hover": { color: "#065412" } }}
+        >
+          <Edit />
+        </IconButton>
+      )}
     </Stack>
   );
 
@@ -33,6 +42,7 @@ const ClassesTable = ({ classes, search }) => {
       headers={headers}
       search={search}
       renderMobileRow={renderMobileRow}
+      onUpdate={onEdit}
     />
   );
 };

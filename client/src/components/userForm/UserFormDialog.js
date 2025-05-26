@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogActions,
@@ -11,51 +11,57 @@ import {
   IconButton,
   InputLabel,
   Typography,
-} from '@mui/material';
-import { Close, Save } from '@mui/icons-material';
-import { styled } from '@mui/material/styles';
-import api from '../../service/api';
-import { StyledTextField, StyledSelect } from '../../components/inputs/Input';
+} from "@mui/material";
+import { Close, Save } from "@mui/icons-material";
+import { styled } from "@mui/material/styles";
+import api from "../../service/api";
+import { StyledTextField, StyledSelect } from "../../components/inputs/Input";
 
-const INSTITUTIONAL_COLOR = '#307c34';
+const INSTITUTIONAL_COLOR = "#307c34";
 
 const StyledButton = styled(Button)(({ theme }) => ({
-  borderRadius: '8px',
+  borderRadius: "8px",
   padding: theme.spacing(1, 3),
-  textTransform: 'none',
-  fontWeight: 'bold',
-  fontSize: '0.875rem',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
+  textTransform: "none",
+  fontWeight: "bold",
+  fontSize: "0.875rem",
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
 }));
 
-const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode }) => {
+const UserFormDialog = ({
+  open,
+  onClose,
+  userToEdit,
+  onSubmitSuccess,
+  isEditMode,
+}) => {
   const [user, setUser] = useState({
-    username: '',
-    email: '',
-    accessType: '',
+    username: "",
+    email: "",
+    accessType: "",
   });
   const [error, setError] = useState(null);
 
   const isFormFilled = user.username || user.email || user.accessType;
 
   const formatName = (name) => {
-    if (!name) return '';
+    if (!name) return "";
     return name
       .trim()
-      .split(' ')
+      .split(" ")
       .map((word) => {
         if (word.length === 0) return word;
         return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
       })
-      .join(' ');
+      .join(" ");
   };
 
   const generateCode = (name) => {
-    if (!name) return '';
-    const parts = name.trim().split(' ');
-    let code = '';
+    if (!name) return "";
+    const parts = name.trim().split(" ");
+    let code = "";
 
     if (parts.length > 1) {
       const firstName = parts[0];
@@ -63,7 +69,10 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
       code = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
     } else {
       const firstName = parts[0];
-      code = firstName.length >= 2 ? firstName.substring(0, 2).toUpperCase() : firstName.toUpperCase();
+      code =
+        firstName.length >= 2
+          ? firstName.substring(0, 2).toUpperCase()
+          : firstName.toUpperCase();
     }
 
     return code;
@@ -78,16 +87,16 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
     setError(null);
 
     if (!user.username || !user.email || !user.accessType) {
-      setError('Os campos nome, e-mail e tipo de usuário são obrigatórios.');
+      setError("Os campos nome, e-mail e tipo de usuário são obrigatórios.");
       return;
     }
 
-    if (!user.email.match(/@ifce\.edu\.br$/)) {
-      setError('Use um e-mail institucional (@ifce.edu.br).');
-      return;
-    }
+    //    if (!user.email.match(/@ifce\.edu\.br$/)) {
+    //    setError('Use um e-mail institucional (@ifce.edu.br).');
+    //  return;
+    //}
 
-    if (!['professor', 'coordenador'].includes(user.accessType.toLowerCase())) {
+    if (!["professor", "coordenador"].includes(user.accessType.toLowerCase())) {
       setError("O tipo de usuário deve ser 'Professor' ou 'Coordenador'.");
       return;
     }
@@ -101,7 +110,7 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
         accessType: user.accessType.toLowerCase(),
       };
 
-      console.log('UserFormDialog - Payload enviado:', payload);
+      console.log("UserFormDialog - Payload enviado:", payload);
 
       let response;
       if (isEditMode) {
@@ -110,37 +119,42 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
         response = await api.post(`/users`, payload);
       }
 
-      console.log('UserFormDialog - Resposta da API:', response.data);
+      console.log("UserFormDialog - Resposta da API:", response.data);
 
       onSubmitSuccess(response.data.user, isEditMode);
       onClose();
     } catch (err) {
       const errorMessage =
-        err.response?.data?.error || `Erro ao ${isEditMode ? 'atualizar' : 'cadastrar'} usuário: ${err.message}`;
+        err.response?.data?.error ||
+        `Erro ao ${isEditMode ? "atualizar" : "cadastrar"} usuário: ${
+          err.message
+        }`;
       setError(
-        errorMessage.includes('E-mail já cadastrado')
-          ? 'Este e-mail já está cadastrado. Use um e-mail diferente.'
-          : errorMessage.includes('Apenas e-mails institucionais')
-          ? 'Use um e-mail institucional (@ifce.edu.br).'
+        errorMessage.includes("E-mail já cadastrado")
+          ? "Este e-mail já está cadastrado. Use um e-mail diferente."
+          : errorMessage.includes("Apenas e-mails institucionais")
+          ? "Use um e-mail institucional (@ifce.edu.br)."
           : errorMessage
       );
-      console.error('UserFormDialog - Erro:', err);
+      console.error("UserFormDialog - Erro:", err);
     }
   };
 
   useEffect(() => {
     if (userToEdit) {
       setUser({
-        username: userToEdit.username || '',
-        email: userToEdit.email || '',
-        accessType: userToEdit.accessType ? userToEdit.accessType.toLowerCase() : '',
+        username: userToEdit.username || "",
+        email: userToEdit.email || "",
+        accessType: userToEdit.accessType
+          ? userToEdit.accessType.toLowerCase()
+          : "",
       });
       setError(null);
     } else {
       setUser({
-        username: '',
-        email: '',
-        accessType: '',
+        username: "",
+        email: "",
+        accessType: "",
       });
       setError(null);
     }
@@ -153,17 +167,24 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: '8px',
-          width: '520px',
-          maxWidth: '90vw',
+          borderRadius: "8px",
+          width: "520px",
+          maxWidth: "90vw",
         },
       }}
     >
-      <DialogTitle sx={{ textAlign: 'center', marginTop: '15px', color: '#087619', fontWeight: 'bold' }}>
-        {isEditMode ? 'Editar Usuário' : 'Cadastrar Usuário'}
+      <DialogTitle
+        sx={{
+          textAlign: "center",
+          marginTop: "15px",
+          color: "#087619",
+          fontWeight: "bold",
+        }}
+      >
+        {isEditMode ? "Editar Usuário" : "Cadastrar Usuário"}
         <IconButton
           onClick={onClose}
-          sx={{ position: 'absolute', right: 8, top: 8 }}
+          sx={{ position: "absolute", right: 8, top: 8 }}
         >
           <Close />
         </IconButton>
@@ -172,7 +193,7 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
       <DialogContent sx={{ px: 5 }}>
         <form onSubmit={handleSubmit}>
           {error && (
-            <Box sx={{ color: 'red', marginBottom: 2, fontSize: '0.875rem' }}>
+            <Box sx={{ color: "red", marginBottom: 2, fontSize: "0.875rem" }}>
               {error}
             </Box>
           )}
@@ -180,17 +201,17 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
           <StyledTextField
             sx={{
               my: 1.5,
-              '& .MuiInputBase-root': {
-                height: '56px',
+              "& .MuiInputBase-root": {
+                height: "56px",
               },
-              '& .MuiInputLabel-root': {
-                top: '50%',
-                transform: 'translate(14px, -50%)',
-                fontSize: '1rem',
+              "& .MuiInputLabel-root": {
+                top: "50%",
+                transform: "translate(14px, -50%)",
+                fontSize: "1rem",
               },
-              '& .MuiInputLabel-shrink': {
+              "& .MuiInputLabel-shrink": {
                 top: 0,
-                transform: 'translate(14px, -9px) scale(0.75)',
+                transform: "translate(14px, -9px) scale(0.75)",
               },
             }}
             name="username"
@@ -207,17 +228,17 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
           <StyledTextField
             sx={{
               my: 1.5,
-              '& .MuiInputBase-root': {
-                height: '56px',
+              "& .MuiInputBase-root": {
+                height: "56px",
               },
-              '& .MuiInputLabel-root': {
-                top: '50%',
-                transform: 'translate(14px, -50%)',
-                fontSize: '1rem',
+              "& .MuiInputLabel-root": {
+                top: "50%",
+                transform: "translate(14px, -50%)",
+                fontSize: "1rem",
               },
-              '& .MuiInputLabel-shrink': {
+              "& .MuiInputLabel-shrink": {
                 top: 0,
-                transform: 'translate(14px, -9px) scale(0.75)',
+                transform: "translate(14px, -9px) scale(0.75)",
               },
             }}
             name="email"
@@ -237,15 +258,18 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
             margin="normal"
             sx={{
               my: 1.5,
-              '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#000000 !important',
-                borderWidth: '2px',
-              },
+              "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                {
+                  borderColor: "#000000 !important",
+                  borderWidth: "2px",
+                },
             }}
           >
             <InputLabel
               id="accessType-label"
-              sx={{ '&.Mui-focused, &.MuiInputLabel-shrink': { color: '#000000' } }}
+              sx={{
+                "&.Mui-focused, &.MuiInputLabel-shrink": { color: "#000000" },
+              }}
             >
               Tipo de Usuário
             </InputLabel>
@@ -258,11 +282,11 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
               MenuProps={{
                 PaperProps: {
                   sx: {
-                    maxHeight: '200px',
-                    overflowY: 'auto',
-                    width: 'auto',
-                    '& .MuiMenuItem-root:hover': {
-                      backgroundColor: '#D5FFDB',
+                    maxHeight: "200px",
+                    overflowY: "auto",
+                    width: "auto",
+                    "& .MuiMenuItem-root:hover": {
+                      backgroundColor: "#D5FFDB",
                     },
                   },
                 },
@@ -275,18 +299,18 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
 
           <DialogActions
             sx={{
-              justifyContent: 'center',
+              justifyContent: "center",
               gap: 2,
-              padding: '10px 24px',
-              marginTop: '10px',
+              padding: "10px 24px",
+              marginTop: "10px",
             }}
           >
             <StyledButton
               onClick={onClose}
               variant="contained"
               sx={{
-                backgroundColor: '#F01424',
-                '&:hover': { backgroundColor: '#D4000F' },
+                backgroundColor: "#F01424",
+                "&:hover": { backgroundColor: "#D4000F" },
               }}
             >
               <Close sx={{ fontSize: 24 }} />
@@ -297,12 +321,16 @@ const UserFormDialog = ({ open, onClose, userToEdit, onSubmitSuccess, isEditMode
               variant="contained"
               disabled={!isFormFilled}
               sx={{
-                backgroundColor: !isFormFilled ? '#E0E0E0' : INSTITUTIONAL_COLOR,
-                '&:hover': { backgroundColor: !isFormFilled ? '#E0E0E0' : '#26692b' },
+                backgroundColor: !isFormFilled
+                  ? "#E0E0E0"
+                  : INSTITUTIONAL_COLOR,
+                "&:hover": {
+                  backgroundColor: !isFormFilled ? "#E0E0E0" : "#26692b",
+                },
               }}
             >
               <Save sx={{ fontSize: 24 }} />
-              {isEditMode ? 'Atualizar' : 'Cadastrar'}
+              {isEditMode ? "Atualizar" : "Cadastrar"}
             </StyledButton>
           </DialogActions>
         </form>

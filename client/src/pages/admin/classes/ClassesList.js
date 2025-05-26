@@ -107,7 +107,7 @@ const ClassesList = () => {
       <ClassesTable
         classes={filteredClasses}
         search={search}
-        onEdit={handleEdit} // Passa a função de edição
+        onEdit={handleEdit}
       />
       <ClassFormDialog
         open={openDialog}

@@ -4,8 +4,11 @@ import { jwtDecode } from "jwt-decode";
 import Login from "../pages/login/Login.js";
 import UsersPage from "../pages/admin/users/UsersPage.js";
 import CoursePage from "../pages/admin/courses/CoursesPage.js";
-import ClassesPage from "../pages/admin/classes/ClassesPages.js"; 
+import ClassesPage from "../pages/admin/classes/ClassesPages.js";
 import MainScreen from "../pages/MainScreen.js";
+import ForgotPassword from "../pages/password/ForgotPassword.js";
+import ResetPassword from "../pages/password/ResetPassword.js";
+import DisciplinePage from "../pages/disciplines/DisciplinePage.js";
 
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
@@ -27,7 +30,6 @@ const AppRoutes = () => {
           localStorage.removeItem("token");
           localStorage.removeItem("accessType");
           setAuthenticated(false);
-          alert("Sua sessão expirou. Faça login novamente.");
           navigate("/login");
         }
       } catch (err) {
@@ -66,6 +68,18 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/forgot-password"
+        element={
+          !isAuthenticated ? <ForgotPassword /> : <Navigate to="/MainScreen" />
+        }
+      />
+      <Route
+        path="/resetPassword/:token"
+        element={
+          !isAuthenticated ? <ResetPassword /> : <Navigate to="/login" />
+        }
+      />
+      <Route
         path="/users"
         element={
           isAuthenticated && accessType === "Admin" ? (
@@ -86,6 +100,16 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/disciplines"
+        element={
+          isAuthenticated ? (
+            <DisciplinePage setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
         path="/classes"
         element={
           isAuthenticated ? (
@@ -95,6 +119,7 @@ const AppRoutes = () => {
           )
         }
       />
+      <Route path="/resetPassword/:token" element={<ResetPassword />} />
       <Route
         path="/MainScreen"
         element={

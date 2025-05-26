@@ -10,10 +10,14 @@ exports.registerUser = async (req, res) => {
       error: "Email, nome e tipo de acesso são obrigatórios",
     });
   }
-
-  if (!email.endsWith("@ifce.edu.br")) {
+  //adicionado o email do aluno para testar recebimento de link
+  if (
+    !email.endsWith("@ifce.edu.br") ||
+    !email.endsWith("@aluno.ifce.edu.br")
+  ) {
     return res.status(400).json({
-      error: "Apenas e-mails institucionais (@ifce.edu.br) são permitidos",
+      error:
+        "Apenas e-mails institucionais (@ifce.edu.br ou @aluno.ifce.edu.br) são permitidos",
     });
   }
 
@@ -200,7 +204,6 @@ exports.getUserById = async (req, res) => {
     res.status(500).json({ error: "Erro ao buscar usuário" });
   }
 };
-
 
 exports.deleteUser = async (req, res) => {
   const userId = req.params.id;

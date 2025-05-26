@@ -1,11 +1,12 @@
 import React from "react";
-import { Stack, Typography, IconButton } from "@mui/material"; // Adicionei IconButton aqui
+import { Stack, Typography, IconButton } from "@mui/material";
 import DataTable from "../../../components/homeScreen/DataTable";
 import { Edit } from "@mui/icons-material";
 
 const ClassesTable = ({ classes, search, onEdit }) => {
   const headers = [
     { key: "year", label: "Ano" },
+    { key: "period", label: "Período" }, // Added period after year
     { key: "course", label: "Curso" },
     { key: "type", label: "Tipo" },
     { key: "semester", label: "Semestre" },
@@ -15,6 +16,9 @@ const ClassesTable = ({ classes, search, onEdit }) => {
     <Stack spacing={0.5}>
       <Typography>
         <strong>Ano:</strong> {classItem.year}
+      </Typography>
+      <Typography>
+        <strong>Período:</strong> {classItem.period} {/* Added period display */}
       </Typography>
       <Typography>
         <strong>Curso:</strong> {classItem.course}

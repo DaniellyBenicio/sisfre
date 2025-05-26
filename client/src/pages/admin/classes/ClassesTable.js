@@ -5,29 +5,33 @@ import { Edit } from "@mui/icons-material";
 
 const ClassesTable = ({ classes, search, onEdit }) => {
   const headers = [
-    { key: "year", label: "Ano" },
-    { key: "period", label: "Período" }, // Added period after year
     { key: "course", label: "Curso" },
-    { key: "type", label: "Tipo" },
+    { key: "year", label: "Ano" },
+    { key: "period", label: "Período" },
+    { key: "shift", label: "Turno" }, // Added shift (turno)
     { key: "semester", label: "Semestre" },
+    { key: "type", label: "Tipo" },
   ];
 
   const renderMobileRow = (classItem) => (
     <Stack spacing={0.5}>
       <Typography>
-        <strong>Ano:</strong> {classItem.year}
-      </Typography>
-      <Typography>
-        <strong>Período:</strong> {classItem.period} {/* Added period display */}
-      </Typography>
-      <Typography>
         <strong>Curso:</strong> {classItem.course}
       </Typography>
       <Typography>
-        <strong>Tipo:</strong> {classItem.type}
+        <strong>Ano:</strong> {classItem.year}
+      </Typography>
+      <Typography>
+        <strong>Período:</strong> {classItem.period}
+      </Typography>
+      <Typography>
+        <strong>Turno:</strong> {classItem.shift} {/* Added shift display */}
       </Typography>
       <Typography>
         <strong>Semestre:</strong> {classItem.semester}
+      </Typography>
+      <Typography>
+        <strong>Tipo:</strong> {classItem.type}
       </Typography>
       {onEdit && (
         <IconButton

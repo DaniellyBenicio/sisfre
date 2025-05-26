@@ -39,11 +39,12 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
     semester: '',
     year: '',
     period: '',
+    shift: '', // Added shift
     type: '',
   });
   const [error, setError] = useState(null);
 
-  const isFormFilled = classData.course && classData.semester && classData.year && classData.period && classData.type;
+  const isFormFilled = classData.course && classData.semester && classData.year && classData.period && classData.shift && classData.type;
 
   const handleInputChange = (e) => {
     setClassData({ ...classData, [e.target.name]: e.target.value });
@@ -53,7 +54,7 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
     e.preventDefault();
     setError(null);
 
-    if (!classData.course || !classData.semester || !classData.year || !classData.period || !classData.type) {
+    if (!classData.course || !classData.semester || !classData.year || !classData.period || !classData.shift || !classData.type) {
       setError('Todos os campos são obrigatórios.');
       return;
     }
@@ -74,6 +75,7 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
         semester: classData.semester,
         year: classData.year,
         period: classData.period,
+        shift: classData.shift, // Added shift to payload
         type: classData.type,
       };
 
@@ -106,6 +108,7 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
         semester: classToEdit.semester || '',
         year: year || '',
         period: period || '',
+        shift: classToEdit.shift || '', // Added shift
         type: classToEdit.type || '',
       });
       setError(null);
@@ -115,6 +118,7 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
         semester: '',
         year: '',
         period: '',
+        shift: '', // Added shift
         type: '',
       });
       setError(null);
@@ -166,18 +170,18 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
                   top: '50%',
                   transform: 'translate(14px, -50%)',
                   fontSize: '1rem',
-                  color: '#757575', // Gray color for label by default
-                  '&::after': { content: '" *"', color: '#757575' }, // Gray asterisk
+                  color: '#757575',
+                  '&::after': { content: '" *"', color: '#757575' },
                 },
                 '& .MuiInputLabel-shrink': {
                   top: 0,
                   transform: 'translate(14px, -9px) scale(0.75)',
-                  color: '#000000', // Black when shrunk
-                  '&::after': { content: '" *"', color: '#000000' }, // Black asterisk when shrunk
+                  color: '#000000',
+                  '&::after': { content: '" *"', color: '#000000' },
                 },
                 '& .MuiInputLabel-root.Mui-focused': {
-                  color: '#000000', // Black when focused
-                  '&::after': { content: '" *"', color: '#000000' }, // Black asterisk when focused
+                  color: '#000000',
+                  '&::after': { content: '" *"', color: '#000000' },
                 },
                 '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
                   borderColor: '#000000 !important',
@@ -216,14 +220,14 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
                 <InputLabel
                   id="semester-label"
                   sx={{
-                    color: '#757575', // Gray by default
-                    '&::after': { content: '" *"', color: '#757575' }, // Gray asterisk
+                    color: '#757575',
+                    '&::after': { content: '" *"', color: '#757575' },
                     top: '50%',
                     transform: 'translate(14px, -50%)',
                     fontSize: '1rem',
                     '&.Mui-focused, &.MuiInputLabel-shrink': {
-                      color: '#000000', // Black when focused or shrunk
-                      '&::after': { content: '" *"', color: '#000000' }, // Black asterisk
+                      color: '#000000',
+                      '&::after': { content: '" *"', color: '#000000' },
                     },
                     '&.MuiInputLabel-shrink': {
                       top: 0,
@@ -276,21 +280,21 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
                     borderWidth: '2px',
                   },
                   '& .MuiSelect-icon': {
-                    display: 'none', // Hide default dropdown arrow
+                    display: 'none',
                   },
                 }}
               >
                 <InputLabel
                   id="year-label"
                   sx={{
-                    color: '#757575', // Gray by default
-                    '&::after': { content: '" *"', color: '#757575' }, // Gray asterisk
+                    color: '#757575',
+                    '&::after': { content: '" *"', color: '#757575' },
                     top: '50%',
                     transform: 'translate(14px, -50%)',
                     fontSize: '1rem',
                     '&.Mui-focused, &.MuiInputLabel-shrink': {
-                      color: '#000000', // Black when focused or shrunk
-                      '&::after': { content: '" *"', color: '#000000' }, // Black asterisk
+                      color: '#000000',
+                      '&::after': { content: '" *"', color: '#000000' },
                     },
                     '&.MuiInputLabel-shrink': {
                       top: 0,
@@ -322,7 +326,6 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
                     <InputAdornment position="end" sx={{ marginRight: '-10px' }}>
                       <IconButton
                         onClick={(e) => {
-                          // Programmatically open the dropdown by simulating a click on the select
                           const select = e.currentTarget.parentElement?.parentElement?.querySelector('select');
                           if (select) {
                             select.focus();
@@ -363,14 +366,14 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
                 <InputLabel
                   id="period-label"
                   sx={{
-                    color: '#757575', // Gray by default
-                    '&::after': { content: '" *"', color: '#757575' }, // Gray asterisk
+                    color: '#757575',
+                    '&::after': { content: '" *"', color: '#757575' },
                     top: '50%',
                     transform: 'translate(14px, -50%)',
                     fontSize: '1rem',
                     '&.Mui-focused, &.MuiInputLabel-shrink': {
-                      color: '#000000', // Black when focused or shrunk
-                      '&::after': { content: '" *"', color: '#000000' }, // Black asterisk
+                      color: '#000000',
+                      '&::after': { content: '" *"', color: '#000000' },
                     },
                     '&.MuiInputLabel-shrink': {
                       top: 0,
@@ -408,67 +411,131 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
               </FormControl>
             </Box>
 
-            <FormControl
-              fullWidth
-              margin="normal"
-              sx={{
-                my: 1.5,
-                '& .MuiOutlinedInput-root': {
-                  height: '56px',
-                },
-                '& .MuiOutlinedInput-notchedOutline': {
-                  borderWidth: '1px',
-                },
-                '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                  borderColor: '#000000 !important',
-                  borderWidth: '2px',
-                },
-              }}
-            >
-              <InputLabel
-                id="type-label"
+            <Box sx={{ display: 'flex', gap: 2, my: 1.5, alignItems: 'center' }}>
+              <FormControl
+                fullWidth
+                margin="normal"
                 sx={{
-                  color: '#757575', // Gray by default
-                  '&::after': { content: '" *"', color: '#757575' }, // Gray asterisk
-                  top: '50%',
-                  transform: 'translate(14px, -50%)',
-                  fontSize: '1rem',
-                  '&.Mui-focused, &.MuiInputLabel-shrink': {
-                    color: '#000000', // Black when focused or shrunk
-                    '&::after': { content: '" *"', color: '#000000' }, // Black asterisk
+                  flex: 1,
+                  '& .MuiOutlinedInput-root': {
+                    height: '56px',
                   },
-                  '&.MuiInputLabel-shrink': {
-                    top: 0,
-                    transform: 'translate(14px, -9px) scale(0.75)',
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderWidth: '1px',
+                  },
+                  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#000000 !important',
+                    borderWidth: '2px',
                   },
                 }}
               >
-                Tipo
-              </InputLabel>
-              <StyledSelect
-                name="type"
-                value={classData.type}
-                onChange={handleInputChange}
-                label="Tipo"
-                required
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      maxHeight: '200px',
-                      overflowY: 'auto',
-                      width: 'auto',
-                      '& .MuiMenuItem-root:hover': {
-                        backgroundColor: '#D5FFDB',
+                <InputLabel
+                  id="shift-label"
+                  sx={{
+                    color: '#757575',
+                    '&::after': { content: '" *"', color: '#757575' },
+                    top: '50%',
+                    transform: 'translate(14px, -50%)',
+                    fontSize: '1rem',
+                    '&.Mui-focused, &.MuiInputLabel-shrink': {
+                      color: '#000000',
+                      '&::after': { content: '" *"', color: '#000000' },
+                    },
+                    '&.MuiInputLabel-shrink': {
+                      top: 0,
+                      transform: 'translate(14px, -9px) scale(0.75)',
+                    },
+                  }}
+                >
+                  Turno
+                </InputLabel>
+                <StyledSelect
+                  name="shift"
+                  value={classData.shift}
+                  onChange={handleInputChange}
+                  label="Turno"
+                  required
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        width: 'auto',
+                        '& .MuiMenuItem-root:hover': {
+                          backgroundColor: '#D5FFDB',
+                        },
                       },
                     },
+                  }}
+                >
+                  <MenuItem value="Matutino">Matutino</MenuItem>
+                  <MenuItem value="Vespertino">Vespertino</MenuItem>
+                  <MenuItem value="Noturno">Noturno</MenuItem>
+                </StyledSelect>
+              </FormControl>
+
+              <FormControl
+                fullWidth
+                margin="normal"
+                sx={{
+                  flex: 1,
+                  '& .MuiOutlinedInput-root': {
+                    height: '56px',
+                  },
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderWidth: '1px',
+                  },
+                  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#000000 !important',
+                    borderWidth: '2px',
                   },
                 }}
               >
-                <MenuItem value="Regular">Regular</MenuItem>
-                <MenuItem value="Convencional">Convencional</MenuItem>
-                <MenuItem value="Pós Greve">Pós Greve</MenuItem>
-              </StyledSelect>
-            </FormControl>
+                <InputLabel
+                  id="type-label"
+                  sx={{
+                    color: '#757575',
+                    '&::after': { content: '" *"', color: '#757575' },
+                    top: '50%',
+                    transform: 'translate(14px, -50%)',
+                    fontSize: '1rem',
+                    '&.Mui-focused, &.MuiInputLabel-shrink': {
+                      color: '#000000',
+                      '&::after': { content: '" *"', color: '#000000' },
+                    },
+                    '&.MuiInputLabel-shrink': {
+                      top: 0,
+                      transform: 'translate(14px, -9px) scale(0.75)',
+                    },
+                  }}
+                >
+                  Tipo
+                </InputLabel>
+                <StyledSelect
+                  name="type"
+                  value={classData.type}
+                  onChange={handleInputChange}
+                  label="Tipo"
+                  required
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        width: 'auto',
+                        '& .MuiMenuItem-root:hover': {
+                          backgroundColor: '#D5FFDB',
+                        },
+                      },
+                    },
+                  }}
+                >
+                  <MenuItem value="Regular">Regular</MenuItem>
+                  <MenuItem value="Convencional">Convencional</MenuItem>
+                  <MenuItem value="Pós Greve">Pós Greve</MenuItem>
+                </StyledSelect>
+              </FormControl>
+            </Box>
 
             <DialogActions
               sx={{

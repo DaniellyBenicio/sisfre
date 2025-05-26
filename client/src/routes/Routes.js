@@ -8,6 +8,7 @@ import ClassesPage from "../pages/admin/classes/ClassesPages.js";
 import MainScreen from "../pages/MainScreen.js";
 import ForgotPassword from "../pages/password/ForgotPassword.js";
 import ResetPassword from "../pages/password/ResetPassword.js";
+import DisciplinePage from "../pages/disciplines/DisciplinePage.js";
 
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
@@ -29,7 +30,6 @@ const AppRoutes = () => {
           localStorage.removeItem("token");
           localStorage.removeItem("accessType");
           setAuthenticated(false);
-          alert("Sua sessão expirou. Faça login novamente.");
           navigate("/login");
         }
       } catch (err) {
@@ -94,6 +94,16 @@ const AppRoutes = () => {
         element={
           isAuthenticated ? (
             <CoursePage setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
+        path="/disciplines"
+        element={
+          isAuthenticated ? (
+            <DisciplinePage setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
           )

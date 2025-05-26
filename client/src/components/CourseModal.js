@@ -7,6 +7,22 @@ import api from '../service/api';
 import CustomAlert from './alert/CustomAlert';
 import { StyledTextField, StyledSelect } from './inputs/Input';
 
+const VALID_COURSE_TYPES = [
+  'CURSO LIVRE',
+  'DOUTORADO',
+  'EAD',
+  'ESPECIALIZAÇÃO',
+  'EXTENSÃO',
+  'GRADUAÇÃO',
+  'INTEGRADO',
+  'MESTRADO',
+  'PROEJA',
+  'PÓS-DOUTORADO',
+  'RESIDÊNCIA',
+  'SEQUENCIAL',
+  'TÉCNICO'
+];
+
 const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
   const [alert, setAlert] = useState(null);
   const [course, setCourse] = useState({
@@ -34,15 +50,19 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
   };
 
   useEffect(() => {
+    console.log('courseToEdit:', courseToEdit);
     if (courseToEdit) {
+      const normalizedType = courseToEdit.type
+        ? VALID_COURSE_TYPES.find(type => type.toUpperCase() === courseToEdit.type.toUpperCase()) || ''
+        : '';
+      console.log('Type normalizado:', normalizedType);
       setCourse({
         acronym: courseToEdit.acronym || '',
         name: courseToEdit.name || '',
-        type: courseToEdit.type || '',
+        type: normalizedType,
         coordinatorId: courseToEdit.coordinatorId || ''
       });
       setError(null);
-
     } else {
       setCourse({
         acronym: '',
@@ -70,9 +90,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
         const filtered = allUsers.filter(user => user.accessType === 'Coordenador');
         console.log('Coordenadores filtrados:', filtered);
         setCoordinators(filtered);
-
       } catch (err) {
-        console.error('Erro ao buscar capas:', err);
         setError('Erro ao carregar coordenadores');
       } finally {
         setLoading(false);
@@ -83,7 +101,12 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
   }, [open]);
 
   const handleInputChange = (e) => {
-    setCourse({ ...course, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === 'type' && !VALID_COURSE_TYPES.includes(value)) {
+      console.warn(`Valor inválido para type: ${value}`);
+      return;
+    }
+    setCourse({ ...course, [name]: value });
   };
 
   const handleSubmit = async (e) => {
@@ -91,14 +114,13 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
     setLoading(true);
     setError(null);
 
-		if (!course.acronym || !course.name || !course.type) {
-			setError('Os campos nome, sigla e tipo são obrigatórios.');
-			setLoading(false);
-			return;
-		}
+    if (!course.acronym || !course.name || !course.type) {
+      setError('Os campos nome, sigla e tipo são obrigatórios.');
+      setLoading(false);
+      return;
+    }
 
     try {
-      let response;
       const payload = {
         acronym: course.acronym,
         name: course.name,
@@ -108,6 +130,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 
       console.log('Payload enviado:', payload);
 
+      let response;
       if (courseToEdit) {
         response = await api.put(`/courses/${courseToEdit.id}`, payload);
       } else {
@@ -132,8 +155,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
         fullWidth 
         PaperProps={{ 
           sx: { 
-            borderRadius: 4, 
-            height: '489px',
+            borderRadius: "8px",
             width: '520px',
             maxWidth: '90vw'
           } 

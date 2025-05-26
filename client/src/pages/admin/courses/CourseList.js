@@ -157,6 +157,7 @@ const CourseList = () => {
 
   const handleDeleteClick = (course) => {
     console.log("Curso recebido para exclusão:", course);
+    console.log("ID do curso a ser excluído:", course.id);
     setCourseToDelete(course);
     setOpenDeleteDialog(true);
   };
@@ -207,7 +208,10 @@ const CourseList = () => {
         searchValue={search}
         onSearchChange={(e) => setSearch(e.target.value)}
         createButtonLabel="Cadastrar Curso"
-        onCreateClick={() => setOpenDialog(true)}
+        onCreateClick={() => {
+          setCourseToEdit(null);
+          setOpenDialog(true);
+        }}
       />
 
       <CoursesTable
@@ -220,7 +224,10 @@ const CourseList = () => {
 
       <CourseModal
         open={openDialog}
-        onClose={() => setOpenDialog(false)}
+        onClose={() => {
+          setOpenDialog(false);
+          setCourseToEdit(null);
+        }}
         onUpdate={handleRegister}
         courseToEdit={courseToEdit}
       />

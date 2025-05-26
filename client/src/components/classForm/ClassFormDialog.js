@@ -187,75 +187,82 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
             )}
 
             <FormControl
-              fullWidth
-              margin="normal"
-              sx={{
-                my: 1.5,
-                '& .MuiOutlinedInput-root': {
-                  height: '56px',
-                },
-                '& .MuiOutlinedInput-notchedOutline': {
-                  borderWidth: '1px',
-                },
-                '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                  borderColor: '#000000 !important',
-                  borderWidth: '2px',
-                },
-              }}
-            >
-              <InputLabel
-                id="course-label"
-                sx={{
-                  color: '#757575',
-                  '&::after': { content: '" *"', color: '#757575' },
-                  top: '50%',
-                  transform: 'translate(14px, -50%)',
-                  fontSize: '1rem',
-                  '&.Mui-focused, &.MuiInputLabel-shrink': {
-                    color: '#000000',
-                    '&::after': { content: '" *"', color: '#000000' },
-                  },
-                  '&.MuiInputLabel-shrink': {
-                    top: 0,
-                    transform: 'translate(14px, -9px) scale(0.75)',
-                  },
-                }}
-              >
-                Curso
-              </InputLabel>
-              <StyledSelect
-                name="course"
-                value={classData.course}
-                onChange={handleInputChange}
-                label="Curso"
-                required
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      maxHeight: '200px',
-                      overflowY: 'auto',
-                      width: 'auto',
-                      '& .MuiMenuItem-root:hover': {
-                        backgroundColor: '#D5FFDB',
-                      },
-                    },
-                  },
-                }}
-              >
-                {courses.length === 0 ? (
-                  <MenuItem disabled value="">
-                    Nenhum curso disponível
-                  </MenuItem>
-                ) : (
-                  courses.map((course) => (
-                    <MenuItem key={course.id} value={course.name}>
-                      {course.name}
-                    </MenuItem>
-                  ))
-                )}
-              </StyledSelect>
-            </FormControl>
-
+  fullWidth
+  margin="normal"
+  sx={{
+    my: 1.5,
+    '& .MuiOutlinedInput-root': {
+      height: '56px',
+    },
+    '& .MuiOutlinedInput-notchedOutline': {
+      borderWidth: '1px',
+    },
+    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+      borderColor: '#000000 !important',
+      borderWidth: '2px',
+    },
+  }}
+>
+  <InputLabel
+    id="course-label"
+    sx={{
+      color: '#757575',
+      '&::after': { content: '" *"', color: '#757575' },
+      top: '50%',
+      transform: 'translate(14px, -50%)',
+      fontSize: '1rem',
+      '&.Mui-focused, &.MuiInputLabel-shrink': {
+        color: '#000000',
+        '&::after': { content: '" *"', color: '#000000' },
+      },
+      '&.MuiInputLabel-shrink': {
+        top: 0,
+        transform: 'translate(14px, -9px) scale(0.75)',
+      },
+    }}
+  >
+    Curso
+  </InputLabel>
+  <StyledSelect
+    name="course"
+    value={classData.course}
+    onChange={handleInputChange}
+    label="Curso"
+    required
+    MenuProps={{
+      PaperProps: {
+        sx: {
+          maxHeight: '200px',
+          overflowY: 'auto',
+          width: 'auto',
+          '& .MuiMenuItem-root': {
+            '&:hover': {
+              backgroundColor: '#D5FFDB', // Cor verde ao passar o mouse
+            },
+            '&.Mui-selected': {
+              backgroundColor: '#E8F5E9', // Cor para item selecionado, se desejar
+              '&:hover': {
+                backgroundColor: '#D5FFDB', // Mantém o verde no hover mesmo para item selecionado
+              },
+            },
+          },
+        },
+      },
+    }}
+  >
+    {courses.length === 0 ? (
+      <MenuItem disabled value="">
+        Nenhum curso disponível
+      </MenuItem>
+    ) : (
+      courses.map((course) => (
+        <MenuItem key={course.id} value={course.name}>
+          {course.name}
+        </MenuItem>
+      ))
+    )}
+  </StyledSelect>
+</FormControl>
             <Box sx={{ display: 'flex', gap: 2, my: 1.5, alignItems: 'center' }}>
               <FormControl
                 fullWidth

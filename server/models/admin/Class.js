@@ -20,7 +20,7 @@ const Class = sequelize.define("class", {
     onDelete: "CASCADE",
   },
   semester: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.STRING,
     allowNull: false,
   },
   year: {
@@ -33,6 +33,10 @@ const Class = sequelize.define("class", {
   },
   type: {
     type: DataTypes.STRING,
+    allowNull: false,
+  },
+  shift: {
+  type: DataTypes.ENUM("MATUTINO", "VESPERTINO", "NOTURNO"),
     allowNull: false,
   },
   archived: {

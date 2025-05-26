@@ -12,7 +12,7 @@ exports.registerUser = async (req, res) => {
   }
   //adicionado o email do aluno para testar recebimento de link
   if (
-    !email.endsWith("@ifce.edu.br") ||
+    !email.endsWith("@ifce.edu.br") &&
     !email.endsWith("@aluno.ifce.edu.br")
   ) {
     return res.status(400).json({

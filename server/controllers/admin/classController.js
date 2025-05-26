@@ -3,21 +3,21 @@ const Class = require("../../models/admin/Class");
 const Course = require("../../models/admin/Course");
 
 exports.createClass = async (req, res) => {
-  const { courseId, semester, year, period, type } = req.body;
+  const { courseId, semester, year, period, type, shift, archived } = req.body;
 
-  if (!courseId || !semester || !year || !period || !type) {
+  if (!courseId || !semester || !year || !period || !type || !shift) {
     return res.status(400).json({ error: "Todos os campos são obrigatórios." });
   }
 
   try {
     const existing = await Class.findOne({
-      where: { courseId, semester, year, period, type },
+      where: { courseId, semester, year, period, type, shift },
     });
     if (existing) {
       return res.status(400).json({ error: "Já existe uma turma com esses dados." });
     }
 
-    const newClass = await Class.create({ courseId, semester, year, period, type });
+    const newClass = await Class.create({ courseId, semester, year, period, type, shift, archived });
     res.status(201).json({ message: "Turma cadastrada com sucesso.", class: newClass });
   } catch (error) {
     console.error(error);

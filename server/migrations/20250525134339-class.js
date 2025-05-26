@@ -20,7 +20,7 @@ module.exports = {
         onDelete: "CASCADE",
       },
       semester: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING,
         allowNull: false,
       },
       year: {
@@ -33,6 +33,10 @@ module.exports = {
       },
       type: {
         type: Sequelize.STRING,
+        allowNull: false,
+      },
+      shift: {
+        type: Sequelize.ENUM("MATUTINO", "VESPERTINO", "NOTURNO"),
         allowNull: false,
       },
       archived: {

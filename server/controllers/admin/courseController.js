@@ -11,6 +11,13 @@ exports.createCourse = async (req, res) => {
       .json({ error: "Os campos nome, sigla e tipo são obrigatórios." });
   }
 
+  if (coordinatorId) {
+    const coordinator = await User.findByPk(coordinatorId);
+    if (!coordinator) {
+      return res.status(400).json({ error: "Coordenador não encontrado." });
+    }
+  }
+
   const validNameRegex = /^[A-Za-zÀ-ÿ\s]*$/;
   if (!validNameRegex.test(name)) {
     return res

@@ -24,11 +24,22 @@ const StyledPagination = styled(Pagination)(({ theme }) => ({
   "& .MuiPaginationItem-previousNext": {
     color: theme.palette.action.active,
   },
-  
 }));
 
-// Componente para renderizar a paginação customizada
+
 export default function Paginate({ count, page, onChange }) {
+  if (count === 0) {
+    return (
+      <Stack spacing={2} sx={{ mt: 2, textAlign: "center" }}>
+        <div>Nenhum item encontrado</div>
+      </Stack>
+    );
+  }
+
+  if (count < 5) {
+    return null; 
+  }
+
   return (
     <Stack spacing={2} sx={{ mt: 2 }}>
       <StyledPagination

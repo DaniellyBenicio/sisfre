@@ -623,7 +623,7 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
                 }}
               >
                 <Save sx={{ fontSize: 24 }} />
-                {isEditMode ? 'Atualizar' : 'Salvar'}
+                {isEditMode ? 'Atualizar' : 'Cadastrar'}
               </StyledButton>
             </DialogActions>
           </Box>

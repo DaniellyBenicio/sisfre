@@ -39,12 +39,38 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
     semester: '',
     year: '',
     period: '',
-    shift: '', // Added shift
+    shift: '',
     type: '',
   });
+  const [courses, setCourses] = useState([]); // Initialize as empty array
   const [error, setError] = useState(null);
 
   const isFormFilled = classData.course && classData.semester && classData.year && classData.period && classData.shift && classData.type;
+
+  // Fetch courses from backend
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await api.get('/courses');
+        console.log('ClassFormDialog - Cursos retornados:', response.data);
+        
+        // Ensure courses is an array
+        const coursesArray = Array.isArray(response.data) 
+          ? response.data 
+          : response.data.courses || [];
+        
+        setCourses(coursesArray); // Set courses to the array
+      } catch (err) {
+        console.error('ClassFormDialog - Erro ao buscar cursos:', err);
+        setError('Erro ao carregar a lista de cursos.');
+        setCourses([]); // Ensure courses is an empty array on error
+      }
+    };
+
+    if (open) {
+      fetchCourses();
+    }
+  }, [open]);
 
   const handleInputChange = (e) => {
     setClassData({ ...classData, [e.target.name]: e.target.value });
@@ -75,7 +101,7 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
         semester: classData.semester,
         year: classData.year,
         period: classData.period,
-        shift: classData.shift, // Added shift to payload
+        shift: classData.shift,
         type: classData.type,
       };
 
@@ -108,7 +134,7 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
         semester: classToEdit.semester || '',
         year: year || '',
         period: period || '',
-        shift: classToEdit.shift || '', // Added shift
+        shift: classToEdit.shift || '',
         type: classToEdit.type || '',
       });
       setError(null);
@@ -118,7 +144,7 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
         semester: '',
         year: '',
         period: '',
-        shift: '', // Added shift
+        shift: '',
         type: '',
       });
       setError(null);
@@ -160,44 +186,75 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
               </Box>
             )}
 
-            <StyledTextField
+            <FormControl
+              fullWidth
+              margin="normal"
               sx={{
                 my: 1.5,
-                '& .MuiInputBase-root': {
+                '& .MuiOutlinedInput-root': {
                   height: '56px',
                 },
-                '& .MuiInputLabel-root': {
-                  top: '50%',
-                  transform: 'translate(14px, -50%)',
-                  fontSize: '1rem',
-                  color: '#757575',
-                  '&::after': { content: '" *"', color: '#757575' },
-                },
-                '& .MuiInputLabel-shrink': {
-                  top: 0,
-                  transform: 'translate(14px, -9px) scale(0.75)',
-                  color: '#000000',
-                  '&::after': { content: '" *"', color: '#000000' },
-                },
-                '& .MuiInputLabel-root.Mui-focused': {
-                  color: '#000000',
-                  '&::after': { content: '" *"', color: '#000000' },
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderWidth: '1px',
                 },
                 '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
                   borderColor: '#000000 !important',
                   borderWidth: '2px',
                 },
               }}
-              name="course"
-              size="small"
-              variant="outlined"
-              fullWidth
-              label="Curso"
-              margin="normal"
-              value={classData.course}
-              onChange={handleInputChange}
-              required
-            />
+            >
+              <InputLabel
+                id="course-label"
+                sx={{
+                  color: '#757575',
+                  '&::after': { content: '" *"', color: '#757575' },
+                  top: '50%',
+                  transform: 'translate(14px, -50%)',
+                  fontSize: '1rem',
+                  '&.Mui-focused, &.MuiInputLabel-shrink': {
+                    color: '#000000',
+                    '&::after': { content: '" *"', color: '#000000' },
+                  },
+                  '&.MuiInputLabel-shrink': {
+                    top: 0,
+                    transform: 'translate(14px, -9px) scale(0.75)',
+                  },
+                }}
+              >
+                Curso
+              </InputLabel>
+              <StyledSelect
+                name="course"
+                value={classData.course}
+                onChange={handleInputChange}
+                label="Curso"
+                required
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      maxHeight: '200px',
+                      overflowY: 'auto',
+                      width: 'auto',
+                      '& .MuiMenuItem-root:hover': {
+                        backgroundColor: '#D5FFDB',
+                      },
+                    },
+                  },
+                }}
+              >
+                {courses.length === 0 ? (
+                  <MenuItem disabled value="">
+                    Nenhum curso disponível
+                  </MenuItem>
+                ) : (
+                  courses.map((course) => (
+                    <MenuItem key={course.id} value={course.name}>
+                      {course.name}
+                    </MenuItem>
+                  ))
+                )}
+              </StyledSelect>
+            </FormControl>
 
             <Box sx={{ display: 'flex', gap: 2, my: 1.5, alignItems: 'center' }}>
               <FormControl

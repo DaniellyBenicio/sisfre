@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogActions, DialogContent, DialogTitle, Button, CircularProgress, Box,
+import { Dialog, DialogActions, DialogContent, DialogTitle, Button, Box,
   FormControl, MenuItem, IconButton, InputLabel
 } from '@mui/material';
 import { Close, Save } from '@mui/icons-material';
@@ -34,6 +34,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [coordinators, setCoordinators] = useState([]);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const isFormFilled = course.name && course.name.trim() !== '';
 
@@ -51,26 +52,29 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 
   useEffect(() => {
     console.log('courseToEdit:', courseToEdit);
-    if (courseToEdit) {
-      const normalizedType = courseToEdit.type
-        ? VALID_COURSE_TYPES.find(type => type.toUpperCase() === courseToEdit.type.toUpperCase()) || ''
-        : '';
-      console.log('Type normalizado:', normalizedType);
-      setCourse({
-        acronym: courseToEdit.acronym || '',
-        name: courseToEdit.name || '',
-        type: normalizedType,
-        coordinatorId: courseToEdit.coordinatorId || ''
-      });
-      setError(null);
-    } else {
-      setCourse({
-        acronym: '',
-        name: '',
-        type: '',
-        coordinatorId: ''
-      });
-      setError(null);
+    if (open) {
+      setIsEditMode(!!courseToEdit);
+      if (courseToEdit) {
+        const normalizedType = courseToEdit.type
+          ? VALID_COURSE_TYPES.find(type => type.toUpperCase() === courseToEdit.type.toUpperCase()) || ''
+          : '';
+        console.log('Type normalizado:', normalizedType);
+        setCourse({
+          acronym: courseToEdit.acronym || '',
+          name: courseToEdit.name || '',
+          type: normalizedType,
+          coordinatorId: courseToEdit.coordinatorId || ''
+        });
+        setError(null);
+      } else {
+        setCourse({
+          acronym: '',
+          name: '',
+          type: '',
+          coordinatorId: ''
+        });
+        setError(null);
+      }
     }
   }, [courseToEdit, open]);
 
@@ -156,13 +160,12 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
           sx: { 
             borderRadius: '8px',
             width: '520px',
-            maxWidth: '90vw',
-            minWidth: '520px', 
+            maxWidth: '90vw', 
           } 
         }}
       >
         <DialogTitle sx={{ textAlign: 'center', marginTop: '19px', color: '#087619', fontWeight: 'bold' }}>
-          {courseToEdit ? 'Editar Curso' : 'Cadastrar Curso'}
+          {isEditMode ? 'Editar Curso' : 'Cadastrar Curso'}
           <IconButton
             onClick={onClose}
             sx={{ position: 'absolute', right: 8, top: 8 }}
@@ -337,6 +340,8 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                   onClick={onClose} 
                   variant='contained'
                   sx={{
+                    width: 'fit-content',
+										minWidth: 100,
                     padding: '8px 28px',
                     borderRadius: '8px',
                     textTransform: 'none',
@@ -357,6 +362,8 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                   variant='contained' 
                   disabled={!isFormFilled}
                   sx={{
+                    width: 'fit-content',
+										minWidth: 100,
                     padding: '8px 28px',
                     backgroundColor: '#087619',
                     borderRadius: '8px',

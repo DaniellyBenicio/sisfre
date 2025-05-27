@@ -109,15 +109,17 @@ const DataTable = ({
             )
           )
         )}
-        <Paginate
-          count={Math.ceil(
-            (Array.isArray(data) ? data.length : 0) / rowsPerPage
-          )}
-          page={page}
-          onChange={(event, newPage) => {
-            handleChangePage(newPage);
-          }}
-        />
+        {data.length > rowsPerPage && (
+          <Paginate
+            count={Math.ceil(
+              (Array.isArray(data) ? data.length : 0) / rowsPerPage
+            )}
+            page={page}
+            onChange={(event, newPage) => {
+              handleChangePage(newPage);
+            }}
+          />
+        )}
       </Stack>
     );
   }
@@ -188,15 +190,17 @@ const DataTable = ({
           </TableBody>
         </Table>
       </TableContainer>
-      <Paginate
-        count={Math.ceil(
-          (Array.isArray(data) ? data.length : 0) / rowsPerPage
-        )}
-        page={page}
-        onChange={(event, newPage) => {
-          handleChangePage(newPage);
-        }}
-      />
+      {data.length > rowsPerPage && (
+        <Paginate
+          count={Math.ceil(
+            (Array.isArray(data) ? data.length : 0) / rowsPerPage
+          )}
+          page={page}
+          onChange={(event, newPage) => {
+            handleChangePage(newPage);
+          }}
+        />
+      )}
     </>
   );
 };

@@ -36,14 +36,10 @@ export default function Paginate({ count, page, onChange }) {
     );
   }
 
-  if (count < 5) {
-    return null; 
-  }
-
   return (
     <Stack spacing={2} sx={{ mt: 2 }}>
       <StyledPagination
-        count={count}
+        count={count} // total de páginas, não total de itens!
         page={page}
         onChange={onChange}
         variant="outlined"

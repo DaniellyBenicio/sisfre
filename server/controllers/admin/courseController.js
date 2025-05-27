@@ -73,7 +73,16 @@ export const createCourse = async (req, res) => {
     if (coordinatorId) {
       const coordinator = await db.User.findByPk(coordinatorId);
       if (!coordinator) {
-        return res.status(404).json({ error: "Coordenador não encontrado" });
+        return res.status(400).json({ error: "Coordenador não encontrado." });
+      }
+
+      const existingCourseWithCoordinator = await db.Course.findOne({
+        where: { coordinatorId },
+      });
+      if (existingCourseWithCoordinator) {
+        return res.status(400).json({
+          error: "Este coordenador já está associado a outro curso.",
+        });
       }
     }
 
@@ -183,7 +192,16 @@ export const updateCourse = async (req, res) => {
     if (coordinatorId) {
       const coordinator = await db.User.findByPk(coordinatorId);
       if (!coordinator) {
-        return res.status(404).json({ error: "Coordenador não encontrado." });
+        return res.status(400).json({ error: "Coordenador não encontrado." });
+      }
+
+      const existingCourseWithCoordinator = await db.Course.findOne({
+        where: { coordinatorId },
+      });
+      if (existingCourseWithCoordinator) {
+        return res.status(400).json({
+          error: "Este coordenador já está associado a outro curso.",
+        });
       }
     }
 

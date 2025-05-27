@@ -196,7 +196,10 @@ export const updateCourse = async (req, res) => {
       }
 
       const existingCourseWithCoordinator = await db.Course.findOne({
-        where: { coordinatorId },
+        where: {
+          coordinatorId,
+          id: { [db.Sequelize.Op.ne]: courseId }, 
+        },
       });
       if (existingCourseWithCoordinator) {
         return res.status(400).json({

@@ -111,12 +111,10 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
 
     if (!course.acronym || !course.name || !course.type) {
       setError('Os campos nome, sigla e tipo são obrigatórios.');
-      setLoading(false);
       return;
     }
 
@@ -138,6 +136,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
       }
 
       onUpdate(response.data);
+      onClose();
       handleSubmitSuccess();
     } catch (err) {
       console.log('Erro completo:', err.response);
@@ -155,14 +154,15 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
         fullWidth 
         PaperProps={{ 
           sx: { 
-            borderRadius: "8px",
+            borderRadius: '8px',
             width: '520px',
-            maxWidth: '90vw'
+            maxWidth: '90vw',
+            minWidth: '520px', 
           } 
         }}
       >
         <DialogTitle sx={{ textAlign: 'center', marginTop: '19px', color: '#087619', fontWeight: 'bold' }}>
-          {courseToEdit ? "Editar Curso" : "Cadastrar Curso"}
+          {courseToEdit ? 'Editar Curso' : 'Cadastrar Curso'}
           <IconButton
             onClick={onClose}
             sx={{ position: 'absolute', right: 8, top: 8 }}
@@ -171,12 +171,8 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
           </IconButton>
         </DialogTitle>
 
-        <DialogContent sx={{ px: 5 }}>
-          {loading ? (
-            <Box display="flex" justifyContent="center">
-              <CircularProgress />
-            </Box>
-          ) : (
+        <DialogContent sx={{ px: 5, minHeight: '400px' }}> {/* Set minHeight to stabilize content size */}
+          {!loading ? (
             <form onSubmit={handleSubmit}>
               {error && <Box sx={{ color: 'red', marginBottom: 2 }}>{error}</Box>}
               
@@ -196,12 +192,12 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                     transform: 'translate(14px, -9px) scale(0.75)',
                   },
                 }}
-                name="name"
-                size="small"
-                variant="outlined"
+                name='name'
+                size='small'
+                variant='outlined'
                 fullWidth
                 label='Nome'
-                margin="normal"
+                margin='normal'
                 value={course.name}
                 onChange={handleInputChange}
                 required
@@ -223,12 +219,12 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                     transform: 'translate(14px, -9px) scale(0.75)',
                   },
                 }}
-                name="acronym"
+                name='acronym'
                 fullWidth
-                variant="outlined"
-                size="small"
-                label="Sigla"
-                margin="normal"
+                variant='outlined'
+                size='small'
+                label='Sigla'
+                margin='normal'
                 value={course.acronym}
                 onChange={handleInputChange}
                 required
@@ -270,19 +266,19 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                     },
                   }}
                 >
-                  <MenuItem value="CURSO LIVRE">Curso Livre</MenuItem>
-                  <MenuItem value="DOUTORADO">Doutorado</MenuItem>
-                  <MenuItem value="EAD">EAD</MenuItem>
-                  <MenuItem value="ESPECIALIZAÇÃO">Especialização</MenuItem>
-                  <MenuItem value="EXTENSÃO">Extensão</MenuItem>
-                  <MenuItem value="GRADUAÇÃO">Graduação</MenuItem>
-                  <MenuItem value="INTEGRADO">Integrado</MenuItem>
-                  <MenuItem value="MESTRADO">Mestrado</MenuItem>
-                  <MenuItem value="PROEJA">PROEJA</MenuItem>
-                  <MenuItem value="PÓS-DOUTORADO">Pós-Doutorado</MenuItem>
-                  <MenuItem value="RESIDÊNCIA">Residência</MenuItem>
-                  <MenuItem value="SEQUENCIAL">Sequencial</MenuItem>
-                  <MenuItem value="TÉCNICO">Técnico</MenuItem>
+                  <MenuItem value='CURSO LIVRE'>Curso Livre</MenuItem>
+                  <MenuItem value='DOUTORADO'>Doutorado</MenuItem>
+                  <MenuItem value='EAD'>EAD</MenuItem>
+                  <MenuItem value='ESPECIALIZAÇÃO'>Especialização</MenuItem>
+                  <MenuItem value='EXTENSÃO'>Extensão</MenuItem>
+                  <MenuItem value='GRADUAÇÃO'>Graduação</MenuItem>
+                  <MenuItem value='INTEGRADO'>Integrado</MenuItem>
+                  <MenuItem value='MESTRADO'>Mestrado</MenuItem>
+                  <MenuItem value='PROEJA'>PROEJA</MenuItem>
+                  <MenuItem value='PÓS-DOUTORADO'>Pós-Doutorado</MenuItem>
+                  <MenuItem value='RESIDÊNCIA'>Residência</MenuItem>
+                  <MenuItem value='SEQUENCIAL'>Sequencial</MenuItem>
+                  <MenuItem value='TÉCNICO'>Técnico</MenuItem>
                 </StyledSelect>
               </FormControl>
 
@@ -304,8 +300,8 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                   Coordenador
                 </InputLabel>
                 <StyledSelect
-                  name="coordinatorId"
-                  label="Coordenador"
+                  name='coordinatorId'
+                  label='Coordenador'
                   value={course.coordinatorId}
                   onChange={handleInputChange}
                   MenuProps={{
@@ -339,7 +335,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
               >
                 <Button 
                   onClick={onClose} 
-                  variant="contained"
+                  variant='contained'
                   sx={{
                     padding: '8px 28px',
                     borderRadius: '8px',
@@ -349,16 +345,16 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                     alignItems: 'center',
                     gap: '8px',
                     backgroundColor: '#F01424',
-                    "&:hover": { backgroundColor: "#D4000F" }
+                    '&:hover': { backgroundColor: '#D4000F' }
                   }}
                 >
                   <Close sx={{ fontSize: 24 }} />
                   Cancelar
                 </Button>
                 <Button 
-                  type="submit" 
-                  color="primary" 
-                  variant="contained" 
+                  type='submit' 
+                  color='primary' 
+                  variant='contained' 
                   disabled={!isFormFilled}
                   sx={{
                     padding: '8px 28px',
@@ -369,15 +365,15 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
-                    "&:hover": { backgroundColor: "#066915" },
+                    '&:hover': { backgroundColor: '#066915' },
                   }}
                 >
                   <Save sx={{ fontSize: 24 }} />
-                  {courseToEdit ? "Salvar" : "Cadastrar"}
+                  {courseToEdit ? 'Salvar' : 'Cadastrar'}
                 </Button>
               </DialogActions>
             </form>
-          )}
+          ) : null }
         </DialogContent>
       </Dialog>
       {alert && (

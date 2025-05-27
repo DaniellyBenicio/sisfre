@@ -155,9 +155,10 @@ const CourseList = () => {
     setOpenDialog(true);
   };
 
-  const handleDeleteClick = (course) => {
+  const handleDeleteClick = (courseId) => {
+    const course = courses.find(c => c.id === courseId);
     console.log("Curso recebido para exclusão:", course);
-    console.log("ID do curso a ser excluído:", course.id);
+    console.log("ID do curso a ser excluído:", courseId);
     setCourseToDelete(course);
     setOpenDeleteDialog(true);
   };

@@ -34,6 +34,7 @@ const DisciplineList = () => {
         throw new Error('Erro ao buscar disciplinas: Dados inválidos');
       }
       setDisciplines(response.data.disciplines);
+
     } catch (error) {
       console.error('Erro ao buscar disciplinas:', error);
       setAlert({ message: 'Erro ao carregar disciplinas.', type: 'error' });
@@ -58,12 +59,6 @@ const DisciplineList = () => {
     setLoading(true);
     try {
       await fetchDisciplines();
-      setAlert({
-        message: isEditMode
-          ? `Disciplina "${newDiscipline.name}" atualizada com sucesso!`
-          : `Disciplina "${newDiscipline.name}" cadastrada com sucesso!`,
-        type: 'success',
-      });
     } catch (error) {
       console.error(`Erro ao ${isEditMode ? 'atualizar' : 'cadastrar'} disciplina:`, error);
       setAlert({

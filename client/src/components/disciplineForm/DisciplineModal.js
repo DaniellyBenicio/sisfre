@@ -53,7 +53,6 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
 
     if (!discipline.acronym || !discipline.name || !discipline.workload) {
@@ -81,6 +80,7 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
       console.log('Resposta da API:', response.data);
 
       onUpdate(response.data);
+			onClose();
       handleSubmitSuccess();
     } catch (err) {
       console.error('Erro completo:', err.response);
@@ -112,11 +112,7 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
 				</DialogTitle>
 
 				<DialogContent sx={{ px: 5 }}>
-					{loading ? (
-						<Box display="flex" justifyContent="center">
-							<CircularProgress />
-						</Box>
-					) : (
+					{!loading ? (
 						<form onSubmit={handleSubmit}>
 							{error && <Box sx={{ color: 'red', marginBottom: 2, fontSize: '0.875rem' }}>{error}</Box>}
 							<StyledTextField
@@ -216,7 +212,7 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
 								</Button>
 							</DialogActions>
 						</form>
-					)}
+					) : null }
 				</DialogContent>
 			</Dialog>
 			{alert && (

@@ -2,10 +2,11 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogTitle,
   Button,
   Typography,
   Box,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { Warning } from "@mui/icons-material";
 
@@ -17,15 +18,23 @@ const DeleteConfirmationDialog = ({
   onConfirm,
   userName,
 }) => {
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm")); // sm = 600px
+
   return (
     <Dialog
       open={open}
       onClose={onClose}
+      fullWidth
       PaperProps={{
-        sx: { borderRadius: "9px" },
+        sx: {
+          borderRadius: "9px",
+          width: isSmallScreen ? "100%" : "390px",
+          mx: isSmallScreen ? 2 : "auto", // margem horizontal para evitar colar nas bordas pequenas
+        },
       }}
     >
-      <DialogContent sx={{ textAlign: "center", width: "390px" }}>
+      <DialogContent sx={{ textAlign: "center" }}>
         <Box display="flex" justifyContent="center" mb={2}>
           <Warning sx={{ fontSize: 55, color: "#FFA000" }} />
         </Box>
@@ -37,7 +46,7 @@ const DeleteConfirmationDialog = ({
       <DialogActions
         sx={{
           gap: 2,
-          padding: "23px 70px",
+          padding: isSmallScreen ? "16px" : "23px 70px",
           marginTop: "-20px",
           justifyContent: "center",
         }}

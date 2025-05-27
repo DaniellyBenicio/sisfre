@@ -1,8 +1,8 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../../config/database");
-const bcrypt = require("bcryptjs");
+// models/User.js
+import { Model, DataTypes } from "sequelize";
+import bcrypt from "bcryptjs";
 
-const generateCode = async (username, sequelize) => {
+const generateCode = async (username, User) => {
   if (!username || typeof username !== "string") return "XX";
   const parts = username.trim().split(/\s+/);
   const firstName = parts[0] || "";
@@ -20,9 +20,7 @@ const generateCode = async (username, sequelize) => {
 
   let suffix = 1;
   let uniqueAcronym = acronym;
-  while (
-    await sequelize.models.user.findOne({ where: { acronym: uniqueAcronym } })
-  ) {
+  while (await User.findOne({ where: { acronym: uniqueAcronym } })) {
     const newRandomIndex = Math.floor(Math.random() * allLetters.length);
     uniqueAcronym = firstLetter + allLetters[newRandomIndex];
     if (suffix++ > 10) {
@@ -34,47 +32,59 @@ const generateCode = async (username, sequelize) => {
   return uniqueAcronym;
 };
 
-const User = sequelize.define("user", {
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
-  },
-  username: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  acronym: {
-    type: DataTypes.STRING(2),
-    allowNull: true,
-    unique: true,
-  },
-  email: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,
-  },
-  password: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  accessType: {
-    type: DataTypes.ENUM("Professor", "Coordenador", "Admin"),
-    allowNull: false,
-    defaultValue: "Professor",
-  },
-});
-
-User.beforeCreate(async (user) => {
-  user.acronym = await generateCode(user.username, sequelize);
-  const hashedPassword = await bcrypt.hash(user.password, 10);
-  user.password = hashedPassword;
-});
-
-User.beforeUpdate(async (user) => {
-  if (user.changed("username")) {
-    user.acronym = await generateCode(user.username, sequelize);
+export default (sequelize) => {
+  class User extends Model {
+    static associate(models) {}
   }
-});
 
-module.exports = User;
+  User.init(
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      username: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      acronym: {
+        type: DataTypes.STRING(2),
+        allowNull: true,
+        unique: true,
+      },
+      email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+      },
+      password: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      accessType: {
+        type: DataTypes.ENUM("Professor", "Coordenador", "Admin"),
+        allowNull: false,
+        defaultValue: "Professor",
+      },
+    },
+    {
+      sequelize,
+      modelName: "User",
+    }
+  );
+
+  User.beforeCreate(async (user) => {
+    user.acronym = await generateCode(user.username, User);
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+    user.password = hashedPassword;
+  });
+
+  User.beforeUpdate(async (user) => {
+    if (user.changed("username")) {
+      user.acronym = await generateCode(user.username, User);
+    }
+  });
+
+  return User;
+};

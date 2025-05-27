@@ -1,8 +1,8 @@
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const User = require("../models/admin/User");
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import db from "../models/index.js";
 
-exports.login = async (req, res) => {
+export const login = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -10,7 +10,7 @@ exports.login = async (req, res) => {
   }
 
   try {
-    const user = await User.findOne({ where: { email } });
+    const user = await db.User.findOne({ where: { email } });
 
     if (!user) {
       return res.status(400).json({ error: "Usuário não encontrado" });
@@ -23,6 +23,12 @@ exports.login = async (req, res) => {
 
     const userWithoutPassword = user.toJSON();
     delete userWithoutPassword.password;
+    // Verifica se JWT_SECRET está definido
+    if (!process.env.JWT_SECRET) {
+      throw new Error(
+        "JWT_SECRET não está definido nas variáveis de ambiente."
+      );
+    }
 
     // Gera o token JWT
     const token = jwt.sign(
@@ -37,6 +43,6 @@ exports.login = async (req, res) => {
 
     res.json({ token });
   } catch (error) {
-    res.status(500).json({ error: "Erro no servidor" });
+    res.status(500).json({ error: "Erro no servidor durante o login." });
   }
 };

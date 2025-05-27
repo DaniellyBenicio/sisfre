@@ -1,7 +1,6 @@
-const { Sequelize } = require("sequelize");
-const Discipline = require("../../models/admin/Discipline");
+import db from "../../models/index.js";
 
-exports.createDiscipline = async (req, res) => {
+export const createDiscipline = async (req, res) => {
   const { name, acronym, workload } = req.body;
 
   if (!name || !acronym || workload == null) {
@@ -24,7 +23,7 @@ exports.createDiscipline = async (req, res) => {
   }
 
   try {
-    const existing = await Discipline.findOne({
+    const existing = await db.Discipline.findOne({
       where: { acronym, name },
     });
 
@@ -34,7 +33,11 @@ exports.createDiscipline = async (req, res) => {
         .json({ error: "Já existe uma disciplina com esta sigla/nome" });
     }
 
-    const newDiscipline = await Discipline.create({ name, acronym, workload });
+    const newDiscipline = await db.Discipline.create({
+      name,
+      acronym,
+      workload,
+    });
 
     res.status(201).json({
       message: "Disciplina cadastrada com sucesso",
@@ -46,7 +49,7 @@ exports.createDiscipline = async (req, res) => {
   }
 };
 
-exports.updateDiscipline = async (req, res) => {
+export const updateDiscipline = async (req, res) => {
   const { id } = req.params;
   const { name, acronym, workload } = req.body;
 
@@ -62,7 +65,7 @@ exports.updateDiscipline = async (req, res) => {
   }
 
   try {
-    const discipline = await Discipline.findByPk(id);
+    const discipline = await db.Discipline.findByPk(id);
     if (!discipline) {
       return res.status(404).json({ error: "Disciplina não encontrada" });
     }
@@ -76,10 +79,10 @@ exports.updateDiscipline = async (req, res) => {
     }
 
     if (Object.keys(checkDuplicates).length > 0) {
-      const existing = await Discipline.findOne({
+      const existing = await db.Discipline.findOne({
         where: {
-          [Sequelize.Op.or]: checkDuplicates,
-          id: { [Sequelize.Op.ne]: id },
+          [db.Sequelize.Op.or]: checkDuplicates,
+          id: { [db.Sequelize.Op.ne]: id },
         },
       });
 
@@ -103,15 +106,9 @@ exports.updateDiscipline = async (req, res) => {
       });
     }
 
-    if (name) {
-      discipline.name = name;
-    }
-    if (acronym) {
-      discipline.acronym = acronym;
-    }
-    if (workload != null) {
-      discipline.workload = workload;
-    }
+    if (name) discipline.name = name;
+    if (acronym) discipline.acronym = acronym;
+    if (workload != null) discipline.workload = workload;
 
     await discipline.save();
 
@@ -125,27 +122,26 @@ exports.updateDiscipline = async (req, res) => {
   }
 };
 
-exports.getDisciplines = async (req, res) => {
+export const getDisciplines = async (req, res) => {
   const { name, acronym, page = 1, limit = 10, order = "asc" } = req.query;
 
   try {
     const offset = (page - 1) * limit;
-
     const where = {};
 
     if (name) {
       where.name = {
-        [Sequelize.Op.like]: `%${name}%`, 
+        [db.Sequelize.Op.like]: `%${name}%`,
       };
     }
 
     if (acronym) {
       where.acronym = {
-        [Sequelize.Op.like]: `%${acronym}%`, 
+        [db.Sequelize.Op.like]: `%${acronym}%`,
       };
     }
 
-    const { rows, count } = await Discipline.findAndCountAll({
+    const { rows, count } = await db.Discipline.findAndCountAll({
       where,
       attributes: ["id", "name", "acronym", "workload"],
       limit: parseInt(limit),
@@ -165,7 +161,7 @@ exports.getDisciplines = async (req, res) => {
   }
 };
 
-exports.getAllDisciplines = async (req, res) => {
+export const getAllDisciplines = async (req, res) => {
   const { name, acronym } = req.query;
 
   try {
@@ -173,17 +169,17 @@ exports.getAllDisciplines = async (req, res) => {
 
     if (name) {
       where.name = {
-        [Sequelize.Op.like]: `%${name}%`,
+        [db.Sequelize.Op.like]: `%${name}%`,
       };
     }
 
     if (acronym) {
       where.acronym = {
-        [Sequelize.Op.like]: `%${acronym}%`,
+        [db.Sequelize.Op.like]: `%${acronym}%`,
       };
     }
 
-    const disciplines = await Discipline.findAll({
+    const disciplines = await db.Discipline.findAll({
       where,
       attributes: ["id", "name", "acronym", "workload"],
       order: [["name", "ASC"]],
@@ -196,7 +192,7 @@ exports.getAllDisciplines = async (req, res) => {
   }
 };
 
-exports.getDisciplineById = async (req, res) => {
+export const getDisciplineById = async (req, res) => {
   const id = Number(req.params.id);
 
   try {
@@ -204,7 +200,7 @@ exports.getDisciplineById = async (req, res) => {
       return res.status(400).json({ error: "O ID deve ser um número válido" });
     }
 
-    const discipline = await Discipline.findByPk(id, {
+    const discipline = await db.Discipline.findByPk(id, {
       attributes: ["id", "name", "acronym", "workload"],
     });
 
@@ -222,11 +218,11 @@ exports.getDisciplineById = async (req, res) => {
   }
 };
 
-exports.deleteDiscipline = async (req, res) => {
+export const deleteDiscipline = async (req, res) => {
   const disciplineId = req.params.id;
 
   try {
-    const discipline = await Discipline.findByPk(disciplineId);
+    const discipline = await db.Discipline.findByPk(disciplineId);
 
     if (!discipline) {
       return res.status(404).json({ error: "Disciplina não encontrada." });

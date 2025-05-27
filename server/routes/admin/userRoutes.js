@@ -1,18 +1,15 @@
-// routes/userRoutes.js
-const express = require("express");
+import express from 'express';
+import autenticarToken from '../../middlewares/authMiddleware.js';
+import isAdmin from '../../middlewares/isAdmin.js';
+import { registerUser, updateUser, getUsers, getAllUsers, getUserById, deleteUser } from '../../controllers/admin/userController.js';
+
 const router = express.Router();
-const authMiddleware = require("../../middlewares/authMiddleware");
-const isAdmin = require("../../middlewares/isAdmin");
-const userController = require("../../controllers/admin/userController");
 
-router.post("/users", authMiddleware, isAdmin, userController.registerUser);
-router.put("/users/:id", authMiddleware, isAdmin, userController.updateUser);
-router.get("/users", authMiddleware, isAdmin, userController.getUsers);
-router.get("/users/all", authMiddleware, isAdmin, userController.getAllUsers);
-router.get("/users/:id", authMiddleware, isAdmin, userController.getUserById);
-router.delete("/users/:id", authMiddleware, isAdmin, userController.deleteUser);
+router.post('/users', autenticarToken, isAdmin, registerUser);
+router.put('/users/:id', autenticarToken, isAdmin, updateUser);
+router.get('/users', autenticarToken, isAdmin, getUsers);
+router.get('/users/all', autenticarToken, isAdmin, getAllUsers);
+router.get('/users/:id', autenticarToken, isAdmin, getUserById);
+router.delete('/users/:id', autenticarToken, isAdmin, deleteUser);
 
-//router.post("/forgot-password", userController.forgotPassword);
-//router.post("/reset-password", userController.resetPassword);
-
-module.exports = router;
+export default router;

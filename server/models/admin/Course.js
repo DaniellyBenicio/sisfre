@@ -1,64 +1,73 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../../config/database");
-const User = require("./User");
-const Discipline = require("./Discipline");
+// models/Course.js
+import { Model, DataTypes } from "sequelize";
 
-const Course = sequelize.define("course", {
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
-  },
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  acronym: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,
-  },
-  type: {
-    type: DataTypes.ENUM(
-      "GRADUAÇÃO",
-      "TÉCNICO",
-      "INTEGRADO",
-      "MESTRADO",
-      "DOUTORADO",
-      "EAD",
-      "PROEJA",
-      "ESPECIALIZAÇÃO",
-      "EXTENSÃO",
-      "RESIDÊNCIA",
-      "SEQUENCIAL",
-      "PÓS-DOUTORADO",
-      "CURSO LIVRE"
-    ),
-    allowNull: false,
-  },
-  coordinatorId: {
-    type: DataTypes.INTEGER,
-    references: {
-      model: User,
-      key: "id",
+export default (sequelize) => {
+  class Course extends Model {
+    static associate(models) {
+      Course.belongsTo(models.User, {
+        as: "coordinator",
+        foreignKey: "coordinatorId",
+      });
+
+      Course.belongsToMany(models.Discipline, {
+        through: "CourseDisciplines",
+        foreignKey: "courseId",
+        otherKey: "disciplineId",
+        as: "disciplines",
+      });
+    }
+  }
+
+  Course.init(
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      acronym: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+      },
+      type: {
+        type: DataTypes.ENUM(
+          "GRADUAÇÃO",
+          "TÉCNICO",
+          "INTEGRADO",
+          "MESTRADO",
+          "DOUTORADO",
+          "EAD",
+          "PROEJA",
+          "ESPECIALIZAÇÃO",
+          "EXTENSÃO",
+          "RESIDÊNCIA",
+          "SEQUENCIAL",
+          "PÓS-DOUTORADO",
+          "CURSO LIVRE"
+        ),
+        allowNull: false,
+      },
+      coordinatorId: {
+        type: DataTypes.INTEGER,
+        references: {
+          model: "Users",
+          key: "id",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
+        allowNull: true,
+      },
     },
-    onUpdate: "CASCADE",
-    onDelete: "SET NULL",
-    allowNull: true,
-  },
-});
+    {
+      sequelize,
+      modelName: "Course",
+    }
+  );
 
-// Estabelecendo a relação: um curso pertence a um coordenador (usuário)
-Course.belongsTo(User, { as: "coordinator", foreignKey: "coordinatorId" });
-
-Course.associate = (models) => {
-  Course.belongsToMany(models.Discipline, {
-    through: "CourseDisciplines",
-    foreignKey: "courseId",
-    otherKey: "disciplineId",
-    as: "disciplines",
-  });
+  return Course;
 };
-
-// Exportando o modelo
-module.exports = Course;

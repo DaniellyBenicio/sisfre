@@ -1,14 +1,15 @@
-const express = require("express");
-const router = express.Router();
-const authMiddleware = require("../../middlewares/authMiddleware");
-const isAdmin = require("../../middlewares/isAdmin");
-const courseController = require("../../controllers/admin/courseController");
+import express from 'express';
+   import autenticarToken from '../../middlewares/authMiddleware.js';
+   import isAdmin from '../../middlewares/isAdmin.js';
+   import { createCourse, getCourses, getCourseById, updateCourse, deleteCourse } from '../../controllers/admin/courseController.js';
 
-// Rotas para cursos
-router.post("/courses", authMiddleware, isAdmin, courseController.createCourse);
-router.get("/courses", authMiddleware, courseController.getCourses);
-router.get("/courses/:id", authMiddleware, courseController.getCourseById);
-router.put("/courses/:id", authMiddleware, isAdmin, courseController.updateCourse);
-router.delete("/courses/:id", authMiddleware, isAdmin, courseController.deleteCourse);
+   const router = express.Router();
 
-module.exports = router;
+   // Rotas para cursos
+   router.post('/courses', autenticarToken, isAdmin, createCourse);
+   router.get('/courses', autenticarToken, getCourses);
+   router.get('/courses/:id', autenticarToken, getCourseById);
+   router.put('/courses/:id', autenticarToken, isAdmin, updateCourse);
+   router.delete('/courses/:id', autenticarToken, isAdmin, deleteCourse);
+
+   export default router;

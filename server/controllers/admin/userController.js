@@ -1,8 +1,7 @@
-const { Sequelize } = require("sequelize");
-const User = require("../../models/admin/User");
-const bcrypt = require("bcryptjs");
+import db from "../../models/index.js";
+import bcrypt from "bcryptjs";
 
-exports.registerUser = async (req, res) => {
+export const registerUser = async (req, res) => {
   const { email, username, accessType } = req.body;
 
   if (!email || !username || !accessType) {
@@ -28,7 +27,7 @@ exports.registerUser = async (req, res) => {
   }
 
   try {
-    const existingUser = await User.findOne({ where: { email } });
+    const existingUser = await db.User.findOne({ where: { email } });
     if (existingUser) {
       return res
         .status(400)
@@ -37,14 +36,14 @@ exports.registerUser = async (req, res) => {
 
     const defaultPassword = "123456"; //mudar posteriormente para primeiro acesso
 
-    const newUser = await User.create({
+    const newUser = await db.User.create({
       email,
       password: defaultPassword,
       username,
       accessType,
     });
 
-    const createdUser = await User.findByPk(newUser.id);
+    const createdUser = await db.User.findByPk(newUser.id);
 
     res.status(201).json({
       message:
@@ -57,7 +56,7 @@ exports.registerUser = async (req, res) => {
   }
 };
 
-exports.updateUser = async (req, res) => {
+export const updateUser = async (req, res) => {
   const { email, password, username, accessType } = req.body;
   const userId = req.params.id;
 
@@ -70,14 +69,14 @@ exports.updateUser = async (req, res) => {
 
   try {
     // Verificar se o usuário existe
-    const user = await User.findByPk(userId);
+    const user = await db.User.findByPk(userId);
     if (!user) {
       return res.status(404).json({ error: "Usuário não encontrado" });
     }
 
     // Verificar se o e-mail foi alterado e já existe outro usuário com o novo e-mail
     if (email && email !== user.email) {
-      const existingUser = await User.findOne({ where: { email } });
+      const existingUser = await db.User.findOne({ where: { email } });
 
       if (existingUser) {
         return res
@@ -118,7 +117,7 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-exports.getUsers = async (req, res) => {
+export const getUsers = async (req, res) => {
   const { username, page = 1, limit = 10, order = "asc" } = req.query;
 
   try {
@@ -127,18 +126,18 @@ exports.getUsers = async (req, res) => {
 
     // Set up the 'where' clause to exclude admins and optionally filter by username
     const where = {
-      accessType: { [Sequelize.Op.ne]: "admin" }, // Exclude users of type 'admin'
+      accessType: { [db.Sequelize.Op.ne]: "admin" }, // Exclude users of type 'admin'
     };
 
     if (username) {
       // Add the username filter to the 'where' clause if 'username' is provided
       where.username = {
-        [Sequelize.Op.like]: `%${username}%`, // Partial match for username
+        [db.Sequelize.Op.like]: `%${username}%`, // Partial match for username
       };
     }
 
     // Use findAndCountAll to get both paginated data and total count
-    const { rows, count } = await User.findAndCountAll({
+    const { rows, count } = await db.User.findAndCountAll({
       where,
       limit: parseInt(limit),
       offset,
@@ -160,21 +159,21 @@ exports.getUsers = async (req, res) => {
   }
 };
 
-exports.getAllUsers = async (req, res) => {
+export const getAllUsers = async (req, res) => {
   const { username } = req.query;
 
   try {
     const where = {
-      accessType: { [Sequelize.Op.notIn]: ["admin"] },
+      accessType: { [db.Sequelize.Op.notIn]: ["admin"] },
     };
 
     if (username) {
       where.username = {
-        [Sequelize.Op.like]: `%${username}%`,
+        [db.Sequelize.Op.like]: `%${username}%`,
       };
     }
 
-    const users = await User.findAll({
+    const users = await db.User.findAll({
       where,
       order: [["username", "ASC"]],
     });
@@ -186,12 +185,12 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-exports.getUserById = async (req, res) => {
+export const getUserById = async (req, res) => {
   const userId = req.params.id;
 
   try {
     // Buscar o usuário pelo ID
-    const user = await User.findByPk(userId);
+    const user = await db.User.findByPk(userId);
 
     // Verificar se o usuário foi encontrado
     if (!user) {
@@ -205,11 +204,11 @@ exports.getUserById = async (req, res) => {
   }
 };
 
-exports.deleteUser = async (req, res) => {
+export const deleteUser = async (req, res) => {
   const userId = req.params.id;
 
   try {
-    const user = await User.findByPk(userId);
+    const user = await db.User.findByPk(userId);
 
     if (!user) {
       return res.status(404).json({ error: "Usuário não encontrado." });

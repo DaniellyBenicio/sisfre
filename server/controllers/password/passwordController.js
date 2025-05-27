@@ -1,11 +1,7 @@
-const { Sequelize } = require("sequelize");
-const User = require("../../models/admin/User");
-const bcrypt = require("bcrypt");
-const nodemailer = require("nodemailer");
-const { randomBytes } = require("crypto");
-const dotenv = require("dotenv");
-
-dotenv.config();
+import bcrypt from "bcryptjs";
+import nodemailer from "nodemailer";
+import { randomBytes } from "crypto";
+import db from "../../models/index.js";
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -17,12 +13,12 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-exports.forgotPassword = async (req, res) => {
+export const forgotPassword = async (req, res) => {
   const { email } = req.body;
   console.log("Email recebido:", email);
 
   try {
-    const user = await User.findOne({ where: { email } });
+    const user = await db.User.findOne({ where: { email } });
     if (!user) {
       return res.status(404).json({ message: "E-mail não encontrado." });
     }
@@ -65,8 +61,7 @@ exports.forgotPassword = async (req, res) => {
   }
 };
 
-
-exports.resetPassword = async (req, res) => {
+export const resetPassword = async (req, res) => {
   try {
     const { email: encodedEmail, expires } = req.query;
     if (!encodedEmail) {
@@ -83,14 +78,16 @@ exports.resetPassword = async (req, res) => {
 
     const { newPassword, confirmPassword } = req.body;
     if (!newPassword || !confirmPassword) {
-      return res.status(400).json({ error: "Nova senha e confirmação são obrigatórias." });
+      return res
+        .status(400)
+        .json({ error: "Nova senha e confirmação são obrigatórias." });
     }
 
     if (newPassword !== confirmPassword) {
       return res.status(400).json({ error: "As senhas não coincidem." });
     }
 
-    const user = await User.findOne({
+    const user = await db.User.findOne({
       where: {
         email: email,
       },

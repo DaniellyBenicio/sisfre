@@ -1,29 +1,23 @@
-const express = require("express");
-const cors = require("cors");
-const dotenv = require("dotenv");
-const sequelize = require("./config/database");
-//Routes
-const authRoutes = require("./routes/authRoutes");
-const userRoutes = require("./routes/admin/userRoutes");
-const courseRoutes = require("./routes/admin/courseRoutes");
-const disciplineRoutes = require("./routes/admin/disciplineRoutes");
-const passwordRoutes = require("./routes/password/passwordRoutes");
-const classRoutes = require("./routes/admin/classRoutes");
-
-//Models
-const User = require("./models/admin/User");
+// app.js
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import db from "./models/index.js"; // Importa o objeto db
+import authRoutes from "./routes/authRoutes.js";
+import userRoutes from "./routes/admin/userRoutes.js";
+import courseRoutes from "./routes/admin/courseRoutes.js";
+import disciplineRoutes from "./routes/admin/disciplineRoutes.js";
+import passwordRoutes from "./routes/password/passwordRoutes.js";
+import classRoutes from "./routes/admin/classRoutes.js";
 
 const app = express();
-
 dotenv.config();
 
-app.use(cors()); // Usa o middleware CORS
-
+app.use(cors());
 app.use(express.json());
 
+// Rotas
 app.use("/api/auth", authRoutes);
-
-//Rotas do ADMIN
 app.use("/api", userRoutes);
 app.use("/api", courseRoutes);
 app.use("/api", disciplineRoutes);
@@ -32,26 +26,34 @@ app.use("/api", classRoutes);
 
 // Função para criar o usuário administrador, se não existir
 const createAdminIfNotExists = async () => {
-  const adminExists = await User.findOne({ where: { accessType: "admin" } });
+  try {
+    const adminExists = await db.User.findOne({ where: { accessType: "Admin" } });
 
-  if (!adminExists) {
-    // Criar o usuário administrador com dados pré-definidos
-    await User.create({
-      username: "admin",
-      email: "diren.cedro@ifce.edu.br",
-      password: "123456", // A senha será automaticamente hasheada
-      accessType: "admin",
-    });
-    console.log("Administrador criado com sucesso!");
+    if (!adminExists) {
+      console.log("Nenhum administrador encontrado. Criando um...");
+      await db.User.create({
+        username: "admin",
+        email: "diren.cedro@ifce.edu.br",
+        password: "123456", // A senha será hasheada pelo hook beforeCreate
+        accessType: "Admin",
+      });
+      console.log("Administrador criado com sucesso!");
+    } else {
+      console.log("Administrador já existe.");
+    }
+  } catch (error) {
+    console.error("Erro ao verificar/criar administrador:", error);
   }
 };
 
-sequelize
+db.sequelize
   .sync({ force: false }) // force: false para não apagar os dados existentes
   .then(async () => {
-    await createAdminIfNotExists(); // Verifica e cria o admin se necessário
+    console.log("Banco de dados sincronizado.");
+    await createAdminIfNotExists();
     app.listen(3000, () => console.log("API rodando na porta 3000"));
   })
-  .catch((error) =>
-    console.error("Erro ao sincronizar o banco de dados:", error)
-  );
+  .catch((error) => {
+    console.error("Erro ao sincronizar o banco de dados ou iniciar o servidor:", error);
+    process.exit(1); // Encerra o processo se houver um erro crítico
+  });

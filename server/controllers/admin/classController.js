@@ -1,8 +1,6 @@
-const { Sequelize } = require("sequelize");
-const Class = require("../../models/admin/Class");
-const Course = require("../../models/admin/Course");
+import db from '../../models/index.js';
 
-exports.createClass = async (req, res) => {
+export const createClass = async (req, res) => {
   const { courseId, semester, year, period, type, shift, archived } = req.body;
 
   if (!courseId || !semester || !year || !period || !type || !shift) {
@@ -10,14 +8,14 @@ exports.createClass = async (req, res) => {
   }
 
   try {
-    const existing = await Class.findOne({
+    const existing = await db.Class.findOne({
       where: { courseId, semester, year, period, type, shift },
     });
     if (existing) {
       return res.status(400).json({ error: "Já existe uma turma com esses dados." });
     }
 
-    const newClass = await Class.create({ courseId, semester, year, period, type, shift, archived });
+    const newClass = await db.Class.create({ courseId, semester, year, period, type, shift, archived });
     res.status(201).json({ message: "Turma cadastrada com sucesso.", class: newClass });
   } catch (error) {
     console.error(error);
@@ -25,7 +23,7 @@ exports.createClass = async (req, res) => {
   }
 };
 
-exports.updateClass = async (req, res) => {
+export const updateClass = async (req, res) => {
   const classId = req.params.id;
   const { courseId, semester, year, period, type } = req.body;
 
@@ -34,19 +32,19 @@ exports.updateClass = async (req, res) => {
   }
 
   try {
-    const turma = await Class.findByPk(classId);
+    const turma = await db.Class.findByPk(classId);
     if (!turma) {
       return res.status(404).json({ error: "Turma não encontrada." });
     }
 
-    const duplicate = await Class.findOne({
+    const duplicate = await db.Class.findOne({
       where: {
         courseId,
         semester,
         year,
         period,
         type,
-        id: { [Sequelize.Op.ne]: classId },
+        id: { [db.Sequelize.Op.ne]: classId },
       },
     });
     if (duplicate) {
@@ -67,7 +65,7 @@ exports.updateClass = async (req, res) => {
   }
 };
 
-exports.getClasses = async (req, res) => {
+export const getClasses = async (req, res) => {
   const { courseId, type, page = 1, limit = 10 } = req.query;
   try {
     const offset = (page - 1) * limit;
@@ -75,12 +73,12 @@ exports.getClasses = async (req, res) => {
     if (courseId) where.courseId = courseId;
     if (type) where.type = type;
 
-    const { rows, count } = await Class.findAndCountAll({
+    const { rows, count } = await db.Class.findAndCountAll({
       where,
       limit: parseInt(limit),
       offset,
       order: [["year", "DESC"]],
-      include: [{ model: Course, as: "course" }],
+      include: [{ model: db.Course, as: "course" }],
     });
 
     res.json({
@@ -95,11 +93,11 @@ exports.getClasses = async (req, res) => {
   }
 };
 
-exports.getAllClasses = async (req, res) => {
+export const getAllClasses = async (req, res) => {
   try {
-    const classes = await Class.findAll({
+    const classes = await db.Class.findAll({
       order: [["year", "DESC"]],
-      include: [{ model: Course, as: "course" }],
+      include: [{ model: db.Course, as: "course" }],
     });
     res.json({ classes });
   } catch (error) {
@@ -108,11 +106,11 @@ exports.getAllClasses = async (req, res) => {
   }
 };
 
-exports.getClassById = async (req, res) => {
+export const getClassById = async (req, res) => {
   const classId = req.params.id;
   try {
-    const turma = await Class.findByPk(classId, {
-      include: [{ model: Course, as: "course" }],
+    const turma = await db.Class.findByPk(classId, {
+      include: [{ model: db.Course, as: "course" }],
     });
     if (!turma) {
       return res.status(404).json({ error: "Turma não encontrada." });
@@ -124,10 +122,10 @@ exports.getClassById = async (req, res) => {
   }
 };
 
-exports.deleteClass = async (req, res) => {
+export const deleteClass = async (req, res) => {
   const classId = req.params.id;
   try {
-    const turma = await Class.findByPk(classId);
+    const turma = await db.Class.findByPk(classId);
     if (!turma) {
       return res.status(404).json({ error: "Turma não encontrada." });
     }
@@ -139,10 +137,10 @@ exports.deleteClass = async (req, res) => {
   }
 };
 
-exports.archiveClass = async (req, res) => {
+export const archiveClass = async (req, res) => {
   const classId = req.params.id;
   try {
-    const turma = await Class.findByPk(classId);
+    const turma = await db.Class.findByPk(classId);
     if (!turma) {
       return res.status(404).json({ error: "Turma não encontrada." });
     }

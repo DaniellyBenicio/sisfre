@@ -1,15 +1,16 @@
-const express = require("express");
+import express from 'express';
+import autenticarToken from '../../middlewares/authMiddleware.js';
+import isAdmin from '../../middlewares/isAdmin.js';
+import { createClass, getClasses, getClassById, updateClass, deleteClass, archiveClass } from '../../controllers/admin/classController.js';
+
 const router = express.Router();
-const authMiddleware = require("../../middlewares/authMiddleware");
-const isAdmin = require("../../middlewares/isAdmin");
-const classController = require("../../controllers/admin/classController");
 
 // Rotas para classes
-router.post("/classes", authMiddleware, isAdmin, classController.createClass);
-router.get("/classes", authMiddleware, classController.getClasses);
-router.get("/classes/:id", authMiddleware, classController.getClassById);
-router.put("/classes/:id", authMiddleware, isAdmin, classController.updateClass);
-router.delete("/classes/:id", authMiddleware, isAdmin, classController.deleteClass);
-router.patch("/classes/:id/archive", authMiddleware, isAdmin, classController.archiveClass);
+router.post('/classes', autenticarToken, isAdmin, createClass);
+router.get('/classes', autenticarToken, getClasses);
+router.get('/classes/:id', autenticarToken, getClassById);
+router.put('/classes/:id', autenticarToken, isAdmin, updateClass);
+router.delete('/classes/:id', autenticarToken, isAdmin, deleteClass);
+router.patch('/classes/:id/archive', autenticarToken, isAdmin, archiveClass);
 
-module.exports = router;
+export default router;

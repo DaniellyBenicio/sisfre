@@ -1,8 +1,6 @@
-const { Sequelize } = require("sequelize");
-const Course = require("../../models/admin/Course");
-const User = require("../../models/admin/User");
+import db from "../../models/index.js";
 
-exports.createCourse = async (req, res) => {
+export const createCourse = async (req, res) => {
   const { name, acronym, type, coordinatorId } = req.body;
 
   if (!name || !acronym || !type) {
@@ -12,7 +10,7 @@ exports.createCourse = async (req, res) => {
   }
 
   if (coordinatorId) {
-    const coordinator = await User.findByPk(coordinatorId);
+    const coordinator = await db.User.findByPk(coordinatorId);
     if (!coordinator) {
       return res.status(400).json({ error: "Coordenador não encontrado." });
     }
@@ -58,9 +56,9 @@ exports.createCourse = async (req, res) => {
   }
 
   try {
-    const existingCourse = await Course.findOne({
+    const existingCourse = await db.Course.findOne({
       where: {
-        [Sequelize.Op.or]: [{ acronym }, { name }],
+        [db.Sequelize.Op.or]: [{ acronym }, { name }],
       },
     });
 
@@ -68,17 +66,23 @@ exports.createCourse = async (req, res) => {
       const duplicatedField =
         existingCourse.acronym === acronym ? "sigla" : "nome";
       return res.status(400).json({
-        error: `A ${duplicatedField}  informada já está cadastrada. Por favor, verifique os dados e tente novamente.`,
+        error: `A ${duplicatedField} informada já está cadastrada. Por favor, verifique os dados e tente novamente.`,
       });
     }
 
     if (coordinatorId) {
-      const coordinator = await User.findByPk(coordinatorId);
+      const coordinator = await db.User.findByPk(coordinatorId);
       if (!coordinator) {
         return res.status(404).json({ error: "Coordenador não encontrado" });
       }
     }
-    const course = await Course.create({ name, acronym, type, coordinatorId });
+
+    const course = await db.Course.create({
+      name,
+      acronym,
+      type,
+      coordinatorId,
+    });
     res.status(201).json({ course });
   } catch (error) {
     console.error(error);
@@ -86,7 +90,7 @@ exports.createCourse = async (req, res) => {
   }
 };
 
-exports.getCourses = async (req, res) => {
+export const getCourses = async (req, res) => {
   const { name, type, page = 1, limit = 10 } = req.query;
 
   try {
@@ -94,18 +98,18 @@ exports.getCourses = async (req, res) => {
     const where = {};
 
     if (name) {
-      where.name = { [Sequelize.Op.like]: `%${name}%` };
+      where.name = { [db.Sequelize.Op.like]: `%${name}%` };
     }
 
     if (type) {
       where.type = type;
     }
 
-    const { rows, count } = await Course.findAndCountAll({
+    const { rows, count } = await db.Course.findAndCountAll({
       where,
       include: [
         {
-          model: User,
+          model: db.User,
           as: "coordinator",
           attributes: ["id", "username", "email"],
         },
@@ -127,14 +131,14 @@ exports.getCourses = async (req, res) => {
   }
 };
 
-exports.getCourseById = async (req, res) => {
+export const getCourseById = async (req, res) => {
   const courseId = req.params.id;
 
   try {
-    const course = await Course.findByPk(courseId, {
+    const course = await db.Course.findByPk(courseId, {
       include: [
         {
-          model: User,
+          model: db.User,
           as: "coordinator",
           attributes: ["id", "username", "email"],
         },
@@ -152,12 +156,12 @@ exports.getCourseById = async (req, res) => {
   }
 };
 
-exports.updateCourse = async (req, res) => {
+export const updateCourse = async (req, res) => {
   const courseId = req.params.id;
   const { name, acronym, type, coordinatorId } = req.body;
 
   try {
-    const course = await Course.findByPk(courseId);
+    const course = await db.Course.findByPk(courseId);
 
     if (!course) {
       return res.status(404).json({ error: "Curso não encontrado." });
@@ -176,9 +180,8 @@ exports.updateCourse = async (req, res) => {
       });
     }
 
-    // Verificar se o coordenador existe, se fornecido
     if (coordinatorId) {
-      const coordinator = await User.findByPk(coordinatorId);
+      const coordinator = await db.User.findByPk(coordinatorId);
       if (!coordinator) {
         return res.status(404).json({ error: "Coordenador não encontrado." });
       }
@@ -197,11 +200,11 @@ exports.updateCourse = async (req, res) => {
   }
 };
 
-exports.deleteCourse = async (req, res) => {
+export const deleteCourse = async (req, res) => {
   const courseId = req.params.id;
 
   try {
-    const course = await Course.findByPk(courseId);
+    const course = await db.Course.findByPk(courseId);
 
     if (!course) {
       return res.status(404).json({ error: "Curso não encontrado." });

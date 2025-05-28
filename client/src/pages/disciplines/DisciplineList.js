@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Typography, CircularProgress } from '@mui/material';
-import DeleteConfirmationDialog from '../../components/DeleteConfirmationDialog';
-import api from '../../service/api';
-import SearchAndCreateBar from '../../components/homeScreen/SearchAndCreateBar';
-import { CustomAlert } from '../../components/alert/CustomAlert';
-import DisciplinesTable from './DisciplinesTable';
-import DisciplineModal from '../../components/disciplineForm/DisciplineModal';
+import React, { useState, useEffect } from "react";
+import { Box, Typography } from "@mui/material";
+import DeleteConfirmationDialog from "../../components/DeleteConfirmationDialog";
+import api from "../../service/api";
+import SearchAndCreateBar from "../../components/homeScreen/SearchAndCreateBar";
+import { CustomAlert } from "../../components/alert/CustomAlert";
+import DisciplinesTable from "./DisciplinesTable";
+import DisciplineModal from "../../components/disciplineForm/DisciplineModal";
 
 const DisciplineList = () => {
   const [disciplines, setDisciplines] = useState([]);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [disciplineToDelete, setDisciplineToDelete] = useState(null);
@@ -28,16 +28,15 @@ const DisciplineList = () => {
   const fetchDisciplines = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/disciplines/all');
-      console.log('DisciplineList - Resposta da API:', response.data);
+      const response = await api.get("/disciplines/all");
+      console.log("DisciplineList - Resposta da API:", response.data);
       if (!response.data || !Array.isArray(response.data.disciplines)) {
-        throw new Error('Erro ao buscar disciplinas: Dados inválidos');
+        throw new Error("Erro ao buscar disciplinas: Dados inválidos");
       }
       setDisciplines(response.data.disciplines);
-
     } catch (error) {
-      console.error('Erro ao buscar disciplinas:', error);
-      setAlert({ message: 'Erro ao carregar disciplinas.', type: 'error' });
+      console.error("Erro ao buscar disciplinas:", error);
+      setAlert({ message: "Erro ao carregar disciplinas.", type: "error" });
       setDisciplines([]);
     } finally {
       setLoading(false);
@@ -60,10 +59,10 @@ const DisciplineList = () => {
     try {
       await fetchDisciplines();
     } catch (error) {
-      console.error(`Erro ao ${isEditMode ? 'atualizar' : 'cadastrar'} disciplina:`, error);
+      console.error(`Erro ao ${isEditMode ? "atualizar" : "cadastrar"} disciplina:`, error);
       setAlert({
-        message: `Erro ao ${isEditMode ? 'atualizar' : 'cadastrar'} disciplina.`,
-        type: 'error',
+        message: `Erro ao ${isEditMode ? "atualizar" : "cadastrar"} disciplina.`,
+        type: "error",
       });
     } finally {
       setLoading(false);
@@ -78,8 +77,8 @@ const DisciplineList = () => {
   };
 
   const handleDeleteClick = (disciplineId) => {
-    const discipline = disciplines.find(d => d.id === disciplineId);
-    console.log('Disciplina recebida para exclusão:', discipline);
+    const discipline = disciplines.find((d) => d.id === disciplineId);
+    console.log("Disciplina recebida para exclusão:", discipline);
     setDisciplineToDelete(discipline);
     setOpenDeleteDialog(true);
   };
@@ -90,14 +89,13 @@ const DisciplineList = () => {
       setDisciplines(disciplines.filter((c) => c.id !== disciplineToDelete.id));
       setAlert({
         message: `Disciplina "${disciplineToDelete.name}" excluída com sucesso!`,
-        type: 'success',
+        type: "success",
       });
-
     } catch (error) {
-      console.error('Erro ao excluir disciplina:', error);
+      console.error("Erro ao excluir disciplina:", error);
       setAlert({
-        message: 'Erro ao excluir disciplina.',
-        type: 'error',
+        message: "Erro ao excluir disciplina.",
+        type: "error",
       });
     } finally {
       setOpenDeleteDialog(false);
@@ -109,11 +107,11 @@ const DisciplineList = () => {
     <Box
       sx={{
         p: 3,
-        width: '100%',
-        maxWidth: '1200px',
-        margin: '0 auto',
-        display: 'flex',
-        flexDirection: 'column',
+        width: "100%",
+        maxWidth: "1200px",
+        margin: "0 auto",
+        display: "flex",
+        flexDirection: "column",
         gap: 2,
       }}
     >
@@ -121,7 +119,7 @@ const DisciplineList = () => {
         variant="h5"
         align="center"
         gutterBottom
-        sx={{ fontWeight: 'bold', mt: 2, mb: 2 }}
+        sx={{ fontWeight: "bold", mt: 2, mb: 2 }}
       >
         Disciplinas
       </Typography>
@@ -135,12 +133,6 @@ const DisciplineList = () => {
           setOpenDialog(true);
         }}
       />
-
-      {loading && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
-          <CircularProgress />
-        </Box>
-      )}
 
       <DisciplinesTable
         disciplines={filteredDisciplines}

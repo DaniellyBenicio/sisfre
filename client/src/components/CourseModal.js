@@ -82,27 +82,59 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
     const fetchCoordinators = async () => {
       try {
         setLoading(true);
-        const response = await api.get('/users');
-        console.log('Resposta da API /users:', response.data);
-        let allUsers = response.data;
+
+        const usersResponse = await api.get('/users');
+        console.log('Resposta da API /users:', usersResponse.data);
+        let allUsers = usersResponse.data;
 
         if (!Array.isArray(allUsers)) {
           console.warn('response.data não é um array:', allUsers);
           allUsers = allUsers.users || [];
         }
 
-        const filtered = allUsers.filter(user => user.accessType === 'Coordenador');
-        console.log('Coordenadores filtrados:', filtered);
-        setCoordinators(filtered);
+        const coordinators = allUsers.filter(user => user.accessType === 'Coordenador');
+
+        // Verifica cursos que tem coordenador
+        const coursesResponse = await api.get('/courses');
+        console.log('Resposta da API /courses:', coursesResponse.data);
+        let allCourses = coursesResponse.data;
+
+        if (!Array.isArray(allCourses)) {
+          console.warn('coursesResponse.data não é um array:', allCourses);
+          allCourses = allCourses.courses || [];
+        }
+
+        // Pega ID dos coodenadores associados a um curso
+        const assignedCoordinatorIds = allCourses
+          .filter(course => course.coordinatorId)
+          .map(course => course.coordinatorId);
+
+        const availableCoordinators = coordinators.filter(
+          coordinator => !assignedCoordinatorIds.includes(coordinator.id)
+        );
+
+        if (courseToEdit && courseToEdit.coordinatorId) {
+          const currentCoordinator = coordinators.find(
+            coordinator => coordinator.id === courseToEdit.coordinatorId
+          );
+          if (currentCoordinator && !availableCoordinators.includes(currentCoordinator)) {
+            availableCoordinators.push(currentCoordinator);
+          }
+        }
+        console.log('Coordenadores disponíveis:', availableCoordinators);
+        setCoordinators(availableCoordinators);
+
       } catch (err) {
+        console.error('Erro ao carregar coordenadores:', err);
         setError('Erro ao carregar coordenadores');
       } finally {
         setLoading(false);
       }
     };
-
-    fetchCoordinators();
-  }, [open]);
+    if (open) {
+      fetchCoordinators();
+    }
+  }, [open, courseToEdit]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -174,7 +206,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
           </IconButton>
         </DialogTitle>
 
-        <DialogContent sx={{ px: 5, minHeight: '400px' }}> {/* Set minHeight to stabilize content size */}
+        <DialogContent sx={{ px: 5, minHeight: '400px' }}>
           {!loading ? (
             <form onSubmit={handleSubmit}>
               {error && <Box sx={{ color: 'red', marginBottom: 2 }}>{error}</Box>}
@@ -297,35 +329,46 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                 }}
               >
                 <InputLabel
-                  id='accessType-label'
-                  sx={{ '&.Mui-focused, &.MuiInputLabel-shrink': { color: '#000000' } }}
+                  id="coordinator-label"
+                  sx={{ "&.Mui-focused, &.MuiInputLabel-shrink": { color: "#000000" } }}
                 >
-                  Coordenador
+                  {coordinators.length > 0 ? "Coordenador" : "Nenhum coordenador disponível"}
                 </InputLabel>
-                <StyledSelect
-                  name='coordinatorId'
-                  label='Coordenador'
-                  value={course.coordinatorId}
-                  onChange={handleInputChange}
-                  MenuProps={{
-                    PaperProps: {
-                      sx: {
-                        maxHeight: '200px',
-                        overflowY: 'auto',
-                        width: 'auto',
-                        '& .MuiMenuItem-root:hover': {
-                          backgroundColor: '#D5FFDB'
-                        }
+                {coordinators.length > 0 ? (
+                  <StyledSelect
+                    name="coordinatorId"
+                    label="Coordenador"
+                    value={course.coordinatorId}
+                    onChange={handleInputChange}
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          maxHeight: "200px",
+                          overflowY: "auto",
+                          width: "auto",
+                          "& .MuiMenuItem-root:hover": {
+                            backgroundColor: "#D5FFDB",
+                          },
+                        },
                       },
-                    },
-                  }}
-                >
-                  {coordinators.map((user) => (
-                    <MenuItem key={user.id} value={user.id}>
-                      {user.username}
-                    </MenuItem>
-                  ))}
-                </StyledSelect>
+                    }}
+                  >
+                    {coordinators.map((user) => (
+                      <MenuItem key={user.id} value={user.id}>
+                        {user.username}
+                      </MenuItem>
+                    ))}
+                  </StyledSelect>
+                ) : (
+                  <StyledSelect
+                    name="coordinatorId"
+                    label=""
+                    value=""
+                    disabled
+                    displayEmpty
+                  >
+                  </StyledSelect>
+                )}
               </FormControl>
 
               <DialogActions

@@ -8,8 +8,8 @@ import express from 'express';
    router.post('/disciplines', autenticarToken, isAdmin, createDiscipline);
    router.delete('/discipline/:id', autenticarToken, isAdmin, deleteDiscipline);
    router.put('/discipline/:id', autenticarToken, isAdmin, updateDiscipline);
-   router.get('/disciplines', autenticarToken, isAdmin, getDisciplines);
-   router.get('/disciplines/all', autenticarToken, isAdmin, getAllDisciplines);
-   router.get('/discipline/:id', autenticarToken, isAdmin, getDisciplineById);
+   router.get('/disciplines', autenticarToken, getDisciplines);
+   router.get('/disciplines/all', autenticarToken, getAllDisciplines);
+   router.get('/discipline/:id', autenticarToken, getDisciplineById);
 
    export default router;

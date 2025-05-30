@@ -54,19 +54,21 @@ const SearchAndCreateBar = ({
           ),
         }}
       />
-      <Button
-        variant="contained"
-        onClick={onCreateClick}
-        sx={{
-          backgroundColor: "#087619",
-          "&:hover": { backgroundColor: "#065412" },
-          textTransform: "none",
-          width: { xs: "100%", sm: "auto" },
-          fontWeight: "bold",
-        }}
-      >
-        {createButtonLabel}
-      </Button>
+      {createButtonLabel && onCreateClick && (
+        <Button
+          variant="contained"
+          onClick={onCreateClick}
+          sx={{
+            backgroundColor: "#087619",
+            "&:hover": { backgroundColor: "#065412" },
+            textTransform: "none",
+            width: { xs: "100%", sm: "auto" },
+            fontWeight: "bold",
+          }}
+        >
+          {createButtonLabel}
+        </Button>
+      )}
     </Box>
   );
 };

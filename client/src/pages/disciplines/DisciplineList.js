@@ -16,6 +16,7 @@ const DisciplineList = () => {
   const [disciplineToEdit, setDisciplineToEdit] = useState(null);
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(false);
+  const accessType = localStorage.getItem("accessType");
 
   const handleAlertClose = () => {
     setAlert(null);
@@ -124,14 +125,17 @@ const DisciplineList = () => {
         Disciplinas
       </Typography>
 
+      
       <SearchAndCreateBar
         searchValue={search}
         onSearchChange={(e) => setSearch(e.target.value)}
-        createButtonLabel="Cadastrar Disciplina"
-        onCreateClick={() => {
-          setDisciplineToEdit(null);
-          setOpenDialog(true);
-        }}
+        {...(accessType === "Admin" && {
+          createButtonLabel: "Cadastrar Disciplina",
+          onCreateClick: () => {
+            setDisciplineToEdit(null);
+            setOpenDialog(true);
+          },
+        })}
       />
 
       <DisciplinesTable

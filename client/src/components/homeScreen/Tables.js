@@ -13,15 +13,17 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { Delete, Edit } from "@mui/icons-material";
-import Paginate from "../paginate/Paginate"; 
+import Paginate from "../paginate/Paginate";
 
-const DataTable = ({
+const Tables = ({
   data,
   headers,
   onDelete,
   onUpdate,
   search,
   renderMobileRow,
+  renderActions,
+  showActions = true, // New prop with default value true
 }) => {
   const isMobile = useMediaQuery("(max-width:600px)");
   const [page, setPage] = useState(1);
@@ -67,20 +69,25 @@ const DataTable = ({
             renderMobileRow ? (
               <Paper key={item.id} sx={{ p: 1 }}>
                 {renderMobileRow(item)}
-                <Stack direction="row" spacing={1} justifyContent="center">
-                  <IconButton
-                    onClick={() => onUpdate(item)}
-                    sx={{
-                      color: "#087619",
-                      "&:hover": { color: "#065412" },
-                    }}
-                  >
-                    <Edit />
-                  </IconButton>
-                  <IconButton color="error" onClick={() => onDelete(item.id)}>
-                    <Delete />
-                  </IconButton>
-                </Stack>
+                {showActions && (
+                  <Stack direction="row" spacing={1} justifyContent="center">
+                    {renderActions ? (
+                      renderActions(item)
+                    ) : (
+                      <>
+                        <IconButton
+                          onClick={() => onUpdate(item)}
+                          sx={{ color: "#087619", "&:hover": { color: "#065412" } }}
+                        >
+                          <Edit />
+                        </IconButton>
+                        <IconButton color="error" onClick={() => onDelete(item.id)}>
+                          <Delete />
+                        </IconButton>
+                      </>
+                    )}
+                  </Stack>
+                )}
               </Paper>
             ) : (
               <Paper key={item.id} sx={{ p: 1 }}>
@@ -90,20 +97,22 @@ const DataTable = ({
                       <strong>{header.label}:</strong> {item[header.key]}
                     </Typography>
                   ))}
-                  <Stack direction="row" spacing={1} justifyContent="center">
-                    <IconButton
-                      onClick={() => onUpdate(item)}
-                      sx={{
-                        color: "#087619",
-                        "&:hover": { color: "#065412" },
-                      }}
-                    >
-                      <Edit />
-                    </IconButton>
-                    <IconButton color="error" onClick={() => onDelete(item.id)}>
-                      <Delete />
-                    </IconButton>
-                  </Stack>
+                  {showActions && (
+                    <Stack direction="row" spacing={1} justifyContent="center">
+                      <IconButton
+                        onClick={() => onUpdate(item)}
+                        sx={{
+                          color: "#087619",
+                          "&:hover": { color: "#065412" },
+                        }}
+                      >
+                        <Edit />
+                      </IconButton>
+                      <IconButton color="error" onClick={() => onDelete(item.id)}>
+                        <Delete />
+                      </IconButton>
+                    </Stack>
+                  )}
                 </Stack>
               </Paper>
             )
@@ -111,9 +120,7 @@ const DataTable = ({
         )}
         {data.length > rowsPerPage && (
           <Paginate
-            count={Math.ceil(
-              (Array.isArray(data) ? data.length : 0) / rowsPerPage
-            )}
+            count={Math.ceil((Array.isArray(data) ? data.length : 0) / rowsPerPage)}
             page={page}
             onChange={(event, newPage) => {
               handleChangePage(newPage);
@@ -142,16 +149,18 @@ const DataTable = ({
                   {header.label}
                 </TableCell>
               ))}
-              <TableCell align="center" sx={tableHeadStyle}>
-                Ações
-              </TableCell>
+              {showActions && (
+                <TableCell align="center" sx={tableHeadStyle}>
+                  Ações
+                </TableCell>
+              )}
             </TableRow>
           </TableHead>
           <TableBody>
             {visibleData.length === 0 && search ? (
               <TableRow>
                 <TableCell
-                  colSpan={headers.length + 1}
+                  colSpan={headers.length + (showActions ? 1 : 0)}
                   align="center"
                   sx={tableBodyCellStyle}
                 >
@@ -170,17 +179,25 @@ const DataTable = ({
                       {item[header.key]}
                     </TableCell>
                   ))}
-                  <TableCell align="center" sx={tableBodyCellStyle}>
-                    <IconButton
-                      onClick={() => onUpdate(item)}
-                      sx={{ color: "#087619", "&:hover": { color: "#065412" } }}
-                    >
-                      <Edit />
-                    </IconButton>
-                    <IconButton color="error" onClick={() => onDelete(item.id)}>
-                      <Delete />
-                    </IconButton>
-                  </TableCell>
+                  {showActions && (
+                    <TableCell align="center" sx={tableBodyCellStyle}>
+                      {renderActions ? (
+                        renderActions(item)
+                      ) : (
+                        <>
+                          <IconButton
+                            onClick={() => onUpdate(item)}
+                            sx={{ color: "#087619", "&:hover": { color: "#065412" } }}
+                          >
+                            <Edit />
+                          </IconButton>
+                          <IconButton color="error" onClick={() => onDelete(item.id)}>
+                            <Delete />
+                          </IconButton>
+                        </>
+                      )}
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             )}
@@ -189,9 +206,7 @@ const DataTable = ({
       </TableContainer>
       {data.length > rowsPerPage && (
         <Paginate
-          count={Math.ceil(
-            (Array.isArray(data) ? data.length : 0) / rowsPerPage
-          )}
+          count={Math.ceil((Array.isArray(data) ? data.length : 0) / rowsPerPage)}
           page={page}
           onChange={(event, newPage) => {
             handleChangePage(newPage);
@@ -202,4 +217,4 @@ const DataTable = ({
   );
 };
 
-export default DataTable;
+export default Tables;

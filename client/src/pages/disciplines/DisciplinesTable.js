@@ -5,8 +5,7 @@ const DisciplinesTable = ({ disciplines, onDelete, onUpdate, search }) => {
 
 	const headers = [
 		{ key: "acronym", label: "Sigla" },
-		{ key: "name", label: "Nome" },
-		{ key: "workload", label: "Carga Horária" }
+		{ key: "name", label: "Nome" }
 	];
 
 	const renderMobileRow = (discipline) => (
@@ -16,9 +15,6 @@ const DisciplinesTable = ({ disciplines, onDelete, onUpdate, search }) => {
 			</Typography>
 			<Typography>
 				<strong>Nome:</strong> {discipline.name}
-			</Typography>
-			<Typography>
-				<strong>Carga Horária:</strong> {discipline.workload}
 			</Typography>
 		</Stack>
 	);

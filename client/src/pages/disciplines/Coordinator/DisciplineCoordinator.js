@@ -1,21 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { Box, Typography, IconButton, Stack, Tooltip } from "@mui/material";
-import { Edit, PersonAdd } from "@mui/icons-material";
+import { Edit, Delete } from "@mui/icons-material";
 import api from "../../../service/api";
 import SearchAndCreateBar from "../../../components/homeScreen/SearchAndCreateBar";
 import { CustomAlert } from "../../../components/alert/CustomAlert";
 import DisciplinesTableCoordinator from "./DisciplineTableCoordinator";
+import DisciplineCourse from "../../../components/disciplineForm/DisciplineCourseModal";
 
 const DisciplineCoordinator = () => {
   const [disciplines, setDisciplines] = useState([]);
   const [search, setSearch] = useState("");
-  const [openDialog, setOpenDialog] = useState(false);
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const [disciplineToDelete, setDisciplineToDelete] = useState(null);
-  const [disciplineToEdit, setDisciplineToEdit] = useState(null);
+  const [openAddToCourseDialog, setOpenAddToCourseDialog] = useState(false);
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(false);
   const accessType = localStorage.getItem("accessType");
+  const courseId = "YOUR_COURSE_ID";
 
   const handleAlertClose = () => {
     setAlert(null);
@@ -44,12 +43,23 @@ const DisciplineCoordinator = () => {
   };
 
   const handleCustomEdit = (discipline) => {
-    setDisciplineToEdit(discipline);
-    setOpenDialog(true);
+    console.log("Editar disciplina:", discipline);
   };
 
-  const handleAddProfessor = (discipline) => {
-    console.log("Adicionar professor à disciplina:", discipline);
+  const handleCustomDelete = (discipline) => {
+    console.log("Excluir disciplina:", discipline);
+  };
+
+  const handleAddToCourse = () => {
+    setOpenAddToCourseDialog(true);
+  };
+
+  const handleAddToCourseClose = () => {
+    setOpenAddToCourseDialog(false);
+  };
+
+  const handleDisciplineAdded = (newDiscipline) => {
+    setAlert({ message: "Disciplina adicionada ao curso com sucesso!", type: "success" });
   };
 
   const filteredDisciplines = Array.isArray(disciplines)
@@ -87,6 +97,10 @@ const DisciplineCoordinator = () => {
       <SearchAndCreateBar
         searchValue={search}
         onSearchChange={(e) => setSearch(e.target.value)}
+        {...(accessType === "Coordenador" && {
+          createButtonLabel: "Adicionar Disciplina",
+          onCreateClick: handleAddToCourse,
+        })}
       />
 
       <DisciplinesTableCoordinator
@@ -96,22 +110,27 @@ const DisciplineCoordinator = () => {
         showActions={true}
         renderActions={(item) => (
           <>
-            <Tooltip title="Adicionar Professor">
-              <IconButton
-                onClick={() => handleAddProfessor(item)}
-                sx={{ color: "#616561", "&:hover": { color: "#373B37" } }}
-              >
-                <PersonAdd />
-              </IconButton>
-            </Tooltip>
             <IconButton
               onClick={() => handleCustomEdit(item)}
               sx={{ color: "#087619", "&:hover": { color: "#065412" } }}
             >
               <Edit />
             </IconButton>
+            <IconButton
+              onClick={() => handleCustomDelete(item)}
+              sx={{ color: "#FF1C1C", "&:hover": { color: "#D4000F" } }}
+            >
+              <Delete />
+            </IconButton>
           </>
         )}
+      />
+
+      <DisciplineCourse
+        open={openAddToCourseDialog}
+        onClose={handleAddToCourseClose}
+        courseId={courseId}
+        onUpdate={handleDisciplineAdded}
       />
 
       {alert && (

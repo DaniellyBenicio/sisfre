@@ -48,17 +48,20 @@ const DisciplineList = () => {
     ? disciplines.filter(
         (discipline) =>
           discipline.acronym?.toLowerCase().includes(search.trim().toLowerCase()) ||
-          discipline.name?.toLowerCase().includes(search.trim().toLowerCase()) ||
-          String(discipline.workload)
-            .toLowerCase()
-            .includes(search.trim().toLowerCase())
+          discipline.name?.toLowerCase().includes(search.trim().toLowerCase())
       )
     : [];
 
   const handleSaveDiscipline = async (newDiscipline, isEditMode) => {
     setLoading(true);
     try {
-      await fetchDisciplines();
+      if (isEditMode) {
+        setDisciplines(
+          disciplines.map((d) => (d.id === newDiscipline.discipline.id ? newDiscipline.discipline : d))
+        );
+      } else {
+        setDisciplines([...disciplines, newDiscipline.discipline]);
+      }
     } catch (error) {
       console.error(`Erro ao ${isEditMode ? "atualizar" : "cadastrar"} disciplina:`, error);
       setAlert({
@@ -86,7 +89,7 @@ const DisciplineList = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      await api.delete(`/discipline/${disciplineToDelete.id}`);
+      await api.delete(`/disciplines/${disciplineToDelete.id}`);
       setDisciplines(disciplines.filter((c) => c.id !== disciplineToDelete.id));
       setAlert({
         message: `Disciplina "${disciplineToDelete.name}" excluída com sucesso!`,
@@ -95,7 +98,7 @@ const DisciplineList = () => {
     } catch (error) {
       console.error("Erro ao excluir disciplina:", error);
       setAlert({
-        message: "Erro ao excluir disciplina.",
+        message: error.response?.data?.mensagem || "Erro ao excluir disciplina.",
         type: "error",
       });
     } finally {
@@ -125,7 +128,6 @@ const DisciplineList = () => {
         Disciplinas
       </Typography>
 
-      
       <SearchAndCreateBar
         searchValue={search}
         onSearchChange={(e) => setSearch(e.target.value)}

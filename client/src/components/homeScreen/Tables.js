@@ -23,7 +23,7 @@ const Tables = ({
   search,
   renderMobileRow,
   renderActions,
-  showActions = true, // New prop with default value true
+  showActions = true,
 }) => {
   const isMobile = useMediaQuery("(max-width:600px)");
   const [page, setPage] = useState(1);

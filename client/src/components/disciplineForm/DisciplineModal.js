@@ -9,14 +9,13 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
   const [discipline, setDiscipline] = useState({
     acronym: '',
     name: '',
-    workload: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [alert, setAlert] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
 
-  const isFormFilled = discipline.name && discipline.name.trim() !== '' && discipline.acronym && discipline.workload;
+  const isFormFilled = discipline.name && discipline.name.trim() !== '' && discipline.acronym;
 
   const handleSubmitSuccess = (newDiscipline) => {
     setAlert({
@@ -38,14 +37,12 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
         setDiscipline({
           acronym: disciplineToEdit.acronym || '',
           name: disciplineToEdit.name || '',
-          workload: disciplineToEdit.workload || '',
         });
         setError(null);
       } else {
         setDiscipline({
           acronym: '',
           name: '',
-          workload: '',
         });
         setError(null);
       }
@@ -60,7 +57,7 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
     e.preventDefault();
     setError(null);
 
-    if (!discipline.acronym || !discipline.name || !discipline.workload) {
+    if (!discipline.acronym || !discipline.name) {
       setError('Os campos nome, sigla e carga horária são obrigatórios.');
       setLoading(false);
       return;
@@ -70,7 +67,6 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
       const payload = {
         acronym: discipline.acronym,
         name: discipline.name,
-        workload: Number(discipline.workload),
       };
 
       console.log('Payload enviado:', payload);
@@ -153,21 +149,6 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
                     '& .MuiInputLabel-shrink': { top: 0, transform: 'translate(14px, -9px) scale(0.75)' },
                   }}
                 />
-                <StyledTextField
-                  name="workload"
-                  label="Carga Horária"
-                  variant="outlined"
-                  size="small"
-                  value={discipline.workload}
-                  onChange={handleInputChange}
-                  required
-                  sx={{
-                    flex: 1,
-                    '& .MuiInputBase-root': { height: '56px' },
-                    '& .MuiInputLabel-root': { top: '50%', transform: 'translate(14px, -50%)', fontSize: '1rem' },
-                    '& .MuiInputLabel-shrink': { top: 0, transform: 'translate(14px, -9px) scale(0.75)' },
-                  }}
-                />
               </Box>
               <DialogActions
                 sx={{
@@ -217,7 +198,7 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
                   }}
                 >
                   <Save sx={{ fontSize: 24 }} />
-                  {isEditMode ? 'Salvar' : 'Cadastrar'} {/* Usa isEditMode aqui também */}
+                  {isEditMode ? 'Salvar' : 'Cadastrar'}
                 </Button>
               </DialogActions>
             </form>

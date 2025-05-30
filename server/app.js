@@ -9,6 +9,7 @@ import courseRoutes from "./routes/admin/courseRoutes.js";
 import disciplineRoutes from "./routes/admin/disciplineRoutes.js";
 import passwordRoutes from "./routes/password/passwordRoutes.js";
 import classRoutes from "./routes/admin/classRoutes.js";
+import coordinatorRoutes from "./routes/coordinator/coordinatorRoutes.js";
 
 const app = express();
 dotenv.config();
@@ -23,11 +24,14 @@ app.use("/api", courseRoutes);
 app.use("/api", disciplineRoutes);
 app.use("/api", passwordRoutes);
 app.use("/api", classRoutes);
+app.use("/api", coordinatorRoutes);
 
 // Função para criar o usuário administrador, se não existir
 const createAdminIfNotExists = async () => {
   try {
-    const adminExists = await db.User.findOne({ where: { accessType: "Admin" } });
+    const adminExists = await db.User.findOne({
+      where: { accessType: "Admin" },
+    });
 
     if (!adminExists) {
       console.log("Nenhum administrador encontrado. Criando um...");
@@ -54,6 +58,9 @@ db.sequelize
     app.listen(3000, () => console.log("API rodando na porta 3000"));
   })
   .catch((error) => {
-    console.error("Erro ao sincronizar o banco de dados ou iniciar o servidor:", error);
+    console.error(
+      "Erro ao sincronizar o banco de dados ou iniciar o servidor:",
+      error
+    );
     process.exit(1); // Encerra o processo se houver um erro crítico
   });

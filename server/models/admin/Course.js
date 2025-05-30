@@ -15,6 +15,20 @@ export default (sequelize) => {
         otherKey: "disciplineId",
         as: "disciplines",
       });
+
+      Course.belongsToMany(models.User, {
+        through: "teacherCourseDisciplines",
+        foreignKey: "courseId",
+        otherKey: "userId",
+        as: "teachers",
+      });
+
+      Course.belongsToMany(models.Discipline, {
+        through: "teacherCourseDisciplines",
+        foreignKey: "courseId",
+        otherKey: "disciplineId",
+        as: "taughtDisciplines",
+      });
     }
   }
 

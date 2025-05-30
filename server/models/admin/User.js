@@ -34,7 +34,26 @@ const generateCode = async (username, User) => {
 
 export default (sequelize) => {
   class User extends Model {
-    static associate(models) {}
+    static associate(models) {
+      User.hasOne(models.Course, {
+        foreignKey: "coordinatorId",
+        as: "coordinatedCourse",
+      });
+
+      User.belongsToMany(models.Discipline, {
+        through: "teacherCourseDisciplines",
+        foreignKey: "userId",
+        otherKey: "disciplineId",
+        as: "disciplines",
+      });
+
+      User.belongsToMany(models.Course, {
+        through: "teacherCourseDisciplines",
+        foreignKey: "userId",
+        otherKey: "courseId",
+        as: "coursesTaught",
+      });
+    }
   }
 
   User.init(
@@ -57,6 +76,9 @@ export default (sequelize) => {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
+        validate: {
+          isEmail: true,
+        },
       },
       password: {
         type: DataTypes.STRING,

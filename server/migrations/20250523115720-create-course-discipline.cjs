@@ -1,27 +1,34 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("CourseDisciplines", {
+    await queryInterface.createTable('courseDisciplines', {
       courseId: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: "courses",
-          key: "id",
+          model: 'courses',
+          key: 'id',
         },
-        onDelete: "CASCADE",
-        onUpdate: "CASCADE",
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
         primaryKey: true,
       },
       disciplineId: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: "disciplines",
-          key: "id",
+          model: 'disciplines',
+          key: 'id',
         },
-        onDelete: "CASCADE",
-        onUpdate: "CASCADE",
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
         primaryKey: true,
+      },
+      workload: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        validate: {
+          min: 1,
+        },
       },
       createdAt: {
         type: Sequelize.DATE,
@@ -37,6 +44,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("CourseDisciplines");
+    await queryInterface.dropTable('courseDisciplines');
   },
 };

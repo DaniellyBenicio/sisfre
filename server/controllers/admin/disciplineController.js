@@ -1,73 +1,104 @@
 import db from "../../models/index.js";
 
 export const createDiscipline = async (req, res) => {
-  const { name, acronym, workload } = req.body;
+  const { name, acronym, courses } = req.body;
 
-  if (!name || !acronym || workload == null) {
+  if (!name || !acronym) {
     return res.status(400).json({
-      error: "Nome, sigla e carga horária são obrigatórios",
+      mensagem: "Nome e sigla são obrigatórios",
     });
   }
 
   if (!/^[a-zA-Z0-9]+$/.test(acronym)) {
     return res.status(400).json({
-      error:
-        "A sigla deve conter apenas letras e números, sem caracteres especiais",
-    });
-  }
-
-  if (typeof workload !== "number" || workload < 1) {
-    return res.status(400).json({
-      error: "A carga horária deve ser um número válido e maior que zero",
+      mensagem: "A sigla deve conter apenas letras e números, sem caracteres especiais",
     });
   }
 
   try {
     const existing = await db.Discipline.findOne({
-      where: { acronym, name },
+      where: { [db.Sequelize.Op.or]: { acronym, name } },
     });
 
     if (existing) {
-      return res
-        .status(400)
-        .json({ error: "Já existe uma disciplina com esta sigla/nome" });
+      return res.status(400).json({ mensagem: "Já existe uma disciplina com esta sigla ou nome" });
     }
 
     const newDiscipline = await db.Discipline.create({
       name,
       acronym,
-      workload,
     });
 
+    if (courses && Array.isArray(courses) && courses.length > 0) {
+      const courseDisciplinesData = [];
+      for (const course of courses) {
+        const { courseId, workload } = course;
+
+        if (!courseId || workload == null) {
+          return res.status(400).json({
+            mensagem: "ID do curso e carga horária são obrigatórios para associação",
+          });
+        }
+
+        if (typeof workload !== "number" || workload < 1) {
+          return res.status(400).json({
+            mensagem: "A carga horária deve ser um número válido e maior que zero",
+          });
+        }
+
+        const courseExists = await db.Course.findByPk(courseId);
+        if (!courseExists) {
+          return res.status(404).json({ mensagem: `Curso com ID ${courseId} não encontrado` });
+        }
+
+        const existingAssociation = await db.CourseDiscipline.findOne({
+          where: { courseId, disciplineId: newDiscipline.id },
+        });
+
+        if (existingAssociation) {
+          return res.status(400).json({
+            mensagem: `Disciplina já associada ao curso com ID ${courseId}`,
+          });
+        }
+
+        courseDisciplinesData.push({
+          courseId,
+          disciplineId: newDiscipline.id,
+          workload,
+        });
+      }
+
+      await db.CourseDiscipline.bulkCreate(courseDisciplinesData);
+    }
+
     res.status(201).json({
-      message: "Disciplina cadastrada com sucesso",
+      mensagem: "Disciplina cadastrada com sucesso",
       discipline: newDiscipline,
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Erro ao cadastrar disciplina" });
+    res.status(500).json({ mensagem: "Erro ao cadastrar disciplina" });
   }
 };
 
 export const updateDiscipline = async (req, res) => {
   const { id } = req.params;
-  const { name, acronym, workload } = req.body;
+  const { name, acronym, courses } = req.body;
 
-  if (!name && !acronym && workload == null) {
+  if (!name && !acronym && (!courses || !Array.isArray(courses))) {
     return res.status(400).json({
-      error:
-        "Pelo menos um campo (nome, sigla ou carga horária) deve ser fornecido para atualização",
+      mensagem: "Pelo menos um campo (nome, sigla ou cursos) deve ser fornecido para atualização",
     });
   }
 
   if (isNaN(id)) {
-    return res.status(400).json({ error: "O ID deve ser um número válido" });
+    return res.status(400).json({ mensagem: "O ID deve ser um número válido" });
   }
 
   try {
     const discipline = await db.Discipline.findByPk(id);
     if (!discipline) {
-      return res.status(404).json({ error: "Disciplina não encontrada" });
+      return res.status(404).json({ mensagem: "Disciplina não encontrada" });
     }
 
     const checkDuplicates = {};
@@ -87,38 +118,65 @@ export const updateDiscipline = async (req, res) => {
       });
 
       if (existing) {
-        return res
-          .status(400)
-          .json({ error: "Já existe outra disciplina com esta sigla ou nome" });
+        return res.status(400).json({ mensagem: "Já existe outra disciplina com esta sigla ou nome" });
       }
     }
 
     if (acronym && !/^[a-zA-Z0-9]+$/.test(acronym)) {
       return res.status(400).json({
-        error:
-          "A sigla deve conter apenas letras e números, sem caracteres especiais",
-      });
-    }
-
-    if (workload != null && (typeof workload !== "number" || workload < 1)) {
-      return res.status(400).json({
-        error: "A carga horária deve ser um número válido e maior que zero",
+        mensagem: "A sigla deve conter apenas letras e números, sem caracteres especiais",
       });
     }
 
     if (name) discipline.name = name;
     if (acronym) discipline.acronym = acronym;
-    if (workload != null) discipline.workload = workload;
-
     await discipline.save();
 
+    if (courses && Array.isArray(courses)) {
+      for (const course of courses) {
+        const { courseId, workload } = course;
+
+        if (!courseId || workload == null) {
+          return res.status(400).json({
+            mensagem: "ID do curso e carga horária são obrigatórios para associação",
+          });
+        }
+
+        if (typeof workload !== "number" || workload < 1) {
+          return res.status(400).json({
+            mensagem: "A carga horária deve ser um número válido e maior que zero",
+          });
+        }
+
+        const courseExists = await db.Course.findByPk(courseId);
+        if (!courseExists) {
+          return res.status(404).json({ mensagem: `Curso com ID ${courseId} não encontrado` });
+        }
+
+        const existingAssociation = await db.CourseDiscipline.findOne({
+          where: { courseId, disciplineId: id },
+        });
+
+        if (existingAssociation) {
+          existingAssociation.workload = workload;
+          await existingAssociation.save();
+        } else {
+          await db.CourseDiscipline.create({
+            courseId,
+            disciplineId: id,
+            workload,
+          });
+        }
+      }
+    }
+
     res.status(200).json({
-      message: "Disciplina atualizada com sucesso",
+      mensagem: "Disciplina atualizada com sucesso",
       discipline,
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Erro ao atualizar disciplina" });
+    res.status(500).json({ mensagem: "Erro ao atualizar disciplina" });
   }
 };
 
@@ -143,7 +201,17 @@ export const getDisciplines = async (req, res) => {
 
     const { rows, count } = await db.Discipline.findAndCountAll({
       where,
-      attributes: ["id", "name", "acronym", "workload"],
+      attributes: ["id", "name", "acronym"],
+      include: [
+        {
+          model: db.Course,
+          through: {
+            model: db.CourseDiscipline,
+            attributes: ["courseId", "workload"],
+          },
+          attributes: ["id", "name", "sigla"],
+        },
+      ],
       limit: parseInt(limit),
       offset,
       order: [["name", order === "asc" ? "ASC" : "DESC"]],
@@ -157,7 +225,7 @@ export const getDisciplines = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Erro ao listar disciplinas" });
+    res.status(500).json({ mensagem: "Erro ao listar disciplinas" });
   }
 };
 
@@ -181,14 +249,24 @@ export const getAllDisciplines = async (req, res) => {
 
     const disciplines = await db.Discipline.findAll({
       where,
-      attributes: ["id", "name", "acronym", "workload"],
+      attributes: ["id", "name", "acronym"],
+      include: [
+        {
+          model: db.Course,
+          through: {
+            model: db.CourseDiscipline,
+            attributes: ["courseId", "workload"],
+          },
+          attributes: ["id", "name", "sigla"],
+        },
+      ],
       order: [["name", "ASC"]],
     });
 
     res.json({ disciplines });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Erro ao listar disciplinas" });
+    res.status(500).json({ mensagem: "Erro ao listar disciplinas" });
   }
 };
 
@@ -197,24 +275,34 @@ export const getDisciplineById = async (req, res) => {
 
   try {
     if (isNaN(id)) {
-      return res.status(400).json({ error: "O ID deve ser um número válido" });
+      return res.status(400).json({ mensagem: "O ID deve ser um número válido" });
     }
 
     const discipline = await db.Discipline.findByPk(id, {
-      attributes: ["id", "name", "acronym", "workload"],
+      attributes: ["id", "name", "acronym"],
+      include: [
+        {
+          model: db.Course,
+          through: {
+            model: db.CourseDiscipline,
+            attributes: ["courseId", "workload"],
+          },
+          attributes: ["id", "name", "sigla"],
+        },
+      ],
     });
 
     if (!discipline) {
-      return res.status(404).json({ error: "Disciplina não encontrada" });
+      return res.status(404).json({ mensagem: "Disciplina não encontrada" });
     }
 
     res.json({
-      message: "Disciplina recuperada com sucesso",
+      mensagem: "Disciplina recuperada com sucesso",
       discipline,
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Erro ao buscar disciplina" });
+    res.status(500).json({ mensagem: "Erro ao buscar disciplina" });
   }
 };
 
@@ -225,13 +313,23 @@ export const deleteDiscipline = async (req, res) => {
     const discipline = await db.Discipline.findByPk(disciplineId);
 
     if (!discipline) {
-      return res.status(404).json({ error: "Disciplina não encontrada." });
+      return res.status(404).json({ mensagem: "Disciplina não encontrada." });
+    }
+
+    const courseDisciplines = await db.CourseDiscipline.findAll({
+      where: { disciplineId },
+    });
+
+    if (courseDisciplines.length > 0) {
+      return res.status(400).json({
+        mensagem: "Não é possível excluir a disciplina, pois ela está associada a um ou mais cursos.",
+      });
     }
 
     await discipline.destroy();
-    res.status(200).json({ message: "Disciplina excluída com sucesso." });
+    res.status(200).json({ mensagem: "Disciplina excluída com sucesso." });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Erro ao excluir a disciplina." });
+    res.status(500).json({ mensagem: "Erro ao excluir a disciplina." });
   }
 };

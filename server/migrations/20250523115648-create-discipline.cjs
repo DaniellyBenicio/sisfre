@@ -17,10 +17,6 @@ module.exports = {
         allowNull: false,
         unique: true,
       },
-      workload: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
-      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,

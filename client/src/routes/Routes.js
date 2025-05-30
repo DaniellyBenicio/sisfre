@@ -44,7 +44,13 @@ const AppRoutes = () => {
 
   const handleLogin = () => {
     setAuthenticated(true);
-    navigate("/users");
+    const access = localStorage.getItem("accessType");
+
+    if (access === "Admin") {
+      navigate("/users");
+    } else {
+      navigate("/disciplines");
+    }
   };
 
   const handleLogout = () => {
@@ -59,13 +65,7 @@ const AppRoutes = () => {
       <Route path="/" element={<Navigate to="/login" />} />
       <Route
         path="/login"
-        element={
-          !isAuthenticated ? (
-            <Login onLogin={handleLogin} />
-          ) : (
-            <Navigate to="/users" />
-          )
-        }
+        element={ <Login onLogin={handleLogin} /> }
       />
       <Route
         path="/forgot-password"

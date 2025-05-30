@@ -3,16 +3,8 @@ import db from "../../models/index.js";
 export const getProfessorsByCourse = async (req, res) => {
   try {
     const coordinator = req.user;
-    console.log("Coordenador no controlador:", {
-      id: coordinator?.id,
-      accessType: coordinator?.accessType,
-    });
 
     if (!coordinator || coordinator.accessType !== "Coordenador") {
-      console.log(
-        "Erro: accessType inválido ou coordinator indefinido:",
-        coordinator
-      );
       return res.status(403).json({
         error:
           "Acesso negado. Apenas coordenadores podem visualizar professores.",
@@ -64,16 +56,8 @@ export const getProfessorsByCourse = async (req, res) => {
 export const searchProfessorsByCourse = async (req, res) => {
   try {
     const coordinator = req.user;
-    console.log("Coordenador no controlador:", {
-      id: coordinator?.id,
-      accessType: coordinator?.accessType,
-    });
 
     if (!coordinator || coordinator.accessType !== "Coordenador") {
-      console.log(
-        "Erro: accessType inválido ou coordinator indefinido:",
-        coordinator
-      );
       return res.status(403).json({
         error: "Acesso negado. Apenas coordenadores podem buscar professores.",
       });

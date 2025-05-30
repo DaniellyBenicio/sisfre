@@ -64,7 +64,7 @@ export const createCourse = async (req, res) => {
 
     if (existingCourse) {
       const duplicatedField =
-        existingCourse.acronym === acronym ? "sigla" : "nome";
+        existingCourse.acronym === acronym ? "acronym" : "nome";
       return res.status(400).json({
         error: `A ${duplicatedField} informada já está cadastrada. Por favor, verifique os dados e tente novamente.`,
       });

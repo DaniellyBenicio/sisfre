@@ -47,7 +47,9 @@ const DisciplineList = () => {
   const filteredDisciplines = Array.isArray(disciplines)
     ? disciplines.filter(
         (discipline) =>
-          discipline.acronym?.toLowerCase().includes(search.trim().toLowerCase()) ||
+          discipline.acronym
+            ?.toLowerCase()
+            .includes(search.trim().toLowerCase()) ||
           discipline.name?.toLowerCase().includes(search.trim().toLowerCase())
       )
     : [];
@@ -57,15 +59,22 @@ const DisciplineList = () => {
     try {
       if (isEditMode) {
         setDisciplines(
-          disciplines.map((d) => (d.id === newDiscipline.discipline.id ? newDiscipline.discipline : d))
+          disciplines.map((d) =>
+            d.id === newDiscipline.discipline.id ? newDiscipline.discipline : d
+          )
         );
       } else {
         setDisciplines([...disciplines, newDiscipline.discipline]);
       }
     } catch (error) {
-      console.error(`Erro ao ${isEditMode ? "atualizar" : "cadastrar"} disciplina:`, error);
+      console.error(
+        `Erro ao ${isEditMode ? "atualizar" : "cadastrar"} disciplina:`,
+        error
+      );
       setAlert({
-        message: `Erro ao ${isEditMode ? "atualizar" : "cadastrar"} disciplina.`,
+        message: `Erro ao ${
+          isEditMode ? "atualizar" : "cadastrar"
+        } disciplina.`,
         type: "error",
       });
     } finally {
@@ -89,7 +98,7 @@ const DisciplineList = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      await api.delete(`/disciplines/${disciplineToDelete.id}`);
+      await api.delete(`/discipline/${disciplineToDelete.id}`);
       setDisciplines(disciplines.filter((c) => c.id !== disciplineToDelete.id));
       setAlert({
         message: `Disciplina "${disciplineToDelete.name}" excluída com sucesso!`,
@@ -98,7 +107,8 @@ const DisciplineList = () => {
     } catch (error) {
       console.error("Erro ao excluir disciplina:", error);
       setAlert({
-        message: error.response?.data?.mensagem || "Erro ao excluir disciplina.",
+        message:
+          error.response?.data?.mensagem || "Erro ao excluir disciplina.",
         type: "error",
       });
     } finally {

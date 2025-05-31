@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, IconButton, Stack, Tooltip } from "@mui/material";
+import { Box, Typography, IconButton } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import api from "../../../service/api";
 import SearchAndCreateBar from "../../../components/homeScreen/SearchAndCreateBar";
@@ -14,7 +14,6 @@ const DisciplineCoordinator = () => {
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(false);
   const accessType = localStorage.getItem("accessType");
-  const courseId = "YOUR_COURSE_ID";
 
   const handleAlertClose = () => {
     setAlert(null);
@@ -27,15 +26,28 @@ const DisciplineCoordinator = () => {
   const fetchDisciplines = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/disciplines/all");
+      const response = await api.get("/course/discipline");
       console.log("DisciplineList - Resposta da API:", response.data);
-      if (!response.data || !Array.isArray(response.data.disciplines)) {
-        throw new Error("Erro ao buscar disciplinas: Dados inválidos");
+      
+      // Handle different possible response structures
+      const fetchedDisciplines = Array.isArray(response.data)
+        ? response.data
+        : Array.isArray(response.data.disciplines)
+        ? response.data.disciplines
+        : [];
+      
+      if (!fetchedDisciplines.length) {
+        console.warn("Nenhuma disciplina associada encontrada.");
       }
-      setDisciplines(response.data.disciplines);
+      
+      setDisciplines(fetchedDisciplines);
     } catch (error) {
-      console.error("Erro ao buscar disciplinas:", error);
-      setAlert({ message: "Erro ao carregar disciplinas.", type: "error" });
+      console.error("Erro ao buscar disciplinas:", {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+      setAlert({ message: error.response?.data?.message || "Erro ao carregar disciplinas.", type: "error" });
       setDisciplines([]);
     } finally {
       setLoading(false);
@@ -58,8 +70,9 @@ const DisciplineCoordinator = () => {
     setOpenAddToCourseDialog(false);
   };
 
-  const handleDisciplineAdded = (newDiscipline) => {
-    setAlert({ message: "Disciplina adicionada ao curso com sucesso!", type: "success" });
+  const handleDisciplineAdded = (data) => {
+    setAlert({ message: data.message || "Disciplina adicionada ao curso com sucesso!", type: "success" });
+    fetchDisciplines();
   };
 
   const filteredDisciplines = Array.isArray(disciplines)
@@ -129,7 +142,6 @@ const DisciplineCoordinator = () => {
       <DisciplineCourse
         open={openAddToCourseDialog}
         onClose={handleAddToCourseClose}
-        courseId={courseId}
         onUpdate={handleDisciplineAdded}
       />
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogActions, DialogContent, DialogTitle, Button, Box, IconButton, TextField, Autocomplete } from '@mui/material';
+import { Dialog, DialogActions, DialogContent, DialogTitle, Button, Box, IconButton, Autocomplete } from '@mui/material';
 import { Close, Save } from '@mui/icons-material';
 import api from '../../service/api';
 import { StyledTextField } from '../inputs/Input';
@@ -50,7 +50,7 @@ const DisciplineCourse = ({ open, onClose, courseId, onUpdate }) => {
           
           let availableDisciplines = allDisciplines;
           try {
-            const courseDisciplinesResponse = await api.get(`/courses/${courseId}/disciplines`);
+            const courseDisciplinesResponse = await api.get('/course/discipline');
             const courseDisciplineIds = Array.isArray(courseDisciplinesResponse.data)
               ? courseDisciplinesResponse.data.map(d => d.disciplineId || d.id)
               : [];
@@ -63,15 +63,19 @@ const DisciplineCourse = ({ open, onClose, courseId, onUpdate }) => {
           
           setDisciplines(availableDisciplines);
         } catch (err) {
-          console.error('Erro ao carregar disciplinas:', err);
-          setError(`Erro ao carregar disciplinas: ${err.response?.data?.error || err.message}`);
+          console.error('Erro ao carregar disciplinas:', {
+            message: err.message,
+            status: err.response?.status,
+            data: err.response?.data,
+          });
+          setError(`Erro ao carregar disciplinas: ${err.response?.data?.message || err.message}`);
         } finally {
           setLoading(false);
         }
       };
       fetchDisciplines();
     }
-  }, [open, courseId]);
+  }, [open]);
 
   const handleDisciplineChange = (event, newValue) => {
     setDiscipline({
@@ -113,15 +117,19 @@ const DisciplineCourse = ({ open, onClose, courseId, onUpdate }) => {
 
       console.log('Payload enviado:', payload);
 
-      const response = await api.post(`/courses/${courseId}/disciplines`, payload);
+      const response = await api.post('/course/discipline', payload);
 
       console.log('Resposta da API:', response.data);
 
       onUpdate(response.data);
       handleSubmitSuccess();
     } catch (err) {
-      console.error('Erro completo:', err.response);
-      setError(err.response?.data?.error || 'Erro ao adicionar disciplina ao curso: ' + err.message);
+      console.error('Erro ao adicionar disciplina:', {
+        message: err.message,
+        status: err.response?.status,
+        data: err.response?.data,
+      });
+      setError(err.response?.data?.message || 'Erro ao adicionar disciplina ao curso: ' + err.message);
     } finally {
       setLoading(false);
     }

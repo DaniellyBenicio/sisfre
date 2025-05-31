@@ -1,7 +1,7 @@
 import express from 'express';
 import autenticarToken from '../../middlewares/authMiddleware.js';
 import { isCoordinator } from '../../middlewares/isCoordinator.js';
-import { getProfessorsByCourse, searchProfessorsByCourse } from '../../controllers/coordinator/coordinatorController.js';
+import { getProfessorsByCourse, searchProfessorsByCourse } from '../../controllers/coordinator/coordinatorTeacherController.js';
 
 const router = express.Router();
 

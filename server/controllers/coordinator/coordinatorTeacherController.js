@@ -1,4 +1,3 @@
-import db from "../../models/index.js";
 
 export const getProfessorsByCourse = async (req, res) => {
   try {

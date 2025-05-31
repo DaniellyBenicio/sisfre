@@ -1,7 +1,18 @@
 import { Model, DataTypes } from "sequelize";
 
 export default (sequelize) => {
-  class CourseDiscipline extends Model {}
+  class CourseDiscipline extends Model {
+    static associate(models) {
+      CourseDiscipline.belongsTo(models.Discipline, {
+        foreignKey: "disciplineId",
+        as: "Discipline",
+      });
+      CourseDiscipline.belongsTo(models.Course, {
+        foreignKey: "courseId",
+        as: "Course",
+      });
+    }
+  }
 
   CourseDiscipline.init(
     {

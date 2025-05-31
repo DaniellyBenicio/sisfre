@@ -1,15 +1,15 @@
-// app.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import db from "./models/index.js"; // Importa o objeto db
+import db from "./models/index.js"; 
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/admin/userRoutes.js";
 import courseRoutes from "./routes/admin/courseRoutes.js";
 import disciplineRoutes from "./routes/admin/disciplineRoutes.js";
 import passwordRoutes from "./routes/password/passwordRoutes.js";
 import classRoutes from "./routes/admin/classRoutes.js";
-import coordinatorRoutes from "./routes/coordinator/coordinatorRoutes.js";
+import coordinatorDisciplinesRoutes from "./routes/coordinator/coordinatorDisciplinesRoutes.js";
+import coordinatorTeacherRoutes from "./routes/coordinator/coordinatorTeacherRoutes.js";
 
 const app = express();
 dotenv.config();
@@ -24,7 +24,8 @@ app.use("/api", courseRoutes);
 app.use("/api", disciplineRoutes);
 app.use("/api", passwordRoutes);
 app.use("/api", classRoutes);
-app.use("/api", coordinatorRoutes);
+app.use("/api", coordinatorDisciplinesRoutes);
+app.use("/api", coordinatorTeacherRoutes)
 
 // Função para criar o usuário administrador, se não existir
 const createAdminIfNotExists = async () => {

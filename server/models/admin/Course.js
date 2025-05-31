@@ -29,6 +29,13 @@ export default (sequelize) => {
         otherKey: "disciplineId",
         as: "taughtDisciplines",
       });
+
+      Course.belongsToMany(models.Calendar, {
+        through: "calendarCourses", 
+        foreignKey: "courseId",
+        otherKey: "calendarId",
+        as: "calendar", 
+      });
     }
   }
 

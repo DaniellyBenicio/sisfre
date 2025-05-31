@@ -5,22 +5,24 @@ import api from '../../service/api';
 import { StyledTextField } from '../inputs/Input';
 import CustomAlert from '../alert/CustomAlert';
 
-const DisciplineCourse = ({ open, onClose, courseId, onUpdate }) => {
+const DisciplineCourse = ({ open, onClose, courseId, disciplineToEdit, onUpdate }) => {
   const [discipline, setDiscipline] = useState({
     disciplineId: null,
     acronym: '',
     workload: '',
+    name: '',
   });
   const [disciplines, setDisciplines] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [alert, setAlert] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
-  const isFormFilled = discipline.disciplineId && discipline.workload && discipline.workload.trim() !== '';
+  const isFormFilled = discipline.disciplineId && discipline.workload !== null && discipline.workload !== undefined && discipline.workload.trim() !== '';
 
   const handleSubmitSuccess = () => {
     setAlert({
-      message: 'Disciplina adicionada ao curso com sucesso!',
+      message: isEditMode ? 'Disciplina atualizada com sucesso!' : 'Disciplina adicionada ao curso com sucesso!',
       type: 'success',
     });
     onClose();
@@ -32,62 +34,130 @@ const DisciplineCourse = ({ open, onClose, courseId, onUpdate }) => {
 
   useEffect(() => {
     if (open) {
-      setDiscipline({
-        disciplineId: null,
-        acronym: '',
-        workload: '',
-      });
-      setError(null);
+      setIsEditMode(!!disciplineToEdit);
+      if (disciplineToEdit) {
+        console.log('disciplineToEdit:', disciplineToEdit);
+        const disciplineId = disciplineToEdit.disciplineId || null;
+        setDiscipline({
+          disciplineId,
+          acronym: disciplineToEdit.acronym || '',
+          workload: disciplineToEdit.workload != null ? String(disciplineToEdit.workload) : '',
+          name: disciplineToEdit.name || 'Disciplina Desconhecida',
+        });
 
-      const fetchDisciplines = async () => {
-        try {
-          setLoading(true);
-          const disciplinesResponse = await api.get('/disciplines/all');
-          
-          const allDisciplines = Array.isArray(disciplinesResponse.data) 
-            ? disciplinesResponse.data 
-            : disciplinesResponse.data.disciplines || [];
-          
-          let availableDisciplines = allDisciplines;
+        if (!disciplineId && disciplineToEdit.acronym) {
+          // Fetch disciplineId by acronym
+          const fetchDisciplineId = async () => {
+            try {
+              setLoading(true);
+              const response = await api.get('/disciplines', {
+                params: { acronym: disciplineToEdit.acronym },
+              });
+              const fetchedDisciplines = response.data.disciplines || [];
+              if (fetchedDisciplines.length === 1) {
+                setDiscipline(prev => ({
+                  ...prev,
+                  disciplineId: fetchedDisciplines[0].id,
+                  name: fetchedDisciplines[0].name || disciplineToEdit.name,
+                }));
+                setError(null);
+              } else {
+                setError('Disciplina não encontrada pelo sigla. Contate o suporte.');
+              }
+            } catch (err) {
+              console.error('Erro ao buscar disciplineId:', err);
+              setError('Não foi possível determinar o ID da disciplina. Contate o suporte.');
+            } finally {
+              setLoading(false);
+            }
+          };
+          fetchDisciplineId();
+        } else if (!disciplineId) {
+          setError('ID da disciplina não fornecido e sem sigla para busca.');
+        } else {
+          setError(null);
+        }
+      } else {
+        setDiscipline({
+          disciplineId: null,
+          acronym: '',
+          workload: '',
+          name: '',
+        });
+        setError(null);
+      }
+    }
+  }, [disciplineToEdit, open]);
+
+  useEffect(() => {
+    const fetchDisciplines = async () => {
+      try {
+        setLoading(true);
+        const disciplinesResponse = await api.get('/disciplines/all');
+        let allDisciplines = Array.isArray(disciplinesResponse.data)
+          ? disciplinesResponse.data
+          : disciplinesResponse.data.disciplines || [];
+        console.log('allDisciplines:', allDisciplines);
+
+        let availableDisciplines = allDisciplines;
+        if (!isEditMode) {
           try {
             const courseDisciplinesResponse = await api.get('/course/discipline');
             const courseDisciplineIds = Array.isArray(courseDisciplinesResponse.data)
-              ? courseDisciplinesResponse.data.map(d => d.disciplineId || d.id)
+              ? courseDisciplinesResponse.data.map(d => d.disciplineId)
               : [];
             availableDisciplines = allDisciplines.filter(
               d => !courseDisciplineIds.includes(d.id)
             );
           } catch (courseErr) {
             console.warn('Não foi possível carregar disciplinas do curso:', courseErr.message);
+            setError('Erro ao carregar disciplinas associadas ao curso.');
+            return;
           }
-          
-          setDisciplines(availableDisciplines);
-        } catch (err) {
-          console.error('Erro ao carregar disciplinas:', {
-            message: err.message,
-            status: err.response?.status,
-            data: err.response?.data,
-          });
-          setError(`Erro ao carregar disciplinas: ${err.response?.data?.message || err.message}`);
-        } finally {
-          setLoading(false);
+        } else if (discipline.disciplineId || disciplineToEdit?.acronym) {
+          const currentDiscipline = {
+            id: discipline.disciplineId || `temp-${disciplineToEdit?.acronym || 'unknown'}`,
+            name: disciplineToEdit?.name || discipline.name || 'Disciplina Desconhecida',
+            acronym: disciplineToEdit?.acronym || discipline.acronym || '',
+          };
+          availableDisciplines = [
+            ...allDisciplines.filter(d => d.id !== discipline.disciplineId),
+            currentDiscipline,
+          ];
         }
-      };
+
+        setDisciplines(availableDisciplines);
+        console.log('availableDisciplines:', availableDisciplines);
+        console.log('discipline:', discipline);
+        console.log('selectedDiscipline:', disciplines.find(d => d.id === discipline.disciplineId));
+      } catch (err) {
+        console.error('Erro ao carregar disciplinas:', {
+          message: err.message,
+          status: err.response?.status,
+          data: err.response?.data,
+        });
+        setError(`Erro ao carregar disciplinas: ${err.response?.data?.message || err.message}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (open) {
       fetchDisciplines();
     }
-  }, [open]);
+  }, [open, isEditMode, disciplineToEdit, discipline.disciplineId, discipline.name, discipline.acronym]);
 
   const handleDisciplineChange = (event, newValue) => {
     setDiscipline({
       ...discipline,
       disciplineId: newValue ? newValue.id : null,
       acronym: newValue ? newValue.acronym : '',
+      name: newValue ? newValue.name : '',
     });
   };
 
   const handleWorkloadChange = (e) => {
     const value = e.target.value;
-    if (value === '' || (/^\d+$/.test(value) && parseInt(value) > 0)) {
+    if (value === '' || (/^\d+$/.test(value))) {
       setDiscipline({ ...discipline, workload: value });
     }
   };
@@ -97,39 +167,50 @@ const DisciplineCourse = ({ open, onClose, courseId, onUpdate }) => {
     setError(null);
     setLoading(true);
 
-    if (!discipline.disciplineId || !discipline.workload) {
-      setError('Os campos disciplina e carga horária são obrigatórios.');
+    if (!discipline.disciplineId || discipline.disciplineId.startsWith('temp-')) {
+      setError('ID da disciplina inválido. Contate o suporte.');
       setLoading(false);
       return;
     }
 
-    if (parseInt(discipline.workload) <= 0) {
+    const workloadNum = parseInt(discipline.workload);
+    if (isNaN(workloadNum) || discipline.workload === '') {
+      setError('A carga horária é obrigatória.');
+      setLoading(false);
+      return;
+    }
+
+    if (workloadNum <= 0) {
       setError('A carga horária deve ser um número maior que zero.');
       setLoading(false);
       return;
     }
 
     try {
-      const payload = {
-        disciplineId: discipline.disciplineId,
-        workload: parseInt(discipline.workload),
-      };
-
-      console.log('Payload enviado:', payload);
-
-      const response = await api.post('/course/discipline', payload);
+      let response;
+      if (isEditMode) {
+        const payload = {
+          workload: workloadNum,
+        };
+        response = await api.put(`/course/discipline/${discipline.disciplineId}`, payload);
+      } else {
+        const payload = {
+          disciplineId: discipline.disciplineId,
+          workload: workloadNum,
+        };
+        response = await api.post(`/course/discipline`, payload);
+      }
 
       console.log('Resposta da API:', response.data);
-
       onUpdate(response.data);
       handleSubmitSuccess();
     } catch (err) {
-      console.error('Erro ao adicionar disciplina:', {
+      console.error(`Erro ao ${isEditMode ? 'atualizar' : 'adicionar'} disciplina:`, {
         message: err.message,
         status: err.response?.status,
         data: err.response?.data,
       });
-      setError(err.response?.data?.message || 'Erro ao adicionar disciplina ao curso: ' + err.message);
+      setError(err.response?.data?.message || `Erro ao ${isEditMode ? 'atualizar' : 'adicionar'} disciplina ao curso: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -150,7 +231,7 @@ const DisciplineCourse = ({ open, onClose, courseId, onUpdate }) => {
         }}
       >
         <DialogTitle sx={{ textAlign: 'center', marginTop: '27px', color: '#087619', fontWeight: 'bold' }}>
-          Adicionar Disciplina ao Curso
+          {isEditMode ? 'Editar Disciplina do Curso' : 'Adicionar Disciplina ao Curso'}
           <IconButton onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
             <Close />
           </IconButton>
@@ -166,6 +247,7 @@ const DisciplineCourse = ({ open, onClose, courseId, onUpdate }) => {
                 options={disciplines}
                 getOptionLabel={(option) => option.name || ''}
                 onChange={handleDisciplineChange}
+                value={disciplines.find(d => d.id === discipline.disciplineId) || (discipline.name ? { id: discipline.disciplineId, name: discipline.name, acronym: discipline.acronym } : null)}
                 renderInput={(params) => (
                   <StyledTextField
                     {...params}
@@ -182,7 +264,17 @@ const DisciplineCourse = ({ open, onClose, courseId, onUpdate }) => {
                   />
                 )}
                 noOptionsText="Nenhuma disciplina disponível"
-                disabled={loading}
+                disabled={loading || isEditMode}
+                componentsProps={{
+                  paper: { sx: { width: 'auto' } },
+                  listbox: {
+                    sx: {
+                      maxHeight: '200px',
+                      overflowY: 'auto',
+                      '& .MuiAutocomplete-option:hover': { backgroundColor: '#D5FFDB' },
+                    },
+                  },
+                }}
               />
               <Box display="flex" gap={2} my={1.5}>
                 <StyledTextField
@@ -190,7 +282,7 @@ const DisciplineCourse = ({ open, onClose, courseId, onUpdate }) => {
                   label="Sigla"
                   variant="outlined"
                   size="small"
-                  value={discipline.acronym}
+                  value={discipline.acronym || ''}
                   disabled
                   sx={{
                     flex: 1,
@@ -208,7 +300,7 @@ const DisciplineCourse = ({ open, onClose, courseId, onUpdate }) => {
                   onChange={handleWorkloadChange}
                   required
                   type="number"
-                  inputProps={{ min: 1 }}
+                  inputProps={{ min: 0 }}
                   sx={{
                     flex: 1,
                     '& .MuiInputBase-root': { height: '56px' },
@@ -265,7 +357,7 @@ const DisciplineCourse = ({ open, onClose, courseId, onUpdate }) => {
                   }}
                 >
                   <Save sx={{ fontSize: 24 }} />
-                  Adicionar
+                  {isEditMode ? 'Salvar' : 'Adicionar'}
                 </Button>
               </DialogActions>
             </form>

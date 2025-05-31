@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, CssBaseline, Typography } from "@mui/material";
 import Sidebar from "../../components/SideBar";
-import DisciplineList from "./DisciplineList";
+import DisciplineList from "./Admin/DisciplineList";
 import DisciplineCoordinator from "./Coordinator/DisciplineCoordinator";
 import DisciplinesTeacher from "./Teacher/DisciplinesTeacher";
 

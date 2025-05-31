@@ -11,9 +11,12 @@ const DisciplineCoordinator = () => {
   const [disciplines, setDisciplines] = useState([]);
   const [search, setSearch] = useState("");
   const [openAddToCourseDialog, setOpenAddToCourseDialog] = useState(false);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [disciplineToEdit, setDisciplineToEdit] = useState(null);
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(false);
   const accessType = localStorage.getItem("accessType");
+  const courseId = localStorage.getItem("courseId");
 
   const handleAlertClose = () => {
     setAlert(null);
@@ -28,18 +31,37 @@ const DisciplineCoordinator = () => {
       setLoading(true);
       const response = await api.get("/course/discipline");
       console.log("DisciplineList - Resposta da API:", response.data);
-      
-      // Handle different possible response structures
-      const fetchedDisciplines = Array.isArray(response.data)
+
+      let fetchedDisciplines = Array.isArray(response.data)
         ? response.data
         : Array.isArray(response.data.disciplines)
         ? response.data.disciplines
         : [];
-      
+
+      // Fetch disciplineId for each discipline if missing
+      fetchedDisciplines = await Promise.all(
+        fetchedDisciplines.map(async (discipline) => {
+          if (!discipline.disciplineId && discipline.acronym) {
+            try {
+              const disciplineResponse = await api.get('/disciplines', {
+                params: { acronym: discipline.acronym },
+              });
+              const matchingDiscipline = disciplineResponse.data.disciplines?.[0];
+              if (matchingDiscipline) {
+                return { ...discipline, disciplineId: matchingDiscipline.id };
+              }
+            } catch (err) {
+              console.error(`Erro ao buscar disciplineId para ${discipline.acronym}:`, err);
+            }
+          }
+          return discipline;
+        })
+      );
+
       if (!fetchedDisciplines.length) {
         console.warn("Nenhuma disciplina associada encontrada.");
       }
-      
+
       setDisciplines(fetchedDisciplines);
     } catch (error) {
       console.error("Erro ao buscar disciplinas:", {
@@ -55,11 +77,28 @@ const DisciplineCoordinator = () => {
   };
 
   const handleCustomEdit = (discipline) => {
-    console.log("Editar disciplina:", discipline);
+    console.log('Editing discipline:', discipline);
+    setDisciplineToEdit(discipline);
+    setOpenEditDialog(true);
   };
 
-  const handleCustomDelete = (discipline) => {
-    console.log("Excluir disciplina:", discipline);
+  const handleEditDialogClose = () => {
+    setDisciplineToEdit(null);
+    setOpenEditDialog(false);
+  };
+
+  const handleCustomDelete = async (discipline) => {
+    if (!discipline.disciplineId) {
+      setAlert({ message: "ID da disciplina não disponível para exclusão.", type: "error" });
+      return;
+    }
+    try {
+      await api.delete(`/course/discipline/${discipline.disciplineId}`);
+      setAlert({ message: "Disciplina removida com sucesso!", type: "success" });
+      fetchDisciplines();
+    } catch (err) {
+      setAlert({ message: err.response?.data?.message || "Erro ao remover disciplina.", type: "error" });
+    }
   };
 
   const handleAddToCourse = () => {
@@ -70,8 +109,8 @@ const DisciplineCoordinator = () => {
     setOpenAddToCourseDialog(false);
   };
 
-  const handleDisciplineAdded = (data) => {
-    setAlert({ message: data.message || "Disciplina adicionada ao curso com sucesso!", type: "success" });
+  const handleDisciplineAddedOrUpdated = (data) => {
+    setAlert({ message: data.message || "Operação realizada com sucesso!", type: "success" });
     fetchDisciplines();
   };
 
@@ -142,7 +181,17 @@ const DisciplineCoordinator = () => {
       <DisciplineCourse
         open={openAddToCourseDialog}
         onClose={handleAddToCourseClose}
-        onUpdate={handleDisciplineAdded}
+        courseId={courseId}
+        onUpdate={handleDisciplineAddedOrUpdated}
+        disciplineToEdit={null}
+      />
+
+      <DisciplineCourse
+        open={openEditDialog}
+        onClose={handleEditDialogClose}
+        courseId={courseId}
+        onUpdate={handleDisciplineAddedOrUpdated}
+        disciplineToEdit={disciplineToEdit}
       />
 
       {alert && (

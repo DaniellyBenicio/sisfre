@@ -1,5 +1,5 @@
 import { Stack, Typography } from "@mui/material";
-import DataTable from "../../components/homeScreen/DataTable";
+import DataTable from "../../../components/homeScreen/DataTable";
 
 const DisciplinesTable = ({ disciplines, onDelete, onUpdate, search }) => {
 

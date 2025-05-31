@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Box, Typography } from "@mui/material";
-import DeleteConfirmationDialog from "../../components/DeleteConfirmationDialog";
-import api from "../../service/api";
-import SearchAndCreateBar from "../../components/homeScreen/SearchAndCreateBar";
-import { CustomAlert } from "../../components/alert/CustomAlert";
+import DeleteConfirmationDialog from "../../../components/DeleteConfirmationDialog";
+import api from "../../../service/api";
+import SearchAndCreateBar from "../../../components/homeScreen/SearchAndCreateBar";
+import { CustomAlert } from "../../../components/alert/CustomAlert";
 import DisciplinesTable from "./DisciplinesTable";
-import DisciplineModal from "../../components/disciplineForm/DisciplineModal";
+import DisciplineModal from "../../../components/disciplineForm/DisciplineModal";
 
 const DisciplineList = () => {
   const [disciplines, setDisciplines] = useState([]);

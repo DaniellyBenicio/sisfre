@@ -6,6 +6,7 @@ import SearchAndCreateBar from "../../../components/homeScreen/SearchAndCreateBa
 import { CustomAlert } from "../../../components/alert/CustomAlert";
 import DisciplinesTableCoordinator from "./DisciplineTableCoordinator";
 import DisciplineCourse from "../../../components/disciplineForm/DisciplineCourseModal";
+import DeleteConfirmationDialog from "../../../components/DeleteConfirmationDialog";
 
 const DisciplineCoordinator = () => {
   const [disciplines, setDisciplines] = useState([]);
@@ -15,6 +16,8 @@ const DisciplineCoordinator = () => {
   const [loading, setLoading] = useState(false);
   const accessType = localStorage.getItem("accessType");
   const [disciplineToEdit, setDisciplineToEdit] = useState(null);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [disciplineToDelete, setDisciplineToDelete] = useState(null);
 
   const handleAlertClose = () => {
     setAlert(null);
@@ -40,7 +43,11 @@ const DisciplineCoordinator = () => {
         console.warn("Nenhuma disciplina associada encontrada.");
       }
 
-      setDisciplines(fetchedDisciplines);
+      const validDisciplines = fetchedDisciplines.filter(
+        (d) => d.disciplineId !== undefined && d.disciplineId !== null
+      );
+      console.log("Disciplinas válidas:", validDisciplines);
+      setDisciplines(validDisciplines);
     } catch (error) {
       console.error("Erro ao buscar disciplinas:", {
         message: error.message,
@@ -67,8 +74,55 @@ const DisciplineCoordinator = () => {
     setDisciplineToEdit(null);
   };
 
-  const handleCustomDelete = (discipline) => {
-    console.log("Excluir disciplina:", discipline);
+  const handleDeleteClick = (disciplineId) => {
+    console.log("ID recebido em handleDeleteClick:", disciplineId);
+    if (disciplineId === undefined || disciplineId === null) {
+      setAlert({
+        message: "ID da disciplina inválido.",
+        type: "error",
+      });
+      return;
+    }
+    const discipline = disciplines.find((d) => d.disciplineId === disciplineId);
+    console.log("Disciplina recebida para exclusão:", discipline);
+    if (!discipline) {
+      setAlert({
+        message: `Disciplina com ID ${disciplineId} não encontrada.`,
+        type: "error",
+      });
+      return;
+    }
+    setDisciplineToDelete(discipline);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!disciplineToDelete || !disciplineToDelete.disciplineId) {
+      setAlert({
+        message: "Nenhuma disciplina selecionada para exclusão.",
+        type: "error",
+      });
+      setOpenDeleteDialog(false);
+      return;
+    }
+    try {
+      await api.delete(`/course/discipline/${disciplineToDelete.disciplineId}`);
+      setDisciplines(disciplines.filter((c) => c.disciplineId !== disciplineToDelete.disciplineId));
+      setAlert({
+        message: `Disciplina "${disciplineToDelete.name}" excluída com sucesso!`,
+        type: "success",
+      });
+    } catch (error) {
+      console.error("Erro ao excluir disciplina:", error);
+      setAlert({
+        message:
+          error.response?.data?.mensagem || "Erro ao excluir disciplina.",
+        type: "error",
+      });
+    } finally {
+      setOpenDeleteDialog(false);
+      setDisciplineToDelete(null);
+    }
   };
 
   const handleAddToCourse = () => {
@@ -130,22 +184,24 @@ const DisciplineCoordinator = () => {
         onUpdate={handleCustomEdit}
         search={search}
         showActions={true}
-        renderActions={(item) => (
-          <>
-            <IconButton
-              onClick={() => handleCustomEdit(item)}
-              sx={{ color: "#087619", "&:hover": { color: "#065412" } }}
-            >
-              <Edit />
-            </IconButton>
-            <IconButton
-              onClick={() => handleCustomDelete(item)}
-              sx={{ color: "#FF1C1C", "&:hover": { color: "#D4000F" } }}
-            >
-              <Delete />
-            </IconButton>
-          </>
-        )}
+        renderActions={(item) => {
+          return (
+            <>
+              <IconButton
+                onClick={() => handleCustomEdit(item)}
+                sx={{ color: "#087619", "&:hover": { color: "#065412" } }}
+              >
+                <Edit />
+              </IconButton>
+              <IconButton
+                onClick={() => handleDeleteClick(item.disciplineId)}
+                sx={{ color: "#FF1C1C", "&:hover": { color: "#D4000F" } }}
+              >
+                <Delete />
+              </IconButton>
+            </>
+          );
+        }}
       />
 
       <DisciplineCourse
@@ -153,6 +209,13 @@ const DisciplineCoordinator = () => {
         onClose={handleCloseModal}
         onUpdate={handleDisciplineAdded}
         editingData={disciplineToEdit}
+      />
+
+      <DeleteConfirmationDialog
+        open={openDeleteDialog}
+        onClose={() => setOpenDeleteDialog(false)}
+        onConfirm={handleConfirmDelete}
+        message={`Deseja realmente excluir a disciplina "${disciplineToDelete?.name}"?`}
       />
 
       {alert && (

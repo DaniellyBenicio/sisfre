@@ -2,8 +2,7 @@ import React from "react";
 import { Stack, Typography } from "@mui/material";
 import DataTable from "../../../components/homeScreen/DataTable";
 
-const CalendarTable = ({ calendars, search }) => {
-  // Map the data to include a combined yearPeriod field
+const CalendarTable = ({ calendars, search, onEdit, onDelete }) => {
   const formattedCalendars = calendars.map((calendar) => ({
     ...calendar,
     yearPeriod: `${calendar.year}.${calendar.period}`,
@@ -39,6 +38,8 @@ const CalendarTable = ({ calendars, search }) => {
       headers={headers}
       search={search}
       renderMobileRow={renderMobileRow}
+      onUpdate={onEdit} 
+      onDelete={onDelete} 
     />
   );
 };

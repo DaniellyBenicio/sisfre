@@ -4,11 +4,17 @@ import SearchAndCreateBar from "../../../components/homeScreen/SearchAndCreateBa
 import api from "../../../service/api";
 import CalendarTable from "./CalendarTable";
 import CalendarRegistrationPopup from "./CalendarRegistrationPopup";
+import CalendarUpdatePopup from "./CalendarUpdatePopup";
+import CalendarDelete from "./CalendarDelete";
 
 const CalendarList = () => {
   const [calendars, setCalendars] = useState([]);
   const [search, setSearch] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [calendarToEdit, setCalendarToEdit] = useState(null);
+  const [calendarToDelete, setCalendarToDelete] = useState(null);
 
   useEffect(() => {
     fetchCalendars();
@@ -43,6 +49,26 @@ const CalendarList = () => {
     setOpenDialog(false); 
   };
 
+  const handleEditClick = (calendar) => {
+    setCalendarToEdit(calendar);
+    setOpenEditDialog(true);
+  };
+
+  const handleEditDialogClose = () => {
+    setOpenEditDialog(false);
+    setCalendarToEdit(null);
+  };
+
+  const handleDeleteClick = (calendar) => {
+    setCalendarToDelete(calendar);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleDeleteDialogClose = () => {
+    setOpenDeleteDialog(false);
+    setCalendarToDelete(null);
+  };
+
   const handleSubmitSuccess = (newCalendar, isEdit) => {
     if (isEdit) {
       setCalendars(
@@ -52,6 +78,18 @@ const CalendarList = () => {
       setCalendars([...calendars, newCalendar]);
     }
     handleDialogClose();
+  };
+
+  const handleUpdateSuccess = (updatedCalendar) => {
+    setCalendars(
+      calendars.map((c) => (c.id === updatedCalendar.id ? updatedCalendar : c))
+    );
+    handleEditDialogClose();
+  };
+
+  const handleDeleteSuccess = (calendarId) => {
+    setCalendars(calendars.filter((c) => c.id !== calendarId));
+    handleDeleteDialogClose();
   };
 
   const filteredCalendars = Array.isArray(calendars)
@@ -105,11 +143,29 @@ const CalendarList = () => {
         createButtonLabel="Cadastrar Calendário"
         onCreateClick={handleCreateClick}
       />
-      <CalendarTable calendars={filteredCalendars} search={search} />
+      <CalendarTable
+        calendars={filteredCalendars}
+        search={search}
+        onEdit={handleEditClick}
+        onDelete={handleDeleteClick}
+      />
       <CalendarRegistrationPopup
         open={openDialog}
         onClose={handleDialogClose}
         onRegister={handleSubmitSuccess}
+      />
+      <CalendarUpdatePopup
+        open={openEditDialog}
+        onClose={handleEditDialogClose}
+        calendar={calendarToEdit}
+        onUpdate={handleUpdateSuccess}
+      />
+      <CalendarDelete
+        open={openDeleteDialog}
+        onClose={handleDeleteDialogClose}
+        calendarId={calendarToDelete?.id}
+        calendarName={calendarToDelete ? `${calendarToDelete.type} ${calendarToDelete.year}-${calendarToDelete.period}` : ''}
+        onDeleteSuccess={handleDeleteSuccess}
       />
     </Box>
   );

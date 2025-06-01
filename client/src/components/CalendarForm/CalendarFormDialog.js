@@ -10,9 +10,8 @@ import {
   MenuItem,
   IconButton,
   InputLabel,
-  InputAdornment,
 } from '@mui/material';
-import { Close, Save, CalendarToday } from '@mui/icons-material';
+import { Close, Save } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -35,6 +34,31 @@ const StyledButton = styled(Button)(({ theme }) => ({
 
 const calendarTypes = ['CONVENCIONAL', 'REGULAR', 'PÓS-GREVE', 'OUTRO'];
 
+// Função auxiliar para formatar a data para YYYY-MM-DD
+const formatDateForInput = (dateString) => {
+  if (!dateString) return '';
+  try {
+    const date = new Date(dateString);
+    // Verifica se a data é válida
+    if (isNaN(date.getTime())) {
+      // Tenta parsing DD/MM/YYYY se for o caso
+      const parts = dateString.split('/');
+      if (parts.length === 3) {
+        const parsedDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+        if (!isNaN(parsedDate.getTime())) {
+          return parsedDate.toISOString().split('T')[0];
+        }
+      }
+      return ''; // Retorna vazio se a data for inválida
+    }
+    return date.toISOString().split('T')[0];
+  } catch (error) {
+    console.error("Erro ao formatar data:", error);
+    return '';
+  }
+};
+
+
 const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, isEditMode }) => {
   const [calendarData, setCalendarData] = useState({
     type: '',
@@ -46,7 +70,7 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
   });
   const [error, setError] = useState(null);
 
-  const isFormFilled = 
+  const isFormFilled =
     (calendarData.type === 'OUTRO' ? calendarData.customType : calendarData.type) &&
     calendarData.year &&
     calendarData.period &&
@@ -60,8 +84,9 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
         customType: calendarTypes.includes(calendarToEdit.type) ? '' : calendarToEdit.type,
         year: calendarToEdit.year || '',
         period: calendarToEdit.period || '',
-        startDate: calendarToEdit.startDate || '',
-        endDate: calendarToEdit.endDate || '',
+        // AQUI ESTÁ A MUDANÇA PRINCIPAL para garantir o formato YYYY-MM-DD
+        startDate: formatDateForInput(calendarToEdit.startDate),
+        endDate: formatDateForInput(calendarToEdit.endDate),
       });
       setError(null);
     } else {
@@ -112,6 +137,7 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
         type: finalType.toUpperCase(),
         year: calendarData.year,
         period: calendarData.period,
+        // O VALOR JÁ ESTARÁ NO FORMATO CORRETO AO ENVIAR SE VEIO DO INPUT type="date"
         startDate: calendarData.startDate,
         endDate: calendarData.endDate,
       };
@@ -137,16 +163,7 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
     }
   };
 
-  const handleIconClick = (fieldName) => {
-    const input = document.getElementById(`${fieldName}-select`);
-    if (input) {
-      input.focus();
-      input.click();
-    }
-  };
-
-  // Generate last 5 years (2021 to 2025)
-  const currentYear = 2025;
+  const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => (currentYear - i).toString());
 
   return (
@@ -368,13 +385,6 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
                       },
                     },
                   }}
-                  endAdornment={
-                    <InputAdornment position="end" sx={{ marginRight: '-10px' }}>
-                      <IconButton onClick={() => handleIconClick('year')}>
-                        <CalendarToday sx={{ fontSize: '20px', color: '#000000' }} />
-                      </IconButton>
-                    </InputAdornment>
-                  }
                 >
                   {years.map((year) => (
                     <MenuItem key={year} value={year}>
@@ -448,13 +458,6 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
                       },
                     },
                   }}
-                  endAdornment={
-                    <InputAdornment position="end" sx={{ marginRight: '-10px' }}>
-                      <IconButton onClick={() => handleIconClick('period')}>
-                        <CalendarToday sx={{ fontSize: '20px', color: '#000000' }} />
-                      </IconButton>
-                    </InputAdornment>
-                  }
                 >
                   {['1', '2'].map((period) => (
                     <MenuItem key={period} value={period}>
@@ -485,6 +488,9 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
               >
                 <InputLabel
                   id="startDate-label"
+                  // Adicionando a propriedade shrink para o label flutuar
+                  // de imediato para inputs type="date"
+                  shrink={true}
                   sx={{
                     color: '#757575',
                     '&::after': { content: '" *"', color: '#757575' },
@@ -510,6 +516,7 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
                   onChange={handleInputChange}
                   type="date"
                   required
+                  // Mantendo InputLabelProps.shrink aqui também para o comportamento consistente
                   InputLabelProps={{ shrink: true }}
                 />
               </FormControl>
@@ -533,6 +540,9 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
               >
                 <InputLabel
                   id="endDate-label"
+                  // Adicionando a propriedade shrink para o label flutuar
+                  // de imediato para inputs type="date"
+                  shrink={true}
                   sx={{
                     color: '#757575',
                     '&::after': { content: '" *"', color: '#757575' },
@@ -558,6 +568,7 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
                   onChange={handleInputChange}
                   type="date"
                   required
+                  // Mantendo InputLabelProps.shrink aqui também para o comportamento consistente
                   InputLabelProps={{ shrink: true }}
                 />
               </FormControl>

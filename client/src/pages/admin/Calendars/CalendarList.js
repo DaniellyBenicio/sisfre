@@ -16,7 +16,7 @@ const CalendarList = () => {
 
   const fetchCalendars = async () => {
     try {
-      const response = await api.get("/calendar/all");
+      const response = await api.get("/calendar");
       console.log("CalendarList - Resposta da API:", response.data);
      
       const calendarData = Array.isArray(response.data)

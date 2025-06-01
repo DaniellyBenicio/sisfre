@@ -8,7 +8,7 @@ const router = express.Router();
 router.post('/calendar', autenticarToken, isAdmin, createCalendar);
 router.get('/calendar-types', autenticarToken, getCalendarTypes);
 router.put('/calendar/:id', autenticarToken, isAdmin, updateCalendar);
-router.get('/calendar', listCalendars);
+router.get('/calendar', autenticarToken, isAdmin, listCalendars);
 
 
 export default router;

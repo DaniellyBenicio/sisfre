@@ -97,12 +97,33 @@ export const getCalendarTypes = async (req, res) => {
 
 export const listCalendars = async (req, res) => {
   try {
+    const { type, year } = req.query;
+    const where = {};
+    if (type) where.type = type.toUpperCase();
+    if (year) where.year = year;
+
     const calendars = await db.Calendar.findAll({
+      where,
       order: [['year', 'DESC'], ['period', 'DESC']],
     });
     return res.status(200).json({ calendars });
   } catch (error) {
     console.error('Erro ao listar calendários:', error);
     return res.status(500).json({ error: 'Erro ao listar calendários.' });
+  }
+};
+
+export const deleteCalendar = async (req, res) => {
+  const calendarId = req.params.id;
+  try {
+    const calendar = await db.Calendar.findByPk(calendarId);
+    if (!calendar) {
+      return res.status(404).json({ error: "Calendário não encontrado." });
+    }
+    await calendar.destroy();
+    return res.status(200).json({ message: "Calendário excluído com sucesso." });
+  } catch (error) {
+    console.error('Erro ao excluir calendário:', error);
+    return res.status(500).json({ error: 'Erro ao excluir calendário.' });
   }
 };

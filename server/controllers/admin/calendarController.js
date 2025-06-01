@@ -94,3 +94,15 @@ export const getCalendarTypes = async (req, res) => {
     return res.status(500).json({ error: 'Erro ao buscar tipos de calendário.' });
   }
 };
+
+export const listCalendars = async (req, res) => {
+  try {
+    const calendars = await db.Calendar.findAll({
+      order: [['year', 'DESC'], ['period', 'DESC']],
+    });
+    return res.status(200).json({ calendars });
+  } catch (error) {
+    console.error('Erro ao listar calendários:', error);
+    return res.status(500).json({ error: 'Erro ao listar calendários.' });
+  }
+};

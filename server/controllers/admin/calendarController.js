@@ -100,11 +100,16 @@ export const listCalendars = async (req, res) => {
     const { type, year } = req.query;
     const where = {};
     if (type) where.type = type.toUpperCase();
-    if (year) where.year = year;
+    if (year) {
+      where.startDate = {
+        [db.Sequelize.Op.gte]: `${year}-01-01`,
+        [db.Sequelize.Op.lte]: `${year}-12-31`
+      };
+    }
 
     const calendars = await db.Calendar.findAll({
       where,
-      order: [['year', 'DESC'], ['period', 'DESC']],
+      order: [['startDate', 'DESC'], ['period', 'DESC']],
     });
     return res.status(200).json({ calendars });
   } catch (error) {

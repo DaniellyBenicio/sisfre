@@ -200,16 +200,19 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
             >
               <InputLabel
                 id="type-label"
-                shrink={!!calendarData.type}
                 sx={{
                   color: '#757575',
                   '&::after': { content: '" *"', color: '#757575' },
                   top: '50%',
-                  transform: calendarData.type ? 'translate(14px, -9px) scale(0.75)' : 'translate(14px, -50%)',
+                  transform: 'translate(14px, -50%)',
                   fontSize: '1rem',
-                  '&.Mui-focused': {
+                  '&.Mui-focused, &.MuiInputLabel-shrink': {
                     color: '#000000',
                     '&::after': { content: '" *"', color: '#000000' },
+                  },
+                  '&.MuiInputLabel-shrink': {
+                    top: 0,
+                    transform: 'translate(14px, -9px) scale(0.75)',
                   },
                 }}
               >
@@ -228,8 +231,16 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
                       maxHeight: '200px',
                       overflowY: 'auto',
                       width: 'auto',
-                      '& .MuiMenuItem-root:hover': {
-                        backgroundColor: '#D5FFDB',
+                      '& .MuiMenuItem-root': {
+                        '&:hover': {
+                          backgroundColor: '#D5FFDB',
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: '#E8F5E9',
+                          '&:hover': {
+                            backgroundColor: '#D5FFDB',
+                          },
+                        },
                       },
                     },
                   },
@@ -263,16 +274,19 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
               >
                 <InputLabel
                   id="customType-label"
-                  shrink={!!calendarData.customType}
                   sx={{
                     color: '#757575',
                     '&::after': { content: '" *"', color: '#757575' },
                     top: '50%',
-                    transform: calendarData.customType ? 'translate(14px, -9px) scale(0.75)' : 'translate(14px, -50%)',
+                    transform: 'translate(14px, -50%)',
                     fontSize: '1rem',
-                    '&.Mui-focused': {
+                    '&.Mui-focused, &.MuiInputLabel-shrink': {
                       color: '#000000',
                       '&::after': { content: '" *"', color: '#000000' },
+                    },
+                    '&.MuiInputLabel-shrink': {
+                      top: 0,
+                      transform: 'translate(14px, -9px) scale(0.75)',
                     },
                   }}
                 >
@@ -309,16 +323,19 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
               >
                 <InputLabel
                   id="year-label"
-                  shrink={!!calendarData.year}
                   sx={{
                     color: '#757575',
                     '&::after': { content: '" *"', color: '#757575' },
                     top: '50%',
-                    transform: calendarData.year ? 'translate(14px, -9px) scale(0.75)' : 'translate(14px, -50%)',
+                    transform: 'translate(14px, -50%)',
                     fontSize: '1rem',
-                    '&.Mui-focused': {
+                    '&.Mui-focused, &.MuiInputLabel-shrink': {
                       color: '#000000',
                       '&::after': { content: '" *"', color: '#000000' },
+                    },
+                    '&.MuiInputLabel-shrink': {
+                      top: 0,
+                      transform: 'translate(14px, -9px) scale(0.75)',
                     },
                   }}
                 >
@@ -337,8 +354,16 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
                         maxHeight: '200px',
                         overflowY: 'auto',
                         width: 'auto',
-                        '& .MuiMenuItem-root:hover': {
-                          backgroundColor: '#D5FFDB',
+                        '& .MuiMenuItem-root': {
+                          '&:hover': {
+                            backgroundColor: '#D5FFDB',
+                          },
+                          '&.Mui-selected': {
+                            backgroundColor: '#E8F5E9',
+                            '&:hover': {
+                              backgroundColor: '#D5FFDB',
+                            },
+                          },
                         },
                       },
                     },
@@ -378,16 +403,19 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
               >
                 <InputLabel
                   id="period-label"
-                  shrink={!!calendarData.period}
                   sx={{
                     color: '#757575',
                     '&::after': { content: '" *"', color: '#757575' },
                     top: '50%',
-                    transform: calendarData.period ? 'translate(14px, -9px) scale(0.75)' : 'translate(14px, -50%)',
+                    transform: 'translate(14px, -50%)',
                     fontSize: '1rem',
-                    '&.Mui-focused': {
+                    '&.Mui-focused, &.MuiInputLabel-shrink': {
                       color: '#000000',
                       '&::after': { content: '" *"', color: '#000000' },
+                    },
+                    '&.MuiInputLabel-shrink': {
+                      top: 0,
+                      transform: 'translate(14px, -9px) scale(0.75)',
                     },
                   }}
                 >
@@ -406,8 +434,16 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
                         maxHeight: '200px',
                         overflowY: 'auto',
                         width: 'auto',
-                        '& .MuiMenuItem-root:hover': {
-                          backgroundColor: '#D5FFDB',
+                        '& .MuiMenuItem-root': {
+                          '&:hover': {
+                            backgroundColor: '#D5FFDB',
+                          },
+                          '&.Mui-selected': {
+                            backgroundColor: '#E8F5E9',
+                            '&:hover': {
+                              backgroundColor: '#D5FFDB',
+                            },
+                          },
                         },
                       },
                     },
@@ -449,16 +485,19 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
               >
                 <InputLabel
                   id="startDate-label"
-                  shrink={!!calendarData.startDate}
                   sx={{
                     color: '#757575',
                     '&::after': { content: '" *"', color: '#757575' },
                     top: '50%',
-                    transform: calendarData.startDate ? 'translate(14px, -9px) scale(0.75)' : 'translate(14px, -50%)',
+                    transform: 'translate(14px, -50%)',
                     fontSize: '1rem',
-                    '&.Mui-focused': {
+                    '&.Mui-focused, &.MuiInputLabel-shrink': {
                       color: '#000000',
                       '&::after': { content: '" *"', color: '#000000' },
+                    },
+                    '&.MuiInputLabel-shrink': {
+                      top: 0,
+                      transform: 'translate(14px, -9px) scale(0.75)',
                     },
                   }}
                 >
@@ -494,16 +533,19 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
               >
                 <InputLabel
                   id="endDate-label"
-                  shrink={!!calendarData.endDate}
                   sx={{
                     color: '#757575',
                     '&::after': { content: '" *"', color: '#757575' },
                     top: '50%',
-                    transform: calendarData.endDate ? 'translate(14px, -9px) scale(0.75)' : 'translate(14px, -50%)',
+                    transform: 'translate(14px, -50%)',
                     fontSize: '1rem',
-                    '&.Mui-focused': {
+                    '&.Mui-focused, &.MuiInputLabel-shrink': {
                       color: '#000000',
                       '&::after': { content: '" *"', color: '#000000' },
+                    },
+                    '&.MuiInputLabel-shrink': {
+                      top: 0,
+                      transform: 'translate(14px, -9px) scale(0.75)',
                     },
                   }}
                 >

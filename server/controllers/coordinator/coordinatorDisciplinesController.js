@@ -83,13 +83,14 @@ export const getDisciplinesByCoordinatorCourse = async (req, res) => {
       include: [
         {
           model: db.Discipline,
-          attributes: ["name", "acronym"],
+          attributes: ["id", "name", "acronym"],
           as: "Discipline",
         },
       ],
     });
 
     const result = associations.map((assoc) => ({
+      disciplineId: assoc.Discipline.id,
       name: assoc.Discipline.name,
       acronym: assoc.Discipline.acronym,
       workload: assoc.workload,

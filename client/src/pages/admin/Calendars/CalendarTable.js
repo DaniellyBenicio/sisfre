@@ -3,10 +3,15 @@ import { Stack, Typography } from "@mui/material";
 import DataTable from "../../../components/homeScreen/DataTable";
 
 const CalendarTable = ({ calendars, search }) => {
+  // Map the data to include a combined yearPeriod field
+  const formattedCalendars = calendars.map((calendar) => ({
+    ...calendar,
+    yearPeriod: `${calendar.year}.${calendar.period}`,
+  }));
+
   const headers = [
-    { key: "year", label: "Ano" },
+    { key: "yearPeriod", label: "Ano/Período" },
     { key: "type", label: "Tipo" },
-    { key: "period", label: "Período" },
     { key: "startDate", label: "Data de início" },
     { key: "endDate", label: "Data de fim" },
   ];
@@ -14,13 +19,10 @@ const CalendarTable = ({ calendars, search }) => {
   const renderMobileRow = (calendarItem) => (
     <Stack spacing={0.5}>
       <Typography>
-        <strong>Ano:</strong> {calendarItem.year}
+        <strong>Ano/Período:</strong> {calendarItem.yearPeriod}
       </Typography>
       <Typography>
         <strong>Tipo:</strong> {calendarItem.type}
-      </Typography>
-      <Typography>
-        <strong>Período:</strong> {calendarItem.period}
       </Typography>
       <Typography>
         <strong>Data de início:</strong> {calendarItem.startDate}
@@ -33,7 +35,7 @@ const CalendarTable = ({ calendars, search }) => {
 
   return (
     <DataTable
-      data={calendars}
+      data={formattedCalendars}
       headers={headers}
       search={search}
       renderMobileRow={renderMobileRow}

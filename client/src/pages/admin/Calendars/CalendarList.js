@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Box, Typography } from "@mui/material";
-import { useNavigate } from "react-router-dom"; // Importar useNavigate
 import SearchAndCreateBar from "../../../components/homeScreen/SearchAndCreateBar";
 import api from "../../../service/api";
 import CalendarTable from "./CalendarTable";
+import CalendarRegistrationPopup from "./CalendarRegistrationPopup";
 
 const CalendarList = () => {
   const [calendars, setCalendars] = useState([]);
   const [search, setSearch] = useState("");
-  const navigate = useNavigate(); // Hook para navegação
+  const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
     fetchCalendars();
@@ -18,10 +18,13 @@ const CalendarList = () => {
     try {
       const response = await api.get("/calendar/all");
       console.log("CalendarList - Resposta da API:", response.data);
-      if (!response.data || !Array.isArray(response.data.calendars)) {
-        throw new Error("Erro ao buscar calendários: Dados inválidos");
-      }
-      setCalendars(response.data.calendars);
+     
+      const calendarData = Array.isArray(response.data)
+        ? response.data
+        : Array.isArray(response.data.calendars)
+        ? response.data.calendars
+        : [];
+      setCalendars(calendarData);
     } catch (error) {
       console.error("Erro ao buscar calendários:", error);
       if (error.response) {
@@ -33,8 +36,22 @@ const CalendarList = () => {
   };
 
   const handleCreateClick = () => {
-    // Redirecionar para a página de cadastro de calendário
-    navigate("/calendar/create");
+    setOpenDialog(true); 
+  };
+
+  const handleDialogClose = () => {
+    setOpenDialog(false); 
+  };
+
+  const handleSubmitSuccess = (newCalendar, isEdit) => {
+    if (isEdit) {
+      setCalendars(
+        calendars.map((c) => (c.id === newCalendar.id ? newCalendar : c))
+      );
+    } else {
+      setCalendars([...calendars, newCalendar]);
+    }
+    handleDialogClose();
   };
 
   const filteredCalendars = Array.isArray(calendars)
@@ -45,13 +62,20 @@ const CalendarList = () => {
           .normalize("NFD")
           .replace(/[\u0300-\u036f]/g, "");
 
-        const normalizedTitle =
-          calendarItem.title
-            ?.toLowerCase()
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "") || "";
+        const normalizedYear = calendarItem.year
+          ?.toString()
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "") || "";
+        const normalizedType = calendarItem.type
+          ?.toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "") || "";
 
-        return normalizedTitle.includes(normalizedSearch);
+        return (
+          normalizedYear.includes(normalizedSearch) ||
+          normalizedType.includes(normalizedSearch)
+        );
       })
     : [];
 
@@ -78,10 +102,15 @@ const CalendarList = () => {
       <SearchAndCreateBar
         searchValue={search}
         onSearchChange={(e) => setSearch(e.target.value)}
-        createButtonLabel="Cadastrar Calendário" // Adicionar o rótulo do botão
-        onCreateClick={handleCreateClick} // Passar a função de clique
+        createButtonLabel="Cadastrar Calendário"
+        onCreateClick={handleCreateClick}
       />
       <CalendarTable calendars={filteredCalendars} search={search} />
+      <CalendarRegistrationPopup
+        open={openDialog}
+        onClose={handleDialogClose}
+        onRegister={handleSubmitSuccess}
+      />
     </Box>
   );
 };

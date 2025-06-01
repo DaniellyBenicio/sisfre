@@ -5,6 +5,7 @@ import Login from "../pages/login/Login.js";
 import UsersPage from "../pages/admin/users/UsersPage.js";
 import CoursePage from "../pages/admin/courses/CoursesPage.js";
 import ClassesPage from "../pages/admin/classes/ClassesPages.js";
+import CalendarPage from "../pages/admin/Calendars/CalendarPage.js"; 
 import MainScreen from "../pages/MainScreen.js";
 import ForgotPassword from "../pages/password/ForgotPassword.js";
 import ResetPassword from "../pages/password/ResetPassword.js";
@@ -13,7 +14,7 @@ import DisciplinePage from "../pages/disciplines/DisciplinePage.js";
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
     const token = localStorage.getItem("token");
-    return !!token; // true se existe token, false se não
+    return !!token; // true if token exists, false otherwise
   });
   const accessType = localStorage.getItem("accessType");
   const navigate = useNavigate();
@@ -65,7 +66,7 @@ const AppRoutes = () => {
       <Route path="/" element={<Navigate to="/login" />} />
       <Route
         path="/login"
-        element={ <Login onLogin={handleLogin} /> }
+        element={<Login onLogin={handleLogin} />}
       />
       <Route
         path="/forgot-password"
@@ -119,7 +120,16 @@ const AppRoutes = () => {
           )
         }
       />
-      <Route path="/resetPassword/:token" element={<ResetPassword />} />
+      <Route
+        path="/calendar"
+        element={
+          isAuthenticated ? (
+            <CalendarPage setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
       <Route
         path="/MainScreen"
         element={

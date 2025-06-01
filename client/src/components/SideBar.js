@@ -15,8 +15,8 @@ import {
   AppBar,
   Box,
 } from "@mui/material";
-import { Menu, People, School, ExitToApp, Warning, Class, LibraryBooks} from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
+import { Menu, People, School, ExitToApp, Warning, Class, LibraryBooks, CalendarToday } from "@mui/icons-material";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useMediaQuery } from "@mui/material";
 import LogoMenu from "../assets/LogoMenu.svg";
 import { logout } from "../service/Auth.js";
@@ -26,9 +26,9 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const [username, setUsername] = useState("");
   const [accessType, setAccessType] = useState("");
-
   const isMobile = useMediaQuery("(max-width:600px)");
 
   useEffect(() => {
@@ -37,12 +37,21 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
 
     const type = localStorage.getItem("accessType");
     if (type) setAccessType(type);
-  }, []);
+
+    // Sincronizar selectedItem com a rota atual
+    const path = location.pathname;
+    if (path === "/users") setSelectedItem("users");
+    else if (path === "/courses") setSelectedItem("courses");
+    else if (path === "/disciplines") setSelectedItem("disciplines");
+    else if (path === "/calendar") setSelectedItem("calendar");
+    else if (path === "/classes") setSelectedItem("classes");
+  }, [location.pathname]);
 
   const handleOpenConfirmDialog = () => setOpenConfirmDialog(true);
   const handleCloseConfirmDialog = () => setOpenConfirmDialog(false);
 
   const handleItemClick = (path, item) => {
+    console.log(`Navigating to: ${path}, Item: ${item}`); // Para depuração
     setSelectedItem(item);
     navigate(path);
     if (isMobile) setMobileOpen(false);
@@ -65,64 +74,39 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
 
   const drawerContent = (
     <List textAlign="center">
-      {/* Logo */}
       <ListItem sx={{ justifyContent: "center", marginLeft: "-12px" }}>
         <Box sx={{ mb: 2 }}>
-          <img
-            src={LogoMenu}
-            alt="logoMenu"
-            style={{ width: 150, height: "auto" }}
-          />
+          <img src={LogoMenu} alt="logoMenu" style={{ width: 150, height: "auto" }} />
         </Box>
       </ListItem>
 
       <Divider sx={{ backgroundColor: "white", marginBottom: 1 }} />
 
-      <Typography
-        variant="subtitle1"
-        sx={{ color: "white", marginTop: "10px", textAlign: "center" }}
-      >
+      <Typography variant="subtitle1" sx={{ color: "white", marginTop: "10px", textAlign: "center" }}>
         Bem vindo(a), {username}!
       </Typography>
 
-      <Divider
-        sx={{ backgroundColor: "white", marginBottom: 1, marginTop: "5px" }}
-      />
+      <Divider sx={{ backgroundColor: "white", marginBottom: 1, marginTop: "5px" }} />
 
       {accessType === "Admin" && (
         <>
-          <ListItem
-            button
-            onClick={() => handleItemClick("/users", "users")}
-            sx={getListItemStyle(selectedItem, "users")}
-          >
+          <ListItem button onClick={() => handleItemClick("/users", "users")} sx={getListItemStyle(selectedItem, "users")}>
             <People sx={{ mr: 1 }} />
             <ListItemText primary="Usuários" />
           </ListItem>
-
-          <ListItem
-            button
-            onClick={() => handleItemClick("/courses", "courses")}
-            sx={getListItemStyle(selectedItem, "courses")}
-          >
+          <ListItem button onClick={() => handleItemClick("/courses", "courses")} sx={getListItemStyle(selectedItem, "courses")}>
             <School sx={{ mr: 1 }} />
             <ListItemText primary="Cursos" />
           </ListItem>
-
-          <ListItem
-            button
-            onClick={() => handleItemClick("/disciplines", "disciplines")}
-            sx={getListItemStyle(selectedItem, "disciplines")}
-          >
+          <ListItem button onClick={() => handleItemClick("/disciplines", "disciplines")} sx={getListItemStyle(selectedItem, "disciplines")}>
             <LibraryBooks sx={{ mr: 1 }} />
             <ListItemText primary="Disciplinas" />
           </ListItem>
-
-          <ListItem
-            button
-            onClick={() => handleItemClick("/classes", "classes")}
-            sx={getListItemStyle(selectedItem, "classes")}
-          >
+          <ListItem button onClick={() => handleItemClick("/calendar", "calendar")} sx={getListItemStyle(selectedItem, "calendar")}>
+            <CalendarToday sx={{ mr: 1 }} />
+            <ListItemText primary="Calendário" />
+          </ListItem>
+          <ListItem button onClick={() => handleItemClick("/classes", "classes")} sx={getListItemStyle(selectedItem, "classes")}>
             <Class sx={{ mr: 1 }} />
             <ListItemText primary="Turmas" />
           </ListItem>
@@ -131,20 +115,15 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
 
       {accessType === "Coordenador" && (
         <>
-          <ListItem
-            button
-            onClick={() => handleItemClick("/disciplines", "disciplines")}
-            sx={getListItemStyle(selectedItem, "disciplines")}
-          >
+          <ListItem button onClick={() => handleItemClick("/disciplines", "disciplines")} sx={getListItemStyle(selectedItem, "disciplines")}>
             <LibraryBooks sx={{ mr: 1 }} />
             <ListItemText primary="Disciplinas" />
           </ListItem>
-          
-          <ListItem
-            button
-            onClick={() => handleItemClick("/classes", "classes")}
-            sx={getListItemStyle(selectedItem, "classes")}
-          >
+          <ListItem button onClick={() => handleItemClick("/calendar", "calendar")} sx={getListItemStyle(selectedItem, "calendar")}>
+            <CalendarToday sx={{ mr: 1 }} />
+            <ListItemText primary="Calendário" />
+          </ListItem>
+          <ListItem button onClick={() => handleItemClick("/classes", "classes")} sx={getListItemStyle(selectedItem, "classes")}>
             <Class sx={{ mr: 1 }} />
             <ListItemText primary="Turmas" />
           </ListItem>
@@ -153,23 +132,18 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
 
       {accessType === "Professor" && (
         <>
-          <ListItem
-            button
-            onClick={() => handleItemClick("/disciplines", "disciplines")}
-            sx={getListItemStyle(selectedItem, "disciplines")}
-          >
+          <ListItem button onClick={() => handleItemClick("/disciplines", "disciplines")} sx={getListItemStyle(selectedItem, "disciplines")}>
             <LibraryBooks sx={{ mr: 1 }} />
             <ListItemText primary="Disciplinas" />
+          </ListItem>
+          <ListItem button onClick={() => handleItemClick("/calendar", "calendar")} sx={getListItemStyle(selectedItem, "calendar")}>
+            <CalendarToday sx={{ mr: 1 }} />
+            <ListItemText primary="Calendário" />
           </ListItem>
         </>
       )}
 
-      {/* Sair */}
-      <ListItem
-        button
-        onClick={handleOpenConfirmDialog}
-        sx={getListItemStyle(selectedItem, "exit")}
-      >
+      <ListItem button onClick={handleOpenConfirmDialog} sx={getListItemStyle(selectedItem, "exit")}>
         <ExitToApp sx={{ mr: 1 }} />
         <ListItemText primary="Sair" />
       </ListItem>
@@ -180,20 +154,9 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
     <>
       {isMobile ? (
         <>
-          <AppBar
-            position="fixed"
-            sx={{
-              backgroundColor: "#087619",
-              zIndex: (theme) => theme.zIndex.drawer + 1,
-            }}
-          >
+          <AppBar position="fixed" sx={{ backgroundColor: "#087619", zIndex: (theme) => theme.zIndex.drawer + 1 }}>
             <Toolbar>
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
-                edge="start"
-                onClick={handleDrawerToggle}
-              >
+              <IconButton color="inherit" aria-label="open drawer" edge="start" onClick={handleDrawerToggle}>
                 <Menu />
               </IconButton>
             </Toolbar>
@@ -235,9 +198,7 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
       <Dialog
         open={openConfirmDialog}
         onClose={handleCloseConfirmDialog}
-        PaperProps={{
-          sx: { borderRadius: "9px" },
-        }}
+        PaperProps={{ sx: { borderRadius: "9px" } }}
       >
         <DialogContent sx={{ textAlign: "center", width: "390px" }}>
           <Box display="flex" justifyContent="center" mb={2}>
@@ -247,14 +208,7 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
             Tem certeza que deseja sair?
           </Typography>
         </DialogContent>
-        <DialogActions
-          sx={{
-            justifyContent: "center",
-            gap: 2,
-            padding: "23px 70px",
-            marginTop: "-20px",
-          }}
-        >
+        <DialogActions sx={{ justifyContent: "center", gap: 2, padding: "23px 70px", marginTop: "-20px" }}>
           <Button
             onClick={handleLogout}
             sx={{

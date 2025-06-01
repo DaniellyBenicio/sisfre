@@ -6,7 +6,7 @@ module.exports = {
         allowNull: false,
         primaryKey: true,
         references: {
-          model: "Calendar",
+          model: "calendar",
           key: "id",
         },
         onUpdate: "CASCADE",
@@ -17,22 +17,14 @@ module.exports = {
         allowNull: false,
         primaryKey: true,
         references: {
-          model: "Classes",
+          model: "classes",
           key: "id",
         },
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
       dateStart: {
-        type: Sequelize.DATE,
-        allowNull: false,
-      },
-      dateEnd: {
-        type: Sequelize.DATE,
-        allowNull: false,
-      },
-      status: {
-        type: Sequelize.STRING,
+        type: Sequelize.DATEONLY,
         allowNull: false,
       },
       createdAt: {
@@ -47,7 +39,6 @@ module.exports = {
       },
     });
   },
-
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("calendarClasses");
   },

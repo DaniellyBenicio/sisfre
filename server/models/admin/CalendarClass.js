@@ -31,19 +31,6 @@ export default (sequelize) => {
         primaryKey: true,
         allowNull: false,
       },
-      dateStart: {
-        type: DataTypes.DATE,
-        allowNull: false,
-      },
-      dateEnd: {
-        type: DataTypes.DATE,
-        allowNull: false,
-      },
-      status: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: true,
-      },
     },
     {
       sequelize,

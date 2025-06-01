@@ -10,6 +10,7 @@ import passwordRoutes from "./routes/password/passwordRoutes.js";
 import classRoutes from "./routes/admin/classRoutes.js";
 import coordinatorDisciplinesRoutes from "./routes/coordinator/coordinatorDisciplinesRoutes.js";
 import coordinatorTeacherRoutes from "./routes/coordinator/coordinatorTeacherRoutes.js";
+import calendarRoutes from "./routes/admin/calendarRoutes.js"
 
 const app = express();
 dotenv.config();
@@ -25,7 +26,8 @@ app.use("/api", disciplineRoutes);
 app.use("/api", passwordRoutes);
 app.use("/api", classRoutes);
 app.use("/api", coordinatorDisciplinesRoutes);
-app.use("/api", coordinatorTeacherRoutes)
+app.use("/api", coordinatorTeacherRoutes);
+app.use("/api", calendarRoutes);
 
 // Função para criar o usuário administrador, se não existir
 const createAdminIfNotExists = async () => {

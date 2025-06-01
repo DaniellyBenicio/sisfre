@@ -52,6 +52,25 @@ export default (sequelize) => {
         type: DataTypes.ENUM("1", "2"),
         allowNull: false,
       },
+      startDate: {
+        type: DataTypes.DATEONLY,
+        allowNull: false,
+        validate: {
+          isDate: true,
+        },
+      },
+      endDate: {
+        type: DataTypes.DATEONLY,
+        allowNull: false,
+        validate: {
+          isDate: true,
+          isAfterStartDate(value) {
+            if (new Date(value) <= new Date(this.startDate)) {
+              throw new Error("A data de fim deve ser posterior à data de início.");
+            }
+          },
+        },
+      },
     },
     {
       sequelize,

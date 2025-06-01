@@ -19,6 +19,14 @@ module.exports = {
         type: Sequelize.ENUM("1", "2"),
         allowNull: false,
       },
+      startDate: {
+        type: Sequelize.DATEONLY,
+        allowNull: false,
+      },
+      endDate: {
+        type: Sequelize.DATEONLY,
+        allowNull: false,
+      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,

@@ -10,6 +10,7 @@ module.exports = {
       type: {
         type: Sequelize.STRING,
         allowNull: false,
+        unique: true,
       },
       year: {
         type: Sequelize.INTEGER,

@@ -30,6 +30,7 @@ export default (sequelize) => {
       type: {
         type: DataTypes.STRING,
         allowNull: false,
+        unique: true,
         validate: {
           isValidType(value) {
             const allowed = ["CONVENCIONAL", "REGULAR", "PÓS-GREVE", "OUTRO"];

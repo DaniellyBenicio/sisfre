@@ -24,12 +24,13 @@ const CalendarList = () => {
     try {
       const response = await api.get("/calendar");
       console.log("CalendarList - Resposta da API:", response.data);
-     
+
       const calendarData = Array.isArray(response.data)
         ? response.data
         : Array.isArray(response.data.calendars)
         ? response.data.calendars
         : [];
+      console.log("Dados processados (calendarData):", calendarData);
       setCalendars(calendarData);
     } catch (error) {
       console.error("Erro ao buscar calendários:", error);
@@ -42,14 +43,18 @@ const CalendarList = () => {
   };
 
   const handleCreateClick = () => {
-    setOpenDialog(true); 
+    setOpenDialog(true);
   };
 
   const handleDialogClose = () => {
-    setOpenDialog(false); 
+    setOpenDialog(false);
   };
 
   const handleEditClick = (calendar) => {
+    if (!calendar || !calendar.id) {
+      console.error("Erro: Calendário inválido ou sem ID:", calendar);
+      return;
+    }
     setCalendarToEdit(calendar);
     setOpenEditDialog(true);
   };
@@ -60,6 +65,10 @@ const CalendarList = () => {
   };
 
   const handleDeleteClick = (calendar) => {
+    if (!calendar || !calendar.id) {
+      console.error("Erro: Calendário inválido ou sem ID:", calendar);
+      return;
+    }
     setCalendarToDelete(calendar);
     setOpenDeleteDialog(true);
   };
@@ -69,26 +78,18 @@ const CalendarList = () => {
     setCalendarToDelete(null);
   };
 
-  const handleSubmitSuccess = (newCalendar, isEdit) => {
-    if (isEdit) {
-      setCalendars(
-        calendars.map((c) => (c.id === newCalendar.id ? newCalendar : c))
-      );
-    } else {
-      setCalendars([...calendars, newCalendar]);
-    }
+  const handleSubmitSuccess = async (newCalendar, isEdit) => {
+    await fetchCalendars(); 
     handleDialogClose();
   };
 
-  const handleUpdateSuccess = (updatedCalendar) => {
-    setCalendars(
-      calendars.map((c) => (c.id === updatedCalendar.id ? updatedCalendar : c))
-    );
+  const handleUpdateSuccess = async (updatedCalendar) => {
+    await fetchCalendars(); 
     handleEditDialogClose();
   };
 
-  const handleDeleteSuccess = (calendarId) => {
-    setCalendars(calendars.filter((c) => c.id !== calendarId));
+  const handleDeleteSuccess = async (calendarId) => {
+    await fetchCalendars(); 
     handleDeleteDialogClose();
   };
 
@@ -100,15 +101,17 @@ const CalendarList = () => {
           .normalize("NFD")
           .replace(/[\u0300-\u036f]/g, "");
 
-        const normalizedYear = calendarItem.year
-          ?.toString()
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "") || "";
-        const normalizedType = calendarItem.type
-          ?.toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "") || "";
+        const normalizedYear =
+          calendarItem.year
+            ?.toString()
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "") || "";
+        const normalizedType =
+          calendarItem.type
+            ?.toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "") || "";
 
         return (
           normalizedYear.includes(normalizedSearch) ||
@@ -164,7 +167,11 @@ const CalendarList = () => {
         open={openDeleteDialog}
         onClose={handleDeleteDialogClose}
         calendarId={calendarToDelete?.id}
-        calendarName={calendarToDelete ? `${calendarToDelete.type} ${calendarToDelete.year}-${calendarToDelete.period}` : ''}
+        calendarName={
+          calendarToDelete
+            ? `${calendarToDelete.type} ${calendarToDelete.year}-${calendarToDelete.period}`
+            : ""
+        }
         onDeleteSuccess={handleDeleteSuccess}
       />
     </Box>

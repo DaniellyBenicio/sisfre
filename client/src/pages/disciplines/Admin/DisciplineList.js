@@ -23,26 +23,29 @@ const DisciplineList = () => {
   };
 
   useEffect(() => {
+    const fetchDisciplines = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get("/disciplines/all");
+        console.log("DisciplineList - Resposta da API:", response.data);
+        if (!response.data || !Array.isArray(response.data.disciplines)) {
+          throw new Error("Erro ao buscar disciplinas: Dados inválidos");
+        }
+        // Sort disciplines alphabetically by name when fetched
+        const sortedDisciplines = response.data.disciplines.sort((a, b) =>
+          a.name.localeCompare(b.name)
+        );
+        setDisciplines(sortedDisciplines);
+      } catch (error) {
+        console.error("Erro ao buscar disciplinas:", error);
+        setAlert({ message: "Erro ao carregar disciplinas.", type: "error" });
+        setDisciplines([]);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchDisciplines();
   }, []);
-
-  const fetchDisciplines = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get("/disciplines/all");
-      console.log("DisciplineList - Resposta da API:", response.data);
-      if (!response.data || !Array.isArray(response.data.disciplines)) {
-        throw new Error("Erro ao buscar disciplinas: Dados inválidos");
-      }
-      setDisciplines(response.data.disciplines);
-    } catch (error) {
-      console.error("Erro ao buscar disciplinas:", error);
-      setAlert({ message: "Erro ao carregar disciplinas.", type: "error" });
-      setDisciplines([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const filteredDisciplines = Array.isArray(disciplines)
     ? disciplines.filter(
@@ -54,44 +57,55 @@ const DisciplineList = () => {
       )
     : [];
 
-  const handleSaveDiscipline = async (newDiscipline, isEditMode) => {
-    setLoading(true);
+  const handleSaveDiscipline = (data) => {
+    const { discipline, isEditMode } = data;
+    console.log("DisciplineList - Dados recebidos para salvar:", data);
+
     try {
       if (isEditMode) {
+        // Update the discipline in the state
         setDisciplines(
           disciplines.map((d) =>
-            d.id === newDiscipline.discipline.id ? newDiscipline.discipline : d
+            d.id === discipline.id ? { ...d, ...discipline } : d
           )
         );
       } else {
-        setDisciplines([...disciplines, newDiscipline.discipline]);
+        // Add new discipline and sort the array alphabetically by name
+        const updatedDisciplines = [...disciplines, discipline].sort((a, b) =>
+          a.name.localeCompare(b.name)
+        );
+        setDisciplines(updatedDisciplines);
       }
+      setAlert({
+        message: isEditMode
+          ? `Disciplina "${discipline.name}" atualizada com sucesso!`
+          : `Disciplina "${discipline.name}" cadastrada com sucesso!`,
+        type: "success",
+      });
     } catch (error) {
       console.error(
-        `Erro ao ${isEditMode ? "atualizar" : "cadastrar"} disciplina:`,
+        `Erro ao ${isEditMode ? "atualizar" : "cadastrar"} disciplina no estado:`,
         error
       );
       setAlert({
-        message: `Erro ao ${
-          isEditMode ? "atualizar" : "cadastrar"
-        } disciplina.`,
+        message: `Erro ao ${isEditMode ? "atualizar" : "cadastrar"} disciplina.`,
         type: "error",
       });
     } finally {
-      setLoading(false);
       setOpenDialog(false);
       setDisciplineToEdit(null);
     }
   };
 
   const handleEditDiscipline = (discipline) => {
+    console.log("DisciplineList - Disciplina para editar:", discipline);
     setDisciplineToEdit(discipline);
     setOpenDialog(true);
   };
 
   const handleDeleteClick = (disciplineId) => {
     const discipline = disciplines.find((d) => d.id === disciplineId);
-    console.log("Disciplina recebida para exclusão:", discipline);
+    console.log("DisciplineList - Disciplina para exclusão:", discipline);
     setDisciplineToDelete(discipline);
     setOpenDeleteDialog(true);
   };

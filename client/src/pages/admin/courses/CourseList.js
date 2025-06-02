@@ -53,12 +53,6 @@ const CourseList = () => {
         }));
 
         setCourses(coursesWithCoordinators);
-        if (courses.length === 0) {
-          console.warn("Nenhum curso encontrado na resposta da API");
-        }
-        if (users.length === 0) {
-          console.warn("Nenhum usuário encontrado na resposta da API");
-        }
       } catch (error) {
         console.error(
           "Erro ao buscar cursos:",

@@ -17,21 +17,12 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
 
   const isFormFilled = discipline.name && discipline.name.trim() !== '' && discipline.acronym;
 
-  const handleSubmitSuccess = (newDiscipline) => {
-    setAlert({
-      message: disciplineToEdit ? 'Disciplina atualizada com sucesso!' : 'Disciplina cadastrada com sucesso!',
-      type: 'success',
-    });
-    onClose();
-  };
-
   const handleAlertClose = () => {
     setAlert(null);
   };
 
   useEffect(() => {
     if (open) {
-      // Atualiza o estado apenas quando o modal é aberto
       setIsEditMode(!!disciplineToEdit);
       if (disciplineToEdit) {
         setDiscipline({
@@ -56,9 +47,10 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setLoading(true);
 
     if (!discipline.acronym || !discipline.name) {
-      setError('Os campos nome, sigla e carga horária são obrigatórios.');
+      setError('Os campos nome e sigla são obrigatórios.');
       setLoading(false);
       return;
     }
@@ -72,7 +64,7 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
       console.log('Payload enviado:', payload);
 
       let response;
-      if (disciplineToEdit) {
+      if (isEditMode) {
         response = await api.put(`/discipline/${disciplineToEdit.id}`, payload);
       } else {
         response = await api.post(`/disciplines`, payload);
@@ -80,12 +72,21 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
 
       console.log('Resposta da API:', response.data);
 
-      onUpdate(response.data);
-      handleSubmitSuccess();
+      // Normalize the response
+      const updatedDiscipline = response.data.discipline || response.data; // Adjust based on API response
+      onUpdate({ discipline: updatedDiscipline, isEditMode }); // Pass isEditMode for proper alert messaging
+      setAlert({
+        message: isEditMode ? 'Disciplina atualizada com sucesso!' : 'Disciplina cadastrada com sucesso!',
+        type: 'success',
+      });
       onClose();
     } catch (err) {
       console.error('Erro completo:', err.response);
-      setError(err.response?.data?.error || 'Erro ao salvar disciplina: ' + err.message);
+      setError(err.response?.data?.error || `Erro ao ${isEditMode ? 'atualizar' : 'cadastrar'} disciplina: ${err.message}`);
+      setAlert({
+        message: err.response?.data?.error || `Erro ao ${isEditMode ? 'atualizar' : 'cadastrar'} disciplina.`,
+        type: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -162,8 +163,8 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
                   onClick={onClose}
                   variant="contained"
                   sx={{
-										width: 'fit-content',
-										minWidth: 100,
+                    width: 'fit-content',
+                    minWidth: 100,
                     padding: '8px 28px',
                     borderRadius: '8px',
                     textTransform: 'none',
@@ -184,8 +185,8 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
                   variant="contained"
                   disabled={!isFormFilled}
                   sx={{
-										width: 'fit-content',
-										minWidth: 100,
+                    width: 'fit-content',
+                    minWidth: 100,
                     padding: '8px 28px',
                     backgroundColor: '#087619',
                     borderRadius: '8px',
@@ -202,7 +203,7 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
                 </Button>
               </DialogActions>
             </form>
-          ) : null }
+          ) : null}
         </DialogContent>
       </Dialog>
       {alert && (

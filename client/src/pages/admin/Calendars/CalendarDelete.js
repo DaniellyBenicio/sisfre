@@ -17,9 +17,7 @@ const CalendarDelete = ({ open, onClose, calendarId, calendarName, onDeleteSucce
     }
 
     try {
-      console.log(`Enviando requisição DELETE para /calendar/:id${calendarId}`);
-      const response = await api.delete(`/calendar/:id${calendarId}`);
-      console.log('Resposta da API:', response);
+      const response = await api.delete(`/calendar/${calendarId}`);
 
       if (response.status === 200) {
         setAlert({

@@ -13,7 +13,7 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { Delete, Edit } from "@mui/icons-material";
-import Paginate from "../paginate/Paginate"; 
+import Paginate from "../paginate/Paginate";
 
 const DataTable = ({
   data,
@@ -77,7 +77,7 @@ const DataTable = ({
                   >
                     <Edit />
                   </IconButton>
-                  <IconButton color="error" onClick={() => onDelete(item.id)}>
+                  <IconButton color="error" onClick={() => onDelete(item)}>
                     <Delete />
                   </IconButton>
                 </Stack>
@@ -100,7 +100,7 @@ const DataTable = ({
                     >
                       <Edit />
                     </IconButton>
-                    <IconButton color="error" onClick={() => onDelete(item.id)}>
+                    <IconButton color="error" onClick={() => onDelete(item)}>
                       <Delete />
                     </IconButton>
                   </Stack>
@@ -177,7 +177,7 @@ const DataTable = ({
                     >
                       <Edit />
                     </IconButton>
-                    <IconButton color="error" onClick={() => onDelete(item.id)}>
+                    <IconButton color="error" onClick={() => onDelete(item)}>
                       <Delete />
                     </IconButton>
                   </TableCell>

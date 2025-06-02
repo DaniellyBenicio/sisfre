@@ -146,7 +146,7 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
 
       let response;
       if (isEditMode) {
-        response = await api.put(`/calendar/:id${calendarToEdit?.id}`, payload);
+        response = await api.put(`/calendar/${calendarToEdit?.id}`, payload);
       } else {
         response = await api.post(`/calendar`, payload);
       }

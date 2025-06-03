@@ -209,7 +209,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
         <DialogContent sx={{ px: 5, minHeight: '400px' }}>
           {!loading ? (
             <form onSubmit={handleSubmit}>
-              {error && <Box sx={{ color: 'red', marginBottom: 2 }}>{error}</Box>}
+              {error && <Box sx={{ color: 'red', marginBottom: 2, fontSize: '0.875rem' }}>{error}</Box>}
               
               <StyledTextField 
                 sx={{ 

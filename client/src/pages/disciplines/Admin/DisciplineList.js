@@ -63,14 +63,12 @@ const DisciplineList = () => {
 
     try {
       if (isEditMode) {
-        // Update the discipline in the state
         setDisciplines(
           disciplines.map((d) =>
             d.id === discipline.id ? { ...d, ...discipline } : d
           )
         );
       } else {
-        // Add new discipline and sort the array alphabetically by name
         const updatedDisciplines = [...disciplines, discipline].sort((a, b) =>
           a.name.localeCompare(b.name)
         );

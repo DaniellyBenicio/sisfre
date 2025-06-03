@@ -23,7 +23,7 @@ const DisciplinesTable = ({ disciplines, onDelete, onUpdate, search }) => {
 		<DataTable
 			data={disciplines}
 			headers={headers}
-			onDelete={onDelete}
+			onDelete={(discipline) => onDelete(discipline.id)}
 			onUpdate={onUpdate}
 			search={search}
 			renderMobileRow={renderMobileRow}

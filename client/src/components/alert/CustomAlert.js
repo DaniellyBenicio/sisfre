@@ -14,8 +14,7 @@ export const CustomAlert = ({ message, type, onClose }) => {
     }, 3000);
 
     return () => clearTimeout(timer);
-  },
-    [onClose]);
+  }, [onClose]);
 
   const getAlertIcon = () => {
     switch (alertType) {
@@ -37,8 +36,7 @@ export const CustomAlert = ({ message, type, onClose }) => {
     info: "#2196f3",
     warning: "#ff9800",
     error: "#F2C5C5",
-  }
-  [alertType];
+  }[alertType];
 
   return (
     <Alert
@@ -47,14 +45,14 @@ export const CustomAlert = ({ message, type, onClose }) => {
       icon={getAlertIcon()}
       sx={{
         position: "fixed",
-        bottom: "20px",
-        right: "20px",
+        top: "20px",
+        left: "50%",
+        transform: "translateX(-50%)",
         width: "auto",
         minWidth: "200px",
         maxWidth: "300px",
         height: "50px",
-        margin: "5px 0",
-        marginRight: "45px",
+        margin: "5px auto",
         padding: "5px 10px",
         borderRadius: "8px",
         boxShadow: 1,
@@ -64,15 +62,19 @@ export const CustomAlert = ({ message, type, onClose }) => {
         color: "#000",
         display: "flex",
         alignItems: "center",
+        boxSizing: "border-box",
         "& .MuiAlert-icon": {
           marginRight: "6px",
         },
         transition: "all 0.3s ease-in-out",
-        zIndex: 1000,
+        zIndex: 1300,
         fontSize: "0.875rem",
         "@media (max-width: 600px)": {
-          right: "10px",
-          width: "90%",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "auto",
+          maxWidth: "calc(100% - 20px)",
+          marginRight: "0",
         },
       }}
     >

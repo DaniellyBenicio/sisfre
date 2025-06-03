@@ -30,7 +30,7 @@ const DeleteConfirmationDialog = ({
         sx: {
           borderRadius: "9px",
           width: isSmallScreen ? "100%" : "390px",
-          mx: isSmallScreen ? 2 : "auto", // margem horizontal para evitar colar nas bordas pequenas
+          mx: isSmallScreen ? 2 : "auto",
         },
       }}
     >

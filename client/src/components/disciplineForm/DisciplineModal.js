@@ -72,9 +72,8 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
 
       console.log('Resposta da API:', response.data);
 
-      // Normalize the response
-      const updatedDiscipline = response.data.discipline || response.data; // Adjust based on API response
-      onUpdate({ discipline: updatedDiscipline, isEditMode }); // Pass isEditMode for proper alert messaging
+      const updatedDiscipline = response.data.discipline || response.data;
+      onUpdate({ discipline: updatedDiscipline, isEditMode });
       setAlert({
         message: isEditMode ? 'Disciplina atualizada com sucesso!' : 'Disciplina cadastrada com sucesso!',
         type: 'success',

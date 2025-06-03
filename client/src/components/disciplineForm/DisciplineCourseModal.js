@@ -196,7 +196,9 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
                     required
                     sx={{
                       my: 2.5,
-                      "& .MuiInputBase-root": { height: "56px" },
+                      "& .MuiInputBase-root": { 
+                        height: "56px",
+                      },
                       "& .MuiInputLabel-root": {
                         top: "50%",
                         transform: "translate(14px, -50%)",
@@ -206,11 +208,24 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
                         top: 0,
                         transform: "translate(14px, -9px) scale(0.75)",
                       },
+                      "& .MuiInputBase-input.Mui-disabled": {
+                        WebkitTextFillColor: "#3C3C3C",
+                      },
                     }}
                   />
                 )}
                 noOptionsText="Nenhuma disciplina disponível"
                 disabled={loading || isEdit}
+                componentsProps={{
+                  paper: { sx: { width: 'auto' } },
+                  listbox: {
+                    sx: {
+                      maxHeight: '200px',
+                      overflowY: 'auto',
+                      '& .MuiAutocomplete-option:hover': { backgroundColor: '#D5FFDB' },
+                    },
+                  },
+                }}
               />
               <Box display="flex" gap={2} my={1.5}>
                 <StyledTextField
@@ -219,10 +234,12 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
                   variant="outlined"
                   size="small"
                   value={discipline.acronym}
-                  disabled
+                  disabled={loading || isEdit}
                   sx={{
                     flex: 1,
-                    "& .MuiInputBase-root": { height: "56px" },
+                    "& .MuiInputBase-root": { 
+                      height: "56px",
+                    },
                     "& .MuiInputLabel-root": {
                       top: "50%",
                       transform: "translate(14px, -50%)",
@@ -231,6 +248,9 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
                     "& .MuiInputLabel-shrink": {
                       top: 0,
                       transform: "translate(14px, -9px) scale(0.75)",
+                    },
+                    "& .MuiInputBase-input.Mui-disabled": {
+                      WebkitTextFillColor: "#3C3C3C",
                     },
                   }}
                 />

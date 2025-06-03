@@ -24,13 +24,13 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [alert, setAlert] = useState(null);
-  const isEdit = Boolean(editingData);
+  const isEditMode = Boolean(editingData);
 
   const isFormFilled = discipline.disciplineId && discipline.workload && discipline.workload.trim() !== "";
 
   const handleSubmitSuccess = () => {
     setAlert({
-      message: isEdit
+      message: isEditMode
         ? "Disciplina atualizada com sucesso!"
         : "Disciplina adicionada ao curso com sucesso!",
       type: "success",
@@ -56,7 +56,7 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
             : disciplinesResponse.data.disciplines || [];
 
           let availableDisciplines = allDisciplines;
-          if (!isEdit) {
+          if (!isEditMode) {
             const courseDisciplinesResponse = await api.get("/course/discipline");
             const courseDisciplineIds = Array.isArray(courseDisciplinesResponse.data)
               ? courseDisciplinesResponse.data.map((d) => d.disciplineId || d.id)
@@ -68,7 +68,7 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
 
           setDisciplines(availableDisciplines);
 
-          if (isEdit && editingData) {
+          if (isEditMode && editingData) {
             console.log("Editing data:", editingData);
             const selected = allDisciplines.find((d) => d.id === editingData.disciplineId);
             setDiscipline({
@@ -89,7 +89,7 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
 
       initialize();
     }
-  }, [open, editingData, isEdit]);
+  }, [open, editingData, isEditMode]);
 
   const handleDisciplineChange = (event, newValue) => {
     setDiscipline({
@@ -109,7 +109,6 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);
 
     if (!discipline.disciplineId || !discipline.workload) {
       setError("Os campos disciplina e carga horária são obrigatórios.");
@@ -122,9 +121,9 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
         workload: parseInt(discipline.workload),
       };
 
-      console.log("Submitting:", { isEdit, editingData, payload });
+      console.log("Submitting:", { isEditMode, editingData, payload });
       let response;
-      if (isEdit) {
+      if (isEditMode) {
         if (!editingData.disciplineId) {
           throw new Error("disciplineId missing in editingData");
         }
@@ -140,6 +139,7 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
       }
 
       onUpdate(response.data);
+      onClose();
       handleSubmitSuccess();
     } catch (err) {
       console.error("Submit error:", err);
@@ -163,19 +163,15 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
           },
         }}
       >
-        <DialogTitle
-          sx={{ textAlign: "center", marginTop: "27px", color: "#087619", fontWeight: "bold" }}
-        >
-          {isEdit ? "Editar Disciplina" : "Adicionar Disciplina ao Curso"}
+        <DialogTitle sx={{ textAlign: "center", marginTop: "27px", color: "#087619", fontWeight: "bold" }} >
+          {isEditMode ? "Editar Disciplina" : "Adicionar Disciplina ao Curso"}
           <IconButton onClick={onClose} sx={{ position: "absolute", right: 8, top: 8 }}>
             <Close />
           </IconButton>
         </DialogTitle>
 
         <DialogContent sx={{ px: 5 }}>
-          {loading ? (
-            <Box sx={{ textAlign: "center" }}>Carregando...</Box>
-          ) : (
+          {!loading ? (
             <form onSubmit={handleSubmit}>
               {error && (
                 <Box sx={{ color: "red", marginBottom: 2, fontSize: "0.875rem" }}>{error}</Box>
@@ -214,8 +210,8 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
                     }}
                   />
                 )}
-                noOptionsText="Nenhuma disciplina disponível"
-                disabled={loading || isEdit}
+                noOptionsText="Nenhuma disciplina encontrada"
+                disabled={loading || isEditMode}
                 componentsProps={{
                   paper: { sx: { width: 'auto' } },
                   listbox: {
@@ -234,7 +230,7 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
                   variant="outlined"
                   size="small"
                   value={discipline.acronym}
-                  disabled={loading || isEdit}
+                  disabled={loading || isEditMode}
                   sx={{
                     flex: 1,
                     "& .MuiInputBase-root": { 
@@ -327,13 +323,14 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
                   }}
                 >
                   <Save sx={{ fontSize: 24 }} />
-                  {isEdit ? "Salvar" : "Adicionar"}
+                  {isEditMode ? "Salvar" : "Adicionar"}
                 </Button>
               </DialogActions>
             </form>
-          )}
+          ) : null }
         </DialogContent>
       </Dialog>
+
       {alert && (
         <CustomAlert
           message={alert.message}

@@ -36,7 +36,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
   const [coordinators, setCoordinators] = useState([]);
   const [isEditMode, setIsEditMode] = useState(false);
 
-  const isFormFilled = course.name && course.name.trim() !== '';
+  const isFormFilled = course.acronym && course.type && course.name && course.name.trim() !== '';
 
   const handleSubmitSuccess = (newCourse) => {
     setAlert({

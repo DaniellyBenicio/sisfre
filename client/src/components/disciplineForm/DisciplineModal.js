@@ -21,6 +21,14 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
     setAlert(null);
   };
 
+  const handleSubmitSuccess = (newCourse) => {
+    setAlert({
+      message: disciplineToEdit ? 'Disciplina atualizado com sucesso!' : 'Disciplina cadastrado com sucesso!',
+      type: 'success',
+    });
+    onClose();
+  };
+
   useEffect(() => {
     if (open) {
       setIsEditMode(!!disciplineToEdit);
@@ -38,7 +46,7 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
         setError(null);
       }
     }
-  }, [open, disciplineToEdit]);
+  }, [disciplineToEdit,open]);
 
   const handleInputChange = (e) => {
     setDiscipline({ ...discipline, [e.target.name]: e.target.value });
@@ -47,7 +55,6 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);
 
     if (!discipline.acronym || !discipline.name) {
       setError('Os campos nome e sigla são obrigatórios.');
@@ -73,12 +80,10 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
       console.log('Resposta da API:', response.data);
 
       const updatedDiscipline = response.data.discipline || response.data;
+      
       onUpdate({ discipline: updatedDiscipline, isEditMode });
-      setAlert({
-        message: isEditMode ? 'Disciplina atualizada com sucesso!' : 'Disciplina cadastrada com sucesso!',
-        type: 'success',
-      });
       onClose();
+      handleSubmitSuccess();
     } catch (err) {
       console.error('Erro completo:', err.response);
       setError(err.response?.data?.error || `Erro ao ${isEditMode ? 'atualizar' : 'cadastrar'} disciplina: ${err.message}`);

@@ -71,6 +71,7 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
     startDate: '',
     endDate: '',
   });
+  const [customType, setCustomType] = useState(''); // Estado para o campo de texto personalizado
   const [error, setError] = useState(null);
   const [localCalendarTypes, setLocalCalendarTypes] = useState(calendarTypes);
 
@@ -79,7 +80,8 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
     calendarData.year &&
     calendarData.period &&
     calendarData.startDate &&
-    calendarData.endDate;
+    calendarData.endDate &&
+    (calendarData.type !== 'OUTRO' || (calendarData.type === 'OUTRO' && customType));
 
   useEffect(() => {
     if (calendarToEdit) {
@@ -96,6 +98,7 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
         startDate: formatDateForInput(calendarToEdit.startDate),
         endDate: formatDateForInput(calendarToEdit.endDate),
       });
+      setCustomType(typeToSet === 'OUTRO' ? '' : typeToSet); // Preenche customType se necessário
       setError(null);
     } else {
       setCalendarData({
@@ -105,6 +108,7 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
         startDate: '',
         endDate: '',
       });
+      setCustomType('');
       setError(null);
     }
   }, [calendarToEdit, open]);
@@ -116,13 +120,29 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
   const handleTypeChange = (e) => {
     const value = e.target.value;
     setCalendarData({ ...calendarData, type: value });
+    if (value !== 'OUTRO') {
+      setCustomType(''); // Limpa o campo personalizado se não for OUTRO
+    }
+  };
+
+  const handleCustomTypeChange = (e) => {
+    setCustomType(e.target.value); // Atualiza o campo personalizado
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
-    const finalType = calendarData.type === 'OUTRO' ? calendarData.type : calendarData.type.toUpperCase();
+    let finalType = calendarData.type;
+    if (calendarData.type === 'OUTRO') {
+      if (!customType || customType.trim().length < 3) {
+        setError('O tipo personalizado deve ter pelo menos 3 caracteres.');
+        return;
+      }
+      finalType = customType.trim().toUpperCase();
+    } else {
+      finalType = calendarData.type.toUpperCase();
+    }
 
     if (!finalType || !calendarData.year || !calendarData.period || !calendarData.startDate || !calendarData.endDate) {
       setError('Todos os campos são obrigatórios.');
@@ -136,11 +156,6 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
 
     if (!['1', '2'].includes(calendarData.period)) {
       setError('O período deve ser 1 ou 2.');
-      return;
-    }
-
-    if (calendarData.type !== 'OUTRO' && calendarData.type.length < 3) {
-      setError('O tipo deve ter pelo menos 3 caracteres.');
       return;
     }
 
@@ -160,13 +175,17 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
         response = await api.put(`/calendar/${calendarToEdit?.id}`, payload);
       } else {
         response = await api.post(`/calendar`, payload);
-        // Add new type to calendarTypes if it's a custom type and not already in the list
-        if (calendarData.type !== 'OUTRO' && !localCalendarTypes.includes(calendarData.type)) {
-          const newTypes = [...localCalendarTypes.filter(t => t !== 'OUTRO'), calendarData.type, 'OUTRO'];
+        // Adiciona o novo tipo à lista local e ao backend, se for um tipo personalizado
+        if (calendarData.type === 'OUTRO' && !localCalendarTypes.includes(finalType)) {
+          const newTypes = [...localCalendarTypes.filter(t => t !== 'OUTRO'), finalType, 'OUTRO'];
           setLocalCalendarTypes(newTypes);
-          calendarTypes = newTypes; // Update global calendarTypes
-          // Optionally, you can make an API call to persist the new type to the backend
-          await api.post('/calendar-types', { type: calendarData.type });
+          calendarTypes = newTypes; // Atualiza a lista global
+          try {
+            await api.post('/calendar-types', { type: finalType });
+          } catch (typeError) {
+            console.error('Erro ao cadastrar novo tipo:', typeError);
+            setError('Calendário salvo, mas houve um erro ao cadastrar o novo tipo.');
+          }
         }
       }
 
@@ -257,11 +276,12 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
               {calendarData.type === 'OUTRO' ? (
                 <StyledTextField
                   id="type-input"
-                  name="type"
-                  value={calendarData.type === 'OUTRO' ? '' : calendarData.type}
-                  onChange={handleTypeChange}
+                  name="customType"
+                  value={customType}
+                  onChange={handleCustomTypeChange}
                   required
                   InputLabelProps={{ shrink: true }}
+                  placeholder="Digite o novo tipo"
                 />
               ) : (
                 <StyledSelect

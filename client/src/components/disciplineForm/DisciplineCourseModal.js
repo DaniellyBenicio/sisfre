@@ -24,7 +24,7 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [alert, setAlert] = useState(null);
-  const isEditMode = Boolean(editingData);
+  const [isEditMode, setIsEditMode] = useState(Boolean(editingData));
 
   const isFormFilled = discipline.disciplineId && discipline.workload && discipline.workload.trim() !== "";
 
@@ -46,6 +46,7 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
     if (open) {
       setError(null);
       setAlert(null);
+      setIsEditMode(Boolean(editingData));
 
       const initialize = async () => {
         setLoading(true);
@@ -56,7 +57,7 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
             : disciplinesResponse.data.disciplines || [];
 
           let availableDisciplines = allDisciplines;
-          if (!isEditMode) {
+          if (!editingData) {
             const courseDisciplinesResponse = await api.get("/course/discipline");
             const courseDisciplineIds = Array.isArray(courseDisciplinesResponse.data)
               ? courseDisciplinesResponse.data.map((d) => d.disciplineId || d.id)
@@ -68,7 +69,7 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
 
           setDisciplines(availableDisciplines);
 
-          if (isEditMode && editingData) {
+          if (editingData) {
             console.log("Editing data:", editingData);
             const selected = allDisciplines.find((d) => d.id === editingData.disciplineId);
             setDiscipline({

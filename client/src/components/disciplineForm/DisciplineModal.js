@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogActions, DialogContent, DialogTitle, Button, Box, IconButton } from '@mui/material';
+import { Dialog, DialogActions, DialogContent, DialogTitle, Button, Box, IconButton, CircularProgress, Typography } from '@mui/material';
 import { Close, Save } from '@mui/icons-material';
 import api from '../../service/api';
 import { StyledTextField } from '../inputs/Input';
@@ -23,7 +23,7 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
 
   const handleSubmitSuccess = (newCourse) => {
     setAlert({
-      message: disciplineToEdit ? 'Disciplina atualizado com sucesso!' : 'Disciplina cadastrado com sucesso!',
+      message: disciplineToEdit ? 'Disciplina atualizada com sucesso!' : 'Disciplina cadastrada com sucesso!',
       type: 'success',
     });
     onClose();
@@ -46,7 +46,7 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
         setError(null);
       }
     }
-  }, [disciplineToEdit,open]);
+  }, [disciplineToEdit, open]);
 
   const handleInputChange = (e) => {
     setDiscipline({ ...discipline, [e.target.name]: e.target.value });
@@ -55,6 +55,7 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setLoading(true);
 
     if (!discipline.acronym || !discipline.name) {
       setError('Os campos nome e sigla são obrigatórios.');
@@ -82,15 +83,22 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
       const updatedDiscipline = response.data.discipline || response.data;
       
       onUpdate({ discipline: updatedDiscipline, isEditMode });
-      onClose();
       handleSubmitSuccess();
     } catch (err) {
-      console.error('Erro completo:', err.response);
-      setError(err.response?.data?.error || `Erro ao ${isEditMode ? 'atualizar' : 'cadastrar'} disciplina: ${err.message}`);
-      setAlert({
-        message: err.response?.data?.error || `Erro ao ${isEditMode ? 'atualizar' : 'cadastrar'} disciplina.`,
-        type: 'error',
-      });
+      console.error('Erro completo:', err);
+      console.error('Resposta do erro:', err.response?.data);
+
+      let errorMessage = err.response?.data?.message || 
+                        err.response?.data?.error || 
+                        err.response?.data?.errors?.[0] || 
+                        err.message || 
+                        `Erro ao ${isEditMode ? 'atualizar' : 'cadastrar'} disciplina.`;
+
+      if (Array.isArray(err.response?.data?.errors)) {
+        errorMessage = err.response.data.errors.join(', ');
+      }
+
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -118,96 +126,100 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
         </DialogTitle>
 
         <DialogContent sx={{ px: 5 }}>
-          {!loading ? (
-            <form onSubmit={handleSubmit}>
-              {error && <Box sx={{ color: 'red', marginBottom: 2, fontSize: '0.875rem' }}>{error}</Box>}
+          <form onSubmit={handleSubmit}>
+            {error && <Box sx={{ color: 'red', marginBottom: 2, fontSize: '0.875rem' }}>{error}</Box>}
+            <StyledTextField
+              sx={{
+                my: 2.5,
+                '& .MuiInputBase-root': { height: '56px' },
+                '& .MuiInputLabel-root': { top: '50%', transform: 'translate(14px, -50%)', fontSize: '1rem' },
+                '& .MuiInputLabel-shrink': { top: 0, transform: 'translate(14px, -9px) scale(0.75)' },
+              }}
+              name="name"
+              size="small"
+              variant="outlined"
+              fullWidth
+              label="Nome"
+              margin="normal"
+              value={discipline.name}
+              onChange={handleInputChange}
+              required
+            />
+            <Box display="flex" gap={2} my={1.5}>
               <StyledTextField
+                name="acronym"
+                label="Sigla"
+                variant="outlined"
+                size="small"
+                value={discipline.acronym}
+                onChange={handleInputChange}
+                required
                 sx={{
-                  my: 2.5,
+                  flex: 1,
                   '& .MuiInputBase-root': { height: '56px' },
                   '& .MuiInputLabel-root': { top: '50%', transform: 'translate(14px, -50%)', fontSize: '1rem' },
                   '& .MuiInputLabel-shrink': { top: 0, transform: 'translate(14px, -9px) scale(0.75)' },
                 }}
-                name="name"
-                size="small"
-                variant="outlined"
-                fullWidth
-                label="Nome"
-                margin="normal"
-                value={discipline.name}
-                onChange={handleInputChange}
-                required
               />
-              <Box display="flex" gap={2} my={1.5}>
-                <StyledTextField
-                  name="acronym"
-                  label="Sigla"
-                  variant="outlined"
-                  size="small"
-                  value={discipline.acronym}
-                  onChange={handleInputChange}
-                  required
-                  sx={{
-                    flex: 1,
-                    '& .MuiInputBase-root': { height: '56px' },
-                    '& .MuiInputLabel-root': { top: '50%', transform: 'translate(14px, -50%)', fontSize: '1rem' },
-                    '& .MuiInputLabel-shrink': { top: 0, transform: 'translate(14px, -9px) scale(0.75)' },
-                  }}
-                />
-              </Box>
-              <DialogActions
+            </Box>
+            <DialogActions
+              sx={{
+                justifyContent: 'center',
+                gap: 2,
+                padding: '10px 24px',
+                marginTop: '35px',
+              }}
+            >
+              <Button
+                onClick={onClose}
+                variant="contained"
                 sx={{
-                  justifyContent: 'center',
-                  gap: 2,
-                  padding: '10px 24px',
-                  marginTop: '35px',
+                  width: 'fit-content',
+                  minWidth: 100,
+                  padding: '8px 28px',
+                  borderRadius: '8px',
+                  textTransform: 'none',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  backgroundColor: '#F01424',
+                  '&:hover': { backgroundColor: '#D4000F' },
                 }}
               >
-                <Button
-                  onClick={onClose}
-                  variant="contained"
-                  sx={{
-                    width: 'fit-content',
-                    minWidth: 100,
-                    padding: '8px 28px',
-                    borderRadius: '8px',
-                    textTransform: 'none',
-                    fontWeight: 'bold',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    backgroundColor: '#F01424',
-                    '&:hover': { backgroundColor: '#D4000F' },
-                  }}
-                >
-                  <Close sx={{ fontSize: 24 }} />
-                  Cancelar
-                </Button>
-                <Button
-                  type="submit"
-                  color="primary"
-                  variant="contained"
-                  disabled={!isFormFilled}
-                  sx={{
-                    width: 'fit-content',
-                    minWidth: 100,
-                    padding: '8px 28px',
-                    backgroundColor: '#087619',
-                    borderRadius: '8px',
-                    textTransform: 'none',
-                    fontWeight: 'bold',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    '&:hover': { backgroundColor: '#066915' },
-                  }}
-                >
-                  <Save sx={{ fontSize: 24 }} />
-                  {isEditMode ? 'Salvar' : 'Cadastrar'}
-                </Button>
-              </DialogActions>
-            </form>
-          ) : null}
+                <Close sx={{ fontSize: 24 }} />
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                color="primary"
+                variant="contained"
+                disabled={!isFormFilled || loading}
+                sx={{
+                  width: 'fit-content',
+                  minWidth: 100,
+                  padding: '8px 28px',
+                  backgroundColor: '#087619',
+                  borderRadius: '8px',
+                  textTransform: 'none',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  '&:hover': { backgroundColor: '#066915' },
+                }}
+              >
+                {loading ? (
+                  <CircularProgress size={24} sx={{ color: '#fff' }} />
+                ) : (
+                  <>
+                    <Save sx={{ fontSize: 24 }} />
+                    {isEditMode ? 'Salvar' : 'Cadastrar'}
+                  </>
+                )}
+              </Button>
+            </DialogActions>
+          </form>
         </DialogContent>
       </Dialog>
       {alert && (

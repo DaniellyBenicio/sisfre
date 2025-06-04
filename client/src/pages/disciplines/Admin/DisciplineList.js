@@ -102,8 +102,17 @@ const DisciplineList = () => {
   };
 
   const handleDeleteClick = (disciplineId) => {
-    const discipline = disciplines.find((d) => d.id === disciplineId);
-    console.log("DisciplineList - Disciplina para exclusão:", discipline);
+    console.log("DisciplineList - ID da disciplina para exclusão:", disciplineId);
+    console.log("Lista de disciplinas atual:", disciplines);
+    const discipline = disciplines.find((d) => String(d.id) === String(disciplineId));
+    console.log("Disciplina encontrada para exclusão:", discipline);
+    if (!discipline) {
+      setAlert({
+        message: `Disciplina com ID ${disciplineId} não encontrada.`,
+        type: "error",
+      });
+      return;
+    }
     setDisciplineToDelete(discipline);
     setOpenDeleteDialog(true);
   };
@@ -182,9 +191,16 @@ const DisciplineList = () => {
 
       <DeleteConfirmationDialog
         open={openDeleteDialog}
-        onClose={() => setOpenDeleteDialog(false)}
+        onClose={() => {
+          setOpenDeleteDialog(false);
+          setDisciplineToDelete(null);
+        }}
         onConfirm={handleConfirmDelete}
-        message={`Deseja realmente excluir a disciplina "${disciplineToDelete?.name}"?`}
+        message={
+          disciplineToDelete
+            ? `Deseja realmente excluir a disciplina "${disciplineToDelete.name}"?`
+            : "Deseja realmente excluir esta disciplina?"
+        }
       />
 
       {alert && (

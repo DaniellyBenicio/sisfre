@@ -64,9 +64,13 @@ const CalendarList = () => {
     setCalendarToEdit(null);
   };
 
-  const handleDeleteClick = (calendar) => {
-    if (!calendar || !calendar.id) {
-      console.error("Erro: Calendário inválido ou sem ID:", calendar);
+  const handleDeleteClick = (calendarId) => {
+    console.log("CalendarList - ID do calendário para exclusão:", calendarId);
+    console.log("Lista de calendários atual:", calendars);
+    const calendar = calendars.find((c) => String(c.id) === String(calendarId));
+    console.log("Calendário encontrado para exclusão:", calendar);
+    if (!calendar) {
+      console.error("Erro: Calendário com ID não encontrado:", calendarId);
       return;
     }
     setCalendarToDelete(calendar);
@@ -79,17 +83,17 @@ const CalendarList = () => {
   };
 
   const handleSubmitSuccess = async (newCalendar, isEdit) => {
-    await fetchCalendars(); 
+    await fetchCalendars();
     handleDialogClose();
   };
 
   const handleUpdateSuccess = async (updatedCalendar) => {
-    await fetchCalendars(); 
+    await fetchCalendars();
     handleEditDialogClose();
   };
 
   const handleDeleteSuccess = async (calendarId) => {
-    await fetchCalendars(); 
+    await fetchCalendars();
     handleDeleteDialogClose();
   };
 

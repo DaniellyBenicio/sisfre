@@ -15,6 +15,7 @@ const UserList = () => {
   const [openUpdateDialog, setOpenUpdateDialog] = useState(false);
   const [userToEdit, setUserToEdit] = useState(null);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchUsers();
@@ -35,6 +36,7 @@ const UserList = () => {
         console.error("Dados do erro:", error.response.data);
       }
       setUsers([]);
+      setError("Erro ao carregar usuários. Tente novamente.");
     }
   };
 
@@ -94,7 +96,14 @@ const UserList = () => {
 
   const handleDelete = (userId) => {
     console.log("UserList - Usuário para deleção:", userId);
-    setUserToDelete(users.find((u) => u.id === userId));
+    console.log("Lista de usuários atual:", users);
+    const userToDeleteFound = users.find((u) => String(u.id) === String(userId));
+    console.log("Usuário encontrado para deleção:", userToDeleteFound);
+    if (!userToDeleteFound) {
+      setError(`Usuário com ID ${userId} não encontrado.`);
+      return;
+    }
+    setUserToDelete(userToDeleteFound);
     setOpenDeleteDialog(true);
   };
 
@@ -123,6 +132,11 @@ const UserList = () => {
       >
         Usuários
       </Typography>
+      {error && (
+        <Typography color="error" align="center">
+          {error}
+        </Typography>
+      )}
       <SearchAndCreateBar
         searchValue={search}
         onSearchChange={(e) => setSearch(e.target.value)}
@@ -154,6 +168,7 @@ const UserList = () => {
         onClose={() => {
           setOpenDeleteDialog(false);
           setUserToDelete(null);
+          setError(null);
         }}
         userId={userToDelete ? userToDelete.id : null}
         userName={userToDelete ? userToDelete.username : ""}

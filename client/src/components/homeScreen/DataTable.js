@@ -22,6 +22,7 @@ const DataTable = ({
   onUpdate,
   search,
   renderMobileRow,
+  setAlert, // Adicionado para passar alertas de erro
 }) => {
   const isMobile = useMediaQuery("(max-width:600px)");
   const [page, setPage] = useState(1);
@@ -65,7 +66,7 @@ const DataTable = ({
         ) : (
           visibleData.map((item) =>
             renderMobileRow ? (
-              <Paper key={item.id} sx={{ p: 1 }}>
+              <Paper key={item?.id} sx={{ p: 1 }}>
                 {renderMobileRow(item)}
                 <Stack direction="row" spacing={1} justifyContent="center">
                   <IconButton
@@ -77,13 +78,28 @@ const DataTable = ({
                   >
                     <Edit />
                   </IconButton>
-                  <IconButton color="error" onClick={() => onDelete(item)}>
+                  <IconButton
+                    color="error"
+                    onClick={() => {
+                      if (item && item.id) {
+                        onDelete(item.id);
+                      } else {
+                        console.error("Item ou item.id é undefined:", item);
+                        if (setAlert) {
+                          setAlert({
+                            message: "Erro: ID da disciplina não encontrado.",
+                            type: "error",
+                          });
+                        }
+                      }
+                    }}
+                  >
                     <Delete />
                   </IconButton>
                 </Stack>
               </Paper>
             ) : (
-              <Paper key={item.id} sx={{ p: 1 }}>
+              <Paper key={item?.id} sx={{ p: 1 }}>
                 <Stack spacing={0.5}>
                   {headers.map((header) => (
                     <Typography key={header.key}>
@@ -100,7 +116,22 @@ const DataTable = ({
                     >
                       <Edit />
                     </IconButton>
-                    <IconButton color="error" onClick={() => onDelete(item)}>
+                    <IconButton
+                      color="error"
+                      onClick={() => {
+                        if (item && item.id) {
+                          onDelete(item.id);
+                        } else {
+                          console.error("Item ou item.id é undefined:", item);
+                          if (setAlert) {
+                            setAlert({
+                              message: "Erro: ID da disciplina não encontrado.",
+                              type: "error",
+                            });
+                          }
+                        }
+                      }}
+                    >
                       <Delete />
                     </IconButton>
                   </Stack>
@@ -160,7 +191,7 @@ const DataTable = ({
               </TableRow>
             ) : (
               visibleData.map((item) => (
-                <TableRow key={item.id}>
+                <TableRow key={item?.id}>
                   {headers.map((header) => (
                     <TableCell
                       key={header.key}
@@ -177,7 +208,22 @@ const DataTable = ({
                     >
                       <Edit />
                     </IconButton>
-                    <IconButton color="error" onClick={() => onDelete(item)}>
+                    <IconButton
+                      color="error"
+                      onClick={() => {
+                        if (item && item.id) {
+                          onDelete(item.id);
+                        } else {
+                          console.error("Item ou item.id é undefined:", item);
+                          if (setAlert) {
+                            setAlert({
+                              message: "Erro: ID da disciplina não encontrado.",
+                              type: "error",
+                            });
+                          }
+                        }
+                      }}
+                    >
                       <Delete />
                     </IconButton>
                   </TableCell>

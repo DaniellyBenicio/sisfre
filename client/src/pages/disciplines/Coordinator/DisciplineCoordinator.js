@@ -18,6 +18,7 @@ const DisciplineCoordinator = () => {
   const [disciplineToEdit, setDisciplineToEdit] = useState(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [disciplineToDelete, setDisciplineToDelete] = useState(null);
+  const [disciplineNameToDelete, setDisciplineNameToDelete] = useState("");
 
   const handleAlertClose = () => {
     setAlert(null);
@@ -93,6 +94,7 @@ const DisciplineCoordinator = () => {
       return;
     }
     setDisciplineToDelete(discipline);
+    setDisciplineNameToDelete(discipline.name || "");
     setOpenDeleteDialog(true);
   };
 
@@ -109,7 +111,7 @@ const DisciplineCoordinator = () => {
       await api.delete(`/course/discipline/${disciplineToDelete.disciplineId}`);
       setDisciplines(disciplines.filter((c) => c.disciplineId !== disciplineToDelete.disciplineId));
       setAlert({
-        message: `Disciplina "${disciplineToDelete.name}" excluída com sucesso!`,
+        message: `Disciplina "${disciplineNameToDelete}" excluída com sucesso!`,
         type: "success",
       });
     } catch (error) {
@@ -215,7 +217,7 @@ const DisciplineCoordinator = () => {
         open={openDeleteDialog}
         onClose={() => setOpenDeleteDialog(false)}
         onConfirm={handleConfirmDelete}
-        message={`Deseja realmente excluir a disciplina "${disciplineToDelete?.name}"?`}
+        message={`Deseja realmente excluir a disciplina "${disciplineNameToDelete}"?`}
       />
 
       {alert && (

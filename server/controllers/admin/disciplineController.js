@@ -9,10 +9,30 @@ export const createDiscipline = async (req, res) => {
     });
   }
 
+  if (name.length < 3 || name.length > 100) {
+    return res.status(400).json({
+      error: "O nome deve ter entre 3 e 100 caracteres.",
+    });
+  }
+
   if (!/^[a-zA-Z0-9]+$/.test(acronym)) {
     return res.status(400).json({
-      message: "A sigla deve conter apenas letras e números, sem caracteres especiais",
+      message:
+        "A sigla deve conter apenas letras e números, sem caracteres especiais",
     });
+  }
+
+  if (acronym.length < 2 || acronym.length > 10) {
+    return res.status(400).json({
+      error: "A sigla deve ter entre 2 e 10 caracteres.",
+    });
+  }
+
+  const validNameRegex = /^[A-Za-zÀ-ÿ\s]*$/;
+  if (!validNameRegex.test(name)) {
+    return res
+      .status(400)
+      .json({ error: "O nome deve conter apenas letras, acentos e espaços." });
   }
 
   try {
@@ -49,12 +69,19 @@ export const updateDiscipline = async (req, res) => {
 
   if (!name && !acronym) {
     return res.status(400).json({
-      message: "Pelo menos um campo (nome ou sigla) deve ser fornecido para atualização",
+      message:
+        "Pelo menos um campo (nome ou sigla) deve ser fornecido para atualização",
     });
   }
 
   if (isNaN(id)) {
     return res.status(400).json({ message: "O ID deve ser um número válido" });
+  }
+
+  if (name.length < 3 || name.length > 100) {
+    return res.status(400).json({
+      error: "O nome deve ter entre 3 e 100 caracteres.",
+    });
   }
 
   try {
@@ -88,7 +115,14 @@ export const updateDiscipline = async (req, res) => {
 
     if (acronym && !/^[a-zA-Z0-9]+$/.test(acronym)) {
       return res.status(400).json({
-        message: "A sigla deve conter apenas letras e números, sem caracteres especiais",
+        message:
+          "A sigla deve conter apenas letras e números, sem caracteres especiais",
+      });
+    }
+
+    if (acronym.length < 2 || acronym.length > 10) {
+      return res.status(400).json({
+        error: "A sigla deve ter entre 2 e 10 caracteres.",
       });
     }
 
@@ -115,7 +149,7 @@ export const getDisciplines = async (req, res) => {
 
     if (name) {
       where.name = {
-        [db.Sequelize.Op.iLike]: `%${name}%`, 
+        [db.Sequelize.Op.iLike]: `%${name}%`,
       };
     }
 
@@ -129,7 +163,7 @@ export const getDisciplines = async (req, res) => {
       where,
       attributes: ["id", "name", "acronym"],
       limit: parseInt(limit),
-      offset: parseInt(offset), 
+      offset: parseInt(offset),
       order: [["name", order === "asc" ? "ASC" : "DESC"]],
     });
 
@@ -141,7 +175,9 @@ export const getDisciplines = async (req, res) => {
     });
   } catch (error) {
     console.error("Erro em getDisciplines:", error);
-    res.status(500).json({ message: "Erro ao listar disciplinas", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Erro ao listar disciplinas", error: error.message });
   }
 };
 
@@ -181,7 +217,9 @@ export const getDisciplineById = async (req, res) => {
 
   try {
     if (isNaN(id)) {
-      return res.status(400).json({ message: "O ID deve ser um número válido" });
+      return res
+        .status(400)
+        .json({ message: "O ID deve ser um número válido" });
     }
 
     const discipline = await db.Discipline.findByPk(id, {
@@ -197,7 +235,9 @@ export const getDisciplineById = async (req, res) => {
       discipline,
     });
   } catch (error) {
-    res.status(500).json({ message: "Erro ao buscar disciplina", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Erro ao buscar disciplina", error: error.message });
   }
 };
 

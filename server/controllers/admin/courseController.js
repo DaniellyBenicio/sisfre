@@ -9,6 +9,18 @@ export const createCourse = async (req, res) => {
       .json({ error: "Os campos nome, sigla e tipo são obrigatórios." });
   }
 
+  if (name.length < 3 || name.length > 100) {
+    return res.status(400).json({
+      error: "O nome deve ter entre 3 e 100 caracteres.",
+    });
+  }
+
+  if (acronym.length < 2 || acronym.length > 10) {
+    return res.status(400).json({
+      error: "A sigla deve ter entre 2 e 10 caracteres.",
+    });
+  }
+
   if (coordinatorId) {
     const coordinator = await db.User.findByPk(coordinatorId);
     if (!coordinator) {
@@ -179,6 +191,18 @@ export const updateCourse = async (req, res) => {
     if (name && !/^[A-Za-zÀ-ÿ\s]*$/.test(name)) {
       return res.status(400).json({
         error: "O nome deve conter apenas letras, acentos e espaços.",
+      });
+    }
+
+    if (name.length < 3 || name.length > 100) {
+      return res.status(400).json({
+        error: "O nome deve ter entre 3 e 100 caracteres.",
+      });
+    }
+
+    if (acronym.length < 2 || acronym.length > 10) {
+      return res.status(400).json({
+        error: "A sigla deve ter entre 2 e 10 caracteres.",
       });
     }
 

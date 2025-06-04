@@ -9,7 +9,7 @@ export const createCourse = async (req, res) => {
       .json({ error: "Os campos nome, sigla e tipo são obrigatórios." });
   }
 
-  if (name.length < 3 || name.length > 100) {
+  if (name.length < 3 || name.length > 50) {
     return res.status(400).json({
       error: "O nome deve ter entre 3 e 100 caracteres.",
     });
@@ -194,7 +194,7 @@ export const updateCourse = async (req, res) => {
       });
     }
 
-    if (name.length < 3 || name.length > 100) {
+    if (name.length < 3 || name.length > 50) {
       return res.status(400).json({
         error: "O nome deve ter entre 3 e 100 caracteres.",
       });

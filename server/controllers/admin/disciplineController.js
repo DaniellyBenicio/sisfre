@@ -9,7 +9,7 @@ export const createDiscipline = async (req, res) => {
     });
   }
 
-  if (name.length < 3 || name.length > 100) {
+  if (name.length < 3 || name.length > 50) {
     return res.status(400).json({
       error: "O nome deve ter entre 3 e 100 caracteres.",
     });
@@ -78,7 +78,7 @@ export const updateDiscipline = async (req, res) => {
     return res.status(400).json({ message: "O ID deve ser um número válido" });
   }
 
-  if (name.length < 3 || name.length > 100) {
+  if (name.length < 3 || name.length > 50) {
     return res.status(400).json({
       error: "O nome deve ter entre 3 e 100 caracteres.",
     });

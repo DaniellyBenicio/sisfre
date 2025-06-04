@@ -71,9 +71,10 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
     startDate: '',
     endDate: '',
   });
-  const [customType, setCustomType] = useState(''); // Estado para o campo de texto personalizado
+  const [customType, setCustomType] = useState('');
   const [error, setError] = useState(null);
   const [localCalendarTypes, setLocalCalendarTypes] = useState(calendarTypes);
+  const [isFormChanged, setIsFormChanged] = useState(false);
 
   const isFormFilled =
     calendarData.type &&
@@ -98,8 +99,9 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
         startDate: formatDateForInput(calendarToEdit.startDate),
         endDate: formatDateForInput(calendarToEdit.endDate),
       });
-      setCustomType(typeToSet === 'OUTRO' ? '' : typeToSet); // Preenche customType se necessário
+      setCustomType(typeToSet === 'OUTRO' ? '' : typeToSet);
       setError(null);
+      setIsFormChanged(false);
     } else {
       setCalendarData({
         type: '',
@@ -110,23 +112,27 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
       });
       setCustomType('');
       setError(null);
+      setIsFormChanged(false);
     }
   }, [calendarToEdit, open]);
 
   const handleInputChange = (name, value) => {
     setCalendarData({ ...calendarData, [name]: value });
+    setIsFormChanged(true);
   };
 
   const handleTypeChange = (e) => {
     const value = e.target.value;
     setCalendarData({ ...calendarData, type: value });
+    setIsFormChanged(true);
     if (value !== 'OUTRO') {
-      setCustomType(''); // Limpa o campo personalizado se não for OUTRO
+      setCustomType('');
     }
   };
 
   const handleCustomTypeChange = (e) => {
-    setCustomType(e.target.value); // Atualiza o campo personalizado
+    setCustomType(e.target.value);
+    setIsFormChanged(true);
   };
 
   const handleSubmit = async (e) => {
@@ -175,11 +181,10 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
         response = await api.put(`/calendar/${calendarToEdit?.id}`, payload);
       } else {
         response = await api.post(`/calendar`, payload);
-        // Adiciona o novo tipo à lista local e ao backend, se for um tipo personalizado
         if (calendarData.type === 'OUTRO' && !localCalendarTypes.includes(finalType)) {
           const newTypes = [...localCalendarTypes.filter(t => t !== 'OUTRO'), finalType, 'OUTRO'];
           setLocalCalendarTypes(newTypes);
-          calendarTypes = newTypes; // Atualiza a lista global
+          calendarTypes = newTypes;
           try {
             await api.post('/calendar-types', { type: finalType });
           } catch (typeError) {
@@ -202,7 +207,7 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
   };
 
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 5 }, (_, i) => (currentYear - i).toString());
+  const years = Array.from({ length: 5 }, (_, i) => (currentYear + i).toString());
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
@@ -502,13 +507,11 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
                         shrink: !!calendarData.startDate,
                         sx: {
                           color: '#757575',
-                          '&::after': { content: '" *"', color: '#757575' },
                           top: '50%',
                           transform: 'translate(14px, -50%)',
                           fontSize: '1rem',
                           '&.Mui-focused, &.MuiInputLabel-shrink': {
                             color: '#000000',
-                            '&::after': { content: '" *"', color: '#000000' },
                             top: 0,
                             transform: 'translate(14px, -9px) scale(0.75)',
                           },
@@ -597,13 +600,11 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
                         shrink: !!calendarData.endDate,
                         sx: {
                           color: '#757575',
-                          '&::after': { content: '" *"', color: '#757575' },
                           top: '50%',
                           transform: 'translate(14px, -50%)',
                           fontSize: '1rem',
                           '&.Mui-focused, &.MuiInputLabel-shrink': {
                             color: '#000000',
-                            '&::after': { content: '" *"', color: '#000000' },
                             top: 0,
                             transform: 'translate(14px, -9px) scale(0.75)',
                           },
@@ -683,10 +684,10 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
               <StyledButton
                 type="submit"
                 variant="contained"
-                disabled={!isFormFilled}
+                disabled={!isFormFilled || (isEditMode && !isFormChanged)}
                 sx={{
-                  backgroundColor: !isFormFilled ? '#E0E0E0' : INSTITUTIONAL_COLOR,
-                  '&:hover': { backgroundColor: !isFormFilled ? '#E0E0E0' : '#26692b' },
+                  backgroundColor: (!isFormFilled || (isEditMode && !isFormChanged)) ? '#E0E0E0' : INSTITUTIONAL_COLOR,
+                  '&:hover': { backgroundColor: (!isFormFilled || (isEditMode && !isFormChanged)) ? '#E0E0E0' : '#26692b' },
                 }}
               >
                 <Save sx={{ fontSize: 24 }} />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogActions, DialogContent, DialogTitle, Button, Box, IconButton, CircularProgress, Typography } from '@mui/material';
+import { Dialog, DialogActions, DialogContent, DialogTitle, Button, Box, IconButton, CircularProgress } from '@mui/material';
 import { Close, Save } from '@mui/icons-material';
 import api from '../../service/api';
 import { StyledTextField } from '../inputs/Input';

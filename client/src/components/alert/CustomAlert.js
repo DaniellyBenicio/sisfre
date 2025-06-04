@@ -46,8 +46,9 @@ export const CustomAlert = ({ message, type, onClose }) => {
       sx={{
         position: "fixed",
         top: "20px",
-        left: "50%",
-        transform: "translateX(-50%)",
+        right: "65px",
+        left: "unset",
+        transform: "none",
         width: "auto",
         minWidth: "200px",
         maxWidth: "300px",

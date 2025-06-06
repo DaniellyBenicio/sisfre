@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogActions,
@@ -10,66 +10,73 @@ import {
   MenuItem,
   IconButton,
   InputLabel,
-} from '@mui/material';
-import { Close, Save } from '@mui/icons-material';
-import { styled } from '@mui/material/styles';
-import { LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { ptBR } from 'date-fns/locale';
-import api from '../../service/api';
-import { StyledTextField, StyledSelect } from '../../components/inputs/Input';
+} from "@mui/material";
+import { Close, Save } from "@mui/icons-material";
+import { styled } from "@mui/material/styles";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { ptBR } from "date-fns/locale";
+import api from "../../service/api";
+import { StyledTextField, StyledSelect } from "../../components/inputs/Input";
+import DateRangePicker from "./DateRangePicker";
 
-const INSTITUTIONAL_COLOR = '#307c34';
+const INSTITUTIONAL_COLOR = "#307c34";
 
 const StyledButton = styled(Button)(({ theme }) => ({
-  borderRadius: '8px',
+  borderRadius: "8px",
   padding: theme.spacing(1, 3),
-  textTransform: 'none',
-  fontWeight: 'bold',
-  fontSize: '0.875rem',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
+  textTransform: "none",
+  fontWeight: "bold",
+  fontSize: "0.875rem",
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
 }));
 
-let calendarTypes = ['CONVENCIONAL', 'REGULAR', 'PÓS-GREVE', 'OUTRO'];
+let calendarTypes = ["CONVENCIONAL", "REGULAR", "PÓS-GREVE", "OUTRO"];
 
 const formatDateForInput = (date) => {
-  if (!date) return '';
+  if (!date) return "";
   try {
-    if (typeof date === 'string') {
-      const parts = date.split('/');
+    if (typeof date === "string") {
+      const parts = date.split("/");
       if (parts.length === 3) {
         const parsedDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
         if (!isNaN(parsedDate.getTime())) {
-          return parsedDate.toISOString().split('T')[0];
+          return parsedDate.toISOString().split("T")[0];
         }
       }
       const parsedDate = new Date(date);
       if (!isNaN(parsedDate.getTime())) {
-        return parsedDate.toISOString().split('T')[0];
+        return parsedDate.toISOString().split("T")[0];
       }
-      return '';
+      return "";
     }
     if (date instanceof Date && !isNaN(date.getTime())) {
-      return date.toISOString().split('T')[0];
+      return date.toISOString().split("T")[0];
     }
-    return '';
+    return "";
   } catch (error) {
     console.error("Erro ao formatar data:", error);
-    return '';
+    return "";
   }
 };
 
-const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, isEditMode }) => {
+const CalendarFormDialog = ({
+  open,
+  onClose,
+  calendarToEdit,
+  onSubmitSuccess,
+  isEditMode,
+}) => {
   const [calendarData, setCalendarData] = useState({
-    type: '',
-    year: '',
-    period: '',
-    startDate: '',
-    endDate: '',
+    type: "",
+    year: "",
+    period: "",
+    startDate: "",
+    endDate: "",
   });
-  const [customType, setCustomType] = useState('');
+  const [customType, setCustomType] = useState("");
   const [error, setError] = useState(null);
   const [localCalendarTypes, setLocalCalendarTypes] = useState(calendarTypes);
   const [isFormChanged, setIsFormChanged] = useState(false);
@@ -80,35 +87,45 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
     calendarData.period &&
     calendarData.startDate &&
     calendarData.endDate &&
-    (calendarData.type !== 'OUTRO' || (calendarData.type === 'OUTRO' && customType));
+    (calendarData.type !== "OUTRO" ||
+      (calendarData.type === "OUTRO" && customType));
 
   useEffect(() => {
     if (calendarToEdit) {
-      const typeToSet = localCalendarTypes.includes(calendarToEdit.type) || calendarToEdit.type === 'OUTRO'
-        ? calendarToEdit.type
-        : calendarToEdit.type;
-      if (!localCalendarTypes.includes(calendarToEdit.type) && calendarToEdit.type !== 'OUTRO') {
-        setLocalCalendarTypes([...localCalendarTypes.filter(t => t !== 'OUTRO'), calendarToEdit.type, 'OUTRO']);
+      const typeToSet =
+        localCalendarTypes.includes(calendarToEdit.type) ||
+        calendarToEdit.type === "OUTRO"
+          ? calendarToEdit.type
+          : calendarToEdit.type;
+      if (
+        !localCalendarTypes.includes(calendarToEdit.type) &&
+        calendarToEdit.type !== "OUTRO"
+      ) {
+        setLocalCalendarTypes([
+          ...localCalendarTypes.filter((t) => t !== "OUTRO"),
+          calendarToEdit.type,
+          "OUTRO",
+        ]);
       }
       setCalendarData({
         type: typeToSet,
-        year: calendarToEdit.year || '',
-        period: calendarToEdit.period || '',
+        year: calendarToEdit.year || "",
+        period: calendarToEdit.period || "",
         startDate: formatDateForInput(calendarToEdit.startDate),
         endDate: formatDateForInput(calendarToEdit.endDate),
       });
-      setCustomType(typeToSet === 'OUTRO' ? '' : typeToSet);
+      setCustomType(typeToSet === "OUTRO" ? "" : typeToSet);
       setError(null);
       setIsFormChanged(false);
     } else {
       setCalendarData({
-        type: '',
-        year: '',
-        period: '',
-        startDate: '',
-        endDate: '',
+        type: "",
+        year: "",
+        period: "",
+        startDate: "",
+        endDate: "",
       });
-      setCustomType('');
+      setCustomType("");
       setError(null);
       setIsFormChanged(false);
     }
@@ -123,8 +140,8 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
     const value = e.target.value;
     setCalendarData({ ...calendarData, type: value });
     setIsFormChanged(true);
-    if (value !== 'OUTRO') {
-      setCustomType('');
+    if (value !== "OUTRO") {
+      setCustomType("");
     }
   };
 
@@ -138,9 +155,9 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
     setError(null);
 
     let finalType = calendarData.type;
-    if (calendarData.type === 'OUTRO') {
+    if (calendarData.type === "OUTRO") {
       if (!customType || customType.trim().length < 3) {
-        setError('O tipo personalizado deve ter pelo menos 3 caracteres.');
+        setError("O tipo personalizado deve ter pelo menos 3 caracteres.");
         return;
       }
       finalType = customType.trim().toUpperCase();
@@ -148,18 +165,24 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
       finalType = calendarData.type.toUpperCase();
     }
 
-    if (!finalType || !calendarData.year || !calendarData.period || !calendarData.startDate || !calendarData.endDate) {
-      setError('Todos os campos são obrigatórios.');
+    if (
+      !finalType ||
+      !calendarData.year ||
+      !calendarData.period ||
+      !calendarData.startDate ||
+      !calendarData.endDate
+    ) {
+      setError("Todos os campos são obrigatórios.");
       return;
     }
 
     if (!calendarData.year.match(/^\d{4}$/)) {
-      setError('O ano deve estar no formato AAAA (ex.: 2025).');
+      setError("O ano deve estar no formato AAAA (ex.: 2025).");
       return;
     }
 
-    if (!['1', '2'].includes(calendarData.period)) {
-      setError('O período deve ser 1 ou 2.');
+    if (!["1", "2"].includes(calendarData.period)) {
+      setError("O período deve ser 1 ou 2.");
       return;
     }
 
@@ -172,35 +195,47 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
         endDate: calendarData.endDate,
       };
 
-      console.log('CalendarFormDialog - Payload enviado:', payload);
+      console.log("CalendarFormDialog - Payload enviado:", payload);
 
       let response;
       if (isEditMode) {
         response = await api.put(`/calendar/${calendarToEdit?.id}`, payload);
       } else {
         response = await api.post(`/calendar`, payload);
-        if (calendarData.type === 'OUTRO' && !localCalendarTypes.includes(finalType)) {
-          const newTypes = [...localCalendarTypes.filter(t => t !== 'OUTRO'), finalType, 'OUTRO'];
+        if (
+          calendarData.type === "OUTRO" &&
+          !localCalendarTypes.includes(finalType)
+        ) {
+          const newTypes = [
+            ...localCalendarTypes.filter((t) => t !== "OUTRO"),
+            finalType,
+            "OUTRO",
+          ];
           setLocalCalendarTypes(newTypes);
           calendarTypes = newTypes;
           try {
-            await api.post('/calendar-types', { type: finalType });
+            await api.post("/calendar-types", { type: finalType });
           } catch (typeError) {
-            console.error('Erro ao cadastrar novo tipo:', typeError);
-            setError('Calendário salvo, mas houve um erro ao cadastrar o novo tipo.');
+            console.error("Erro ao cadastrar novo tipo:", typeError);
+            setError(
+              "Calendário salvo, mas houve um erro ao cadastrar o novo tipo."
+            );
           }
         }
       }
 
-      console.log('CalendarFormDialog - Resposta da API:', response.data);
+      console.log("CalendarFormDialog - Resposta da API:", response.data);
 
       onSubmitSuccess(response.data.calendar, isEditMode);
       onClose();
     } catch (err) {
       const errorMessage =
-        err.response?.data?.error || `Erro ao ${isEditMode ? 'atualizar' : 'cadastrar'} calendário: ${err.message}`;
+        err.response?.data?.error ||
+        `Erro ao ${isEditMode ? "atualizar" : "cadastrar"} calendário: ${
+          err.message
+        }`;
       setError(errorMessage);
-      console.error('CalendarFormDialog - Erro:', err);
+      console.error("CalendarFormDialog - Erro:", err);
     }
   };
 
@@ -214,17 +249,24 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: '8px',
-            width: '520px',
-            maxWidth: '90vw',
+            borderRadius: "8px",
+            width: "520px",
+            maxWidth: "90vw",
           },
         }}
       >
-        <DialogTitle sx={{ textAlign: 'center', marginTop: '15px', color: '#087619', fontWeight: 'bold' }}>
-          {isEditMode ? 'Editar Calendário' : 'Cadastrar Calendário'}
+        <DialogTitle
+          sx={{
+            textAlign: "center",
+            marginTop: "15px",
+            color: "#087619",
+            fontWeight: "bold",
+          }}
+        >
+          {isEditMode ? "Editar Calendário" : "Cadastrar Calendário"}
           <IconButton
             onClick={onClose}
-            sx={{ position: 'absolute', right: 8, top: 8 }}
+            sx={{ position: "absolute", right: 8, top: 8 }}
           >
             <Close />
           </IconButton>
@@ -233,7 +275,7 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
         <DialogContent sx={{ px: 5 }}>
           <Box component="form" onSubmit={handleSubmit}>
             {error && (
-              <Box sx={{ color: 'red', marginBottom: 2, fontSize: '0.875rem' }}>
+              <Box sx={{ color: "red", marginBottom: 2, fontSize: "0.875rem" }}>
                 {error}
               </Box>
             )}
@@ -243,37 +285,38 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
               margin="normal"
               sx={{
                 my: 1.5,
-                '& .MuiOutlinedInput-root': {
-                  height: '56px',
+                "& .MuiOutlinedInput-root": {
+                  height: "56px",
                 },
-                '& .MuiOutlinedInput-notchedOutline': {
-                  borderWidth: '1px',
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderWidth: "1px",
                 },
-                '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                  borderColor: '#000000 !important',
-                  borderWidth: '2px',
-                },
+                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                  {
+                    borderColor: "#000000 !important",
+                    borderWidth: "2px",
+                  },
               }}
             >
               <InputLabel
                 id="type-label"
                 sx={{
-                  color: '#757575',
-                  '&::after': { content: '" *"', color: '#757575' },
-                  top: '50%',
-                  transform: 'translate(14px, -50%)',
-                  fontSize: '1rem',
-                  '&.Mui-focused, &.MuiInputLabel-shrink': {
-                    color: '#000000',
-                    '&::after': { content: '" *"', color: '#000000' },
+                  color: "#757575",
+                  "&::after": { content: '" *"', color: "#757575" },
+                  top: "50%",
+                  transform: "translate(14px, -50%)",
+                  fontSize: "1rem",
+                  "&.Mui-focused, &.MuiInputLabel-shrink": {
+                    color: "#000000",
+                    "&::after": { content: '" *"', color: "#000000" },
                     top: 0,
-                    transform: 'translate(14px, -9px) scale(0.75)',
+                    transform: "translate(14px, -9px) scale(0.75)",
                   },
                 }}
               >
                 Tipo
               </InputLabel>
-              {calendarData.type === 'OUTRO' ? (
+              {calendarData.type === "OUTRO" ? (
                 <StyledTextField
                   id="type-input"
                   name="type-full"
@@ -285,16 +328,17 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
                     shrink: !!customType,
                   }}
                   sx={{
-                    '& .MuiOutlinedInput-root': {
-                      height: '56px',
+                    "& .MuiOutlinedInput-root": {
+                      height: "56px",
                     },
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderWidth: '1px',
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderWidth: "1px",
                     },
-                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#000000 !important',
-                      borderWidth: '2px',
-                    },
+                    "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                      {
+                        borderColor: "#000000 !important",
+                        borderWidth: "2px",
+                      },
                   }}
                 />
               ) : (
@@ -308,17 +352,17 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
                   MenuProps={{
                     PaperProps: {
                       sx: {
-                        maxHeight: '200px',
-                        overflowY: 'auto',
-                        width: 'auto',
-                        '& .MuiMenuItem-root': {
-                          '&:hover': {
-                            backgroundColor: '#D5FFDB',
+                        maxHeight: "200px",
+                        overflowY: "auto",
+                        width: "auto",
+                        "& .MuiMenuItem-root": {
+                          "&:hover": {
+                            backgroundColor: "#D5FFDB",
                           },
-                          '&.Mui-selected': {
-                            backgroundColor: '#E8F5E9',
-                            '&:hover': {
-                              backgroundColor: '#D5FFDB',
+                          "&.Mui-selected": {
+                            backgroundColor: "#E8F5E9",
+                            "&:hover": {
+                              backgroundColor: "#D5FFDB",
                             },
                           },
                         },
@@ -335,39 +379,42 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
               )}
             </FormControl>
 
-            <Box sx={{ display: 'flex', gap: 2, my: 1.5, alignItems: 'center' }}>
+            <Box
+              sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}
+            >
               <FormControl
                 fullWidth
                 margin="normal"
                 sx={{
                   flex: 1,
-                  '& .MuiOutlinedInput-root': {
-                    height: '56px',
+                  "& .MuiOutlinedInput-root": {
+                    height: "56px",
                   },
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderWidth: '1px',
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderWidth: "1px",
                   },
-                  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#000000 !important',
-                    borderWidth: '2px',
-                  },
+                  "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                    {
+                      borderColor: "#000000 !important",
+                      borderWidth: "2px",
+                    },
                 }}
               >
                 <InputLabel
                   id="year-label"
                   sx={{
-                    color: '#757575',
-                    '&::after': { content: '" *"', color: '#757575' },
-                    top: '50%',
-                    transform: 'translate(14px, -50%)',
-                    fontSize: '1rem',
-                    '&.Mui-focused, &.MuiInputLabel-shrink': {
-                      color: '#000000',
-                      '&::after': { content: '" *"', color: '#000000' },
+                    color: "#757575",
+                    "&::after": { content: '" *"', color: "#757575" },
+                    top: "50%",
+                    transform: "translate(14px, -50%)",
+                    fontSize: "1rem",
+                    "&.Mui-focused, &.MuiInputLabel-shrink": {
+                      color: "#000000",
+                      "&::after": { content: '" *"', color: "#000000" },
                     },
-                    '&.MuiInputLabel-shrink': {
+                    "&.MuiInputLabel-shrink": {
                       top: 0,
-                      transform: 'translate(14px, -9px) scale(0.75)',
+                      transform: "translate(14px, -9px) scale(0.75)",
                     },
                   }}
                 >
@@ -377,23 +424,25 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
                   id="year-select"
                   name="year"
                   value={calendarData.year}
-                  onChange={(e) => handleInputChange(e.target.name, e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange(e.target.name, e.target.value)
+                  }
                   label="Ano"
                   required
                   MenuProps={{
                     PaperProps: {
                       sx: {
-                        maxHeight: '200px',
-                        overflowY: 'auto',
-                        width: 'auto',
-                        '& .MuiMenuItem-root': {
-                          '&:hover': {
-                            backgroundColor: '#D5FFDB',
+                        maxHeight: "200px",
+                        overflowY: "auto",
+                        width: "auto",
+                        "& .MuiMenuItem-root": {
+                          "&:hover": {
+                            backgroundColor: "#D5FFDB",
                           },
-                          '&.Mui-selected': {
-                            backgroundColor: '#E8F5E9',
-                            '&:hover': {
-                              backgroundColor: '#D5FFDB',
+                          "&.Mui-selected": {
+                            backgroundColor: "#E8F5E9",
+                            "&:hover": {
+                              backgroundColor: "#D5FFDB",
                             },
                           },
                         },
@@ -414,33 +463,34 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
                 margin="normal"
                 sx={{
                   flex: 1,
-                  '& .MuiOutlinedInput-root': {
-                    height: '56px',
+                  "& .MuiOutlinedInput-root": {
+                    height: "56px",
                   },
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderWidth: '1px',
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderWidth: "1px",
                   },
-                  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#000000 !important',
-                    borderWidth: '2px',
-                  },
+                  "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                    {
+                      borderColor: "#000000 !important",
+                      borderWidth: "2px",
+                    },
                 }}
               >
                 <InputLabel
                   id="period-label"
                   sx={{
-                    color: '#757575',
-                    '&::after': { content: '" *"', color: '#757575' },
-                    top: '50%',
-                    transform: 'translate(14px, -50%)',
-                    fontSize: '1rem',
-                    '&.Mui-focused, &.MuiInputLabel-shrink': {
-                      color: '#000000',
-                      '&::after': { content: '" *"', color: '#000000' },
+                    color: "#757575",
+                    "&::after": { content: '" *"', color: "#757575" },
+                    top: "50%",
+                    transform: "translate(14px, -50%)",
+                    fontSize: "1rem",
+                    "&.Mui-focused, &.MuiInputLabel-shrink": {
+                      color: "#000000",
+                      "&::after": { content: '" *"', color: "#000000" },
                     },
-                    '&.MuiInputLabel-shrink': {
+                    "&.MuiInputLabel-shrink": {
                       top: 0,
-                      transform: 'translate(14px, -9px) scale(0.75)',
+                      transform: "translate(14px, -9px) scale(0.75)",
                     },
                   }}
                 >
@@ -450,23 +500,25 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
                   id="period-select"
                   name="period"
                   value={calendarData.period}
-                  onChange={(e) => handleInputChange(e.target.name, e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange(e.target.name, e.target.value)
+                  }
                   label="Período"
                   required
                   MenuProps={{
                     PaperProps: {
                       sx: {
-                        maxHeight: '200px',
-                        overflowY: 'auto',
-                        width: 'auto',
-                        '& .MuiMenuItem-root': {
-                          '&:hover': {
-                            backgroundColor: '#D5FFDB',
+                        maxHeight: "200px",
+                        overflowY: "auto",
+                        width: "auto",
+                        "& .MuiMenuItem-root": {
+                          "&:hover": {
+                            backgroundColor: "#D5FFDB",
                           },
-                          '&.Mui-selected': {
-                            backgroundColor: '#E8F5E9',
-                            '&:hover': {
-                              backgroundColor: '#D5FFDB',
+                          "&.Mui-selected": {
+                            backgroundColor: "#E8F5E9",
+                            "&:hover": {
+                              backgroundColor: "#D5FFDB",
                             },
                           },
                         },
@@ -474,7 +526,7 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
                     },
                   }}
                 >
-                  {['1', '2'].map((period) => (
+                  {["1", "2"].map((period) => (
                     <MenuItem key={period} value={period}>
                       {period}
                     </MenuItem>
@@ -483,120 +535,26 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
               </FormControl>
             </Box>
 
-            <Box sx={{ display: 'flex', gap: 2, my: 1.5, alignItems: 'center' }}>
-              <FormControl
-                fullWidth
-                margin="normal"
-                sx={{
-                  flex: 1,
-                  '& .MuiOutlinedInput-root': {
-                    height: '56px',
-                  },
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderWidth: '1px',
-                  },
-                  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#000000 !important',
-                    borderWidth: '2px',
-                  },
-                }}
-              >
-                <InputLabel
-                  id="startDate-label"
-                  sx={{
-                    color: '#757575',
-                    '&::after': { content: '" *"', color: '#757575' },
-                    fontSize: '1rem',
-                    '&.Mui-focused, &.MuiInputLabel-shrink': {
-                      color: '#000000',
-                      '&::after': { content: '" *"', color: '#000000' },
-                      transform: 'translate(14px, -9px) scale(0.75)',
-                    },
-                    '&.MuiInputLabel-shrink': {
-                      transform: 'translate(14px, -9px) scale(0.75)',
-                    },
-                  }}
-                >
-                  Data de Início
-                </InputLabel>
-                <StyledTextField
-                  name="startDate"
-                  value={calendarData.startDate}
-                  onChange={(e) => handleInputChange('startDate', e.target.value)}
-                  type="date"
-                  required
-                  placeholder="dd/mm/aaaa"
-                  InputLabelProps={{ shrink: true }}
-                  inputProps={{
-                    placeholder: 'dd/mm/aaaa',
-                  }}
-                />
-              </FormControl>
-
-              <FormControl
-                fullWidth
-                margin="normal"
-                sx={{
-                  flex: 1,
-                  '& .MuiOutlinedInput-root': {
-                    height: '56px',
-                  },
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderWidth: '1px',
-                  },
-                  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#000000 !important',
-                    borderWidth: '2px',
-                  },
-                }}
-              >
-                <InputLabel
-                  id="endDate-label"
-                  sx={{
-                    color: '#757575',
-                    '&::after': { content: '" *"', color: '#757575' },
-                    fontSize: '1rem',
-                    '&.Mui-focused, &.MuiInputLabel-shrink': {
-                      color: '#000000',
-                      '&::after': { content: '" *"', color: '#000000' },
-                      transform: 'translate(14px, -9px) scale(0.75)',
-                    },
-                    '&.MuiInputLabel-shrink': {
-                      transform: 'translate(14px, -9px) scale(0.75)',
-                    },
-                  }}
-                >
-                  Data de Fim
-                </InputLabel>
-                <StyledTextField
-                  name="endDate"
-                  value={calendarData.endDate}
-                  onChange={(e) => handleInputChange('endDate', e.target.value)}
-                  type="date"
-                  required
-                  placeholder="dd/mm/aaaa"
-                  InputLabelProps={{ shrink: true }}
-                  inputProps={{
-                    placeholder: 'dd/mm/aaaa',
-                  }}
-                />
-              </FormControl>
-            </Box>
+            {/* Usa o componente DateRangePicker para os campos de data */}
+            <DateRangePicker
+              calendarData={calendarData}
+              handleInputChange={handleInputChange}
+            />
 
             <DialogActions
               sx={{
-                justifyContent: 'center',
+                justifyContent: "center",
                 gap: 2,
-                padding: '10px 24px',
-                marginTop: '10px',
+                padding: "10px 24px",
+                marginTop: "10px",
               }}
             >
               <StyledButton
                 onClick={onClose}
                 variant="contained"
                 sx={{
-                  backgroundColor: '#F01424',
-                  '&:hover': { backgroundColor: '#D4000F' },
+                  backgroundColor: "#F01424",
+                  "&:hover": { backgroundColor: "#D4000F" },
                 }}
               >
                 <Close sx={{ fontSize: 24 }} />
@@ -607,12 +565,20 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
                 variant="contained"
                 disabled={!isFormFilled || (isEditMode && !isFormChanged)}
                 sx={{
-                  backgroundColor: (!isFormFilled || (isEditMode && !isFormChanged)) ? '#E0E0E0' : INSTITUTIONAL_COLOR,
-                  '&:hover': { backgroundColor: (!isFormFilled || (isEditMode && !isFormChanged)) ? '#E0E0E0' : '#26692b' },
+                  backgroundColor:
+                    !isFormFilled || (isEditMode && !isFormChanged)
+                      ? "#E0E0E0"
+                      : INSTITUTIONAL_COLOR,
+                  "&:hover": {
+                    backgroundColor:
+                      !isFormFilled || (isEditMode && !isFormChanged)
+                        ? "#E0E0E0"
+                        : "#26692b",
+                  },
                 }}
               >
                 <Save sx={{ fontSize: 24 }} />
-                {isEditMode ? 'Atualizar' : 'Cadastrar'}
+                {isEditMode ? "Atualizar" : "Cadastrar"}
               </StyledButton>
             </DialogActions>
           </Box>

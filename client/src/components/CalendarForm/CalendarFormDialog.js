@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import { Close, Save } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
-import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ptBR } from 'date-fns/locale';
 import api from '../../service/api';
@@ -32,10 +32,8 @@ const StyledButton = styled(Button)(({ theme }) => ({
   gap: '8px',
 }));
 
-// Initialize calendar types
 let calendarTypes = ['CONVENCIONAL', 'REGULAR', 'PÓS-GREVE', 'OUTRO'];
 
-// Função auxiliar para formatar a data para YYYY-MM-DD
 const formatDateForInput = (date) => {
   if (!date) return '';
   try {
@@ -156,7 +154,7 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
     }
 
     if (!calendarData.year.match(/^\d{4}$/)) {
-      setError('O ano deve estar no formato AAAA (ex.: 2020).');
+      setError('O ano deve estar no formato AAAA (ex.: 2025).');
       return;
     }
 
@@ -206,8 +204,7 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
     }
   };
 
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 5 }, (_, i) => (currentYear + i).toString());
+  const years = Array.from({ length: 5 }, (_, i) => (2025 + i).toString());
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
@@ -269,8 +266,6 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
                   '&.Mui-focused, &.MuiInputLabel-shrink': {
                     color: '#000000',
                     '&::after': { content: '" *"', color: '#000000' },
-                  },
-                  '&.MuiInputLabel-shrink': {
                     top: 0,
                     transform: 'translate(14px, -9px) scale(0.75)',
                   },
@@ -281,12 +276,26 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
               {calendarData.type === 'OUTRO' ? (
                 <StyledTextField
                   id="type-input"
-                  name="customType"
+                  name="type-full"
                   value={customType}
                   onChange={handleCustomTypeChange}
                   required
-                  InputLabelProps={{ shrink: true }}
-                  placeholder="Digite o novo tipo"
+                  placeholder="Digite o tipo"
+                  InputLabelProps={{
+                    shrink: !!customType,
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      height: '56px',
+                    },
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderWidth: '1px',
+                    },
+                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#000000 !important',
+                      borderWidth: '2px',
+                    },
+                  }}
                 />
               ) : (
                 <StyledSelect
@@ -294,8 +303,8 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
                   name="type"
                   value={calendarData.type}
                   onChange={handleTypeChange}
-                  label="Tipo"
                   required
+                  label="Tipo"
                   MenuProps={{
                     PaperProps: {
                       sx: {
@@ -482,7 +491,6 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
                   flex: 1,
                   '& .MuiOutlinedInput-root': {
                     height: '56px',
-                    borderRadius: '4px',
                   },
                   '& .MuiOutlinedInput-notchedOutline': {
                     borderWidth: '1px',
@@ -493,77 +501,34 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
                   },
                 }}
               >
-                <DatePicker
-                  label="Data de Início"
-                  value={calendarData.startDate ? new Date(calendarData.startDate) : null}
-                  onChange={(date) => handleInputChange('startDate', formatDateForInput(date))}
-                  format="dd/MM/yyyy"
-                  slotProps={{
-                    textField: {
-                      id: 'startDate-input',
-                      required: true,
-                      placeholder: 'mm/dd/aaaa',
-                      InputLabelProps: {
-                        shrink: !!calendarData.startDate,
-                        sx: {
-                          color: '#757575',
-                          top: '50%',
-                          transform: 'translate(14px, -50%)',
-                          fontSize: '1rem',
-                          '&.Mui-focused, &.MuiInputLabel-shrink': {
-                            color: '#000000',
-                            top: 0,
-                            transform: 'translate(14px, -9px) scale(0.75)',
-                          },
-                        },
-                      },
-                      sx: {
-                        '& .MuiInputBase-input': {
-                          padding: '16.5px 14px',
-                          fontSize: '1rem',
-                          '&::placeholder': {
-                            color: '#757575',
-                            opacity: 1,
-                          },
-                        },
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: '4px',
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#000000',
-                          },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#000000 !important',
-                            borderWidth: '2px',
-                          },
-                        },
-                      },
+                <InputLabel
+                  id="startDate-label"
+                  sx={{
+                    color: '#757575',
+                    '&::after': { content: '" *"', color: '#757575' },
+                    fontSize: '1rem',
+                    '&.Mui-focused, &.MuiInputLabel-shrink': {
+                      color: '#000000',
+                      '&::after': { content: '" *"', color: '#000000' },
+                      transform: 'translate(14px, -9px) scale(0.75)',
                     },
-                    popper: {
-                      sx: {
-                        '& .MuiPaper-root': {
-                          border: '1px solid #000000',
-                          borderRadius: '4px',
-                          width: '280px',
-                          maxHeight: '320px',
-                          overflow: 'hidden',
-                        },
-                        '& .MuiPickersCalendar-root': {
-                          fontSize: '0.875rem',
-                          padding: '8px',
-                        },
-                        '& .MuiDayCalendar-weekContainer': {
-                          margin: '2px 0',
-                        },
-                        '& .MuiPickersDay-root': {
-                          width: '32px',
-                          height: '32px',
-                          fontSize: '0.85rem',
-                        },
-                        '& .MuiPickersCalendarHeader-root': {
-                          padding: '8px',
-                        },
-                      },
+                    '&.MuiInputLabel-shrink': {
+                      transform: 'translate(14px, -9px) scale(0.75)',
                     },
+                  }}
+                >
+                  Data de Início
+                </InputLabel>
+                <StyledTextField
+                  name="startDate"
+                  value={calendarData.startDate}
+                  onChange={(e) => handleInputChange('startDate', e.target.value)}
+                  type="date"
+                  required
+                  placeholder="dd/mm/aaaa"
+                  InputLabelProps={{ shrink: true }}
+                  inputProps={{
+                    placeholder: 'dd/mm/aaaa',
                   }}
                 />
               </FormControl>
@@ -575,7 +540,6 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
                   flex: 1,
                   '& .MuiOutlinedInput-root': {
                     height: '56px',
-                    borderRadius: '4px',
                   },
                   '& .MuiOutlinedInput-notchedOutline': {
                     borderWidth: '1px',
@@ -586,77 +550,34 @@ const CalendarFormDialog = ({ open, onClose, calendarToEdit, onSubmitSuccess, is
                   },
                 }}
               >
-                <DatePicker
-                  label="Data de Fim"
-                  value={calendarData.endDate ? new Date(calendarData.endDate) : null}
-                  onChange={(date) => handleInputChange('endDate', formatDateForInput(date))}
-                  format="dd/MM/yyyy"
-                  slotProps={{
-                    textField: {
-                      id: 'endDate-input',
-                      required: true,
-                      placeholder: 'mm/dd/aaaa',
-                      InputLabelProps: {
-                        shrink: !!calendarData.endDate,
-                        sx: {
-                          color: '#757575',
-                          top: '50%',
-                          transform: 'translate(14px, -50%)',
-                          fontSize: '1rem',
-                          '&.Mui-focused, &.MuiInputLabel-shrink': {
-                            color: '#000000',
-                            top: 0,
-                            transform: 'translate(14px, -9px) scale(0.75)',
-                          },
-                        },
-                      },
-                      sx: {
-                        '& .MuiInputBase-input': {
-                          padding: '16.5px 14px',
-                          fontSize: '1rem',
-                          '&::placeholder': {
-                            color: '#757575',
-                            opacity: 1,
-                          },
-                        },
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: '4px',
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#000000',
-                          },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#000000 !important',
-                            borderWidth: '2px',
-                          },
-                        },
-                      },
+                <InputLabel
+                  id="endDate-label"
+                  sx={{
+                    color: '#757575',
+                    '&::after': { content: '" *"', color: '#757575' },
+                    fontSize: '1rem',
+                    '&.Mui-focused, &.MuiInputLabel-shrink': {
+                      color: '#000000',
+                      '&::after': { content: '" *"', color: '#000000' },
+                      transform: 'translate(14px, -9px) scale(0.75)',
                     },
-                    popper: {
-                      sx: {
-                        '& .MuiPaper-root': {
-                          border: '1px solid #000000',
-                          borderRadius: '4px',
-                          width: '280px',
-                          maxHeight: '320px',
-                          overflow: 'hidden',
-                        },
-                        '& .MuiPickersCalendar-root': {
-                          fontSize: '0.875rem',
-                          padding: '8px',
-                        },
-                        '& .MuiDayCalendar-weekContainer': {
-                          margin: '2px 0',
-                        },
-                        '& .MuiPickersDay-root': {
-                          width: '32px',
-                          height: '32px',
-                          fontSize: '0.85rem',
-                        },
-                        '& .MuiPickersCalendarHeader-root': {
-                          padding: '8px',
-                        },
-                      },
+                    '&.MuiInputLabel-shrink': {
+                      transform: 'translate(14px, -9px) scale(0.75)',
                     },
+                  }}
+                >
+                  Data de Fim
+                </InputLabel>
+                <StyledTextField
+                  name="endDate"
+                  value={calendarData.endDate}
+                  onChange={(e) => handleInputChange('endDate', e.target.value)}
+                  type="date"
+                  required
+                  placeholder="dd/mm/aaaa"
+                  InputLabelProps={{ shrink: true }}
+                  inputProps={{
+                    placeholder: 'dd/mm/aaaa',
                   }}
                 />
               </FormControl>

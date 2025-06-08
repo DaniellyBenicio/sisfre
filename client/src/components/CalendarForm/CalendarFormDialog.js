@@ -22,15 +22,36 @@ import DateRangePicker from "./DateRangePicker";
 
 const INSTITUTIONAL_COLOR = "#307c34";
 
+// Definindo o StyledButton com estilos responsivos
 const StyledButton = styled(Button)(({ theme }) => ({
   borderRadius: "8px",
-  padding: theme.spacing(1, 3),
+  padding: theme.spacing(1, 2), // Padding base
   textTransform: "none",
   fontWeight: "bold",
-  fontSize: "0.875rem",
+  fontSize: theme.typography.pxToRem(14), // Fonte escalável
   display: "flex",
   alignItems: "center",
   gap: "8px",
+  flex: "1 1 auto", // Permite que os botões se ajustem ao espaço disponível
+  maxWidth: "150px", // Limita a largura máxima
+  // Ajustes para diferentes tamanhos de tela
+  [theme.breakpoints.down("sm")]: {
+    padding: theme.spacing(0.6, 1), // Menor padding em telas pequenas
+    fontSize: theme.typography.pxToRem(12), // Fonte menor
+    maxWidth: "120px", // Reduz a largura máxima em telas pequenas
+    minWidth: "80px", // Garante um tamanho mínimo
+  },
+  [theme.breakpoints.down("xs")]: {
+    padding: theme.spacing(0.5, 0.8), // Ainda menor em telas muito pequenas
+    fontSize: theme.typography.pxToRem(10), // Fonte reduzida
+    maxWidth: "100px", // Ajusta para telas muito estreitas
+    minWidth: "60px",
+  },
+  [theme.breakpoints.up("md")]: {
+    padding: theme.spacing(1, 2.5), // Maior padding em telas grandes
+    fontSize: theme.typography.pxToRem(14), // Fonte padrão
+    maxWidth: "180px", // Ligeiramente maior em telas grandes
+  },
 }));
 
 let calendarTypes = ["CONVENCIONAL", "REGULAR", "PÓS-GREVE", "OUTRO"];
@@ -535,7 +556,6 @@ const CalendarFormDialog = ({
               </FormControl>
             </Box>
 
-            {/* Usa o componente DateRangePicker para os campos de data */}
             <DateRangePicker
               calendarData={calendarData}
               handleInputChange={handleInputChange}
@@ -544,9 +564,16 @@ const CalendarFormDialog = ({
             <DialogActions
               sx={{
                 justifyContent: "center",
-                gap: 2,
-                padding: "10px 24px",
+                gap: { xs: 1, sm: 2 }, 
+                padding: { xs: "8px 16px", sm: "10px 24px" }, 
                 marginTop: "10px",
+                flexDirection: "row", 
+                flexWrap: "wrap", 
+                "& > button": {
+                  flex: "1 1 auto", 
+                  minWidth: { xs: "60px", sm: "80px" },
+                  maxWidth: { xs: "120px", sm: "150px", md: "180px" }, 
+                },
               }}
             >
               <StyledButton
@@ -557,7 +584,7 @@ const CalendarFormDialog = ({
                   "&:hover": { backgroundColor: "#D4000F" },
                 }}
               >
-                <Close sx={{ fontSize: 24 }} />
+                <Close sx={{ fontSize: { xs: 16, sm: 20, md: 24 } }} /> {/* Ajusta tamanho do ícone */}
                 Cancelar
               </StyledButton>
               <StyledButton
@@ -577,7 +604,7 @@ const CalendarFormDialog = ({
                   },
                 }}
               >
-                <Save sx={{ fontSize: 24 }} />
+                <Save sx={{ fontSize: { xs: 16, sm: 20, md: 24 } }} /> {/* Ajusta tamanho do ícone */}
                 {isEditMode ? "Atualizar" : "Cadastrar"}
               </StyledButton>
             </DialogActions>

@@ -4,17 +4,20 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { ptBR } from "date-fns/locale";
+import { useTheme } from "@mui/material/styles";
 
 const DateRangePicker = ({ calendarData, handleInputChange }) => {
+  const theme = useTheme();
+
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
       <Box
         sx={{
           display: "flex",
+          flexDirection: "column",
           gap: 2,
           my: 1.5,
-          alignItems: "center",
-          position: "relative",
+          alignItems: "stretch",
         }}
       >
         <DatePicker
@@ -43,19 +46,10 @@ const DateRangePicker = ({ calendarData, handleInputChange }) => {
                 },
               },
               sx: {
-                flex: 1,
-                "& .MuiInputBase-input": {
-                  paddingTop: "24px",
-                  paddingBottom: "8px",
-                },
                 "& .MuiOutlinedInput-root": {
-                  height: "56px",
-                  "& fieldset": {
-                    borderColor: "#000000",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#000000",
-                  },
+                  minHeight: { xs: "40px", sm: "56px" }, // Ajuste para mobile
+                  "& fieldset": { borderColor: "#000000" },
+                  "&:hover fieldset": { borderColor: "#000000" },
                   "&.Mui-focused fieldset": {
                     borderColor: "#000000",
                     borderWidth: "2px",
@@ -65,37 +59,14 @@ const DateRangePicker = ({ calendarData, handleInputChange }) => {
             },
             popper: {
               sx: {
-                zIndex: 1500, 
+                zIndex: 1500,
                 "& .MuiPickerStaticWrapper-root": {
-                  maxWidth: "280px",
-                  maxHeight: "300px",
+                  maxWidth: { xs: "200px", sm: "250px" },
+                  maxHeight: { xs: "250px", sm: "300px" },
                 },
+                marginTop: "20px",
               },
               placement: "bottom-start",
-              modifiers: [
-                {
-                  name: "flip",
-                  enabled: true, 
-                  options: {
-                    fallbackPlacements: ["top-start", "bottom-end", "top-end"], 
-                  },
-                },
-                {
-                  name: "preventOverflow",
-                  enabled: true,
-                  options: {
-                    boundary: "clippingAncestors", 
-                    padding: 8,
-                  },
-                },
-                {
-                  name: "offset",
-                  enabled: true,
-                  options: {
-                    offset: [0, 8], 
-                  },
-                },
-              ],
             },
           }}
         />
@@ -124,19 +95,10 @@ const DateRangePicker = ({ calendarData, handleInputChange }) => {
                 },
               },
               sx: {
-                flex: 1,
-                "& .MuiInputBase-input": {
-                  paddingTop: "24px",
-                  paddingBottom: "8px",
-                },
                 "& .MuiOutlinedInput-root": {
-                  height: "56px",
-                  "& fieldset": {
-                    borderColor: "#000000",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#000000",
-                  },
+                  minHeight: { xs: "40px", sm: "56px" },
+                  "& fieldset": { borderColor: "#000000" },
+                  "&:hover fieldset": { borderColor: "#000000" },
                   "&.Mui-focused fieldset": {
                     borderColor: "#000000",
                     borderWidth: "2px",
@@ -146,37 +108,13 @@ const DateRangePicker = ({ calendarData, handleInputChange }) => {
             },
             popper: {
               sx: {
-                zIndex: 1500, 
+                zIndex: 1500,
                 "& .MuiPickerStaticWrapper-root": {
-                  maxWidth: "280px",
-                  maxHeight: "300px",
+                  maxWidth: { xs: "200px", sm: "250px" },
+                  maxHeight: { xs: "250px", sm: "300px" },
                 },
               },
-              placement: "bottom-start", 
-              modifiers: [
-                {
-                  name: "flip",
-                  enabled: true,
-                  options: {
-                    fallbackPlacements: ["top-start", "bottom-end", "top-end"], 
-                  },
-                },
-                {
-                  name: "preventOverflow",
-                  enabled: true,
-                  options: {
-                    boundary: "clippingAncestors",
-                    padding: 8, 
-                  },
-                },
-                {
-                  name: "offset",
-                  enabled: true,
-                  options: {
-                    offset: [0, 8], 
-                  },
-                },
-              ],
+              placement: "bottom-start",
             },
           }}
         />

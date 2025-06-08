@@ -9,7 +9,7 @@ export const createCourse = async (req, res) => {
       .json({ error: "Os campos nome, sigla e tipo são obrigatórios." });
   }
 
-  if (name.length < 3 || name.length > 50) {
+  if (name.length < 3 || name.length > 100) {
     return res.status(400).json({
       error: "O nome deve ter entre 3 e 100 caracteres.",
     });
@@ -75,19 +75,21 @@ export const createCourse = async (req, res) => {
     });
 
     if (existingCourse) {
-      const duplicatedField =
-        existingCourse.acronym === acronym ? "acronym" : "nome";
-      return res.status(400).json({
-        error: `A ${duplicatedField} informada já está cadastrada. Por favor, verifique os dados e tente novamente.`,
-      });
+      const duplicatedFields = [];
+
+      if (existingCourse.acronym === acronym) {
+        duplicatedFields.push("sigla");
+      }
+
+      if (existingCourse.name === name) {
+        duplicatedFields.push("nome");
+      }
+
+      const mensagem = buildDuplicatedMessage(duplicatedFields);
+      return res.status(400).json({ error: mensagem });
     }
 
     if (coordinatorId) {
-      const coordinator = await db.User.findByPk(coordinatorId);
-      if (!coordinator) {
-        return res.status(400).json({ error: "Coordenador não encontrado." });
-      }
-
       const existingCourseWithCoordinator = await db.Course.findOne({
         where: { coordinatorId },
       });
@@ -104,12 +106,25 @@ export const createCourse = async (req, res) => {
       type,
       coordinatorId,
     });
+
     res.status(201).json({ course });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Erro ao cadastrar curso" });
   }
 };
+
+function buildDuplicatedMessage(fields) {
+  if (fields.length === 1) {
+    if (fields[0] === "nome") return "Já existe um curso com o nome informado.";
+    if (fields[0] === "sigla")
+      return "Já existe um curso com a sigla informada.";
+  }
+  if (fields.length === 2) {
+    return "Já existe um curso com o nome e a sigla informados.";
+  }
+  return "Campos duplicados.";
+}
 
 export const getCourses = async (req, res) => {
   const { name, type, page = 1, limit = 10 } = req.query;
@@ -183,34 +198,35 @@ export const updateCourse = async (req, res) => {
 
   try {
     const course = await db.Course.findByPk(courseId);
-
     if (!course) {
       return res.status(404).json({ error: "Curso não encontrado." });
     }
 
-    if (name && !/^[A-Za-zÀ-ÿ\s]*$/.test(name)) {
-      return res.status(400).json({
-        error: "O nome deve conter apenas letras, acentos e espaços.",
-      });
+    if (name) {
+      if (!/^[A-Za-zÀ-ÿ\s]*$/.test(name)) {
+        return res.status(400).json({
+          error: "O nome deve conter apenas letras, acentos e espaços.",
+        });
+      }
+      if (name.length < 3 || name.length > 100) {
+        return res.status(400).json({
+          error: "O nome deve ter entre 3 e 100 caracteres.",
+        });
+      }
     }
 
-    if (name.length < 3 || name.length > 50) {
-      return res.status(400).json({
-        error: "O nome deve ter entre 3 e 100 caracteres.",
-      });
-    }
-
-    if (acronym.length < 2 || acronym.length > 10) {
-      return res.status(400).json({
-        error: "A sigla deve ter entre 2 e 10 caracteres.",
-      });
-    }
-
-    if (acronym && !/^[A-Za-z0-9]*$/.test(acronym)) {
-      return res.status(400).json({
-        error:
-          "A sigla deve conter apenas letras e números (sem acentos ou caracteres especiais).",
-      });
+    if (acronym) {
+      if (acronym.length < 2 || acronym.length > 10) {
+        return res.status(400).json({
+          error: "A sigla deve ter entre 2 e 10 caracteres.",
+        });
+      }
+      if (!/^[A-Za-z\s]*$/.test(acronym)) {
+        return res.status(400).json({
+          error:
+            "A sigla deve conter apenas letras (sem acentos ou caracteres especiais).",
+        });
+      }
     }
 
     if (coordinatorId) {
@@ -222,13 +238,36 @@ export const updateCourse = async (req, res) => {
       const existingCourseWithCoordinator = await db.Course.findOne({
         where: {
           coordinatorId,
-          id: { [db.Sequelize.Op.ne]: courseId },
+          id: { [db.Sequelize.Op.ne]: courseId }, 
         },
       });
+
       if (existingCourseWithCoordinator) {
         return res.status(400).json({
           error: "Este coordenador já está associado a outro curso.",
         });
+      }
+    }
+
+    if (name || acronym) {
+      const existingCourse = await db.Course.findOne({
+        where: {
+          id: { [db.Sequelize.Op.ne]: courseId }, 
+          [db.Sequelize.Op.or]: [
+            name ? { name } : null,
+            acronym ? { acronym } : null,
+          ].filter(Boolean), 
+        },
+      });
+
+      if (existingCourse) {
+        const duplicatedFields = [];
+        if (name && existingCourse.name === name) duplicatedFields.push("nome");
+        if (acronym && existingCourse.acronym === acronym)
+          duplicatedFields.push("sigla");
+
+        const mensagem = buildDuplicatedMessage(duplicatedFields);
+        return res.status(400).json({ error: mensagem });
       }
     }
 
@@ -238,6 +277,7 @@ export const updateCourse = async (req, res) => {
     if (coordinatorId) course.coordinatorId = coordinatorId;
 
     await course.save();
+
     res.status(200).json({ message: "Curso atualizado com sucesso.", course });
   } catch (error) {
     console.error(error);

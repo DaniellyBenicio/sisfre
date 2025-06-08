@@ -10,7 +10,6 @@ module.exports = {
       type: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique: true,
       },
       year: {
         type: Sequelize.INTEGER,
@@ -39,9 +38,15 @@ module.exports = {
         defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
       },
     });
+
+    await queryInterface.addIndex("calendar", {
+      unique: true,
+      fields: ["type", "year", "period"],
+    });
   },
 
   async down(queryInterface, Sequelize) {
+    await queryInterface.removeIndex("calendar", ["type", "year", "period"]);
     await queryInterface.dropTable("calendar");
   },
 };

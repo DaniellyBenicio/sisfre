@@ -1,4 +1,4 @@
-import db from '../../models/index.js';
+import db from "../../models/index.js";
 
 export const createCalendar = async (req, res) => {
   const { type, year, period, startDate, endDate } = req.body;
@@ -9,10 +9,24 @@ export const createCalendar = async (req, res) => {
 
   try {
     const existing = await db.Calendar.findOne({
-      where: { type: type.toUpperCase(), year, period },
+      where: { type: type.toUpperCase(), year, period, startDate, endDate },
     });
     if (existing) {
-      return res.status(400).json({ error: "Já existe um calendário com esses dados." });
+      return res
+        .status(400)
+        .json({ error: "Já existe um calendário com esses dados exatos." });
+    }
+
+    const duplicate = await db.Calendar.findOne({
+      where: { type: type.toUpperCase(), year, period },
+    });
+    if (duplicate) {
+      return res
+        .status(400)
+        .json({
+          error:
+            "Já existe um calendário com esses dados informados. Por favor, tente novamente.",
+        });
     }
 
     const calendar = await db.Calendar.create({
@@ -59,7 +73,28 @@ export const updateCalendar = async (req, res) => {
       },
     });
     if (duplicate) {
-      return res.status(400).json({ error: "Já existe um calendário com esses dados." });
+      return res
+        .status(400)
+        .json({
+          error:
+            "Já existe um calendário com esses dados informados. Por favor, tente novamente.",
+        });
+    }
+
+    const existing = await db.Calendar.findOne({
+      where: {
+        type: type.toUpperCase(),
+        year,
+        period,
+        startDate,
+        endDate,
+        id: { [db.Sequelize.Op.ne]: calendarId },
+      },
+    });
+    if (existing) {
+      return res
+        .status(400)
+        .json({ error: "Já existe um calendário com esses dados exatos." });
     }
 
     calendar.type = type.toUpperCase();
@@ -81,17 +116,22 @@ export const updateCalendar = async (req, res) => {
     return res.status(500).json({ error: "Erro ao atualizar calendário." });
   }
 };
+
 export const getCalendarTypes = async (req, res) => {
   try {
     const types = await db.Calendar.findAll({
-      attributes: [[db.Sequelize.fn('DISTINCT', db.Sequelize.col('type')), 'type']],
+      attributes: [
+        [db.Sequelize.fn("DISTINCT", db.Sequelize.col("type")), "type"],
+      ],
     });
     return res.status(200).json({
       types: types.map((t) => t.type),
     });
   } catch (error) {
-    console.error('Erro ao buscar tipos de calendário:', error);
-    return res.status(500).json({ error: 'Erro ao buscar tipos de calendário.' });
+    console.error("Erro ao buscar tipos de calendário:", error);
+    return res
+      .status(500)
+      .json({ error: "Erro ao buscar tipos de calendário." });
   }
 };
 
@@ -103,18 +143,21 @@ export const listCalendars = async (req, res) => {
     if (year) {
       where.startDate = {
         [db.Sequelize.Op.gte]: `${year}-01-01`,
-        [db.Sequelize.Op.lte]: `${year}-12-31`
+        [db.Sequelize.Op.lte]: `${year}-12-31`,
       };
     }
 
     const calendars = await db.Calendar.findAll({
       where,
-      order: [['startDate', 'DESC'], ['period', 'DESC']],
+      order: [
+        ["startDate", "DESC"],
+        ["period", "DESC"],
+      ],
     });
     return res.status(200).json({ calendars });
   } catch (error) {
-    console.error('Erro ao listar calendários:', error);
-    return res.status(500).json({ error: 'Erro ao listar calendários.' });
+    console.error("Erro ao listar calendários:", error);
+    return res.status(500).json({ error: "Erro ao listar calendários." });
   }
 };
 
@@ -126,9 +169,11 @@ export const deleteCalendar = async (req, res) => {
       return res.status(404).json({ error: "Calendário não encontrado." });
     }
     await calendar.destroy();
-    return res.status(200).json({ message: "Calendário excluído com sucesso." });
+    return res
+      .status(200)
+      .json({ message: "Calendário excluído com sucesso." });
   } catch (error) {
-    console.error('Erro ao excluir calendário:', error);
-    return res.status(500).json({ error: 'Erro ao excluir calendário.' });
+    console.error("Erro ao excluir calendário:", error);
+    return res.status(500).json({ error: "Erro ao excluir calendário." });
   }
 };

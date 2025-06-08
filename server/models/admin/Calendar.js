@@ -4,14 +4,14 @@ export default (sequelize) => {
   class Calendar extends Model {
     static associate(models) {
       Calendar.belongsToMany(models.Class, {
-        through: models.CalendarClass, 
+        through: models.CalendarClass,
         foreignKey: "calendarId",
         otherKey: "classId",
         as: "classes",
       });
 
       Calendar.belongsToMany(models.Course, {
-        through: "calendarCourses", 
+        through: "calendarCourses",
         foreignKey: "calendarId",
         otherKey: "courseId",
         as: "courses",
@@ -30,7 +30,6 @@ export default (sequelize) => {
       type: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true,
         validate: {
           isValidType(value) {
             const allowed = ["CONVENCIONAL", "REGULAR", "PÓS-GREVE", "OUTRO"];
@@ -67,7 +66,9 @@ export default (sequelize) => {
           isDate: true,
           isAfterStartDate(value) {
             if (new Date(value) <= new Date(this.startDate)) {
-              throw new Error("A data de fim deve ser posterior à data de início.");
+              throw new Error(
+                "A data de fim deve ser posterior à data de início."
+              );
             }
           },
         },
@@ -78,6 +79,7 @@ export default (sequelize) => {
       modelName: "Calendar",
       tableName: "calendar",
       timestamps: true,
+      indexes: [{ unique: true, fields: ["type", "year", "period"] }],
     }
   );
 

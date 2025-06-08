@@ -71,11 +71,10 @@ export const CustomAlert = ({ message, type, onClose }) => {
         zIndex: 1300,
         fontSize: "0.875rem",
         "@media (max-width: 600px)": {
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "auto",
-          maxWidth: "calc(100% - 20px)",
-          marginRight: "0",
+          right: "20px",
+          left: "unset",
+          transform: "none",
+          maxWidth: "calc(100% - 40px)",
         },
       }}
     >

@@ -119,10 +119,6 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
             <LibraryBooks sx={{ mr: 1 }} />
             <ListItemText primary="Disciplinas" />
           </ListItem>
-          <ListItem button onClick={() => handleItemClick("/calendar", "calendar")} sx={getListItemStyle(selectedItem, "calendar")}>
-            <CalendarToday sx={{ mr: 1 }} />
-            <ListItemText primary="Calendário" />
-          </ListItem>
           <ListItem button onClick={() => handleItemClick("/classes", "classes")} sx={getListItemStyle(selectedItem, "classes")}>
             <Class sx={{ mr: 1 }} />
             <ListItemText primary="Turmas" />
@@ -135,10 +131,6 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
           <ListItem button onClick={() => handleItemClick("/disciplines", "disciplines")} sx={getListItemStyle(selectedItem, "disciplines")}>
             <LibraryBooks sx={{ mr: 1 }} />
             <ListItemText primary="Disciplinas" />
-          </ListItem>
-          <ListItem button onClick={() => handleItemClick("/calendar", "calendar")} sx={getListItemStyle(selectedItem, "calendar")}>
-            <CalendarToday sx={{ mr: 1 }} />
-            <ListItemText primary="Calendário" />
           </ListItem>
         </>
       )}

@@ -51,9 +51,21 @@ const UserFormDialog = ({
     email: "",
     accessType: "",
   });
+  const [initialUser, setInitialUser] = useState(null); // Store initial form data
   const [error, setError] = useState(null);
 
-  const isFormFilled = user.username || user.email || user.accessType;
+  // Check if form is filled (for create mode)
+  const isFormFilled = user.username && user.email && user.accessType;
+
+  // Check if form has changed with different values (for edit mode)
+  const hasFormChanged = () => {
+    if (!isEditMode || !initialUser) return false;
+    return (
+      user.username !== initialUser.username ||
+      user.email !== initialUser.email ||
+      user.accessType !== initialUser.accessType
+    );
+  };
 
   const formatName = (name) => {
     if (!name) return "";
@@ -100,11 +112,6 @@ const UserFormDialog = ({
       return;
     }
 
-    //    if (!user.email.match(/@ifce\.edu\.br$/)) {
-    //    setError('Use um e-mail institucional (@ifce.edu.br).');
-    //  return;
-    //}
-
     if (!["professor", "coordenador"].includes(user.accessType.toLowerCase())) {
       setError("O tipo de usuário deve ser 'Professor' ou 'Coordenador'.");
       return;
@@ -150,14 +157,16 @@ const UserFormDialog = ({
   };
 
   useEffect(() => {
-    if (userToEdit) {
-      setUser({
+    if (userToEdit && isEditMode) {
+      const initialData = {
         username: userToEdit.username || "",
         email: userToEdit.email || "",
         accessType: userToEdit.accessType
           ? userToEdit.accessType.toLowerCase()
           : "",
-      });
+      };
+      setUser(initialData);
+      setInitialUser(initialData); // Store initial data for comparison
       setError(null);
     } else {
       setUser({
@@ -165,9 +174,10 @@ const UserFormDialog = ({
         email: "",
         accessType: "",
       });
+      setInitialUser(null); // Clear initial data in create mode
       setError(null);
     }
-  }, [userToEdit, open]);
+  }, [userToEdit, open, isEditMode]);
 
   return (
     <Dialog
@@ -371,13 +381,21 @@ const UserFormDialog = ({
             <StyledButton
               type="submit"
               variant="contained"
-              disabled={!isFormFilled}
+              disabled={isEditMode ? !hasFormChanged() : !isFormFilled}
               sx={{
-                backgroundColor: !isFormFilled
-                  ? "#E0E0E0"
-                  : INSTITUTIONAL_COLOR,
+                backgroundColor:
+                  isEditMode && !hasFormChanged()
+                    ? "#E0E0E0"
+                    : !isFormFilled
+                    ? "#E0E0E0"
+                    : INSTITUTIONAL_COLOR,
                 "&:hover": {
-                  backgroundColor: !isFormFilled ? "#E0E0E0" : "#26692b",
+                  backgroundColor:
+                    isEditMode && !hasFormChanged()
+                      ? "#E0E0E0"
+                      : !isFormFilled
+                      ? "#E0E0E0"
+                      : "#26692b",
                 },
               }}
             >

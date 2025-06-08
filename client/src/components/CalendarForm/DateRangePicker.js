@@ -8,6 +8,8 @@ import { useTheme } from "@mui/material/styles";
 
 const DateRangePicker = ({ calendarData, handleInputChange }) => {
   const theme = useTheme();
+  // Define a data atual como o limite mínimo
+  const today = new Date();
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
@@ -31,6 +33,7 @@ const DateRangePicker = ({ calendarData, handleInputChange }) => {
               newValue ? newValue.toISOString().split("T")[0] : ""
             )
           }
+          minDate={today} // Impede a seleção de datas anteriores à atual
           slotProps={{
             textField: {
               id: "startDate-input",
@@ -39,9 +42,8 @@ const DateRangePicker = ({ calendarData, handleInputChange }) => {
               fullWidth: true,
               InputLabelProps: {
                 sx: {
-                  // Removido color: "#000000" para usar a cor padrão (cinza)
                   "&.Mui-focused": {
-                    color: "#000000", // Cor preta quando focado
+                    color: "#000000",
                   },
                 },
               },
@@ -88,9 +90,8 @@ const DateRangePicker = ({ calendarData, handleInputChange }) => {
               fullWidth: true,
               InputLabelProps: {
                 sx: {
-                  // Removido color: "#000000" para usar a cor padrão (cinza)
                   "&.Mui-focused": {
-                    color: "#000000", // Cor preta quando focado
+                    color: "#000000",
                   },
                 },
               },

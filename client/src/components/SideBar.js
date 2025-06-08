@@ -51,7 +51,7 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
   const handleCloseConfirmDialog = () => setOpenConfirmDialog(false);
 
   const handleItemClick = (path, item) => {
-    console.log(`Navigating to: ${path}, Item: ${item}`); // Para depuração
+    console.log(`Navigating to: ${path}, Item: ${item}`);
     setSelectedItem(item);
     navigate(path);
     if (isMobile) setMobileOpen(false);
@@ -73,73 +73,78 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
 
   const drawerContent = (
-    <List textAlign="center">
-      <ListItem sx={{ justifyContent: "center", marginLeft: "-12px" }}>
-        <Box sx={{ mb: 2 }}>
-          <img src={LogoMenu} alt="logoMenu" style={{ width: 150, height: "auto" }} />
-        </Box>
-      </ListItem>
+    <Box sx={{ height: "100%", position: "relative" }}>
+      <List textAlign="center">
+        <ListItem sx={{ justifyContent: "center", marginLeft: "-12px" }}>
+          <Box sx={{ mb: 2 }}>
+            <img src={LogoMenu} alt="logoMenu" style={{ width: 150, height: "auto" }} />
+          </Box>
+        </ListItem>
 
-      <Divider sx={{ backgroundColor: "white", marginBottom: 1 }} />
+        <Divider sx={{ backgroundColor: "white", marginBottom: 1 }} />
 
-      <Typography variant="subtitle1" sx={{ color: "white", marginTop: "10px", textAlign: "center" }}>
-        Bem vindo(a), {username}!
-      </Typography>
+        <Typography variant="subtitle1" sx={{ color: "white", marginTop: "10px", textAlign: "center" }}>
+          Bem vindo(a), {username}!
+        </Typography>
 
-      <Divider sx={{ backgroundColor: "white", marginBottom: 1, marginTop: "5px" }} />
+        <Divider sx={{ backgroundColor: "white", marginBottom: 1, marginTop: "5px" }} />
 
-      {accessType === "Admin" && (
-        <>
-          <ListItem button onClick={() => handleItemClick("/users", "users")} sx={getListItemStyle(selectedItem, "users")}>
-            <People sx={{ mr: 1 }} />
-            <ListItemText primary="Usuários" />
-          </ListItem>
-          <ListItem button onClick={() => handleItemClick("/courses", "courses")} sx={getListItemStyle(selectedItem, "courses")}>
-            <School sx={{ mr: 1 }} />
-            <ListItemText primary="Cursos" />
-          </ListItem>
-          <ListItem button onClick={() => handleItemClick("/disciplines", "disciplines")} sx={getListItemStyle(selectedItem, "disciplines")}>
-            <LibraryBooks sx={{ mr: 1 }} />
-            <ListItemText primary="Disciplinas" />
-          </ListItem>
-          <ListItem button onClick={() => handleItemClick("/calendar", "calendar")} sx={getListItemStyle(selectedItem, "calendar")}>
-            <CalendarToday sx={{ mr: 1 }} />
-            <ListItemText primary="Calendário" />
-          </ListItem>
-          <ListItem button onClick={() => handleItemClick("/classes", "classes")} sx={getListItemStyle(selectedItem, "classes")}>
-            <Class sx={{ mr: 1 }} />
-            <ListItemText primary="Turmas" />
-          </ListItem>
-        </>
-      )}
+        {accessType === "Admin" && (
+          <>
+            <ListItem button onClick={() => handleItemClick("/users", "users")} sx={getListItemStyle(selectedItem, "users")}>
+              <People sx={{ mr: 1 }} />
+              <ListItemText primary="Usuários" />
+            </ListItem>
+            <ListItem button onClick={() => handleItemClick("/courses", "courses")} sx={getListItemStyle(selectedItem, "courses")}>
+              <School sx={{ mr: 1 }} />
+              <ListItemText primary="Cursos" />
+            </ListItem>
+            <ListItem button onClick={() => handleItemClick("/disciplines", "disciplines")} sx={getListItemStyle(selectedItem, "disciplines")}>
+              <LibraryBooks sx={{ mr: 1 }} />
+              <ListItemText primary="Disciplinas" />
+            </ListItem>
+            <ListItem button onClick={() => handleItemClick("/calendar", "calendar")} sx={getListItemStyle(selectedItem, "calendar")}>
+              <CalendarToday sx={{ mr: 1 }} />
+              <ListItemText primary="Calendário" />
+            </ListItem>
+            <ListItem button onClick={() => handleItemClick("/classes", "classes")} sx={getListItemStyle(selectedItem, "classes")}>
+              <Class sx={{ mr: 1 }} />
+              <ListItemText primary="Turmas" />
+            </ListItem>
+          </>
+        )}
 
-      {accessType === "Coordenador" && (
-        <>
-          <ListItem button onClick={() => handleItemClick("/disciplines", "disciplines")} sx={getListItemStyle(selectedItem, "disciplines")}>
-            <LibraryBooks sx={{ mr: 1 }} />
-            <ListItemText primary="Disciplinas" />
-          </ListItem>
-          <ListItem button onClick={() => handleItemClick("/classes", "classes")} sx={getListItemStyle(selectedItem, "classes")}>
-            <Class sx={{ mr: 1 }} />
-            <ListItemText primary="Turmas" />
-          </ListItem>
-        </>
-      )}
+        {accessType === "Coordenador" && (
+          <>
+            <ListItem button onClick={() => handleItemClick("/disciplines", "disciplines")} sx={getListItemStyle(selectedItem, "disciplines")}>
+              <LibraryBooks sx={{ mr: 1 }} />
+              <ListItemText primary="Disciplinas" />
+            </ListItem>
+            <ListItem button onClick={() => handleItemClick("/classes", "classes")} sx={getListItemStyle(selectedItem, "classes")}>
+              <Class sx={{ mr: 1 }} />
+              <ListItemText primary="Turmas" />
+            </ListItem>
+          </>
+        )}
 
-      {accessType === "Professor" && (
-        <>
-          <ListItem button onClick={() => handleItemClick("/disciplines", "disciplines")} sx={getListItemStyle(selectedItem, "disciplines")}>
-            <LibraryBooks sx={{ mr: 1 }} />
-            <ListItemText primary="Disciplinas" />
-          </ListItem>
-        </>
-      )}
+        {accessType === "Professor" && (
+          <>
+            <ListItem button onClick={() => handleItemClick("/disciplines", "disciplines")} sx={getListItemStyle(selectedItem, "disciplines")}>
+              <LibraryBooks sx={{ mr: 1 }} />
+              <ListItemText primary="Disciplinas" />
+            </ListItem>
+          </>
+        )}
+      </List>
 
-      <ListItem button onClick={handleOpenConfirmDialog} sx={getListItemStyle(selectedItem, "exit")}>
-        <ExitToApp sx={{ mr: 1 }} />
-        <ListItemText primary="Sair" />
-      </ListItem>
-    </List>
+      {/* Sair */}
+      <Box sx={{ position: "absolute", bottom: isMobile ? 85 : 25, width: "100%" }}>
+        <ListItem button onClick={handleOpenConfirmDialog} sx={getListItemStyle(selectedItem, "exit")}>
+          <ExitToApp sx={{ mr: 1 }} />
+          <ListItemText primary="Sair" />
+        </ListItem>
+      </Box>
+    </Box>
   );
 
   return (
@@ -190,17 +195,32 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
       <Dialog
         open={openConfirmDialog}
         onClose={handleCloseConfirmDialog}
-        PaperProps={{ sx: { borderRadius: "9px" } }}
+        fullWidth
+        PaperProps={{
+        sx: {
+          borderRadius: "9px",
+          width: isMobile ? "100%" : "390px",
+          mx: isMobile ? 2 : "auto",
+        },
+      }}
       >
-        <DialogContent sx={{ textAlign: "center", width: "390px" }}>
+        <DialogContent sx={{ textAlign: "center" }}>
           <Box display="flex" justifyContent="center" mb={2}>
             <Warning sx={{ fontSize: 55, color: "#FFA000" }} />
           </Box>
-          <Typography sx={{ fontSize: "1rem" }}>
+          <Typography textAlign="center">
             Tem certeza que deseja sair?
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ justifyContent: "center", gap: 2, padding: "23px 70px", marginTop: "-20px" }}>
+
+        <DialogActions 
+          sx={{
+            gap: 2,
+            padding: isMobile ? "16px" : "23px 70px",
+            marginTop: "-20px",
+            justifyContent: "center",
+          }}
+        >
           <Button
             onClick={handleLogout}
             sx={{

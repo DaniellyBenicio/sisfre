@@ -10,7 +10,6 @@ import {
   MenuItem,
   IconButton,
   InputLabel,
-  Typography,
 } from "@mui/material";
 import { Close, Save } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
@@ -19,15 +18,25 @@ import { StyledTextField, StyledSelect } from "../../components/inputs/Input";
 
 const INSTITUTIONAL_COLOR = "#307c34";
 
-const StyledButton = styled(Button)(({ theme }) => ({
+const StyledButton = styled(Button)(() => ({
   borderRadius: "8px",
-  padding: theme.spacing(1, 3),
+  padding: "8px 28px",
   textTransform: "none",
   fontWeight: "bold",
   fontSize: "0.875rem",
   display: "flex",
   alignItems: "center",
   gap: "8px",
+  width: "fit-content",
+  minWidth: 100,
+  "@media (max-width: 600px)": {
+    fontSize: "0.7rem",
+    padding: "4px 8px",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    maxWidth: "120px",
+  },
 }));
 
 const UserFormDialog = ({
@@ -170,6 +179,10 @@ const UserFormDialog = ({
           borderRadius: "8px",
           width: "520px",
           maxWidth: "90vw",
+          "@media (max-width: 600px)": {
+            width: "100%",
+            margin: "8px",
+          },
         },
       }}
     >
@@ -179,6 +192,9 @@ const UserFormDialog = ({
           marginTop: "15px",
           color: "#087619",
           fontWeight: "bold",
+          "@media (max-width: 600px)": {
+            fontSize: "1.25rem",
+          },
         }}
       >
         {isEditMode ? "Editar Usuário" : "Cadastrar Usuário"}
@@ -190,10 +206,16 @@ const UserFormDialog = ({
         </IconButton>
       </DialogTitle>
 
-      <DialogContent sx={{ px: 5 }}>
+      <DialogContent sx={{ px: { xs: 3, sm: 5 } }}>
         <form onSubmit={handleSubmit}>
           {error && (
-            <Box sx={{ color: "red", marginBottom: 2, fontSize: "0.875rem" }}>
+            <Box
+              sx={{
+                color: "red",
+                marginBottom: 2,
+                fontSize: { xs: "0.75rem", sm: "0.875rem" },
+              }}
+            >
               {error}
             </Box>
           )}
@@ -203,11 +225,18 @@ const UserFormDialog = ({
               my: 1.5,
               "& .MuiInputBase-root": {
                 height: "56px",
+                "@media (max-width: 600px)": {
+                  height: "48px",
+                  fontSize: "0.875rem",
+                },
               },
               "& .MuiInputLabel-root": {
                 top: "50%",
                 transform: "translate(14px, -50%)",
                 fontSize: "1rem",
+                "@media (max-width: 600px)": {
+                  fontSize: "0.875rem",
+                },
               },
               "& .MuiInputLabel-shrink": {
                 top: 0,
@@ -230,11 +259,18 @@ const UserFormDialog = ({
               my: 1.5,
               "& .MuiInputBase-root": {
                 height: "56px",
+                "@media (max-width: 600px)": {
+                  height: "48px",
+                  fontSize: "0.875rem",
+                },
               },
               "& .MuiInputLabel-root": {
                 top: "50%",
                 transform: "translate(14px, -50%)",
                 fontSize: "1rem",
+                "@media (max-width: 600px)": {
+                  fontSize: "0.875rem",
+                },
               },
               "& .MuiInputLabel-shrink": {
                 top: 0,
@@ -263,12 +299,18 @@ const UserFormDialog = ({
                   borderColor: "#000000 !important",
                   borderWidth: "2px",
                 },
+              "@media (max-width: 600px)": {
+                my: 1,
+              },
             }}
           >
             <InputLabel
               id="accessType-label"
               sx={{
                 "&.Mui-focused, &.MuiInputLabel-shrink": { color: "#000000" },
+                "@media (max-width: 600px)": {
+                  fontSize: "0.875rem",
+                },
               }}
             >
               Tipo de Usuário
@@ -291,6 +333,12 @@ const UserFormDialog = ({
                   },
                 },
               }}
+              sx={{
+                "@media (max-width: 600px)": {
+                  fontSize: "0.875rem",
+                  height: "48px",
+                },
+              }}
             >
               <MenuItem value="professor">Professor</MenuItem>
               <MenuItem value="coordenador">Coordenador</MenuItem>
@@ -303,6 +351,10 @@ const UserFormDialog = ({
               gap: 2,
               padding: "10px 24px",
               marginTop: "10px",
+              "@media (max-width: 600px)": {
+                padding: "8px 12px",
+                gap: "8px",
+              },
             }}
           >
             <StyledButton
@@ -313,7 +365,7 @@ const UserFormDialog = ({
                 "&:hover": { backgroundColor: "#D4000F" },
               }}
             >
-              <Close sx={{ fontSize: 24 }} />
+              <Close sx={{ fontSize: { xs: 20, sm: 24 } }} />
               Cancelar
             </StyledButton>
             <StyledButton
@@ -329,7 +381,7 @@ const UserFormDialog = ({
                 },
               }}
             >
-              <Save sx={{ fontSize: 24 }} />
+              <Save sx={{ fontSize: { xs: 20, sm: 24 } }} />
               {isEditMode ? "Atualizar" : "Cadastrar"}
             </StyledButton>
           </DialogActions>

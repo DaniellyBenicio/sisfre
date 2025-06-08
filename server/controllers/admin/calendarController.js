@@ -7,6 +7,17 @@ export const createCalendar = async (req, res) => {
     return res.status(400).json({ error: "Todos os campos são obrigatórios." });
   }
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const startDateObj = new Date(startDate);
+  startDateObj.setHours(0, 0, 0, 0);
+
+  if (startDateObj < today) {
+    return res.status(400).json({
+      error: "A data de início não pode ser anterior à data atual.",
+    });
+  }
+
   try {
     const existing = await db.Calendar.findOne({
       where: { type: type.toUpperCase(), year, period, startDate, endDate },
@@ -21,12 +32,10 @@ export const createCalendar = async (req, res) => {
       where: { type: type.toUpperCase(), year, period },
     });
     if (duplicate) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Já existe um calendário com esses dados informados. Por favor, tente novamente.",
-        });
+      return res.status(400).json({
+        error:
+          "Já existe um calendário com esses dados informados. Por favor, tente novamente.",
+      });
     }
 
     const calendar = await db.Calendar.create({
@@ -58,6 +67,17 @@ export const updateCalendar = async (req, res) => {
     return res.status(400).json({ error: "Todos os campos são obrigatórios." });
   }
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const startDateObj = new Date(startDate);
+  startDateObj.setHours(0, 0, 0, 0);
+
+  if (startDateObj < today) {
+    return res.status(400).json({
+      error: "A data de início não pode ser anterior à data atual.",
+    });
+  }
+
   try {
     const calendar = await db.Calendar.findByPk(calendarId);
     if (!calendar) {
@@ -73,12 +93,10 @@ export const updateCalendar = async (req, res) => {
       },
     });
     if (duplicate) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Já existe um calendário com esses dados informados. Por favor, tente novamente.",
-        });
+      return res.status(400).json({
+        error:
+          "Já existe um calendário com esses dados informados. Por favor, tente novamente.",
+      });
     }
 
     const existing = await db.Calendar.findOne({

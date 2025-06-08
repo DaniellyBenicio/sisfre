@@ -39,15 +39,15 @@ const DateRangePicker = ({ calendarData, handleInputChange }) => {
               fullWidth: true,
               InputLabelProps: {
                 sx: {
-                  color: "#000000",
+                  // Removido color: "#000000" para usar a cor padrão (cinza)
                   "&.Mui-focused": {
-                    color: "#000000",
+                    color: "#000000", // Cor preta quando focado
                   },
                 },
               },
               sx: {
                 "& .MuiOutlinedInput-root": {
-                  minHeight: { xs: "40px", sm: "56px" }, // Ajuste para mobile
+                  minHeight: { xs: "40px", sm: "56px" },
                   "& fieldset": { borderColor: "#000000" },
                   "&:hover fieldset": { borderColor: "#000000" },
                   "&.Mui-focused fieldset": {
@@ -88,9 +88,9 @@ const DateRangePicker = ({ calendarData, handleInputChange }) => {
               fullWidth: true,
               InputLabelProps: {
                 sx: {
-                  color: "#000000",
+                  // Removido color: "#000000" para usar a cor padrão (cinza)
                   "&.Mui-focused": {
-                    color: "#000000",
+                    color: "#000000", // Cor preta quando focado
                   },
                 },
               },

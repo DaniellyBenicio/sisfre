@@ -10,6 +10,7 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
     acronym: '',
     name: '',
   });
+  const [initialDiscipline, setInitialDiscipline] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [alert, setAlert] = useState(null);
@@ -17,11 +18,16 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
 
   const isFormFilled = discipline.name && discipline.name.trim() !== '' && discipline.acronym;
 
+  const hasChanges = isEditMode && initialDiscipline && (
+    discipline.acronym !== initialDiscipline.acronym ||
+    discipline.name !== initialDiscipline.name
+  );
+
   const handleAlertClose = () => {
     setAlert(null);
   };
 
-  const handleSubmitSuccess = (newCourse) => {
+  const handleSubmitSuccess = (newDiscipline) => {
     setAlert({
       message: disciplineToEdit ? 'Disciplina atualizada com sucesso!' : 'Disciplina cadastrada com sucesso!',
       type: 'success',
@@ -33,16 +39,19 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
     if (open) {
       setIsEditMode(!!disciplineToEdit);
       if (disciplineToEdit) {
-        setDiscipline({
+        const disciplineData = {
           acronym: disciplineToEdit.acronym || '',
           name: disciplineToEdit.name || '',
-        });
+        };
+        setDiscipline(disciplineData);
+        setInitialDiscipline(disciplineData);
         setError(null);
       } else {
         setDiscipline({
           acronym: '',
           name: '',
         });
+        setInitialDiscipline(null);
         setError(null);
       }
     }
@@ -176,7 +185,7 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
                 sx={{
                   width: 'fit-content',
                   minWidth: 100,
-                  padding: '8px 28px',
+                  padding: { xs: "8px 20px", sm: "8px 28px" },
                   borderRadius: '8px',
                   textTransform: 'none',
                   fontWeight: 'bold',
@@ -194,11 +203,11 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
                 type="submit"
                 color="primary"
                 variant="contained"
-                disabled={!isFormFilled || loading}
+                disabled={isEditMode ? !isFormFilled || !hasChanges || loading : !isFormFilled || loading}
                 sx={{
                   width: 'fit-content',
                   minWidth: 100,
-                  padding: '8px 28px',
+                  padding: { xs: "8px 20px", sm: "8px 28px" },
                   backgroundColor: '#087619',
                   borderRadius: '8px',
                   textTransform: 'none',
@@ -214,7 +223,7 @@ const DisciplineModal = ({ open, onClose, disciplineToEdit, onUpdate }) => {
                 ) : (
                   <>
                     <Save sx={{ fontSize: 24 }} />
-                    {isEditMode ? 'Salvar' : 'Cadastrar'}
+                    {isEditMode ? 'Atualizar' : 'Cadastrar'}
                   </>
                 )}
               </Button>

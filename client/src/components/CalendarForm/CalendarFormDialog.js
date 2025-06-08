@@ -23,34 +23,24 @@ import DateRangePicker from "./DateRangePicker";
 const INSTITUTIONAL_COLOR = "#307c34";
 
 // Definindo o StyledButton com estilos responsivos
-const StyledButton = styled(Button)(({ theme }) => ({
+const StyledButton = styled(Button)(() => ({
   borderRadius: "8px",
-  padding: theme.spacing(1, 2), // Padding base
+  padding: "8px 28px",
   textTransform: "none",
   fontWeight: "bold",
-  fontSize: theme.typography.pxToRem(14), // Fonte escalável
+  fontSize: "0.875rem",
   display: "flex",
   alignItems: "center",
   gap: "8px",
-  flex: "1 1 auto", // Permite que os botões se ajustem ao espaço disponível
-  maxWidth: "150px", // Limita a largura máxima
-  // Ajustes para diferentes tamanhos de tela
-  [theme.breakpoints.down("sm")]: {
-    padding: theme.spacing(0.6, 1), // Menor padding em telas pequenas
-    fontSize: theme.typography.pxToRem(12), // Fonte menor
-    maxWidth: "120px", // Reduz a largura máxima em telas pequenas
-    minWidth: "80px", // Garante um tamanho mínimo
-  },
-  [theme.breakpoints.down("xs")]: {
-    padding: theme.spacing(0.5, 0.8), // Ainda menor em telas muito pequenas
-    fontSize: theme.typography.pxToRem(10), // Fonte reduzida
-    maxWidth: "100px", // Ajusta para telas muito estreitas
-    minWidth: "60px",
-  },
-  [theme.breakpoints.up("md")]: {
-    padding: theme.spacing(1, 2.5), // Maior padding em telas grandes
-    fontSize: theme.typography.pxToRem(14), // Fonte padrão
-    maxWidth: "180px", // Ligeiramente maior em telas grandes
+  width: "fit-content",
+  minWidth: 100,
+  "@media (max-width: 600px)": {
+    fontSize: "0.7rem",
+    padding: "4px 8px",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    maxWidth: "120px",
   },
 }));
 
@@ -97,10 +87,10 @@ const CalendarFormDialog = ({
     startDate: "",
     endDate: "",
   });
+  const [initialCalendarData, setInitialCalendarData] = useState(null);
   const [customType, setCustomType] = useState("");
   const [error, setError] = useState(null);
   const [localCalendarTypes, setLocalCalendarTypes] = useState(calendarTypes);
-  const [isFormChanged, setIsFormChanged] = useState(false);
 
   const isFormFilled =
     calendarData.type &&
@@ -111,56 +101,74 @@ const CalendarFormDialog = ({
     (calendarData.type !== "OUTRO" ||
       (calendarData.type === "OUTRO" && customType));
 
+  const hasChanges = isEditMode && initialCalendarData && (
+    calendarData.type !== initialCalendarData.type ||
+    calendarData.year !== initialCalendarData.year ||
+    calendarData.period !== initialCalendarData.period ||
+    calendarData.startDate !== initialCalendarData.startDate ||
+    calendarData.endDate !== initialCalendarData.endDate ||
+    (calendarData.type === "OUTRO" ? customType : calendarData.type) !==
+    (initialCalendarData.type === "OUTRO" ? initialCalendarData.customType : initialCalendarData.type)
+  );
+
   useEffect(() => {
-    if (calendarToEdit) {
-      const typeToSet =
-        localCalendarTypes.includes(calendarToEdit.type) ||
-        calendarToEdit.type === "OUTRO"
-          ? calendarToEdit.type
-          : calendarToEdit.type;
-      if (
-        !localCalendarTypes.includes(calendarToEdit.type) &&
-        calendarToEdit.type !== "OUTRO"
-      ) {
-        setLocalCalendarTypes([
-          ...localCalendarTypes.filter((t) => t !== "OUTRO"),
-          calendarToEdit.type,
-          "OUTRO",
-        ]);
+    if (open) {
+      if (calendarToEdit) {
+        const typeToSet =
+          localCalendarTypes.includes(calendarToEdit.type) ||
+          calendarToEdit.type === "OUTRO"
+            ? calendarToEdit.type
+            : calendarToEdit.type;
+        if (
+          !localCalendarTypes.includes(calendarToEdit.type) &&
+          calendarToEdit.type !== "OUTRO"
+        ) {
+          setLocalCalendarTypes([
+            ...localCalendarTypes.filter((t) => t !== "OUTRO"),
+            calendarToEdit.type,
+            "OUTRO",
+          ]);
+        }
+        const calendarDataToSet = {
+          type: typeToSet,
+          year: calendarToEdit.year || "",
+          period: calendarToEdit.period || "",
+          startDate: formatDateForInput(calendarToEdit.startDate),
+          endDate: formatDateForInput(calendarToEdit.endDate),
+          customType: typeToSet === "OUTRO" ? calendarToEdit.type : "",
+        };
+        setCalendarData({
+          type: typeToSet,
+          year: calendarToEdit.year || "",
+          period: calendarToEdit.period || "",
+          startDate: formatDateForInput(calendarToEdit.startDate),
+          endDate: formatDateForInput(calendarToEdit.endDate),
+        });
+        setInitialCalendarData(calendarDataToSet); // Save initial state
+        setCustomType(typeToSet === "OUTRO" ? calendarToEdit.type : "");
+        setError(null);
+      } else {
+        setCalendarData({
+          type: "",
+          year: "",
+          period: "",
+          startDate: "",
+          endDate: "",
+        });
+        setInitialCalendarData(null);
+        setCustomType("");
+        setError(null);
       }
-      setCalendarData({
-        type: typeToSet,
-        year: calendarToEdit.year || "",
-        period: calendarToEdit.period || "",
-        startDate: formatDateForInput(calendarToEdit.startDate),
-        endDate: formatDateForInput(calendarToEdit.endDate),
-      });
-      setCustomType(typeToSet === "OUTRO" ? "" : typeToSet);
-      setError(null);
-      setIsFormChanged(false);
-    } else {
-      setCalendarData({
-        type: "",
-        year: "",
-        period: "",
-        startDate: "",
-        endDate: "",
-      });
-      setCustomType("");
-      setError(null);
-      setIsFormChanged(false);
     }
-  }, [calendarToEdit, open]);
+  }, [calendarToEdit, open, localCalendarTypes]);
 
   const handleInputChange = (name, value) => {
     setCalendarData({ ...calendarData, [name]: value });
-    setIsFormChanged(true);
   };
 
   const handleTypeChange = (e) => {
     const value = e.target.value;
     setCalendarData({ ...calendarData, type: value });
-    setIsFormChanged(true);
     if (value !== "OUTRO") {
       setCustomType("");
     }
@@ -168,7 +176,6 @@ const CalendarFormDialog = ({
 
   const handleCustomTypeChange = (e) => {
     setCustomType(e.target.value);
-    setIsFormChanged(true);
   };
 
   const handleSubmit = async (e) => {
@@ -564,16 +571,9 @@ const CalendarFormDialog = ({
             <DialogActions
               sx={{
                 justifyContent: "center",
-                gap: { xs: 1, sm: 2 }, 
-                padding: { xs: "8px 16px", sm: "10px 24px" }, 
+                gap: 2,
+                padding: "10px 24px",
                 marginTop: "10px",
-                flexDirection: "row", 
-                flexWrap: "wrap", 
-                "& > button": {
-                  flex: "1 1 auto", 
-                  minWidth: { xs: "60px", sm: "80px" },
-                  maxWidth: { xs: "120px", sm: "150px", md: "180px" }, 
-                },
               }}
             >
               <StyledButton
@@ -584,27 +584,27 @@ const CalendarFormDialog = ({
                   "&:hover": { backgroundColor: "#D4000F" },
                 }}
               >
-                <Close sx={{ fontSize: { xs: 16, sm: 20, md: 24 } }} /> {/* Ajusta tamanho do ícone */}
+                <Close sx={{ fontSize: 24 }} />
                 Cancelar
               </StyledButton>
               <StyledButton
                 type="submit"
                 variant="contained"
-                disabled={!isFormFilled || (isEditMode && !isFormChanged)}
+                disabled={isEditMode ? !isFormFilled || !hasChanges : !isFormFilled}
                 sx={{
                   backgroundColor:
-                    !isFormFilled || (isEditMode && !isFormChanged)
+                    isEditMode ? !isFormFilled || !hasChanges : !isFormFilled
                       ? "#E0E0E0"
                       : INSTITUTIONAL_COLOR,
                   "&:hover": {
                     backgroundColor:
-                      !isFormFilled || (isEditMode && !isFormChanged)
+                      isEditMode ? !isFormFilled || !hasChanges : !isFormFilled
                         ? "#E0E0E0"
                         : "#26692b",
                   },
                 }}
               >
-                <Save sx={{ fontSize: { xs: 16, sm: 20, md: 24 } }} /> {/* Ajusta tamanho do ícone */}
+                <Save sx={{ fontSize: 24 }} />
                 {isEditMode ? "Atualizar" : "Cadastrar"}
               </StyledButton>
             </DialogActions>

@@ -31,12 +31,20 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
     type: '',
     coordinatorId: ''
   });
+  const [initialCourse, setInitialCourse] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [coordinators, setCoordinators] = useState([]);
   const [isEditMode, setIsEditMode] = useState(false);
 
   const isFormFilled = course.acronym && course.type && course.name && course.name.trim() !== '';
+
+  const hasChanges = isEditMode && initialCourse && (
+    course.acronym !== initialCourse.acronym ||
+    course.name !== initialCourse.name ||
+    course.type !== initialCourse.type ||
+    (course.coordinatorId || '') !== (initialCourse.coordinatorId || '')
+  );
 
   const handleSubmitSuccess = (newCourse) => {
     setAlert({
@@ -59,12 +67,14 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
           ? VALID_COURSE_TYPES.find(type => type.toUpperCase() === courseToEdit.type.toUpperCase()) || ''
           : '';
         console.log('Type normalizado:', normalizedType);
-        setCourse({
+        const courseData = {
           acronym: courseToEdit.acronym || '',
           name: courseToEdit.name || '',
           type: normalizedType,
-          coordinatorId: courseToEdit.coordinatorId || ''
-        });
+          coordinatorId: courseToEdit.coordinatorId ? String(courseToEdit.coordinatorId) : ''
+        };
+        setCourse(courseData);
+        setInitialCourse(courseData);
         setError(null);
       } else {
         setCourse({
@@ -73,6 +83,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
           type: '',
           coordinatorId: ''
         });
+        setInitialCourse(null);
         setError(null);
       }
     }
@@ -138,6 +149,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    console.log(`Input change - ${name}: ${value}`);
     if (name === 'type' && !VALID_COURSE_TYPES.includes(value)) {
       console.warn(`Valor inválido para type: ${value}`);
       return;
@@ -166,16 +178,20 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 
       let response;
       if (courseToEdit) {
+        console.log(`Enviando PUT para /courses/${courseToEdit.id}`);
         response = await api.put(`/courses/${courseToEdit.id}`, payload);
+        console.log('Resposta da API (PUT):', response.data);
       } else {
-        response = await api.post(`/courses`, payload);
+        console.log('Enviando POST para /courses');
+        response = await api.post('/courses', payload);
+        console.log('Resposta da API (POST):', response.data);
       }
 
       onUpdate(response.data);
-      onClose();
       handleSubmitSuccess();
     } catch (err) {
-      console.log('Erro completo:', err.response);
+      console.error('Erro ao salvar curso:', err);
+      console.log('Erro completo:', err.response?.data);
       setError(err.response?.data?.error || 'Erro ao salvar curso: ' + err.message);
     } finally {
       setLoading(false);
@@ -353,8 +369,11 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                       },
                     }}
                   >
+                    <MenuItem value="">
+                      <em>N/A</em>
+                    </MenuItem>
                     {coordinators.map((user) => (
-                      <MenuItem key={user.id} value={user.id}>
+                      <MenuItem key={user.id} value={String(user.id)}>
                         {user.username}
                       </MenuItem>
                     ))}
@@ -367,6 +386,9 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                     disabled
                     displayEmpty
                   >
+                    <MenuItem value="">
+                      <em>Nenhum coordenador disponível</em>
+                    </MenuItem>
                   </StyledSelect>
                 )}
               </FormControl>
@@ -384,7 +406,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                   variant='contained'
                   sx={{
                     width: 'fit-content',
-										minWidth: 100,
+                    minWidth: 100,
                     padding: '8px 28px',
                     borderRadius: '8px',
                     textTransform: 'none',
@@ -403,10 +425,10 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                   type='submit' 
                   color='primary' 
                   variant='contained' 
-                  disabled={!isFormFilled}
+                  disabled={isEditMode ? !isFormFilled || !hasChanges : !isFormFilled}
                   sx={{
                     width: 'fit-content',
-										minWidth: 100,
+                    minWidth: 100,
                     padding: '8px 28px',
                     backgroundColor: '#087619',
                     borderRadius: '8px',
@@ -419,7 +441,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                   }}
                 >
                   <Save sx={{ fontSize: 24 }} />
-                  {courseToEdit ? 'Salvar' : 'Cadastrar'}
+                  {isEditMode ? 'Atualizar' : 'Cadastrar'}
                 </Button>
               </DialogActions>
             </form>

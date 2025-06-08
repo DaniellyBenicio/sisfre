@@ -20,6 +20,7 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
     acronym: "",
     workload: "",
   });
+  const [initialDiscipline, setInitialDiscipline] = useState(null); // Store initial state
   const [disciplines, setDisciplines] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -27,6 +28,11 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
   const [isEditMode, setIsEditMode] = useState(Boolean(editingData));
 
   const isFormFilled = discipline.disciplineId && discipline.workload && discipline.workload.trim() !== "";
+
+  // Check if any field has changed in edit mode
+  const hasChanges = isEditMode && initialDiscipline && (
+    discipline.workload !== initialDiscipline.workload
+  );
 
   const handleSubmitSuccess = () => {
     setAlert({
@@ -72,13 +78,16 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
           if (editingData) {
             console.log("Editing data:", editingData);
             const selected = allDisciplines.find((d) => d.id === editingData.disciplineId);
-            setDiscipline({
+            const disciplineData = {
               disciplineId: editingData.disciplineId || null,
               acronym: selected?.acronym || editingData.acronym || "",
               workload: editingData.workload?.toString() || "",
-            });
+            };
+            setDiscipline(disciplineData);
+            setInitialDiscipline(disciplineData);
           } else {
             setDiscipline({ disciplineId: null, acronym: "", workload: "" });
+            setInitialDiscipline(null);
           }
         } catch (err) {
           console.error("Error loading disciplines:", err);
@@ -90,7 +99,7 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
 
       initialize();
     }
-  }, [open, editingData, isEditMode]);
+  }, [open, editingData]);
 
   const handleDisciplineChange = (event, newValue) => {
     setDiscipline({
@@ -164,7 +173,7 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
           },
         }}
       >
-        <DialogTitle sx={{ textAlign: "center", marginTop: "27px", color: "#087619", fontWeight: "bold" }} >
+        <DialogTitle sx={{ textAlign: "center", marginTop: "27px", color: "#087619", fontWeight: "bold" }}>
           {isEditMode ? "Editar Disciplina" : "Adicionar Disciplina ao Curso"}
           <IconButton onClick={onClose} sx={{ position: "absolute", right: 8, top: 8 }}>
             <Close />
@@ -290,7 +299,7 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
                   sx={{
                     width: "fit-content",
                     minWidth: 100,
-                    padding: "8px 28px",
+                    padding: { xs: "8px 20px", sm: "8px 28px" },
                     borderRadius: "8px",
                     textTransform: "none",
                     fontWeight: "bold",
@@ -308,11 +317,11 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
                   type="submit"
                   color="primary"
                   variant="contained"
-                  disabled={!isFormFilled || loading}
+                  disabled={isEditMode ? !isFormFilled || !hasChanges || loading : !isFormFilled || loading}
                   sx={{
                     width: "fit-content",
                     minWidth: 100,
-                    padding: "8px 28px",
+                    padding: { xs: "8px 20px", sm: "8px 28px" },
                     backgroundColor: "#087619",
                     borderRadius: "8px",
                     textTransform: "none",
@@ -324,7 +333,7 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
                   }}
                 >
                   <Save sx={{ fontSize: 24 }} />
-                  {isEditMode ? "Salvar" : "Adicionar"}
+                  {isEditMode ? "Atualizar" : "Adicionar"}
                 </Button>
               </DialogActions>
             </form>

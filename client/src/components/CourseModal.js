@@ -369,9 +369,6 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                       },
                     }}
                   >
-                    <MenuItem value="">
-                      <em>N/A</em>
-                    </MenuItem>
                     {coordinators.map((user) => (
                       <MenuItem key={user.id} value={String(user.id)}>
                         {user.username}
@@ -386,9 +383,6 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                     disabled
                     displayEmpty
                   >
-                    <MenuItem value="">
-                      <em>Nenhum coordenador disponível</em>
-                    </MenuItem>
                   </StyledSelect>
                 )}
               </FormControl>

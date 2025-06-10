@@ -229,24 +229,27 @@ export const updateCourse = async (req, res) => {
       }
     }
 
-    if (coordinatorId) {
-      const coordinator = await db.User.findByPk(coordinatorId);
-      if (!coordinator) {
-        return res.status(400).json({ error: "Coordenador não encontrado." });
-      }
+    if (coordinatorId !== undefined) {
+      if (coordinatorId !== null) {
+        const coordinator = await db.User.findByPk(coordinatorId);
+        if (!coordinator) {
+          return res.status(400).json({ error: "Coordenador não encontrado." });
+        }
 
-      const existingCourseWithCoordinator = await db.Course.findOne({
-        where: {
-          coordinatorId,
-          id: { [db.Sequelize.Op.ne]: courseId }, 
-        },
-      });
-
-      if (existingCourseWithCoordinator) {
-        return res.status(400).json({
-          error: "Este coordenador já está associado a outro curso.",
+        const existingCourseWithCoordinator = await db.Course.findOne({
+          where: {
+            coordinatorId,
+            id: { [db.Sequelize.Op.ne]: courseId },
+          },
         });
+
+        if (existingCourseWithCoordinator) {
+          return res.status(400).json({
+            error: "Este coordenador já está associado a outro curso.",
+          });
+        }
       }
+      course.coordinatorId = coordinatorId;
     }
 
     if (name || acronym) {

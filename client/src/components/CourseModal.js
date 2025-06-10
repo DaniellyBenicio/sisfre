@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogActions, DialogContent, DialogTitle, Button, Box,
-  FormControl, MenuItem, IconButton, InputLabel
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Button,
+  Box,
+  FormControl,
+  MenuItem,
+  IconButton,
+  InputLabel,
 } from '@mui/material';
 import { Close, Save } from '@mui/icons-material';
 import api from '../service/api';
@@ -20,7 +29,7 @@ const VALID_COURSE_TYPES = [
   'PÓS-DOUTORADO',
   'RESIDÊNCIA',
   'SEQUENCIAL',
-  'TÉCNICO'
+  'TÉCNICO',
 ];
 
 const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
@@ -29,7 +38,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
     acronym: '',
     name: '',
     type: '',
-    coordinatorId: ''
+    coordinatorId: '',
   });
   const [initialCourse, setInitialCourse] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -43,7 +52,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
     course.acronym !== initialCourse.acronym ||
     course.name !== initialCourse.name ||
     course.type !== initialCourse.type ||
-    (course.coordinatorId || '') !== (initialCourse.coordinatorId || '')
+    course.coordinatorId !== initialCourse.coordinatorId
   );
 
   const handleSubmitSuccess = (newCourse) => {
@@ -64,14 +73,14 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
       setIsEditMode(!!courseToEdit);
       if (courseToEdit) {
         const normalizedType = courseToEdit.type
-          ? VALID_COURSE_TYPES.find(type => type.toUpperCase() === courseToEdit.type.toUpperCase()) || ''
+          ? VALID_COURSE_TYPES.find((type) => type.toUpperCase() === courseToEdit.type.toUpperCase()) || ''
           : '';
         console.log('Type normalizado:', normalizedType);
         const courseData = {
           acronym: courseToEdit.acronym || '',
           name: courseToEdit.name || '',
           type: normalizedType,
-          coordinatorId: courseToEdit.coordinatorId ? String(courseToEdit.coordinatorId) : ''
+          coordinatorId: courseToEdit.coordinatorId ? String(courseToEdit.coordinatorId) : 'none',
         };
         setCourse(courseData);
         setInitialCourse(courseData);
@@ -81,7 +90,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
           acronym: '',
           name: '',
           type: '',
-          coordinatorId: ''
+          coordinatorId: 'none',
         });
         setInitialCourse(null);
         setError(null);
@@ -103,9 +112,8 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
           allUsers = allUsers.users || [];
         }
 
-        const coordinators = allUsers.filter(user => user.accessType === 'Coordenador');
+        const coordinators = allUsers.filter((user) => user.accessType === 'Coordenador');
 
-        // Verifica cursos que tem coordenador
         const coursesResponse = await api.get('/courses');
         console.log('Resposta da API /courses:', coursesResponse.data);
         let allCourses = coursesResponse.data;
@@ -115,18 +123,17 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
           allCourses = allCourses.courses || [];
         }
 
-        // Pega ID dos coodenadores associados a um curso
         const assignedCoordinatorIds = allCourses
-          .filter(course => course.coordinatorId)
-          .map(course => course.coordinatorId);
+          .filter((course) => course.coordinatorId)
+          .map((course) => course.coordinatorId);
 
         const availableCoordinators = coordinators.filter(
-          coordinator => !assignedCoordinatorIds.includes(coordinator.id)
+          (coordinator) => !assignedCoordinatorIds.includes(coordinator.id)
         );
 
         if (courseToEdit && courseToEdit.coordinatorId) {
           const currentCoordinator = coordinators.find(
-            coordinator => coordinator.id === courseToEdit.coordinatorId
+            (coordinator) => coordinator.id === courseToEdit.coordinatorId
           );
           if (currentCoordinator && !availableCoordinators.includes(currentCoordinator)) {
             availableCoordinators.push(currentCoordinator);
@@ -134,7 +141,6 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
         }
         console.log('Coordenadores disponíveis:', availableCoordinators);
         setCoordinators(availableCoordinators);
-
       } catch (err) {
         console.error('Erro ao carregar coordenadores:', err);
         setError('Erro ao carregar coordenadores');
@@ -171,14 +177,14 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
         acronym: course.acronym,
         name: course.name,
         type: course.type,
-        coordinatorId: course.coordinatorId ? Number(course.coordinatorId) : null
+        coordinatorId: course.coordinatorId === 'none' ? null : Number(course.coordinatorId),
       };
 
       console.log('Payload enviado:', payload);
 
       let response;
       if (courseToEdit) {
-        console.log(`Enviando PUT para /courses/${courseToEdit.id}`);
+        console.log(`Enviando PUT para /courses}/${courseToEdit.id}`);
         response = await api.put(`/courses/${courseToEdit.id}`, payload);
         console.log('Resposta da API (PUT):', response.data);
       } else {
@@ -200,16 +206,16 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 
   return (
     <>
-      <Dialog 
-        open={open} 
+      <Dialog
+        open={open}
         onClose={onClose}
-        fullWidth 
-        PaperProps={{ 
-          sx: { 
+        fullWidth
+        PaperProps={{
+          sx: {
             borderRadius: '8px',
             width: '520px',
-            maxWidth: '90vw', 
-          } 
+            maxWidth: '90vw',
+          },
         }}
       >
         <DialogTitle sx={{ textAlign: 'center', marginTop: '19px', color: '#087619', fontWeight: 'bold' }}>
@@ -226,56 +232,56 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
           {!loading ? (
             <form onSubmit={handleSubmit}>
               {error && <Box sx={{ color: 'red', marginBottom: 2, fontSize: '0.875rem' }}>{error}</Box>}
-              
-              <StyledTextField 
-                sx={{ 
-                  my: 1.5, 
-                  '& .MuiInputBase-root': { 
+
+              <StyledTextField
+                sx={{
+                  my: 1.5,
+                  '& .MuiInputBase-root': {
                     height: '56px',
                   },
-                  '& .MuiInputLabel-root': { 
+                  '& .MuiInputLabel-root': {
                     top: '50%',
                     transform: 'translate(14px, -50%)',
                     fontSize: '1rem',
                   },
-                  '& .MuiInputLabel-shrink': { 
+                  '& .MuiInputLabel-shrink': {
                     top: 0,
                     transform: 'translate(14px, -9px) scale(0.75)',
                   },
                 }}
-                name='name'
-                size='small'
-                variant='outlined'
+                name="name"
+                size="small"
+                variant="outlined"
                 fullWidth
-                label='Nome'
-                margin='normal'
+                label="Nome"
+                margin="normal"
                 value={course.name}
                 onChange={handleInputChange}
                 required
               />
 
-              <StyledTextField 
-                sx={{ 
-                  my: 1.5, 
-                  '& .MuiInputBase-root': { 
+              <StyledTextField
+                sx={{
+                  my: 1.5,
+                  '& .MuiInputBase-root': {
                     height: '56px',
                   },
-                  '& .MuiInputLabel-root': { 
+                  '& .MuiInputLabel-root': {
                     top: '50%',
                     transform: 'translate(14px, -50%)',
                     fontSize: '1rem',
                   },
-                  '& .MuiInputLabel-shrink': { 
+                  '& .MuiInputLabel-shrink': {
                     top: 0,
                     transform: 'translate(14px, -9px) scale(0.75)',
                   },
                 }}
-                name='acronym'
+                name="acronym"
                 fullWidth
-                variant='outlined'
-                size='small'
-                label='Sigla'
-                margin='normal'
+                variant="outlined"
+                size="small"
+                label="Sigla"
+                margin="normal"
                 value={course.acronym}
                 onChange={handleInputChange}
                 required
@@ -283,7 +289,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 
               <FormControl
                 fullWidth
-                margin='normal'
+                margin="normal"
                 sx={{
                   my: 1.5,
                   '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
@@ -293,16 +299,16 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                 }}
               >
                 <InputLabel
-                  id='accessType-label'
+                  id="accessType-label"
                   sx={{ '&.Mui-focused, &.MuiInputLabel-shrink': { color: '#000000' } }}
                 >
                   Tipo de Curso *
                 </InputLabel>
                 <StyledSelect
-                  name='type'
+                  name="type"
                   value={course.type}
                   onChange={handleInputChange}
-                  label='Tipo de Curso *'
+                  label="Tipo de Curso *"
                   required
                   MenuProps={{
                     PaperProps: {
@@ -311,31 +317,31 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                         overflowY: 'auto',
                         width: 'auto',
                         '& .MuiMenuItem-root:hover': {
-                          backgroundColor: '#D5FFDB'
-                        }
+                          backgroundColor: '#D5FFDB',
+                        },
                       },
                     },
                   }}
                 >
-                  <MenuItem value='CURSO LIVRE'>Curso Livre</MenuItem>
-                  <MenuItem value='DOUTORADO'>Doutorado</MenuItem>
-                  <MenuItem value='EAD'>EAD</MenuItem>
-                  <MenuItem value='ESPECIALIZAÇÃO'>Especialização</MenuItem>
-                  <MenuItem value='EXTENSÃO'>Extensão</MenuItem>
-                  <MenuItem value='GRADUAÇÃO'>Graduação</MenuItem>
-                  <MenuItem value='INTEGRADO'>Integrado</MenuItem>
-                  <MenuItem value='MESTRADO'>Mestrado</MenuItem>
-                  <MenuItem value='PROEJA'>PROEJA</MenuItem>
-                  <MenuItem value='PÓS-DOUTORADO'>Pós-Doutorado</MenuItem>
-                  <MenuItem value='RESIDÊNCIA'>Residência</MenuItem>
-                  <MenuItem value='SEQUENCIAL'>Sequencial</MenuItem>
-                  <MenuItem value='TÉCNICO'>Técnico</MenuItem>
+                  <MenuItem value="CURSO LIVRE">Curso Livre</MenuItem>
+                  <MenuItem value="DOUTORADO">Doutorado</MenuItem>
+                  <MenuItem value="EAD">EAD</MenuItem>
+                  <MenuItem value="ESPECIALIZAÇÃO">Especialização</MenuItem>
+                  <MenuItem value="EXTENSÃO">Extensão</MenuItem>
+                  <MenuItem value="GRADUAÇÃO">Graduação</MenuItem>
+                  <MenuItem value="INTEGRADO">Integrado</MenuItem>
+                  <MenuItem value="MESTRADO">Mestrado</MenuItem>
+                  <MenuItem value="PROEJA">PROEJA</MenuItem>
+                  <MenuItem value="PÓS-DOUTORADO">Pós-Doutorado</MenuItem>
+                  <MenuItem value="RESIDÊNCIA">Residência</MenuItem>
+                  <MenuItem value="SEQUENCIAL">Sequencial</MenuItem>
+                  <MenuItem value="TÉCNICO">Técnico</MenuItem>
                 </StyledSelect>
               </FormControl>
 
               <FormControl
                 fullWidth
-                margin='normal'
+                margin="normal"
                 sx={{
                   my: 1.5,
                   '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
@@ -348,56 +354,46 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                   id="coordinator-label"
                   sx={{ "&.Mui-focused, &.MuiInputLabel-shrink": { color: "#000000" } }}
                 >
-                  {coordinators.length > 0 ? "Coordenador" : "Nenhum coordenador disponível"}
+                  Coordenador
                 </InputLabel>
-                {coordinators.length > 0 ? (
-                  <StyledSelect
-                    name="coordinatorId"
-                    label="Coordenador"
-                    value={course.coordinatorId}
-                    onChange={handleInputChange}
-                    MenuProps={{
-                      PaperProps: {
-                        sx: {
-                          maxHeight: "200px",
-                          overflowY: "auto",
-                          width: "auto",
-                          "& .MuiMenuItem-root:hover": {
-                            backgroundColor: "#D5FFDB",
-                          },
+                <StyledSelect
+                  name="coordinatorId"
+                  label="Coordenador"
+                  value={course.coordinatorId}
+                  onChange={handleInputChange}
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        maxHeight: "200px",
+                        overflowY: "auto",
+                        width: "auto",
+                        "& .MuiMenuItem-root:hover": {
+                          backgroundColor: "#D5FFDB",
                         },
                       },
-                    }}
-                  >
-                    {coordinators.map((user) => (
-                      <MenuItem key={user.id} value={String(user.id)}>
-                        {user.username}
-                      </MenuItem>
-                    ))}
-                  </StyledSelect>
-                ) : (
-                  <StyledSelect
-                    name="coordinatorId"
-                    label=""
-                    value=""
-                    disabled
-                    displayEmpty
-                  >
-                  </StyledSelect>
-                )}
+                    },
+                  }}
+                >
+                  <MenuItem value="none">N/A</MenuItem>
+                  {coordinators.map((user) => (
+                    <MenuItem key={user.id} value={String(user.id)}>
+                      {user.username}
+                    </MenuItem>
+                  ))}
+                </StyledSelect>
               </FormControl>
 
               <DialogActions
                 sx={{
                   justifyContent: 'center',
-                  gap: 2, 
+                  gap: 2,
                   padding: '10px 24px',
-                  marginTop: '10px'
+                  marginTop: '10px',
                 }}
               >
-                <Button 
-                  onClick={onClose} 
-                  variant='contained'
+                <Button
+                  onClick={onClose}
+                  variant="contained"
                   sx={{
                     width: 'fit-content',
                     minWidth: 100,
@@ -409,16 +405,16 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                     alignItems: 'center',
                     gap: '8px',
                     backgroundColor: '#F01424',
-                    '&:hover': { backgroundColor: '#D4000F' }
+                    '&:hover': { backgroundColor: '#D4000F' },
                   }}
                 >
                   <Close sx={{ fontSize: 24 }} />
                   Cancelar
                 </Button>
-                <Button 
-                  type='submit' 
-                  color='primary' 
-                  variant='contained' 
+                <Button
+                  type="submit"
+                  color="primary"
+                  variant="contained"
                   disabled={isEditMode ? !isFormFilled || !hasChanges : !isFormFilled}
                   sx={{
                     width: 'fit-content',
@@ -439,7 +435,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                 </Button>
               </DialogActions>
             </form>
-          ) : null }
+          ) : null}
         </DialogContent>
       </Dialog>
       {alert && (

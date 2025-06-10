@@ -149,6 +149,10 @@ const DisciplineCoordinator = () => {
             .toLowerCase()
             .includes(search.trim().toLowerCase())
       )
+      .map((discipline) => ({
+          ...discipline,
+          displayWorkload: discipline.workload ? `${discipline.workload}h` : "N/A",
+        }))
     : [];
 
   return (

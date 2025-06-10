@@ -5,7 +5,7 @@ const DisciplinesTableCoordinator = ({ disciplines, onDelete, onUpdate, search, 
   const headers = [
     { key: "acronym", label: "Sigla" },
     { key: "name", label: "Nome" },
-    { key: "workload", label: "Carga Horária" },
+    { key: "displayWorkload", label: "Carga Horária" },
   ];
 
   const renderMobileRow = (discipline) => (

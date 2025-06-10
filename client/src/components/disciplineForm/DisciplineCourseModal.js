@@ -189,9 +189,7 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
               <Autocomplete
                 options={disciplines}
                 getOptionLabel={(option) => option.name || ""}
-                value={
-                  disciplines.find((d) => d.id === discipline.disciplineId) || null
-                }
+                value={disciplines.find((d) => d.id === discipline.disciplineId) || null}
                 onChange={handleDisciplineChange}
                 renderInput={(params) => (
                   <StyledTextField
@@ -228,7 +226,21 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
                     sx: {
                       maxHeight: '200px',
                       overflowY: 'auto',
-                      '& .MuiAutocomplete-option:hover': { backgroundColor: '#D5FFDB' },
+                      "& .MuiMenuItem-root:hover": {
+                        backgroundColor: "#transparent",
+                      },
+                      '& .MuiAutocomplete-option': {
+                        backgroundColor: 'transparent',
+                        '&:hover': {
+                          backgroundColor: '#D5FFDB !important',
+                        },
+                        '&.Mui-focused': {
+                          backgroundColor: 'transparent',
+                        },
+                        '&[aria-selected="true"].Mui-focused': {
+                          backgroundColor: '#E8F5E9',
+                        },
+                      },
                     },
                   },
                 }}

@@ -245,9 +245,6 @@ const CalendarFormDialog = ({
             await api.post("/calendar-types", { type: finalType });
           } catch (typeError) {
             console.error("Erro ao cadastrar novo tipo:", typeError);
-            setError(
-              "Calendário salvo, mas houve um erro ao cadastrar o novo tipo."
-            );
           }
         }
       }

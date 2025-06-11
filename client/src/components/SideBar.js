@@ -14,8 +14,20 @@ import {
   Toolbar,
   AppBar,
   Box,
+  ListItemIcon,
 } from "@mui/material";
-import { Menu, People, School, ExitToApp, Warning, Class, LibraryBooks, CalendarToday } from "@mui/icons-material";
+import {
+  Menu,
+  People,
+  School,
+  ExitToApp,
+  Warning,
+  Class,
+  LibraryBooks,
+  CalendarToday,
+  ArrowRight,
+  ArrowDropDown,
+} from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useMediaQuery } from "@mui/material";
 import LogoMenu from "../assets/LogoMenu.svg";
@@ -30,6 +42,8 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
   const [username, setUsername] = useState("");
   const [accessType, setAccessType] = useState("");
   const isMobile = useMediaQuery("(max-width:600px)");
+  const [isClassesHovered, setIsClassesHovered] = useState(false);
+  const [isClassesExpanded, setIsClassesExpanded] = useState(false);
 
   useEffect(() => {
     const name = localStorage.getItem("username");
@@ -38,13 +52,13 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
     const type = localStorage.getItem("accessType");
     if (type) setAccessType(type);
 
-    // Sincronizar selectedItem com a rota atual
     const path = location.pathname;
     if (path === "/users") setSelectedItem("users");
     else if (path === "/courses") setSelectedItem("courses");
     else if (path === "/disciplines") setSelectedItem("disciplines");
     else if (path === "/calendar") setSelectedItem("calendar");
     else if (path === "/classes") setSelectedItem("classes");
+    else if (path === "/class-schedule") setSelectedItem("class-schedule");
   }, [location.pathname]);
 
   const handleOpenConfirmDialog = () => setOpenConfirmDialog(true);
@@ -54,7 +68,10 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
     console.log(`Navigating to: ${path}, Item: ${item}`);
     setSelectedItem(item);
     navigate(path);
-    if (isMobile) setMobileOpen(false);
+    if (isMobile) {
+      setMobileOpen(false);
+      setIsClassesExpanded(false);
+    }
   };
 
   const getListItemStyle = (selectedItem, itemKey) => ({
@@ -68,6 +85,13 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
     logout(setAuthenticated);
     handleCloseConfirmDialog();
     setTimeout(() => navigate("/login"), 100);
+  };
+
+  const handleClassesToggle = (e) => {
+    e.stopPropagation();
+    if (isMobile) {
+      setIsClassesExpanded(!isClassesExpanded);
+    }
   };
 
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
@@ -107,10 +131,55 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
               <CalendarToday sx={{ mr: 1 }} />
               <ListItemText primary="Calendário" />
             </ListItem>
-            <ListItem button onClick={() => handleItemClick("/classes", "classes")} sx={getListItemStyle(selectedItem, "classes")}>
-              <Class sx={{ mr: 1 }} />
-              <ListItemText primary="Turmas" />
-            </ListItem>
+            <Box
+              onMouseEnter={() => !isMobile && setIsClassesHovered(true)}
+              onMouseLeave={() => !isMobile && setIsClassesHovered(false)}
+            >
+              <ListItem
+                button
+                onClick={handleClassesToggle}
+                sx={getListItemStyle(selectedItem, "classes")}
+                aria-expanded={isMobile ? isClassesExpanded : isClassesHovered}
+              >
+                <Class sx={{ mr: 1 }} />
+                <ListItemText primary="Turmas" />
+                <ListItemIcon sx={{ minWidth: "auto", color: "white" }}>
+                  {isMobile ? (
+                    isClassesExpanded ? <ArrowDropDown /> : <ArrowRight />
+                  ) : (
+                    null
+                  )}
+                </ListItemIcon>
+              </ListItem>
+              {(isMobile ? isClassesExpanded : isClassesHovered) && (
+                <>
+                  <ListItem
+                    button
+                    onClick={() => handleItemClick("/classes", "manage-classes")}
+                    sx={{
+                      pl: 6,
+                      "&:hover": { backgroundColor: "#388E3C" },
+                      backgroundColor: selectedItem === "manage-classes" ? "#4CAF50" : "transparent",
+                    }}
+                  >
+                    <ListItemText primary="Gerenciar Turmas" sx={{ color: "white" }} />
+                  </ListItem>
+
+                  <ListItem
+                    button
+                    onClick={() => handleItemClick("/class-schedule", "class-schedule")}
+                    sx={{
+                      pl: 6,
+                      "&:hover": { backgroundColor: "#388E3C" },
+                      backgroundColor: selectedItem === "class-schedule" ? "#4CAF50" : "transparent",
+                    }}
+                  >
+                    <ListItemText primary="Grade de Turma" sx={{ color: "white" }} />
+                  </ListItem>
+
+                </>
+              )}
+            </Box>
           </>
         )}
 
@@ -120,10 +189,53 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
               <LibraryBooks sx={{ mr: 1 }} />
               <ListItemText primary="Disciplinas" />
             </ListItem>
-            <ListItem button onClick={() => handleItemClick("/classes", "classes")} sx={getListItemStyle(selectedItem, "classes")}>
-              <Class sx={{ mr: 1 }} />
-              <ListItemText primary="Turmas" />
-            </ListItem>
+            <Box
+              onMouseEnter={() => !isMobile && setIsClassesHovered(true)}
+              onMouseLeave={() => !isMobile && setIsClassesHovered(false)}
+            >
+              <ListItem
+                button
+                onClick={handleClassesToggle}
+                sx={getListItemStyle(selectedItem, "classes")}
+                aria-expanded={isMobile ? isClassesExpanded : isClassesHovered}
+              >
+                <Class sx={{ mr: 1 }} />
+                <ListItemText primary="Turmas" />
+                <ListItemIcon sx={{ minWidth: "auto", color: "white" }}>
+                  {isMobile ? (
+                    isClassesExpanded ? <ArrowDropDown /> : <ArrowRight />
+                  ) : (
+                    null
+                  )}
+                </ListItemIcon>
+              </ListItem>
+              {(isMobile ? isClassesExpanded : isClassesHovered) && (
+                <>
+                  <ListItem
+                    button
+                    onClick={() => handleItemClick("/classes", "classes")}
+                    sx={{
+                      pl: 6,
+                      "&:hover": { backgroundColor: "#388E3C" },
+                      backgroundColor: selectedItem === "classes" ? "#4CAF50" : "transparent",
+                    }}
+                  >
+                    <ListItemText primary="Gerenciar Turmas" sx={{ color: "white" }} />
+                  </ListItem>
+                  <ListItem
+                    button
+                    onClick={() => handleItemClick("/class-schedule", "class-schedule")}
+                    sx={{
+                      pl: 6,
+                      "&:hover": { backgroundColor: "#388E3C" },
+                      backgroundColor: selectedItem === "class-schedule" ? "#4CAF50" : "transparent",
+                    }}
+                  >
+                    <ListItemText primary="Grade de Turma" sx={{ color: "white" }} />
+                  </ListItem>
+                </>
+              )}
+            </Box>
           </>
         )}
 
@@ -137,8 +249,7 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
         )}
       </List>
 
-      {/* Sair */}
-      <Box sx={{ position: "absolute", bottom: isMobile ? 85 : 25, width: "100%" }}>
+      <Box sx={{ position: "absolute", bottom: isMobile ? 70 : 20, width: "100%" }}>
         <ListItem button onClick={handleOpenConfirmDialog} sx={getListItemStyle(selectedItem, "exit")}>
           <ExitToApp sx={{ mr: 1 }} />
           <ListItemText primary="Sair" />
@@ -197,23 +308,21 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
         onClose={handleCloseConfirmDialog}
         fullWidth
         PaperProps={{
-        sx: {
-          borderRadius: "9px",
-          width: isMobile ? "100%" : "390px",
-          mx: isMobile ? 2 : "auto",
-        },
-      }}
+          sx: {
+            borderRadius: "9px",
+            width: isMobile ? "100%" : "390px",
+            mx: isMobile ? 2 : "auto",
+          },
+        }}
       >
         <DialogContent sx={{ textAlign: "center" }}>
           <Box display="flex" justifyContent="center" mb={2}>
             <Warning sx={{ fontSize: 55, color: "#FFA000" }} />
           </Box>
-          <Typography textAlign="center">
-            Tem certeza que deseja sair?
-          </Typography>
+          <Typography textAlign="center">Tem certeza que deseja sair?</Typography>
         </DialogContent>
 
-        <DialogActions 
+        <DialogActions
           sx={{
             gap: 2,
             padding: isMobile ? "16px" : "23px 70px",

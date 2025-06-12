@@ -17,7 +17,7 @@ export default (sequelize) => {
         as: "courses",
       });
 
-      Calendar.belongsToMany(models.schoolSaturday, {
+      Calendar.belongsToMany(models.SchoolSaturday, {
         through: "calendarSaturday",
         foreignKey: "calendarId",
         otherKey: "schoolsaturdad",

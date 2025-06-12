@@ -35,7 +35,7 @@ module.exports = {
       },
     });
 
-    await queryInterface.addIndex('calendarSaturday', ['schoolsaturdayid', 'calendarid'], {
+    await queryInterface.addIndex('calendarSaturday', ['schoolsaturdayId', 'calendarId'], {
       unique: true,
     });
   },

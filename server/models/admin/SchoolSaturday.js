@@ -40,7 +40,7 @@ export default (sequelize) => {
     },
     {
       sequelize,
-      modelName: "SchoolSaturday",
+      modelName: "schoolSaturday",
       tableName: "schoolSaturdays",
       timestamps: true,
     }

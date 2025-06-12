@@ -4,7 +4,7 @@ export default (sequelize) => {
   class Calendar extends Model {
     static associate(models) {
       Calendar.belongsToMany(models.Class, {
-        through: models.CalendarClass,
+        through: "CalendarClass",
         foreignKey: "calendarId",
         otherKey: "classId",
         as: "classes",
@@ -19,9 +19,9 @@ export default (sequelize) => {
 
       Calendar.belongsToMany(models.schoolSaturday, {
         through: "calendarSaturday",
-        foreignKey: "calendarid",
-        otherKey: "schoolsaturdayid",
-        as: "schoolSaturdays",
+        foreignKey: "calendarId",
+        otherKey: "schoolsaturdad",
+        as: "schoolCalendarSaturdays",
       });
     }
   }

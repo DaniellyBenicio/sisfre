@@ -44,6 +44,8 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
   const isMobile = useMediaQuery("(max-width:600px)");
   const [isClassesHovered, setIsClassesHovered] = useState(false);
   const [isClassesExpanded, setIsClassesExpanded] = useState(false);
+  const [isCalendarHovered, setIsCalendarHovered] = useState(false);
+  const [isCalendarExpanded, setIsCalendarExpanded] = useState(false);
 
   useEffect(() => {
     const name = localStorage.getItem("username");
@@ -56,9 +58,11 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
     if (path === "/users") setSelectedItem("users");
     else if (path === "/courses") setSelectedItem("courses");
     else if (path === "/disciplines") setSelectedItem("disciplines");
-    else if (path === "/calendar") setSelectedItem("calendar");
-    else if (path === "/classes") setSelectedItem("classes");
+    else if (path === "/calendar") setSelectedItem("manage-calendar");
+    else if (path === "/classes") setSelectedItem("manage-classes");
     else if (path === "/class-schedule") setSelectedItem("class-schedule");
+    else if (path === "/saturday") setSelectedItem("saturday");
+    else if (path === "/holiday") setSelectedItem("holiday");
   }, [location.pathname]);
 
   const handleOpenConfirmDialog = () => setOpenConfirmDialog(true);
@@ -71,6 +75,7 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
     if (isMobile) {
       setMobileOpen(false);
       setIsClassesExpanded(false);
+      setIsCalendarExpanded(false);
     }
   };
 
@@ -91,6 +96,13 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
     e.stopPropagation();
     if (isMobile) {
       setIsClassesExpanded(!isClassesExpanded);
+    }
+  };
+
+  const handleCalendarToggle = (e) => {
+    e.stopPropagation();
+    if (isMobile) {
+      setIsCalendarExpanded(!isCalendarExpanded);
     }
   };
 
@@ -127,10 +139,64 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
               <LibraryBooks sx={{ mr: 1 }} />
               <ListItemText primary="Disciplinas" />
             </ListItem>
-            <ListItem button onClick={() => handleItemClick("/calendar", "calendar")} sx={getListItemStyle(selectedItem, "calendar")}>
-              <CalendarToday sx={{ mr: 1 }} />
-              <ListItemText primary="Calendário" />
-            </ListItem>
+            <Box
+              onMouseEnter={() => !isMobile && setIsCalendarHovered(true)}
+              onMouseLeave={() => !isMobile && setIsCalendarHovered(false)}
+            >
+              <ListItem
+                button
+                onClick={handleCalendarToggle}
+                sx={getListItemStyle(selectedItem, "calendar")}
+                aria-expanded={isMobile ? isCalendarExpanded : isCalendarHovered}
+              >
+                <CalendarToday sx={{ mr: 1 }} />
+                <ListItemText primary="Calendário" />
+                <ListItemIcon sx={{ minWidth: "auto", color: "white" }}>
+                  {isMobile ? (
+                    isCalendarExpanded ? <ArrowDropDown /> : <ArrowRight />
+                  ) : (
+                    null
+                  )}
+                </ListItemIcon>
+              </ListItem>
+              {(isMobile ? isCalendarExpanded : isCalendarHovered) && (
+                <>
+                  <ListItem
+                    button
+                    onClick={() => handleItemClick("/calendar", "manage-calendar")}
+                    sx={{
+                      pl: 6,
+                      "&:hover": { backgroundColor: "#388E3C" },
+                      backgroundColor: selectedItem === "manage-calendar" ? "#4CAF50" : "transparent",
+                    }}
+                  >
+                    <ListItemText primary="Gerenciar Calendário" sx={{ color: "white" }} />
+                  </ListItem>
+                  <ListItem
+                    button
+                    onClick={() => handleItemClick("/saturday", "saturday")}
+                    sx={{
+                      pl: 6,
+                      "&:hover": { backgroundColor: "#388E3C" },
+                      backgroundColor: selectedItem === "saturday" ? "#4CAF50" : "transparent",
+                    }}
+                  >
+                    <ListItemText primary="Sábado Letivo" sx={{ color: "white" }} />
+                  </ListItem>
+                  <ListItem
+                    button
+                    onClick={() => handleItemClick("/holiday", "holiday")}
+                    sx={{
+                      pl: 6,
+                      "&:hover": { backgroundColor: "#388E3C" },
+                      backgroundColor: selectedItem === "holiday" ? "#4CAF50" : "transparent",
+                    }}
+                  >
+                    <ListItemText primary="Feriado" sx={{ color: "white" }} />
+                  </ListItem>
+                </>
+              )}
+            </Box>
             <Box
               onMouseEnter={() => !isMobile && setIsClassesHovered(true)}
               onMouseLeave={() => !isMobile && setIsClassesHovered(false)}
@@ -164,7 +230,6 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
                   >
                     <ListItemText primary="Gerenciar Turmas" sx={{ color: "white" }} />
                   </ListItem>
-
                   <ListItem
                     button
                     onClick={() => handleItemClick("/class-schedule", "class-schedule")}

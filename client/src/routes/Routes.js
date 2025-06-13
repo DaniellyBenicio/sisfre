@@ -10,6 +10,7 @@ import MainScreen from "../pages/MainScreen.js";
 import ForgotPassword from "../pages/password/ForgotPassword.js";
 import ResetPassword from "../pages/password/ResetPassword.js";
 import DisciplinePage from "../pages/disciplines/DisciplinePage.js";
+import ClassSchedulePage from "../pages/classSchedule/ClassSchedulePage.js";
 
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
@@ -125,6 +126,16 @@ const AppRoutes = () => {
         element={
           isAuthenticated ? (
             <CalendarPage setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
+        path="/class-schedule"
+        element={
+          isAuthenticated ? (
+            <ClassSchedulePage setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
           )

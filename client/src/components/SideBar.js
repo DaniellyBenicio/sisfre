@@ -97,7 +97,7 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
 
   const drawerContent = (
-    <Box sx={{ height: "100%", position: "relative" }}>
+    <Box sx={{ minHeight: "100%", overflowY: "auto", paddingBottom: "20px" }}>
       <List textAlign="center">
         <ListItem sx={{ justifyContent: "center", marginLeft: "-12px" }}>
           <Box sx={{ mb: 2 }}>
@@ -176,7 +176,6 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
                   >
                     <ListItemText primary="Grade de Turma" sx={{ color: "white" }} />
                   </ListItem>
-
                 </>
               )}
             </Box>
@@ -189,53 +188,10 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
               <LibraryBooks sx={{ mr: 1 }} />
               <ListItemText primary="Disciplinas" />
             </ListItem>
-            <Box
-              onMouseEnter={() => !isMobile && setIsClassesHovered(true)}
-              onMouseLeave={() => !isMobile && setIsClassesHovered(false)}
-            >
-              <ListItem
-                button
-                onClick={handleClassesToggle}
-                sx={getListItemStyle(selectedItem, "classes")}
-                aria-expanded={isMobile ? isClassesExpanded : isClassesHovered}
-              >
-                <Class sx={{ mr: 1 }} />
-                <ListItemText primary="Turmas" />
-                <ListItemIcon sx={{ minWidth: "auto", color: "white" }}>
-                  {isMobile ? (
-                    isClassesExpanded ? <ArrowDropDown /> : <ArrowRight />
-                  ) : (
-                    null
-                  )}
-                </ListItemIcon>
-              </ListItem>
-              {(isMobile ? isClassesExpanded : isClassesHovered) && (
-                <>
-                  <ListItem
-                    button
-                    onClick={() => handleItemClick("/classes", "classes")}
-                    sx={{
-                      pl: 6,
-                      "&:hover": { backgroundColor: "#388E3C" },
-                      backgroundColor: selectedItem === "classes" ? "#4CAF50" : "transparent",
-                    }}
-                  >
-                    <ListItemText primary="Gerenciar Turmas" sx={{ color: "white" }} />
-                  </ListItem>
-                  <ListItem
-                    button
-                    onClick={() => handleItemClick("/class-schedule", "class-schedule")}
-                    sx={{
-                      pl: 6,
-                      "&:hover": { backgroundColor: "#388E3C" },
-                      backgroundColor: selectedItem === "class-schedule" ? "#4CAF50" : "transparent",
-                    }}
-                  >
-                    <ListItemText primary="Grade de Turma" sx={{ color: "white" }} />
-                  </ListItem>
-                </>
-              )}
-            </Box>
+            <ListItem button onClick={() => handleItemClick("/classes", "classes")} sx={getListItemStyle(selectedItem, "classes")}>
+              <Class sx={{ mr: 1 }} />
+              <ListItemText primary="Turmas" />
+            </ListItem>
           </>
         )}
 
@@ -249,8 +205,12 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
         )}
       </List>
 
-      <Box sx={{ position: "absolute", bottom: isMobile ? 70 : 20, width: "100%" }}>
-        <ListItem button onClick={handleOpenConfirmDialog} sx={getListItemStyle(selectedItem, "exit")}>
+      <Box sx={{ width: "100%" }}>
+        <ListItem
+          button
+          onClick={handleOpenConfirmDialog}
+          sx={getListItemStyle(selectedItem, "exit")}
+        >
           <ExitToApp sx={{ mr: 1 }} />
           <ListItemText primary="Sair" />
         </ListItem>
@@ -280,6 +240,8 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
                 backgroundColor: "#087619",
                 color: "white",
                 top: "54px",
+                height: "calc(100% - 54px)",
+                overflowY: "auto",
                 zIndex: (theme) => theme.zIndex.drawer + 2,
               },
             }}
@@ -297,6 +259,7 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
               width: 240,
               backgroundColor: "#087619",
               color: "white",
+              overflowY: "auto",
             },
           }}
         >

@@ -28,14 +28,6 @@ export default (sequelize) => {
       date: {
         type: DataTypes.DATEONLY,
         allowNull: false,
-        validate: {
-          isSaturday(value) {
-            const day = new Date(value).getDay();
-            if (day !== 6) {
-              throw new Error("A data deve ser um sábado.");
-            }
-          },
-        },
       },
     },
     {

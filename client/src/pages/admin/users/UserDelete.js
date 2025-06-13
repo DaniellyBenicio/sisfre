@@ -1,3 +1,4 @@
+// ClassSchedulePage
 import React, { useState } from 'react';
 import api from "../../../service/api";
 import DeleteConfirmationDialog from "../../../components/DeleteConfirmationDialog";

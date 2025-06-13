@@ -5,12 +5,13 @@ import Login from "../pages/login/Login.js";
 import UsersPage from "../pages/admin/users/UsersPage.js";
 import CoursePage from "../pages/admin/courses/CoursesPage.js";
 import ClassesPage from "../pages/admin/classes/ClassesPages.js";
-import CalendarPage from "../pages/admin/Calendars/CalendarPage.js"; 
+import CalendarPage from "../pages/admin/Calendars/CalendarPage.js";
 import MainScreen from "../pages/MainScreen.js";
 import ForgotPassword from "../pages/password/ForgotPassword.js";
 import ResetPassword from "../pages/password/ResetPassword.js";
 import DisciplinePage from "../pages/disciplines/DisciplinePage.js";
-import ClassSchedulePage from "../pages/classSchedule/ClassSchedulePage.js";
+import ClassPage from "../pages/admin/classes/ClassesPages.js";
+import SaturdaySchoolPage from "../pages/admin/SaturdaySchool/SaturdaySchoolPage.js";
 
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
@@ -135,7 +136,17 @@ const AppRoutes = () => {
         path="/class-schedule"
         element={
           isAuthenticated ? (
-            <ClassSchedulePage setAuthenticated={handleLogout} />
+            <ClassPage setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
+        path="/saturday"
+        element={
+          isAuthenticated && accessType === "Admin" ? (
+            <SaturdaySchoolPage setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
           )

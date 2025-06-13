@@ -4,38 +4,42 @@ export const createSchoolSaturday = async (req, res) => {
   try {
     const { date, dayOfWeek, calendarId } = req.body;
     if (!calendarId) {
-      return res
-        .status(400)
-        .json({ error: "O ID do calendário é obrigatório." });
+      return res.status(400).json({ error: "O ID do calendário é obrigatório." });
     }
-
     if (!dayOfWeek) {
-      return res
-        .status(400)
-        .json({ error: "O dia da semana (dayOfWeek) é obrigatório." });
+      return res.status(400).json({ error: "O dia da semana é obrigatório." });
     }
-
     if (!["segunda", "terca", "quarta", "quinta", "sexta"].includes(dayOfWeek)) {
       return res.status(400).json({
-          error:
-            'O dia da semana deve ser "segunda", "terca", "quarta", "quinta" ou "sexta".',
-        });
+        error: 'O dia da semana deve ser "segunda", "terca", "quarta", "quinta" ou "sexta".',
+      });
     }
 
-    const [year, month, day] = date.split('-').map(Number);
+    const dateParts = date.split('-');
+    if (dateParts.length !== 3 || dateParts.some(part => isNaN(Number(part)))) {
+      return res.status(400).json({ error: "Formato de data inválido. Use YYYY-MM-DD." });
+    }
+
+    const [year, month, day] = dateParts.map(Number);
     const inputDate = new Date(year, month - 1, day);
     if (isNaN(inputDate.getTime())) {
       return res.status(400).json({ error: "A data fornecida é inválida." });
     }
     if (inputDate.getDay() !== 6) {
-      return res
-        .status(400)
-        .json({ error: "A data informada deve ser um sábado." });
+      return res.status(400).json({ error: "A data informada deve ser um sábado." });
     }
 
     const calendar = await db.Calendar.findByPk(calendarId);
     if (!calendar) {
       return res.status(404).json({ error: "Calendário não encontrado." });
+    }
+
+    const calendarStartDate = new Date(calendar.startDate);
+    const calendarEndDate = new Date(calendar.endDate);
+    if (inputDate < calendarStartDate || inputDate > calendarEndDate) {
+      return res.status(400).json({
+        error: "A data do sábado letivo deve estar dentro do intervalo do calendário.",
+      });
     }
 
     const existingSchoolSaturday = await db.SchoolSaturday.findOne({
@@ -52,14 +56,13 @@ export const createSchoolSaturday = async (req, res) => {
 
     if (existingSchoolSaturday) {
       return res.status(400).json({
-        error:
-          "Já existe um sábado letivo com esta data para o calendário informado.",
+        error: "Já existe um sábado letivo com esta data para o calendário informado.",
       });
     }
 
     const schoolSaturday = await db.SchoolSaturday.create({
       date,
-      dayOfWeek, 
+      dayOfWeek,
     });
 
     await schoolSaturday.addCalendarSaturdays(calendar);
@@ -69,7 +72,11 @@ export const createSchoolSaturday = async (req, res) => {
       schoolSaturday,
     });
   } catch (error) {
-    return res.status(400).json({ error: error.message });
+    if (error.name === "SequelizeValidationError") {
+      const messages = error.errors.map((err) => err.message);
+      return res.status(400).json({ error: messages.join(" ") });
+    }
+    return res.status(500).json({ error: "Erro ao criar sábado letivo." });
   }
 };
 
@@ -84,15 +91,30 @@ export const updateSchoolSaturday = async (req, res) => {
     }
 
     if (date) {
-      const [year, month, day] = date.split('-').map(Number);
+      const dateParts = date.split('-');
+      if (dateParts.length !== 3 || dateParts.some(part => isNaN(Number(part)))) {
+        return res.status(400).json({ error: "Formato de data inválido. Use YYYY-MM-DD." });
+      }
+
+      const [year, month, day] = dateParts.map(Number);
       const inputDate = new Date(year, month - 1, day);
       if (isNaN(inputDate.getTime())) {
         return res.status(400).json({ error: "A data fornecida é inválida." });
       }
       if (inputDate.getDay() !== 6) {
-        return res
-          .status(400)
-          .json({ error: "A data informada deve ser um sábado." });
+        return res.status(400).json({ error: "A data informada deve ser um sábado." });
+      }
+
+      const calendar = await db.Calendar.findByPk(calendarId || schoolSaturday.calendarId);
+      if (!calendar) {
+        return res.status(404).json({ error: "Calendário não encontrado." });
+      }
+      const calendarStartDate = new Date(calendar.startDate);
+      const calendarEndDate = new Date(calendar.endDate);
+      if (inputDate < calendarStartDate || inputDate > calendarEndDate) {
+        return res.status(400).json({
+          error: "A data do sábado letivo deve estar dentro do intervalo do calendário.",
+        });
       }
 
       const existingSchoolSaturday = await db.SchoolSaturday.findOne({
@@ -104,13 +126,12 @@ export const updateSchoolSaturday = async (req, res) => {
             through: { attributes: [] },
           },
         ],
-        where: { date, id: { [db.Sequelize.Op.ne]: id } }, 
+        where: { date, id: { [db.Sequelize.Op.ne]: id } },
       });
 
       if (existingSchoolSaturday) {
         return res.status(400).json({
-          error:
-            "Já existe um sábado letivo com esta data para o calendário informado.",
+          error: "Já existe um sábado letivo com esta data para o calendário informado.",
         });
       }
     }
@@ -118,8 +139,7 @@ export const updateSchoolSaturday = async (req, res) => {
     if (dayOfWeek) {
       if (!["segunda", "terca", "quarta", "quinta", "sexta"].includes(dayOfWeek)) {
         return res.status(400).json({
-          error:
-            'O dia da semana deve ser "segunda", "terca", "quarta", "quinta" ou "sexta".',
+          error: 'O dia da semana deve ser "segunda", "terca", "quarta", "quinta" ou "sexta".',
         });
       }
     }
@@ -145,20 +165,62 @@ export const updateSchoolSaturday = async (req, res) => {
       schoolSaturday,
     });
   } catch (error) {
-    return res.status(400).json({ error: error.message });
+    if (error.name === "SequelizeValidationError") {
+      const messages = error.errors.map((err) => err.message);
+      return res.status(400).json({ error: messages.join(" ") });
+    }
+    return res.status(500).json({ error: "Erro ao atualizar sábado letivo." });
   }
 };
 
-export const listSchoolSaturdays = async (req, res) => {
+export const listAllSchoolSaturdays = async (req, res) => {
   try {
-    const { calendarId } = req.query;
+    const schoolSaturdays = await db.SchoolSaturday.findAll({
+      include: [
+        {
+          model: db.Calendar,
+          as: "calendarSaturdays",
+          through: { attributes: [] },
+          attributes: ['id', 'year', 'period'],
+        },
+      ],
+      order: [['date', 'ASC']],
+    });
 
+    return res.status(200).json({
+      message: "Sábados letivos listados com sucesso.",
+      schoolSaturdays,
+    });
+  } catch (error) {
+    return res.status(500).json({ error: "Erro ao listar sábados letivos." });
+  }
+};
+
+export const filterSchoolSaturdays = async (req, res) => {
+  try {
+    const { calendarId, year, dayOfWeek } = req.query;
     const where = {};
-    if (calendarId) {
-      where.id = calendarId;
+
+    if (year) {
+      if (isNaN(year) || year < 2000 || year > 2100) {
+        return res.status(400).json({ error: "O ano deve ser um número válido entre 2000 e 2100." });
+      }
+      where.date = {
+        [db.Sequelize.Op.gte]: `${year}-01-01`,
+        [db.Sequelize.Op.lte]: `${year}-12-31`,
+      };
+    }
+    if (dayOfWeek) {
+      if (!["segunda", "terca", "quarta", "quinta", "sexta"].includes(dayOfWeek)) {
+        return res.status(400).json({
+          error: 'O dia da semana deve ser "segunda", "terca", "quarta", "quinta" ou "sexta".',
+        });
+      }
+      where.dayOfWeek = dayOfWeek;
     }
 
     const schoolSaturdays = await db.SchoolSaturday.findAll({
+      where,
       include: [
         {
           model: db.Calendar,
@@ -168,14 +230,15 @@ export const listSchoolSaturdays = async (req, res) => {
           attributes: ['id', 'year', 'period'],
         },
       ],
+      order: [['date', 'ASC']],
     });
 
     return res.status(200).json({
-      message: "Sábados letivos listados com sucesso.",
+      message: "Sábados letivos filtrados com sucesso.",
       schoolSaturdays,
     });
   } catch (error) {
-    return res.status(400).json({ error: error.message });
+    return res.status(500).json({ error: "Erro ao filtrar sábados letivos." });
   }
 };
 
@@ -203,8 +266,7 @@ export const getSchoolSaturdayById = async (req, res) => {
       schoolSaturday,
     });
   } catch (error) {
-    return res.status(400).json({ error: error.message });
-  }
+      return res.status(500).json({ error: "Erro ao buscar sábado letivo." });  }
 };
 export const deleteSchoolSaturday = async (req, res) => {
   try {

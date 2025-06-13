@@ -3,10 +3,13 @@ import { Box, Typography } from "@mui/material";
 import SearchAndCreateBar from "../../../components/homeScreen/SearchAndCreateBar";
 import api from "../../../service/api";
 import SaturdaySchoolTable from "./SaturdaySchoolTable";
+import SaturdaySchoolFormDialog from "../../../components/SaturdaySchoolForm/SaturdaySchoolFormDialog";
 
 const SaturdaySchoolList = () => {
   const [saturdaySchools, setSaturdaySchools] = useState([]);
   const [search, setSearch] = useState("");
+  const [openDialog, setOpenDialog] = useState(false);
+  const [saturdaySchoolToEdit, setSaturdaySchoolToEdit] = useState(null);
 
   useEffect(() => {
     fetchSaturdaySchools();
@@ -14,12 +17,12 @@ const SaturdaySchoolList = () => {
 
   const fetchSaturdaySchools = async () => {
     try {
-      const response = await api.get("/saturday-schools/all"); // Adjust the API endpoint as needed
+      const response = await api.get("/school-saturdays/all");
       console.log("SaturdaySchoolList - API Response:", response.data);
-      if (!response.data || !Array.isArray(response.data.saturdaySchools)) {
+      if (!response.data || !Array.isArray(response.data.schoolSaturdays)) {
         throw new Error("Error fetching Saturday schools: Invalid data");
       }
-      setSaturdaySchools(response.data.saturdaySchools);
+      setSaturdaySchools(response.data.schoolSaturdays);
     } catch (error) {
       console.error("Error fetching Saturday schools:", error);
       if (error.response) {
@@ -30,6 +33,23 @@ const SaturdaySchoolList = () => {
     }
   };
 
+  const handleRegisterOrUpdateSuccess = (updatedSaturdaySchool, isEditMode) => {
+    if (isEditMode) {
+      setSaturdaySchools((prev) =>
+        prev.map((s) => (s.id === updatedSaturdaySchool.id ? updatedSaturdaySchool : s))
+      );
+    } else {
+      setSaturdaySchools((prev) => [...prev, updatedSaturdaySchool]);
+    }
+    setOpenDialog(false);
+    setSaturdaySchoolToEdit(null);
+  };
+
+  const handleEdit = (saturdaySchool) => {
+    setSaturdaySchoolToEdit(saturdaySchool);
+    setOpenDialog(true);
+  };
+
   const filteredSaturdaySchools = Array.isArray(saturdaySchools)
     ? saturdaySchools.filter((saturdaySchool) => {
         const normalizedSearch = search
@@ -38,9 +58,8 @@ const SaturdaySchoolList = () => {
           .normalize("NFD")
           .replace(/[\u0300-\u036f]/g, "");
 
-        // Adjust these fields based on your Saturday school data structure
-        const normalizedDescription =
-          saturdaySchool.description
+        const normalizedDayOfWeek =
+          saturdaySchool.dayOfWeek
             ?.toLowerCase()
             .normalize("NFD")
             .replace(/[\u0300-\u036f]/g, "") || "";
@@ -52,7 +71,7 @@ const SaturdaySchoolList = () => {
             .replace(/[\u0300-\u036f]/g, "") || "";
 
         return (
-          normalizedDescription.includes(normalizedSearch) ||
+          normalizedDayOfWeek.includes(normalizedSearch) ||
           normalizedDate.includes(normalizedSearch)
         );
       })
@@ -83,13 +102,24 @@ const SaturdaySchoolList = () => {
         onSearchChange={(e) => setSearch(e.target.value)}
         createButtonLabel="Cadastrar Sábado Letivo"
         onCreateClick={() => {
-          // Placeholder for opening a dialog or form in the future
-          console.log("Create Saturday School clicked");
+          setSaturdaySchoolToEdit(null);
+          setOpenDialog(true);
         }}
       />
       <SaturdaySchoolTable
         saturdaySchools={filteredSaturdaySchools}
         search={search}
+        onEdit={handleEdit}
+      />
+      <SaturdaySchoolFormDialog
+        open={openDialog}
+        onClose={() => {
+          setOpenDialog(false);
+          setSaturdaySchoolToEdit(null);
+        }}
+        saturdaySchoolToEdit={saturdaySchoolToEdit}
+        onSubmitSuccess={handleRegisterOrUpdateSuccess}
+        isEditMode={!!saturdaySchoolToEdit}
       />
     </Box>
   );

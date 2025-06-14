@@ -10,7 +10,7 @@ import MainScreen from "../pages/MainScreen.js";
 import ForgotPassword from "../pages/password/ForgotPassword.js";
 import ResetPassword from "../pages/password/ResetPassword.js";
 import DisciplinePage from "../pages/disciplines/DisciplinePage.js";
-import ClassSchedulePage from "../pages/classSchedule/ClassSchedulePage.js";
+import ClassPage from "../pages/admin/classes/ClassesPages.js";
 import SaturdaySchoolPage from "../pages/admin/SaturdaySchool/SaturdaySchoolPage.js";
 
 const AppRoutes = () => {
@@ -136,7 +136,7 @@ const AppRoutes = () => {
         path="/class-schedule"
         element={
           isAuthenticated ? (
-            <ClassSchedulePage setAuthenticated={handleLogout} />
+            <ClassPage setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
           )

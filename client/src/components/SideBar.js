@@ -44,8 +44,6 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
   const isMobile = useMediaQuery("(max-width:600px)");
   const [isClassesHovered, setIsClassesHovered] = useState(false);
   const [isClassesExpanded, setIsClassesExpanded] = useState(false);
-  const [isCalendarHovered, setIsCalendarHovered] = useState(false);
-  const [isCalendarExpanded, setIsCalendarExpanded] = useState(false);
 
   useEffect(() => {
     const name = localStorage.getItem("username");
@@ -58,24 +56,20 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
     if (path === "/users") setSelectedItem("users");
     else if (path === "/courses") setSelectedItem("courses");
     else if (path === "/disciplines") setSelectedItem("disciplines");
-    else if (path === "/calendar") setSelectedItem("manage-calendar");
-    else if (path === "/classes") setSelectedItem("manage-classes");
+    else if (path === "/calendar-options") setSelectedItem("calendar");
+    else if (path === "/classes") setSelectedItem("classes");
     else if (path === "/class-schedule") setSelectedItem("class-schedule");
-    else if (path === "/saturday") setSelectedItem("saturday");
-    else if (path === "/holiday") setSelectedItem("holiday");
   }, [location.pathname]);
 
   const handleOpenConfirmDialog = () => setOpenConfirmDialog(true);
   const handleCloseConfirmDialog = () => setOpenConfirmDialog(false);
 
   const handleItemClick = (path, item) => {
-    console.log(`Navigating to: ${path}, Item: ${item}`);
     setSelectedItem(item);
     navigate(path);
     if (isMobile) {
       setMobileOpen(false);
       setIsClassesExpanded(false);
-      setIsCalendarExpanded(false);
     }
   };
 
@@ -96,13 +90,6 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
     e.stopPropagation();
     if (isMobile) {
       setIsClassesExpanded(!isClassesExpanded);
-    }
-  };
-
-  const handleCalendarToggle = (e) => {
-    e.stopPropagation();
-    if (isMobile) {
-      setIsCalendarExpanded(!isCalendarExpanded);
     }
   };
 
@@ -127,77 +114,43 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
 
         {accessType === "Admin" && (
           <>
-            <ListItem button onClick={() => handleItemClick("/users", "users")} sx={getListItemStyle(selectedItem, "users")}>
+            <ListItem
+              button
+              onClick={() => handleItemClick("/users", "users")}
+              sx={getListItemStyle(selectedItem, "users")}
+            >
               <People sx={{ mr: 1 }} />
               <ListItemText primary="Usuários" />
             </ListItem>
-            <ListItem button onClick={() => handleItemClick("/courses", "courses")} sx={getListItemStyle(selectedItem, "courses")}>
+            <ListItem
+              button
+              onClick={() => handleItemClick("/courses", "courses")}
+              sx={getListItemStyle(selectedItem, "courses")}
+            >
               <School sx={{ mr: 1 }} />
               <ListItemText primary="Cursos" />
             </ListItem>
-            <ListItem button onClick={() => handleItemClick("/disciplines", "disciplines")} sx={getListItemStyle(selectedItem, "disciplines")}>
+            <ListItem
+              button
+              onClick={() => handleItemClick("/disciplines", "disciplines")}
+              sx={getListItemStyle(selectedItem, "disciplines")}
+            >
               <LibraryBooks sx={{ mr: 1 }} />
               <ListItemText primary="Disciplinas" />
             </ListItem>
-            <Box
-              onMouseEnter={() => !isMobile && setIsCalendarHovered(true)}
-              onMouseLeave={() => !isMobile && setIsCalendarHovered(false)}
+            <ListItem
+              button
+              onClick={() => handleItemClick("/calendar-options", "calendar")}
+              sx={getListItemStyle(selectedItem, "calendar")}
             >
-              <ListItem
-                button
-                onClick={handleCalendarToggle}
-                sx={getListItemStyle(selectedItem, "calendar")}
-                aria-expanded={isMobile ? isCalendarExpanded : isCalendarHovered}
-              >
-                <CalendarToday sx={{ mr: 1 }} />
-                <ListItemText primary="Calendário" />
-                <ListItemIcon sx={{ minWidth: "auto", color: "white" }}>
-                  {isMobile ? (
-                    isCalendarExpanded ? <ArrowDropDown /> : <ArrowRight />
-                  ) : (
-                    null
-                  )}
-                </ListItemIcon>
-              </ListItem>
-              {(isMobile ? isCalendarExpanded : isCalendarHovered) && (
-                <>
-                  <ListItem
-                    button
-                    onClick={() => handleItemClick("/calendar", "manage-calendar")}
-                    sx={{
-                      pl: 6,
-                      "&:hover": { backgroundColor: "#388E3C" },
-                      backgroundColor: selectedItem === "manage-calendar" ? "#4CAF50" : "transparent",
-                    }}
-                  >
-                    <ListItemText primary="Gerenciar Calendário" sx={{ color: "white" }} />
-                  </ListItem>
-                  <ListItem
-                    button
-                    onClick={() => handleItemClick("/saturday", "saturday")}
-                    sx={{
-                      pl: 6,
-                      "&:hover": { backgroundColor: "#388E3C" },
-                      backgroundColor: selectedItem === "saturday" ? "#4CAF50" : "transparent",
-                    }}
-                  >
-                    <ListItemText primary="Sábado Letivo" sx={{ color: "white" }} />
-                  </ListItem>
-                  <ListItem
-                    button
-                    onClick={() => handleItemClick("/holiday", "holiday")}
-                    sx={{
-                      pl: 6,
-                      "&:hover": { backgroundColor: "#388E3C" },
-                      backgroundColor: selectedItem === "holiday" ? "#4CAF50" : "transparent",
-                    }}
-                  >
-                    <ListItemText primary="Feriado" sx={{ color: "white" }} />
-                  </ListItem>
-                </>
-              )}
-            </Box>
-            <ListItem button onClick={() => handleItemClick("/classes", "classes")} sx={getListItemStyle(selectedItem, "classes")}>
+              <CalendarToday sx={{ mr: 1 }} />
+              <ListItemText primary="Calendário" />
+            </ListItem>
+            <ListItem
+              button
+              onClick={() => handleItemClick("/classes", "classes")}
+              sx={getListItemStyle(selectedItem, "classes")}
+            >
               <Class sx={{ mr: 1 }} />
               <ListItemText primary="Turmas" />
             </ListItem>
@@ -206,7 +159,11 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
 
         {accessType === "Coordenador" && (
           <>
-            <ListItem button onClick={() => handleItemClick("/disciplines", "disciplines")} sx={getListItemStyle(selectedItem, "disciplines")}>
+            <ListItem
+              button
+              onClick={() => handleItemClick("/disciplines", "disciplines")}
+              sx={getListItemStyle(selectedItem, "disciplines")}
+            >
               <LibraryBooks sx={{ mr: 1 }} />
               <ListItemText primary="Disciplinas" />
             </ListItem>
@@ -225,9 +182,7 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
                 <ListItemIcon sx={{ minWidth: "auto", color: "white" }}>
                   {isMobile ? (
                     isClassesExpanded ? <ArrowDropDown /> : <ArrowRight />
-                  ) : (
-                    null
-                  )}
+                  ) : null}
                 </ListItemIcon>
               </ListItem>
               {(isMobile ? isClassesExpanded : isClassesHovered) && (
@@ -262,7 +217,11 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
 
         {accessType === "Professor" && (
           <>
-            <ListItem button onClick={() => handleItemClick("/disciplines", "disciplines")} sx={getListItemStyle(selectedItem, "disciplines")}>
+            <ListItem
+              button
+              onClick={() => handleItemClick("/disciplines", "disciplines")}
+              sx={getListItemStyle(selectedItem, "disciplines")}
+            >
               <LibraryBooks sx={{ mr: 1 }} />
               <ListItemText primary="Disciplinas" />
             </ListItem>
@@ -287,9 +246,17 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
     <>
       {isMobile ? (
         <>
-          <AppBar position="fixed" sx={{ backgroundColor: "#087619", zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+          <AppBar
+            position="fixed"
+            sx={{ backgroundColor: "#087619", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+          >
             <Toolbar>
-              <IconButton color="inherit" aria-label="open drawer" edge="start" onClick={handleDrawerToggle}>
+              <IconButton
+                color="inherit"
+                aria-label="open drawer"
+                edge="start"
+                onClick={handleDrawerToggle}
+              >
                 <Menu />
               </IconButton>
             </Toolbar>
@@ -304,10 +271,9 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
                 width: 240,
                 backgroundColor: "#087619",
                 color: "white",
-                top: "54px",
-                height: "calc(100% - 54px)",
+                top: "64px",
+                height: "calc(100% - 64px)",
                 overflowY: "auto",
-                zIndex: (theme) => theme.zIndex.drawer + 2,
               },
             }}
           >
@@ -318,7 +284,7 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
         <Drawer
           variant="permanent"
           sx={{
-            width: 220,
+            width: 240,
             flexShrink: 0,
             "& .MuiDrawer-paper": {
               width: 240,
@@ -349,7 +315,6 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
           </Box>
           <Typography textAlign="center">Tem certeza que deseja sair?</Typography>
         </DialogContent>
-
         <DialogActions
           sx={{
             gap: 2,

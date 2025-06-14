@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Route, Routes, Navigate, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
@@ -12,23 +13,25 @@ import ResetPassword from "../pages/password/ResetPassword.js";
 import DisciplinePage from "../pages/disciplines/DisciplinePage.js";
 import ClassPage from "../pages/admin/classes/ClassesPages.js";
 import SaturdaySchoolPage from "../pages/admin/SaturdaySchool/SaturdaySchoolPage.js";
+import CalendarOptionsPage from "../pages/admin/CalendarOptions/CalendarOptionsPage.js";
 
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
     const token = localStorage.getItem("token");
-    return !!token; // true if token exists, false otherwise
+    console.log("Initial isAuthenticated:", !!token); // Depuração
+    return !!token;
   });
   const accessType = localStorage.getItem("accessType");
   const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-
+    console.log("Checking token:", token); // Depuração
     if (token) {
       try {
         const decoded = jwtDecode(token);
         const currentTime = Date.now() / 1000;
-
+        console.log("Token decoded, exp:", decoded.exp, "currentTime:", currentTime); // Depuração
         if (decoded.exp < currentTime) {
           localStorage.removeItem("token");
           localStorage.removeItem("accessType");
@@ -36,6 +39,7 @@ const AppRoutes = () => {
           navigate("/login");
         }
       } catch (err) {
+        console.error("Token error:", err); // Depuração
         localStorage.removeItem("token");
         localStorage.removeItem("accessType");
         setAuthenticated(false);
@@ -46,19 +50,22 @@ const AppRoutes = () => {
   }, [navigate]);
 
   const handleLogin = () => {
+    console.log("Handle login called"); // Depuração
     setAuthenticated(true);
     const access = localStorage.getItem("accessType");
-
+    console.log("Access type after login:", access); // Depuração
     if (access === "Admin") {
-      navigate("/users");
+      navigate("/calendar-options"); // Redireciona para calendar-options para Admins
     } else {
       navigate("/disciplines");
     }
   };
 
   const handleLogout = () => {
+    console.log("Handle logout called"); // Depuração
     localStorage.removeItem("token");
     localStorage.removeItem("accessType");
+    localStorage.removeItem("username");
     setAuthenticated(false);
     navigate("/login");
   };
@@ -66,10 +73,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/login" />} />
-      <Route
-        path="/login"
-        element={<Login onLogin={handleLogin} />}
-      />
+      <Route path="/login" element={<Login onLogin={handleLogin} />} />
       <Route
         path="/forgot-password"
         element={
@@ -80,6 +84,16 @@ const AppRoutes = () => {
         path="/resetPassword/:token"
         element={
           !isAuthenticated ? <ResetPassword /> : <Navigate to="/login" />
+        }
+      />
+      <Route
+        path="/calendar-options"
+        element={
+          isAuthenticated && accessType === "Admin" ? (
+            <CalendarOptionsPage setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
         }
       />
       <Route
@@ -125,7 +139,7 @@ const AppRoutes = () => {
       <Route
         path="/calendar"
         element={
-          isAuthenticated ? (
+          isAuthenticated && accessType === "Admin" ? (
             <CalendarPage setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
@@ -161,6 +175,18 @@ const AppRoutes = () => {
             <Navigate to="/login" />
           )
         }
+      />
+      <Route
+        path="/holiday"
+        element={
+          isAuthenticated && accessType === "Admin" ? (
+            <div>
+              <h2>Feriado</h2>
+              <p>Esta é uma página placeholder para Feriado.</p>
+            </div>
+          ) : (
+            <Navigate to="/login" />
+  )}
       />
     </Routes>
   );

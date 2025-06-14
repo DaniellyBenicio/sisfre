@@ -30,26 +30,15 @@ export default (sequelize) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      year: {
-        type: DataTypes.INTEGER,
+      createdAt: {
+        type: DataTypes.DATE,
         allowNull: false,
+        defaultValue: DataTypes.NOW,
       },
-      period: {
-        type: DataTypes.ENUM("1", "2"),
+      updatedAt: {
+        type: DataTypes.DATE,
         allowNull: false,
-      },
-      type: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      shift: {
-        type: DataTypes.ENUM("MATUTINO", "VESPERTINO", "NOTURNO"),
-        allowNull: false,
-      },
-      archived: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
+        defaultValue: DataTypes.NOW,
       },
     },
     {

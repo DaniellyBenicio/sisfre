@@ -1,21 +1,21 @@
 import db from '../../models/index.js';
 
 export const createClass = async (req, res) => {
-  const { courseId, semester, year, period, type, shift, archived } = req.body;
+  const { courseId, semester } = req.body;
 
-  if (!courseId || !semester || !year || !period || !type || !shift) {
+  if (!courseId || !semester) {
     return res.status(400).json({ error: "Todos os campos são obrigatórios." });
   }
 
   try {
     const existing = await db.Class.findOne({
-      where: { courseId, semester, year, period, type, shift },
+      where: { courseId, semester },
     });
     if (existing) {
       return res.status(400).json({ error: "Já existe uma turma com esses dados." });
     }
 
-    const newClass = await db.Class.create({ courseId, semester, year, period, type, shift, archived });
+    const newClass = await db.Class.create({ courseId, semester });
     res.status(201).json({ message: "Turma cadastrada com sucesso.", class: newClass });
   } catch (error) {
     console.error(error);
@@ -25,9 +25,9 @@ export const createClass = async (req, res) => {
 
 export const updateClass = async (req, res) => {
   const classId = req.params.id;
-  const { courseId, semester, year, period, type } = req.body;
+  const { courseId, semester } = req.body;
 
-  if (!courseId || !semester || !year || !period || !type) {
+  if (!courseId || !semester) {
     return res.status(400).json({ error: "Todos os campos são obrigatórios." });
   }
 
@@ -41,9 +41,6 @@ export const updateClass = async (req, res) => {
       where: {
         courseId,
         semester,
-        year,
-        period,
-        type,
         id: { [db.Sequelize.Op.ne]: classId },
       },
     });
@@ -53,9 +50,6 @@ export const updateClass = async (req, res) => {
 
     turma.courseId = courseId;
     turma.semester = semester;
-    turma.year = year;
-    turma.period = period;
-    turma.type = type;
     await turma.save();
 
     res.status(200).json({ message: "Turma atualizada com sucesso.", class: turma });
@@ -66,18 +60,17 @@ export const updateClass = async (req, res) => {
 };
 
 export const getClasses = async (req, res) => {
-  const { courseId, type, page = 1, limit = 10 } = req.query;
+  const { courseId, page = 1, limit = 10 } = req.query;
   try {
     const offset = (page - 1) * limit;
     const where = {};
     if (courseId) where.courseId = courseId;
-    if (type) where.type = type;
 
     const { rows, count } = await db.Class.findAndCountAll({
       where,
       limit: parseInt(limit),
       offset,
-      order: [["year", "DESC"]],
+      order: [["createdAt", "DESC"]],
       include: [{ model: db.Course, as: "course" }],
     });
 
@@ -96,7 +89,7 @@ export const getClasses = async (req, res) => {
 export const getAllClasses = async (req, res) => {
   try {
     const classes = await db.Class.findAll({
-      order: [["year", "DESC"]],
+      order: [["createdAt", "DESC"]],
       include: [{ model: db.Course, as: "course" }],
     });
     res.json({ classes });
@@ -134,21 +127,5 @@ export const deleteClass = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Erro ao excluir turma." });
-  }
-};
-
-export const archiveClass = async (req, res) => {
-  const classId = req.params.id;
-  try {
-    const turma = await db.Class.findByPk(classId);
-    if (!turma) {
-      return res.status(404).json({ error: "Turma não encontrada." });
-    }
-    turma.archived = true;
-    await turma.save();
-    res.status(200).json({ message: "Turma arquivada com sucesso." });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Erro ao arquivar turma." });
   }
 };

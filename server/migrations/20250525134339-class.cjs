@@ -21,27 +21,6 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      year: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
-      period: {
-        type: Sequelize.ENUM("1", "2"),
-        allowNull: false,
-      },
-      type: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      shift: {
-        type: Sequelize.ENUM("MATUTINO", "VESPERTINO", "NOTURNO"),
-        allowNull: false,
-      },
-      archived: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
-      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,

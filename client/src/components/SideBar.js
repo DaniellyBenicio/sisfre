@@ -197,6 +197,19 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
                 </>
               )}
             </Box>
+            <ListItem button onClick={() => handleItemClick("/classes", "classes")} sx={getListItemStyle(selectedItem, "classes")}>
+              <Class sx={{ mr: 1 }} />
+              <ListItemText primary="Turmas" />
+            </ListItem>
+          </>
+        )}
+
+        {accessType === "Coordenador" && (
+          <>
+            <ListItem button onClick={() => handleItemClick("/disciplines", "disciplines")} sx={getListItemStyle(selectedItem, "disciplines")}>
+              <LibraryBooks sx={{ mr: 1 }} />
+              <ListItemText primary="Disciplinas" />
+            </ListItem>
             <Box
               onMouseEnter={() => !isMobile && setIsClassesHovered(true)}
               onMouseLeave={() => !isMobile && setIsClassesHovered(false)}
@@ -228,7 +241,7 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
                       backgroundColor: selectedItem === "manage-classes" ? "#4CAF50" : "transparent",
                     }}
                   >
-                    <ListItemText primary="Gerenciar Turmas" sx={{ color: "white" }} />
+                    <ListItemText primary="Visualizar Turmas" sx={{ color: "white" }} />
                   </ListItem>
                   <ListItem
                     button
@@ -244,19 +257,6 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
                 </>
               )}
             </Box>
-          </>
-        )}
-
-        {accessType === "Coordenador" && (
-          <>
-            <ListItem button onClick={() => handleItemClick("/disciplines", "disciplines")} sx={getListItemStyle(selectedItem, "disciplines")}>
-              <LibraryBooks sx={{ mr: 1 }} />
-              <ListItemText primary="Disciplinas" />
-            </ListItem>
-            <ListItem button onClick={() => handleItemClick("/classes", "classes")} sx={getListItemStyle(selectedItem, "classes")}>
-              <Class sx={{ mr: 1 }} />
-              <ListItemText primary="Turmas" />
-            </ListItem>
           </>
         )}
 

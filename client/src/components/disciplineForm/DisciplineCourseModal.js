@@ -20,7 +20,7 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
     acronym: "",
     workload: "",
   });
-  const [initialDiscipline, setInitialDiscipline] = useState(null); // Store initial state
+  const [initialDiscipline, setInitialDiscipline] = useState(null);
   const [disciplines, setDisciplines] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -29,7 +29,6 @@ const DisciplineCourse = ({ open, onClose, editingData = null, onUpdate }) => {
 
   const isFormFilled = discipline.disciplineId && discipline.workload && discipline.workload.trim() !== "";
 
-  // Check if any field has changed in edit mode
   const hasChanges = isEditMode && initialDiscipline && (
     discipline.workload !== initialDiscipline.workload
   );

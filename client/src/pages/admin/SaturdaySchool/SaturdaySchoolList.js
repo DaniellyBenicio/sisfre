@@ -5,6 +5,8 @@ import SearchAndCreateBar from "../../../components/homeScreen/SearchAndCreateBa
 import api from "../../../service/api";
 import SaturdaySchoolTable from "./SaturdaySchoolTable";
 import SaturdaySchoolFormDialog from "../../../components/SaturdaySchoolForm/SaturdaySchoolFormDialog";
+import DeleteConfirmationDialog from "../../../components/DeleteConfirmationDialog";
+import { CustomAlert } from "../../../components/alert/CustomAlert";
 
 // Função para formatar o tipo de calendário
 const formatCalendarType = (type) => {
@@ -17,54 +19,116 @@ const SaturdaySchoolList = () => {
   const [search, setSearch] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [saturdaySchoolToEdit, setSaturdaySchoolToEdit] = useState(null);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [saturdaySchoolToDelete, setSaturdaySchoolToDelete] = useState(null);
+  const [alert, setAlert] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const handleAlertClose = () => {
+    setAlert(null);
+  };
 
   useEffect(() => {
+    const fetchSaturdaySchools = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get("/school-saturdays/all");
+        console.log("SaturdaySchoolList - API Response:", response.data);
+        if (!response.data || !Array.isArray(response.data.schoolSaturdays)) {
+          throw new Error("Error fetching Saturday schools: Invalid data");
+        }
+        // Normaliza os dados para incluir o campo calendar
+        const normalizedSaturdaySchools = response.data.schoolSaturdays.map((item) => ({
+          ...item,
+          calendar: item.calendarSaturdays?.[0]
+            ? {
+                id: item.calendarSaturdays[0].id,
+                name: `${item.calendarSaturdays[0].year}.${item.calendarSaturdays[0].period} - ${formatCalendarType(item.calendarSaturdays[0].type)}`,
+              }
+            : { id: item.calendarId, name: "Desconhecido" },
+        }));
+        setSaturdaySchools(normalizedSaturdaySchools);
+      } catch (error) {
+        console.error("Erro ao buscar sábados letivos:", error.message, error.response?.data);
+        setAlert({
+          message: "Erro ao buscar sábados letivos.",
+          type: "error",
+        });
+        setSaturdaySchools([]);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchSaturdaySchools();
   }, []);
 
-  const fetchSaturdaySchools = async () => {
-    try {
-      const response = await api.get("/school-saturdays/all");
-      console.log("SaturdaySchoolList - API Response:", response.data);
-      if (!response.data || !Array.isArray(response.data.schoolSaturdays)) {
-        throw new Error("Error fetching Saturday schools: Invalid data");
-      }
-      // Normaliza os dados para incluir o campo calendar
-      const normalizedSaturdaySchools = response.data.schoolSaturdays.map((item) => ({
-        ...item,
-        calendar: item.calendarSaturdays?.[0]
-          ? {
-              id: item.calendarSaturdays[0].id,
-              name: `${item.calendarSaturdays[0].year}.${item.calendarSaturdays[0].period} - ${formatCalendarType(item.calendarSaturdays[0].type)}`,
-            }
-          : { id: item.calendarId, name: "Desconhecido" },
-      }));
-      setSaturdaySchools(normalizedSaturdaySchools);
-    } catch (error) {
-      console.error("Error fetching Saturday schools:", error);
-      if (error.response) {
-        console.error("Status:", error.response.status);
-        console.error("Error data:", error.response.data);
-      }
-      setSaturdaySchools([]);
-    }
-  };
-
   const handleRegisterOrUpdateSuccess = (updatedSaturdaySchool, isEditMode) => {
-    if (isEditMode) {
-      setSaturdaySchools((prev) =>
-        prev.map((s) => (s.id === updatedSaturdaySchool.id ? updatedSaturdaySchool : s))
-      );
-    } else {
-      setSaturdaySchools((prev) => [...prev, updatedSaturdaySchool]);
+    try {
+      if (isEditMode) {
+        setSaturdaySchools((prev) =>
+          prev.map((s) => (s.id === updatedSaturdaySchool.id ? updatedSaturdaySchool : s))
+        );
+        setAlert({
+          message: `Sábado letivo ${updatedSaturdaySchool.calendar?.name || updatedSaturdaySchool.date} atualizado com sucesso!`,
+          type: "success",
+        });
+      } else {
+        setSaturdaySchools((prev) => [...prev, updatedSaturdaySchool]);
+        setAlert({
+          message: `Sábado letivo ${updatedSaturdaySchool.calendar?.name || updatedSaturdaySchool.date} cadastrado com sucesso!`,
+          type: "success",
+        });
+      }
+      setOpenDialog(false);
+      setSaturdaySchoolToEdit(null);
+    } catch (error) {
+      console.error("Erro ao atualizar lista de sábados letivos:", error);
+      setAlert({
+        message: "Erro ao atualizar a lista de sábados letivos.",
+        type: "error",
+      });
     }
-    setOpenDialog(false);
-    setSaturdaySchoolToEdit(null);
   };
 
   const handleEdit = (saturdaySchool) => {
     setSaturdaySchoolToEdit(saturdaySchool);
     setOpenDialog(true);
+  };
+
+  const handleDeleteClick = (saturdaySchoolId) => {
+    const saturdaySchool = saturdaySchools.find((s) => s.id === saturdaySchoolId);
+    console.log("Sábado letivo recebido para exclusão:", saturdaySchool);
+    console.log("ID do sábado letivo a ser excluído:", saturdaySchoolId);
+    setSaturdaySchoolToDelete(saturdaySchool);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      await api.delete(`/school-saturdays/${saturdaySchoolToDelete.id}`);
+      setSaturdaySchools((prev) =>
+        prev.filter((s) => s.id !== saturdaySchoolToDelete.id)
+      );
+      setAlert({
+        message: `Sábado letivo ${saturdaySchoolToDelete.calendar?.name || saturdaySchoolToDelete.date} excluído com sucesso!`,
+        type: "success",
+      });
+    } catch (error) {
+      console.error("Erro ao excluir sábado letivo:", error.message, error.response?.data);
+      const errorMessage =
+        error.response?.status === 401
+          ? "Você não está autorizado a excluir sábados letivos."
+          : error.response?.status === 403
+          ? "Apenas administradores podem excluir sábados letivos."
+          : error.response?.data?.error || "Erro ao excluir sábado letivo.";
+      setAlert({
+        message: errorMessage,
+        type: "error",
+      });
+    } finally {
+      setOpenDeleteDialog(false);
+      setSaturdaySchoolToDelete(null);
+    }
   };
 
   const filteredSaturdaySchools = Array.isArray(saturdaySchools)
@@ -133,7 +197,9 @@ const SaturdaySchoolList = () => {
       <SaturdaySchoolTable
         saturdaySchools={filteredSaturdaySchools}
         search={search}
-        onEdit={handleEdit}
+        onUpdate={handleEdit}
+        onDelete={handleDeleteClick}
+        setAlert={setAlert}
       />
       <SaturdaySchoolFormDialog
         open={openDialog}
@@ -145,6 +211,22 @@ const SaturdaySchoolList = () => {
         onSubmitSuccess={handleRegisterOrUpdateSuccess}
         isEditMode={!!saturdaySchoolToEdit}
       />
+      <DeleteConfirmationDialog
+        open={openDeleteDialog}
+        onClose={() => {
+          setOpenDeleteDialog(false);
+          setSaturdaySchoolToDelete(null);
+        }}
+        message={`Deseja realmente excluir o sábado letivo "${saturdaySchoolToDelete?.calendar?.name || saturdaySchoolToDelete?.date || "Desconhecido"}"?`}
+        onConfirm={handleConfirmDelete}
+      />
+      {alert && (
+        <CustomAlert
+          message={alert.message}
+          type={alert.type}
+          onClose={handleAlertClose}
+        />
+      )}
     </Box>
   );
 };

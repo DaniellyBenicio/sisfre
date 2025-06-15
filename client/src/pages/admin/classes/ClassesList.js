@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography } from '@mui/material';
-import SearchAndCreateBar from '../../../components/homeScreen/SearchAndCreateBar';
 import DeleteConfirmationDialog from '../../../components/DeleteConfirmationDialog';
 import api from '../../../service/api';
-import ClassesTable from './ClassesTable';
+import SearchAndCreateBar from '../../../components/homeScreen/SearchAndCreateBar';
 import ClassFormDialog from '../../../components/classForm/ClassFormDialog';
+import ClassesTable from './ClassesTable';
 import { CustomAlert } from '../../../components/alert/CustomAlert';
 
 const ClassesList = () => {
@@ -14,6 +14,7 @@ const ClassesList = () => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [classToDelete, setClassToDelete] = useState(null);
   const [classToEdit, setClassToEdit] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
 
   const handleAlertClose = () => {
@@ -23,16 +24,20 @@ const ClassesList = () => {
   useEffect(() => {
     const fetchClasses = async () => {
       try {
+        setLoading(true);
         const response = await api.get('/classes');
-        console.log('ClassesList - Resposta da API:', response.data);
+        console.log('Resposta da API /classes:', response.data);
+
         let classesArray = Array.isArray(response.data)
           ? response.data
-          : response.data.classes || [];
-        // Normaliza os dados para garantir a estrutura correta
-        classesArray = classesArray.map(item => ({
+          : response.data.classes || response.data.data || [];
+        
+        // Normaliza os dados
+        classesArray = classesArray.map((item) => ({
           ...item,
           course: item.course || { id: item.courseId, name: 'Desconhecido' },
         }));
+
         setClasses(classesArray);
       } catch (error) {
         console.error('Erro ao buscar turmas:', error.message, error.response?.data);
@@ -41,24 +46,25 @@ const ClassesList = () => {
           type: 'error',
         });
         setClasses([]);
+      } finally {
+        setLoading(false);
       }
     };
     fetchClasses();
   }, []);
 
-  const handleRegisterOrUpdateSuccess = (updatedClass, isEditMode) => {
-    console.log('ClassesList - Turma recebida:', updatedClass, 'EditMode:', isEditMode);
+  const handleRegisterOrUpdate = (updatedClass, isEditMode) => {
     try {
       if (isEditMode) {
-        setClasses(classes.map(c => (c.id === updatedClass.id ? updatedClass : c)));
+        setClasses(classes.map((c) => (c.id === updatedClass.id ? updatedClass : c)));
         setAlert({
-          message: `Turma atualizada com sucesso!`,
+          message: `Turma ${updatedClass.course.name} atualizada com sucesso!`,
           type: 'success',
         });
       } else {
         setClasses([...classes, updatedClass]);
         setAlert({
-          message: `Turma cadastrada com sucesso!`,
+          message: `Turma ${updatedClass.course.name} cadastrada com sucesso!`,
           type: 'success',
         });
       }
@@ -73,13 +79,13 @@ const ClassesList = () => {
     }
   };
 
-  const handleEdit = (classItem) => {
+  const handleEditClass = (classItem) => {
     setClassToEdit(classItem);
     setOpenDialog(true);
   };
 
   const handleDeleteClick = (classId) => {
-    const classItem = classes.find(c => c.id === classId);
+    const classItem = classes.find((c) => c.id === classId);
     console.log('Turma recebida para exclusão:', classItem);
     console.log('ID da turma a ser excluída:', classId);
     setClassToDelete(classItem);
@@ -88,16 +94,23 @@ const ClassesList = () => {
 
   const handleConfirmDelete = async () => {
     try {
+      // Chama a rota DELETE /classes/:id com autenticação
       await api.delete(`/classes/${classToDelete.id}`);
-      setClasses(classes.filter(c => c.id !== classToDelete.id));
+      setClasses(classes.filter((c) => c.id !== classToDelete.id));
       setAlert({
         message: `Turma ${classToDelete.course.name} excluída com sucesso!`,
         type: 'success',
       });
     } catch (error) {
-      console.error('Erro ao excluir turma:', error);
+      console.error('Erro ao excluir turma:', error.message, error.response?.data);
+      const errorMessage =
+        error.response?.status === 401
+          ? 'Você não está autorizado a excluir turmas.'
+          : error.response?.status === 403
+          ? 'Apenas administradores podem excluir turmas.'
+          : error.response?.data?.error || 'Erro ao excluir turma.';
       setAlert({
-        message: 'Erro ao excluir turma.',
+        message: errorMessage,
         type: 'error',
       });
     } finally {
@@ -108,24 +121,9 @@ const ClassesList = () => {
 
   const filteredClasses = Array.isArray(classes)
     ? classes.filter((classItem) => {
-        const normalizedSearch = search
-          .trim()
-          .toLowerCase()
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '');
-
-        const normalizedCourse =
-          classItem.course?.name
-            ?.toLowerCase()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '') || '';
-
-        const normalizedSemester =
-          classItem.semester
-            ?.toLowerCase()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '') || '';
-
+        const normalizedSearch = search.trim().toLowerCase();
+        const normalizedCourse = classItem.course?.name?.toLowerCase() || '';
+        const normalizedSemester = classItem.semester?.toLowerCase() || '';
         return (
           normalizedCourse.includes(normalizedSearch) ||
           normalizedSemester.includes(normalizedSearch)
@@ -166,9 +164,9 @@ const ClassesList = () => {
 
       <ClassesTable
         classes={filteredClasses}
-        search={search}
-        onEdit={handleEdit}
         onDelete={handleDeleteClick}
+        onUpdate={handleEditClass}
+        search={search}
         setAlert={setAlert}
       />
 
@@ -179,13 +177,16 @@ const ClassesList = () => {
           setClassToEdit(null);
         }}
         classToEdit={classToEdit}
-        onSubmitSuccess={handleRegisterOrUpdateSuccess}
+        onSubmitSuccess={handleRegisterOrUpdate}
         isEditMode={!!classToEdit}
       />
 
       <DeleteConfirmationDialog
         open={openDeleteDialog}
-        onClose={() => setOpenDeleteDialog(false)}
+        onClose={() => {
+          setOpenDeleteDialog(false);
+          setClassToDelete(null);
+        }}
         onConfirm={handleConfirmDelete}
         message={`Deseja realmente excluir a turma "${classToDelete?.course.name}"?`}
       />

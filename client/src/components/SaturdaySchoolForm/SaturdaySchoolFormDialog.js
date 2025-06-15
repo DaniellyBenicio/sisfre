@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -118,7 +119,7 @@ const SaturdaySchoolFormDialog = ({
       const initialData = {
         date: saturdaySchoolToEdit.date || "",
         dayOfWeek: saturdaySchoolToEdit.dayOfWeek || "",
-        calendarId: saturdaySchoolToEdit.calendarSaturdays?.[0]?.id || "",
+        calendarId: saturdaySchoolToEdit.calendarSaturdays?.[0]?.id || saturdaySchoolToEdit.calendar?.id || "",
       };
       setSaturdaySchool(initialData);
       setInitialSaturdaySchool(initialData);
@@ -183,26 +184,28 @@ const SaturdaySchoolFormDialog = ({
       setError("A data informada deve ser um sábado.");
       return;
     }
-const selectedCalendar = calendars.find((cal) => cal.id === Number(saturdaySchool.calendarId));
- if (selectedCalendar) {
- // Normaliza startDate e endDate para o início do dia no fuso horário local
-const startDate = startOfDay(new Date(selectedCalendar.startDate));
- const endDate = startOfDay(new Date(selectedCalendar.endDate));
- console.log(
- "Intervalo do calendário:",
- `startDate: ${startDate.toISOString()} (${startDate.toLocaleDateString("pt-BR")})`,
-`endDate: ${endDate.toISOString()} (${endDate.toLocaleDateString("pt-BR")})`,
-`inputDate: ${inputDate.toISOString()} (${inputDate.toLocaleDateString("pt-BR")})`
- );
 
- if (inputDate < startDate || inputDate > endDate) {
-setError("A data do sábado letivo deve estar dentro do intervalo do calendário.");
- return;
- }
- } else {
- setError("Calendário selecionado não encontrado.");
- return;
- }
+    const selectedCalendar = calendars.find((cal) => cal.id === Number(saturdaySchool.calendarId));
+    if (selectedCalendar) {
+      // Normaliza startDate e endDate para o início do dia no fuso horário local
+      const startDate = startOfDay(new Date(selectedCalendar.startDate));
+      const endDate = startOfDay(new Date(selectedCalendar.endDate));
+      console.log(
+        "Intervalo do calendário:",
+        `startDate: ${startDate.toISOString()} (${startDate.toLocaleDateString("pt-BR")})`,
+        `endDate: ${endDate.toISOString()} (${endDate.toLocaleDateString("pt-BR")})`,
+        `inputDate: ${inputDate.toISOString()} (${inputDate.toLocaleDateString("pt-BR")})`
+      );
+
+      if (inputDate < startDate || inputDate > endDate) {
+        setError("A data do sábado letivo deve estar dentro do intervalo do calendário.");
+        return;
+      }
+    } else {
+      setError("Calendário selecionado não encontrado.");
+      return;
+    }
+
     try {
       const payload = {
         date: saturdaySchool.date,
@@ -221,7 +224,23 @@ setError("A data do sábado letivo deve estar dentro do intervalo do calendário
 
       console.log("SaturdaySchoolFormDialog - Resposta da API:", response.data);
 
-      onSubmitSuccess(response.data.schoolSaturday, isEditMode);
+      // Encontra o calendário selecionado para incluir os dados completos
+      const calendar = calendars.find((cal) => cal.id === Number(saturdaySchool.calendarId)) || {
+        id: saturdaySchool.calendarId,
+        year: "Desconhecido",
+        period: "",
+        type: "",
+      };
+
+      const updatedSaturdaySchool = {
+        ...response.data.schoolSaturday,
+        calendar: {
+          id: calendar.id,
+          name: `${calendar.year}.${calendar.period} - ${formatCalendarType(calendar.type)}`,
+        },
+      };
+
+      onSubmitSuccess(updatedSaturdaySchool, isEditMode);
       onClose();
     } catch (err) {
       const errorMessage =
@@ -246,7 +265,7 @@ setError("A data do sábado letivo deve estar dentro do intervalo do calendário
 
   // Formata o tipo de calendário para exibição
   const formatCalendarType = (type) => {
-    if (!type) return "";
+    if (!type) return "Desconhecido";
     return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
   };
 

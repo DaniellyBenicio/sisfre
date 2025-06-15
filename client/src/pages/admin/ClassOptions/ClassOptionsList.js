@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   Box,
@@ -5,7 +6,6 @@ import {
   Grid,
   Card,
   CardContent,
-  CardActionArea,
 } from "@mui/material";
 import { Class, Schedule } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -22,12 +22,14 @@ const ClassOptionsList = () => {
     {
       title: "Grade de Turmas",
       icon: <Schedule sx={{ fontSize: 60, color: "#087619" }} />,
-      path: "/class-schedule",
+      path: null, // Sem caminho, pois não está implementado
     },
   ];
 
   const handleCardClick = (path) => {
-    navigate(path);
+    if (path) {
+      navigate(path);
+    }
   };
 
   return (
@@ -83,12 +85,14 @@ const ClassOptionsList = () => {
                 position: "relative",
                 overflow: "visible",
                 transition: "all 0.4s ease-in-out",
-                "&:hover": {
-                  transform: "translateY(-10px)",
-                  boxShadow:
-                    "0 10px 20px rgba(8, 118, 25, 0.3), 0 0 10px rgba(8, 118, 25, 0.5)",
-                  border: "3px solid #0A8C1F",
-                },
+                "&:hover": option.path
+                  ? {
+                      transform: "translateY(-10px)",
+                      boxShadow:
+                        "0 10px 20px rgba(8, 118, 25, 0.3), 0 0 10px rgba(8, 118, 25, 0.5)",
+                      border: "3px solid #0A8C1F",
+                    }
+                  : {},
               }}
             >
               <Box
@@ -102,15 +106,16 @@ const ClassOptionsList = () => {
                   borderTopLeftRadius: "12px",
                   borderTopRightRadius: "12px",
                   zIndex: 1,
-                  transition: "background-color 0.4s ease-in-out",
-                  "&:hover": {
-                    backgroundColor: "#0A8C1F",
-                  },
+                  transition: option.path ? "background-color 0.4s ease-in-out" : "none",
+                  "&:hover": option.path
+                    ? {
+                        backgroundColor: "#0A8C1F",
+                      }
+                    : {},
                 }}
               />
 
-              <CardActionArea
-                onClick={() => handleCardClick(option.path)}
+              <Box
                 sx={{
                   height: "100%",
                   width: "100%",
@@ -120,21 +125,22 @@ const ClassOptionsList = () => {
                   alignItems: "center",
                   p: 2,
                   zIndex: 2,
-                  "&:hover": {
-                    backgroundColor: "transparent",
-                  },
+                  cursor: option.path ? "pointer" : "default",
                 }}
+                onClick={() => handleCardClick(option.path)}
               >
                 <CardContent
-                  sx={{ padding: 0, transition: "transform 0.4s ease-in-out" }}
+                  sx={{ padding: 0, transition: option.path ? "transform 0.4s ease-in-out" : "none" }}
                 >
                   <Box
                     sx={{
                       mb: 2,
-                      transition: "transform 0.4s ease-in-out",
-                      "&:hover": {
-                        transform: "scale(1.1)",
-                      },
+                      transition: option.path ? "transform 0.4s ease-in-out" : "none",
+                      "&:hover": option.path
+                        ? {
+                            transform: "scale(1.1)",
+                          }
+                        : {},
                     }}
                   >
                     {option.icon}
@@ -145,19 +151,22 @@ const ClassOptionsList = () => {
                       fontWeight: "bold",
                       wordWrap: "break-word",
                       color: "#087619",
-                      transition:
-                        "transform 0.4s ease-in-out, color 0.4s ease-in-out",
-                      "&:hover": {
-                        transform: "scale(1.05)",
-                        color: "#0A8C1F",
-                        fontSize: "1.3rem",
-                      },
+                      transition: option.path
+                        ? "transform 0.4s ease-in-out, color 0.4s ease-in-out"
+                        : "none",
+                      "&:hover": option.path
+                        ? {
+                            transform: "scale(1.05)",
+                            color: "#0A8C1F",
+                            fontSize: "1.3rem",
+                          }
+                        : {},
                     }}
                   >
                     {option.title}
                   </Typography>
                 </CardContent>
-              </CardActionArea>
+              </Box>
             </Card>
           </Grid>
         ))}

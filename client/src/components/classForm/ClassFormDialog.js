@@ -18,7 +18,6 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ptBR } from 'date-fns/locale';
 import api from '../../service/api';
 import { StyledSelect } from '../../components/inputs/Input';
-import { CustomAlert } from "../../components/alert/CustomAlert";
 import PropTypes from 'prop-types';
 
 const INSTITUTIONAL_COLOR = '#307c34';
@@ -40,18 +39,16 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
     semester: '',
   });
   const [courses, setCourses] = useState([]);
-  const [alert, setAlert] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const isFormFilled = classData.courseId && classData.semester;
 
-  // Busca cursos do backend
   useEffect(() => {
     const fetchCourses = async () => {
       try {
         const response = await api.get('/courses');
         console.log('ClassFormDialog - Cursos retornados:', response.data);
 
-        // Garante que courses é um array
         let coursesArray = [];
         if (Array.isArray(response.data)) {
           coursesArray = response.data;
@@ -61,19 +58,17 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
           coursesArray = [response.data];
         }
 
-        // Filtra cursos válidos
         coursesArray = coursesArray.filter(course => 
           course && typeof course === 'object' && course.id && course.name
         );
 
         setCourses(coursesArray);
         if (coursesArray.length === 0) {
-          setAlert({ message: 'Nenhum curso disponível.', type: 'warning' });
+          setErrorMessage('Nenhum curso disponível.');
         }
       } catch (err) {
         console.error('ClassFormDialog - Erro ao buscar cursos:', err);
-        setAlert({ message: 'Erro ao carregar a lista de cursos.', type: 'error' });
-        setCourses([]);
+        setErrorMessage('Erro ao carregar a lista de cursos.');
       }
     };
 
@@ -82,33 +77,33 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
     }
   }, [open]);
 
-  // Atualiza o formulário quando classToEdit muda
   useEffect(() => {
     if (classToEdit) {
       setClassData({
         courseId: classToEdit.course?.id || classToEdit.courseId || '',
         semester: classToEdit.semester || '',
       });
-      setAlert(null);
+      setErrorMessage(null);
     } else {
       setClassData({
         courseId: '',
         semester: '',
       });
-      setAlert(null);
+      setErrorMessage(null);
     }
   }, [classToEdit, open]);
 
   const handleInputChange = (e) => {
     setClassData({ ...classData, [e.target.name]: e.target.value });
+    setErrorMessage(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setAlert(null);
+    setErrorMessage(null);
 
     if (!classData.courseId || !classData.semester) {
-      setAlert({ message: 'Todos os campos são obrigatórios.', type: 'error' });
+      setErrorMessage('Todos os campos são obrigatórios.');
       return;
     }
 
@@ -123,15 +118,12 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
       let response;
       if (isEditMode) {
         response = await api.put(`/classes/${classToEdit?.id}`, payload);
-        setAlert({ message: 'Turma atualizada com sucesso!', type: 'success' });
       } else {
         response = await api.post('/classes', payload);
-        setAlert({ message: 'Turma cadastrada com sucesso!', type: 'success' });
       }
 
       console.log('ClassFormDialog - Resposta da API:', response.data);
 
-      // Busca o curso correspondente para montar o objeto atualizado
       const course = courses.find(c => c.id === parseInt(classData.courseId)) || { id: classData.courseId, name: 'Desconhecido' };
       const updatedClass = {
         ...response.data.class,
@@ -141,15 +133,9 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
       onSubmitSuccess(updatedClass, isEditMode);
       onClose();
     } catch (err) {
-      const errorMessage =
-        err.response?.data?.error || `Erro ao ${isEditMode ? 'atualizar' : 'cadastrar'} turma: ${err.message}`;
-      setAlert({ message: errorMessage, type: 'error' });
-      console.error('ClassFormDialog - Erro:', err);
+      const errorMessage = err.response?.data?.error || `Erro ao ${isEditMode ? 'atualizar' : 'cadastrar'} turma: ${err.message}`;
+      throw new Error(errorMessage);
     }
-  };
-
-  const handleCloseAlert = () => {
-    setAlert(null);
   };
 
   return (
@@ -324,6 +310,12 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
               </StyledSelect>
             </FormControl>
 
+            {errorMessage && (
+              <Box sx={{ color: 'error.main', mt: 1, textAlign: 'center' }}>
+                {errorMessage}
+              </Box>
+            )}
+
             <DialogActions
               sx={{
                 justifyContent: 'center',
@@ -359,18 +351,10 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
           </Box>
         </DialogContent>
       </Dialog>
-      {alert && (
-        <CustomAlert
-          message={alert.message}
-          type={alert.type}
-          onClose={handleCloseAlert}
-        />
-      )}
     </LocalizationProvider>
   );
 };
 
-// Adiciona PropTypes para validação
 ClassFormDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,

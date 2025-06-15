@@ -1,45 +1,76 @@
-import React, { useState, useEffect } from "react";
-import { Box, Typography, Snackbar, Alert } from "@mui/material";
-import SearchAndCreateBar from "../../../components/homeScreen/SearchAndCreateBar";
-import api from "../../../service/api";
-import ClassesTable from "./ClassesTable";
-import ClassFormDialog from "../../../components/classForm/ClassFormDialog";
+import React, { useState, useEffect } from 'react';
+import { Box, Typography } from '@mui/material';
+import SearchAndCreateBar from '../../../components/homeScreen/SearchAndCreateBar';
+import DeleteConfirmationDialog from '../../../components/DeleteConfirmationDialog';
+import api from '../../../service/api';
+import ClassesTable from './ClassesTable';
+import ClassFormDialog from '../../../components/classForm/ClassFormDialog';
+import { CustomAlert } from '../../../components/alert/CustomAlert';
 
 const ClassesList = () => {
   const [classes, setClasses] = useState([]);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [classToDelete, setClassToDelete] = useState(null);
   const [classToEdit, setClassToEdit] = useState(null);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const [alert, setAlert] = useState(null);
+
+  const handleAlertClose = () => {
+    setAlert(null);
+  };
 
   useEffect(() => {
+    const fetchClasses = async () => {
+      try {
+        const response = await api.get('/classes');
+        console.log('ClassesList - Resposta da API:', response.data);
+        let classesArray = Array.isArray(response.data)
+          ? response.data
+          : response.data.classes || [];
+        // Normaliza os dados para garantir a estrutura correta
+        classesArray = classesArray.map(item => ({
+          ...item,
+          course: item.course || { id: item.courseId, name: 'Desconhecido' },
+        }));
+        setClasses(classesArray);
+      } catch (error) {
+        console.error('Erro ao buscar turmas:', error.message, error.response?.data);
+        setAlert({
+          message: 'Erro ao buscar turmas.',
+          type: 'error',
+        });
+        setClasses([]);
+      }
+    };
     fetchClasses();
   }, []);
 
-  const fetchClasses = async () => {
-    try {
-      const response = await api.get("/classes");
-      console.log("ClassesList - Resposta da API:", response.data);
-      if (!response.data || !Array.isArray(response.data.classes)) {
-        throw new Error("Erro ao buscar turmas: Dados inválidos");
-      }
-      setClasses(response.data.classes);
-    } catch (error) {
-      console.error("Erro ao buscar turmas:", error);
-      if (error.response) {
-        console.error("Status:", error.response.status);
-        console.error("Dados do erro:", error.response.data);
-      }
-    }
-  };
-
   const handleRegisterOrUpdateSuccess = (updatedClass, isEditMode) => {
-    console.log("ClassesList - Turma recebida:", updatedClass, "EditMode:", isEditMode);
-    setSuccess(`Turma ${isEditMode ? 'atualizada' : 'cadastrada'} com sucesso!`);
-    fetchClasses();
-    setOpenDialog(false);
-    setClassToEdit(null);
+    console.log('ClassesList - Turma recebida:', updatedClass, 'EditMode:', isEditMode);
+    try {
+      if (isEditMode) {
+        setClasses(classes.map(c => (c.id === updatedClass.id ? updatedClass : c)));
+        setAlert({
+          message: `Turma atualizada com sucesso!`,
+          type: 'success',
+        });
+      } else {
+        setClasses([...classes, updatedClass]);
+        setAlert({
+          message: `Turma cadastrada com sucesso!`,
+          type: 'success',
+        });
+      }
+      setOpenDialog(false);
+      setClassToEdit(null);
+    } catch (error) {
+      console.error('Erro ao atualizar lista de turmas:', error);
+      setAlert({
+        message: 'Erro ao atualizar a lista de turmas.',
+        type: 'error',
+      });
+    }
   };
 
   const handleEdit = (classItem) => {
@@ -47,25 +78,53 @@ const ClassesList = () => {
     setOpenDialog(true);
   };
 
+  const handleDeleteClick = (classId) => {
+    const classItem = classes.find(c => c.id === classId);
+    console.log('Turma recebida para exclusão:', classItem);
+    console.log('ID da turma a ser excluída:', classId);
+    setClassToDelete(classItem);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      await api.delete(`/classes/${classToDelete.id}`);
+      setClasses(classes.filter(c => c.id !== classToDelete.id));
+      setAlert({
+        message: `Turma ${classToDelete.course.name} excluída com sucesso!`,
+        type: 'success',
+      });
+    } catch (error) {
+      console.error('Erro ao excluir turma:', error);
+      setAlert({
+        message: 'Erro ao excluir turma.',
+        type: 'error',
+      });
+    } finally {
+      setOpenDeleteDialog(false);
+      setClassToDelete(null);
+    }
+  };
+
   const filteredClasses = Array.isArray(classes)
     ? classes.filter((classItem) => {
         const normalizedSearch = search
           .trim()
           .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "");
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '');
 
         const normalizedCourse =
           classItem.course?.name
             ?.toLowerCase()
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "") || "";
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '') || '';
 
         const normalizedSemester =
           classItem.semester
             ?.toLowerCase()
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "") || "";
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '') || '';
 
         return (
           normalizedCourse.includes(normalizedSearch) ||
@@ -76,38 +135,43 @@ const ClassesList = () => {
 
   return (
     <Box
-      padding={3}
       sx={{
-        width: "100%",
-        maxWidth: "1200px",
-        margin: "0 auto",
-        display: "flex",
-        flexDirection: "column",
+        p: 3,
+        width: '100%',
+        maxWidth: '1200px',
+        margin: '0 auto',
+        display: 'flex',
+        flexDirection: 'column',
         gap: 2,
       }}
     >
       <Typography
-        variant="h5"
-        align="center"
+        variant='h5'
+        align='center'
         gutterBottom
-        sx={{ mt: 2, mb: 2, fontWeight: "bold" }}
+        sx={{ fontWeight: 'bold', mt: 2, mb: 2 }}
       >
         Turmas
       </Typography>
+
       <SearchAndCreateBar
         searchValue={search}
         onSearchChange={(e) => setSearch(e.target.value)}
-        createButtonLabel="Cadastrar Turma"
+        createButtonLabel='Cadastrar Turma'
         onCreateClick={() => {
           setClassToEdit(null);
           setOpenDialog(true);
         }}
       />
+
       <ClassesTable
         classes={filteredClasses}
         search={search}
         onEdit={handleEdit}
+        onDelete={handleDeleteClick}
+        setAlert={setAlert}
       />
+
       <ClassFormDialog
         open={openDialog}
         onClose={() => {
@@ -118,24 +182,21 @@ const ClassesList = () => {
         onSubmitSuccess={handleRegisterOrUpdateSuccess}
         isEditMode={!!classToEdit}
       />
-      <Snackbar
-        open={!!error}
-        autoHideDuration={6000}
-        onClose={() => setError(null)}
-      >
-        <Alert onClose={() => setError(null)} severity="error" sx={{ width: '100%' }}>
-          {error}
-        </Alert>
-      </Snackbar>
-      <Snackbar
-        open={!!success}
-        autoHideDuration={6000}
-        onClose={() => setSuccess(null)}
-      >
-        <Alert onClose={() => setSuccess(null)} severity="success" sx={{ width: '100%' }}>
-          {success}
-        </Alert>
-      </Snackbar>
+
+      <DeleteConfirmationDialog
+        open={openDeleteDialog}
+        onClose={() => setOpenDeleteDialog(false)}
+        onConfirm={handleConfirmDelete}
+        message={`Deseja realmente excluir a turma "${classToDelete?.course.name}"?`}
+      />
+
+      {alert && (
+        <CustomAlert
+          message={alert.message}
+          type={alert.type}
+          onClose={handleAlertClose}
+        />
+      )}
     </Box>
   );
 };

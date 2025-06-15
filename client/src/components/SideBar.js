@@ -100,17 +100,26 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
       <List textAlign="center">
         <ListItem sx={{ justifyContent: "center", marginLeft: "-12px" }}>
           <Box sx={{ mb: 2 }}>
-            <img src={LogoMenu} alt="logoMenu" style={{ width: 150, height: "auto" }} />
+            <img
+              src={LogoMenu}
+              alt="logoMenu"
+              style={{ width: 150, height: "auto" }}
+            />
           </Box>
         </ListItem>
 
         <Divider sx={{ backgroundColor: "white", marginBottom: 1 }} />
 
-        <Typography variant="subtitle1" sx={{ color: "white", marginTop: "10px", textAlign: "center" }}>
+        <Typography
+          variant="subtitle1"
+          sx={{ color: "white", marginTop: "10px", textAlign: "center" }}
+        >
           Bem vindo(a), {username}!
         </Typography>
 
-        <Divider sx={{ backgroundColor: "white", marginBottom: 1, marginTop: "5px" }} />
+        <Divider
+          sx={{ backgroundColor: "white", marginBottom: 1, marginTop: "5px" }}
+        />
 
         {accessType === "Admin" && (
           <>
@@ -144,7 +153,7 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
               sx={getListItemStyle(selectedItem, "calendar")}
             >
               <CalendarToday sx={{ mr: 1 }} />
-              <ListItemText primary="Calendário" />
+              <ListItemText primary="Controle Letivo" />
             </ListItem>
             <ListItem
               button
@@ -181,7 +190,11 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
                 <ListItemText primary="Turmas" />
                 <ListItemIcon sx={{ minWidth: "auto", color: "white" }}>
                   {isMobile ? (
-                    isClassesExpanded ? <ArrowDropDown /> : <ArrowRight />
+                    isClassesExpanded ? (
+                      <ArrowDropDown />
+                    ) : (
+                      <ArrowRight />
+                    )
                   ) : null}
                 </ListItemIcon>
               </ListItem>
@@ -189,25 +202,41 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
                 <>
                   <ListItem
                     button
-                    onClick={() => handleItemClick("/classes", "manage-classes")}
+                    onClick={() =>
+                      handleItemClick("/classes", "manage-classes")
+                    }
                     sx={{
                       pl: 6,
                       "&:hover": { backgroundColor: "#388E3C" },
-                      backgroundColor: selectedItem === "manage-classes" ? "#4CAF50" : "transparent",
+                      backgroundColor:
+                        selectedItem === "manage-classes"
+                          ? "#4CAF50"
+                          : "transparent",
                     }}
                   >
-                    <ListItemText primary="Visualizar Turmas" sx={{ color: "white" }} />
+                    <ListItemText
+                      primary="Visualizar Turmas"
+                      sx={{ color: "white" }}
+                    />
                   </ListItem>
                   <ListItem
                     button
-                    onClick={() => handleItemClick("/class-schedule", "class-schedule")}
+                    onClick={() =>
+                      handleItemClick("/class-schedule", "class-schedule")
+                    }
                     sx={{
                       pl: 6,
                       "&:hover": { backgroundColor: "#388E3C" },
-                      backgroundColor: selectedItem === "class-schedule" ? "#4CAF50" : "transparent",
+                      backgroundColor:
+                        selectedItem === "class-schedule"
+                          ? "#4CAF50"
+                          : "transparent",
                     }}
                   >
-                    <ListItemText primary="Grade de Turma" sx={{ color: "white" }} />
+                    <ListItemText
+                      primary="Grade de Turma"
+                      sx={{ color: "white" }}
+                    />
                   </ListItem>
                 </>
               )}
@@ -248,7 +277,10 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
         <>
           <AppBar
             position="fixed"
-            sx={{ backgroundColor: "#087619", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+            sx={{
+              backgroundColor: "#087619",
+              zIndex: (theme) => theme.zIndex.drawer + 1,
+            }}
           >
             <Toolbar>
               <IconButton
@@ -313,7 +345,9 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
           <Box display="flex" justifyContent="center" mb={2}>
             <Warning sx={{ fontSize: 55, color: "#FFA000" }} />
           </Box>
-          <Typography textAlign="center">Tem certeza que deseja sair?</Typography>
+          <Typography textAlign="center">
+            Tem certeza que deseja sair?
+          </Typography>
         </DialogContent>
         <DialogActions
           sx={{

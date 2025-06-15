@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   Drawer,
@@ -82,112 +83,123 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
 
   const drawerContent = (
-    <Box sx={{ minHeight: "100%", overflowY: "auto", paddingBottom: "20px" }}>
-      <List textAlign="center">
-        <ListItem sx={{ justifyContent: "center", marginLeft: "-12px" }}>
-          <Box sx={{ mb: 2 }}>
-            <img
-              src={LogoMenu}
-              alt="logoMenu"
-              style={{ width: 150, height: "auto" }}
-            />
-          </Box>
-        </ListItem>
+    <Box
+      sx={{
+        minHeight: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        overflowY: "auto",
+        paddingBottom: "20px",
+      }}
+    >
+      <Box>
+        <List textAlign="center">
+          <ListItem sx={{ justifyContent: "center", marginLeft: "-12px" }}>
+            <Box sx={{ mb: 2 }}>
+              <img
+                src={LogoMenu}
+                alt="logoMenu"
+                style={{ width: 150, height: "auto" }}
+              />
+            </Box>
+          </ListItem>
 
-        <Divider sx={{ backgroundColor: "white", marginBottom: 1 }} />
+          <Divider sx={{ backgroundColor: "white", marginBottom: 1 }} />
 
-        <Typography
-          variant="subtitle1"
-          sx={{ color: "white", marginTop: "10px", textAlign: "center" }}
-        >
-          Bem vindo(a), {username}!
-        </Typography>
+          <Typography
+            variant="subtitle1"
+            sx={{ color: "white", marginTop: "10px", textAlign: "center" }}
+          >
+            Bem vindo(a), {username}!
+          </Typography>
 
-        <Divider
-          sx={{ backgroundColor: "white", marginBottom: 1, marginTop: "5px" }}
-        />
+          <Divider
+            sx={{ backgroundColor: "white", marginBottom: 1, marginTop: "5px" }}
+          />
 
-        {accessType === "Admin" && (
-          <>
-            <ListItem
-              button
-              onClick={() => handleItemClick("/users", "users")}
-              sx={getListItemStyle(selectedItem, "users")}
-            >
-              <People sx={{ mr: 1 }} />
-              <ListItemText primary="Usuários" />
-            </ListItem>
-            <ListItem
-              button
-              onClick={() => handleItemClick("/courses", "courses")}
-              sx={getListItemStyle(selectedItem, "courses")}
-            >
-              <School sx={{ mr: 1 }} />
-              <ListItemText primary="Cursos" />
-            </ListItem>
-            <ListItem
-              button
-              onClick={() => handleItemClick("/disciplines", "disciplines")}
-              sx={getListItemStyle(selectedItem, "disciplines")}
-            >
-              <LibraryBooks sx={{ mr: 1 }} />
-              <ListItemText primary="Disciplinas" />
-            </ListItem>
-            <ListItem
-              button
-              onClick={() => handleItemClick("/calendar-options", "calendar")}
-              sx={getListItemStyle(selectedItem, "calendar")}
-            >
-              <CalendarToday sx={{ mr: 1 }} />
-              <ListItemText primary="Controle Letivo" />
-            </ListItem>
-            <ListItem
-              button
-              onClick={() => handleItemClick("/class-options", "classes")}
-              sx={getListItemStyle(selectedItem, "classes")}
-            >
-              <Class sx={{ mr: 1 }} />
-              <ListItemText primary="Turmas" />
-            </ListItem>
-          </>
-        )}
+          {accessType === "Admin" && (
+            <>
+              <ListItem
+                button
+                onClick={() => handleItemClick("/users", "users")}
+                sx={getListItemStyle(selectedItem, "users")}
+              >
+                <People sx={{ mr: 1 }} />
+                <ListItemText primary="Usuários" />
+              </ListItem>
+              <ListItem
+                button
+                onClick={() => handleItemClick("/courses", "courses")}
+                sx={getListItemStyle(selectedItem, "courses")}
+              >
+                <School sx={{ mr: 1 }} />
+                <ListItemText primary="Cursos" />
+              </ListItem>
+              <ListItem
+                button
+                onClick={() => handleItemClick("/disciplines", "disciplines")}
+                sx={getListItemStyle(selectedItem, "disciplines")}
+              >
+                <LibraryBooks sx={{ mr: 1 }} />
+                <ListItemText primary="Disciplinas" />
+              </ListItem>
+              <ListItem
+                button
+                onClick={() => handleItemClick("/calendar-options", "calendar")}
+                sx={getListItemStyle(selectedItem, "calendar")}
+              >
+                <CalendarToday sx={{ mr: 1 }} />
+                <ListItemText primary="Controle Letivo" />
+              </ListItem>
+              <ListItem
+                button
+                onClick={() => handleItemClick("/class-options", "classes")}
+                sx={getListItemStyle(selectedItem, "classes")}
+              >
+                <Class sx={{ mr: 1 }} />
+                <ListItemText primary="Turmas" />
+              </ListItem>
+            </>
+          )}
 
-        {accessType === "Coordenador" && (
-          <>
-            <ListItem
-              button
-              onClick={() => handleItemClick("/disciplines", "disciplines")}
-              sx={getListItemStyle(selectedItem, "disciplines")}
-            >
-              <LibraryBooks sx={{ mr: 1 }} />
-              <ListItemText primary="Disciplinas" />
-            </ListItem>
-            <ListItem
-              button
-              onClick={() => handleItemClick("/class-options", "classes")}
-              sx={getListItemStyle(selectedItem, "classes")}
-            >
-              <Class sx={{ mr: 1 }} />
-              <ListItemText primary="Turmas" />
-            </ListItem>
-          </>
-        )}
+          {accessType === "Coordenador" && (
+            <>
+              <ListItem
+                button
+                onClick={() => handleItemClick("/disciplines", "disciplines")}
+                sx={getListItemStyle(selectedItem, "disciplines")}
+              >
+                <LibraryBooks sx={{ mr: 1 }} />
+                <ListItemText primary="Disciplinas" />
+              </ListItem>
+              <ListItem
+                button
+                onClick={() => handleItemClick("/class-options", "classes")}
+                sx={getListItemStyle(selectedItem, "classes")}
+              >
+                <Class sx={{ mr: 1 }} />
+                <ListItemText primary="Turmas" />
+              </ListItem>
+            </>
+          )}
 
-        {accessType === "Professor" && (
-          <>
-            <ListItem
-              button
-              onClick={() => handleItemClick("/disciplines", "disciplines")}
-              sx={getListItemStyle(selectedItem, "disciplines")}
-            >
-              <LibraryBooks sx={{ mr: 1 }} />
-              <ListItemText primary="Disciplinas" />
-            </ListItem>
-          </>
-        )}
-      </List>
+          {accessType === "Professor" && (
+            <>
+              <ListItem
+                button
+                onClick={() => handleItemClick("/disciplines", "disciplines")}
+                sx={getListItemStyle(selectedItem, "disciplines")}
+              >
+                <LibraryBooks sx={{ mr: 1 }} />
+                <ListItemText primary="Disciplinas" />
+              </ListItem>
+            </>
+          )}
+        </List>
+      </Box>
 
-      <Box sx={{ width: "100%" }}>
+      <Box sx={{ marginTop: "auto" }}>
         <ListItem
           button
           onClick={handleOpenConfirmDialog}

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Route, Routes, Navigate, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
@@ -14,6 +13,7 @@ import DisciplinePage from "../pages/disciplines/DisciplinePage.js";
 import ClassPage from "../pages/admin/classes/ClassesPages.js";
 import SaturdaySchoolPage from "../pages/admin/SaturdaySchool/SaturdaySchoolPage.js";
 import CalendarOptionsPage from "../pages/admin/CalendarOptions/CalendarOptionsPage.js";
+import ClassOptionsPage from "../pages/admin/ClassOptions/ClassOptionsPage.js";
 
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
@@ -91,6 +91,16 @@ const AppRoutes = () => {
         element={
           isAuthenticated && accessType === "Admin" ? (
             <CalendarOptionsPage setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
+        path="/class-options"
+        element={
+          isAuthenticated && (accessType === "Admin" || accessType === "Coordenador") ? (
+            <ClassOptionsPage setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
           )
@@ -186,7 +196,8 @@ const AppRoutes = () => {
             </div>
           ) : (
             <Navigate to="/login" />
-  )}
+          )
+        }
       />
     </Routes>
   );

@@ -14,7 +14,6 @@ import {
   Toolbar,
   AppBar,
   Box,
-  ListItemIcon,
 } from "@mui/material";
 import {
   Menu,
@@ -25,8 +24,6 @@ import {
   Class,
   LibraryBooks,
   CalendarToday,
-  ArrowRight,
-  ArrowDropDown,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useMediaQuery } from "@mui/material";
@@ -42,8 +39,6 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
   const [username, setUsername] = useState("");
   const [accessType, setAccessType] = useState("");
   const isMobile = useMediaQuery("(max-width:600px)");
-  const [isClassesHovered, setIsClassesHovered] = useState(false);
-  const [isClassesExpanded, setIsClassesExpanded] = useState(false);
 
   useEffect(() => {
     const name = localStorage.getItem("username");
@@ -57,8 +52,7 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
     else if (path === "/courses") setSelectedItem("courses");
     else if (path === "/disciplines") setSelectedItem("disciplines");
     else if (path === "/calendar-options") setSelectedItem("calendar");
-    else if (path === "/classes") setSelectedItem("classes");
-    else if (path === "/class-schedule") setSelectedItem("class-schedule");
+    else if (path === "/class-options") setSelectedItem("classes");
   }, [location.pathname]);
 
   const handleOpenConfirmDialog = () => setOpenConfirmDialog(true);
@@ -69,7 +63,6 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
     navigate(path);
     if (isMobile) {
       setMobileOpen(false);
-      setIsClassesExpanded(false);
     }
   };
 
@@ -84,13 +77,6 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
     logout(setAuthenticated);
     handleCloseConfirmDialog();
     setTimeout(() => navigate("/login"), 100);
-  };
-
-  const handleClassesToggle = (e) => {
-    e.stopPropagation();
-    if (isMobile) {
-      setIsClassesExpanded(!isClassesExpanded);
-    }
   };
 
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
@@ -157,7 +143,7 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
             </ListItem>
             <ListItem
               button
-              onClick={() => handleItemClick("/classes", "classes")}
+              onClick={() => handleItemClick("/class-options", "classes")}
               sx={getListItemStyle(selectedItem, "classes")}
             >
               <Class sx={{ mr: 1 }} />
@@ -176,71 +162,14 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
               <LibraryBooks sx={{ mr: 1 }} />
               <ListItemText primary="Disciplinas" />
             </ListItem>
-            <Box
-              onMouseEnter={() => !isMobile && setIsClassesHovered(true)}
-              onMouseLeave={() => !isMobile && setIsClassesHovered(false)}
+            <ListItem
+              button
+              onClick={() => handleItemClick("/class-options", "classes")}
+              sx={getListItemStyle(selectedItem, "classes")}
             >
-              <ListItem
-                button
-                onClick={handleClassesToggle}
-                sx={getListItemStyle(selectedItem, "classes")}
-                aria-expanded={isMobile ? isClassesExpanded : isClassesHovered}
-              >
-                <Class sx={{ mr: 1 }} />
-                <ListItemText primary="Turmas" />
-                <ListItemIcon sx={{ minWidth: "auto", color: "white" }}>
-                  {isMobile ? (
-                    isClassesExpanded ? (
-                      <ArrowDropDown />
-                    ) : (
-                      <ArrowRight />
-                    )
-                  ) : null}
-                </ListItemIcon>
-              </ListItem>
-              {(isMobile ? isClassesExpanded : isClassesHovered) && (
-                <>
-                  <ListItem
-                    button
-                    onClick={() =>
-                      handleItemClick("/classes", "manage-classes")
-                    }
-                    sx={{
-                      pl: 6,
-                      "&:hover": { backgroundColor: "#388E3C" },
-                      backgroundColor:
-                        selectedItem === "manage-classes"
-                          ? "#4CAF50"
-                          : "transparent",
-                    }}
-                  >
-                    <ListItemText
-                      primary="Visualizar Turmas"
-                      sx={{ color: "white" }}
-                    />
-                  </ListItem>
-                  <ListItem
-                    button
-                    onClick={() =>
-                      handleItemClick("/class-schedule", "class-schedule")
-                    }
-                    sx={{
-                      pl: 6,
-                      "&:hover": { backgroundColor: "#388E3C" },
-                      backgroundColor:
-                        selectedItem === "class-schedule"
-                          ? "#4CAF50"
-                          : "transparent",
-                    }}
-                  >
-                    <ListItemText
-                      primary="Grade de Turma"
-                      sx={{ color: "white" }}
-                    />
-                  </ListItem>
-                </>
-              )}
-            </Box>
+              <Class sx={{ mr: 1 }} />
+              <ListItemText primary="Turmas" />
+            </ListItem>
           </>
         )}
 
@@ -323,8 +252,8 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
               backgroundColor: "#087619",
               color: "white",
               overflowY: "auto",
-            },
-          }}
+            }}
+          }
         >
           {drawerContent}
         </Drawer>

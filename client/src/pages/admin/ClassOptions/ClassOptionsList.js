@@ -23,7 +23,7 @@ const ClassOptionsList = () => {
     {
       title: "Grade de Turmas",
       icon: <Schedule sx={{ fontSize: 60, color: "#087619" }} />,
-      path: "/class-schedule-placeholder",
+      path: "/class-schedule",
     },
   ];
 

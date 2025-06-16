@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Route, Routes, Navigate, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
@@ -10,9 +11,9 @@ import MainScreen from "../pages/MainScreen.js";
 import ForgotPassword from "../pages/password/ForgotPassword.js";
 import ResetPassword from "../pages/password/ResetPassword.js";
 import DisciplinePage from "../pages/disciplines/DisciplinePage.js";
-import ClassPage from "../pages/admin/classes/ClassesPages.js";
 import SaturdaySchoolPage from "../pages/admin/SaturdaySchool/SaturdaySchoolPage.js";
 import CalendarOptionsPage from "../pages/admin/CalendarOptions/CalendarOptionsPage.js";
+import ClassSchedulePage from "../pages/classSchedule/ClassSchedulePage.js";
 import ClassOptionsPage from "../pages/admin/ClassOptions/ClassOptionsPage.js";
 
 const AppRoutes = () => {
@@ -99,7 +100,7 @@ const AppRoutes = () => {
       <Route
         path="/class-options"
         element={
-          isAuthenticated && (accessType === "Admin" || accessType === "Coordenador") ? (
+          isAuthenticated && accessType === "Admin" || "Coordenador" ? (
             <ClassOptionsPage setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
@@ -160,7 +161,7 @@ const AppRoutes = () => {
         path="/class-schedule"
         element={
           isAuthenticated ? (
-            <ClassPage setAuthenticated={handleLogout} />
+            <ClassSchedulePage setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
           )
@@ -196,8 +197,7 @@ const AppRoutes = () => {
             </div>
           ) : (
             <Navigate to="/login" />
-          )
-        }
+  )}
       />
     </Routes>
   );

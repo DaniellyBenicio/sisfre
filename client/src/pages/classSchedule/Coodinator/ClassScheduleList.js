@@ -13,7 +13,8 @@ import { Edit, Tune, Visibility } from "@mui/icons-material";
 import { CustomAlert } from "../../../components/alert/CustomAlert";
 import ClassScheduleTable from "./ClassScheduleTable";
 import { StyledSelect } from "../../../components/inputs/Input";
-import ClassScheduleModal from "../../../components/classScheduleForm/ClassScheduleModal";
+import ClassScheduleModal from "../Coodinator/ClassScheduleCreate";
+import { useNavigate } from "react-router-dom";
 
 const ClassScheduleList = () => {
   const [disciplines, setDisciplines] = useState([]);
@@ -27,6 +28,7 @@ const ClassScheduleList = () => {
   const [calendars, setCalendars] = useState([]);
   const [classes, setClasses] = useState([]);
   const [openCreateModal, setOpenCreateModal] = useState(false);
+  const navigate = useNavigate();
 
   // Simulação
   const mockClassesSchedule = [
@@ -75,7 +77,7 @@ const ClassScheduleList = () => {
   }, []);
 
   const onCreateClick = () => {
-    setOpenCreateModal(true);
+    navigate("/class-schedule-create");
   };
 
   const handleViewClick = (disciplineId) => {
@@ -312,20 +314,12 @@ const ClassScheduleList = () => {
             </IconButton>
             <IconButton
               onClick={() => handleViewClick(item.disciplineId)}
-              sx={{ color: "#666666", "&:hover": { color: "#535252" } }} // Changed color to blue for view action
+              sx={{ color: "#666666", "&:hover": { color: "#535252" } }}
             >
               <Visibility />
             </IconButton>
           </>
         )}
-      />
-
-      <ClassScheduleModal
-        open={openCreateModal}
-        onClose={() => setOpenCreateModal(false)}
-        onUpdate={() => {
-          console.log("Grade de turma criada/atualizada");
-        }}
       />
 
       {alert && (

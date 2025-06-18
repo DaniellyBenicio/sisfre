@@ -15,6 +15,7 @@ import SaturdaySchoolPage from "../pages/admin/SaturdaySchool/SaturdaySchoolPage
 import CalendarOptionsPage from "../pages/admin/CalendarOptions/CalendarOptionsPage.js";
 import ClassSchedulePage from "../pages/classSchedule/ClassSchedulePage.js";
 import ClassOptionsPage from "../pages/admin/ClassOptions/ClassOptionsPage.js";
+import ClassScheduleCreate from "../pages/classSchedule/Coodinator/ClassScheduleCreate.js";
 
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
@@ -32,7 +33,7 @@ const AppRoutes = () => {
       try {
         const decoded = jwtDecode(token);
         const currentTime = Date.now() / 1000;
-        console.log("Token decoded, exp:", decoded.exp, "currentTime:", currentTime); // Depuração
+        console.log("Token decoded, exp:", decoded.exp, "currentTime:", currentTime);
         if (decoded.exp < currentTime) {
           localStorage.removeItem("token");
           localStorage.removeItem("accessType");
@@ -40,7 +41,7 @@ const AppRoutes = () => {
           navigate("/login");
         }
       } catch (err) {
-        console.error("Token error:", err); // Depuração
+        console.error("Token error:", err);
         localStorage.removeItem("token");
         localStorage.removeItem("accessType");
         setAuthenticated(false);
@@ -51,19 +52,19 @@ const AppRoutes = () => {
   }, [navigate]);
 
   const handleLogin = () => {
-    console.log("Handle login called"); // Depuração
+    console.log("Handle login called");
     setAuthenticated(true);
     const access = localStorage.getItem("accessType");
-    console.log("Access type after login:", access); // Depuração
+    console.log("Access type after login:", access);
     if (access === "Admin") {
-      navigate("/calendar-options"); // Redireciona para calendar-options para Admins
+      navigate("/calendar-options");
     } else {
       navigate("/disciplines");
     }
   };
 
   const handleLogout = () => {
-    console.log("Handle logout called"); // Depuração
+    console.log("Handle logout called");
     localStorage.removeItem("token");
     localStorage.removeItem("accessType");
     localStorage.removeItem("username");
@@ -162,6 +163,16 @@ const AppRoutes = () => {
         element={
           isAuthenticated ? (
             <ClassSchedulePage setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
+        path="/class-schedule-create"
+        element={
+          isAuthenticated ? (
+            <ClassScheduleCreate setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
           )

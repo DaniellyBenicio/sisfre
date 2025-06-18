@@ -33,7 +33,7 @@ const StyledButton = styled(Button)(({ theme }) => ({
   gap: '8px',
 }));
 
-const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMode }) => {
+const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMode, setAlert }) => {
   const [classData, setClassData] = useState({
     courseId: '',
     semester: '',
@@ -58,7 +58,7 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
           coursesArray = [response.data];
         }
 
-        coursesArray = coursesArray.filter(course => 
+        coursesArray = coursesArray.filter(course =>
           course && typeof course === 'object' && course.id && course.name
         );
 
@@ -134,7 +134,8 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
       onClose();
     } catch (err) {
       const errorMessage = err.response?.data?.error || `Erro ao ${isEditMode ? 'atualizar' : 'cadastrar'} turma: ${err.message}`;
-      throw new Error(errorMessage);
+      if (setAlert) setAlert({ type: "error", message: errorMessage });
+      else setErrorMessage(errorMessage); // fallback local
     }
   };
 

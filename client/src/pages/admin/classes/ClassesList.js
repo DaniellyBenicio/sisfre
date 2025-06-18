@@ -179,6 +179,7 @@ const ClassesList = () => {
         classToEdit={classToEdit}
         onSubmitSuccess={handleRegisterOrUpdate}
         isEditMode={!!classToEdit}
+        setAlert={setAlert}
       />
 
       <DeleteConfirmationDialog

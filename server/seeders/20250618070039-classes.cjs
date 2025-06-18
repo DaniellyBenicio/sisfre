@@ -1,6 +1,6 @@
 'use strict';
 
-export default {
+module.exports = {
   async up(queryInterface, Sequelize) {
     const classes = [];
     const now = new Date();

@@ -1,6 +1,6 @@
 'use strict';
 
-export default {
+module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.bulkInsert('Courses', [
       {
@@ -55,7 +55,7 @@ export default {
       {
         name: 'Licenciatura em Matemática',
         acronym: 'LM',
-        type: 'TÉCNICO INTEGRADO',
+        type: 'GRADUAÇÃO',
         createdAt: new Date(),
         updatedAt: new Date()
       },

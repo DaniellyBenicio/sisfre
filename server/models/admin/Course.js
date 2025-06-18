@@ -66,6 +66,7 @@ export default (sequelize) => {
         type: DataTypes.ENUM(
           "GRADUAÇÃO",
           "TÉCNICO",
+          "INTEGRADO",
           "TÉCNICO INTEGRADO",
           "MESTRADO",
           "DOUTORADO",

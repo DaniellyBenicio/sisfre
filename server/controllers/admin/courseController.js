@@ -46,6 +46,7 @@ export const createCourse = async (req, res) => {
   const validTypes = [
     "GRADUAÇÃO",
     "TÉCNICO",
+    "INTEGRADO",
     "TÉCNICO INTEGRADO",
     "MESTRADO",
     "DOUTORADO",

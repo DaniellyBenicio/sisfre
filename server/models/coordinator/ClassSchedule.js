@@ -47,7 +47,7 @@ export default (sequelize) => {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-          model: "Calendars",
+          model: "Calendar",
           key: "id",
         },
         onUpdate: "CASCADE",

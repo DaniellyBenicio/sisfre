@@ -4,7 +4,12 @@ import { Model, DataTypes } from "sequelize";
 export default (sequelize) => {
   class Class extends Model {
     static associate(models) {
-      Class.belongsTo(models.Course, { foreignKey: "courseId", as: "course" });
+      Class.belongsToMany(models.Course, {
+        through: "CourseClass",
+        foreignKey: "classId",
+        otherKey: "courseId",
+        as: "courses",
+      });
     }
   }
 

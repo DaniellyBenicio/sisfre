@@ -9,6 +9,13 @@ export default (sequelize) => {
         foreignKey: "coordinatorId",
       });
 
+      Course.belongsToMany(models.Class, {
+        through: "CourseClass",
+        foreignKey: "courseId",
+        otherKey: "classId",
+        as: "classes",
+      });
+
       Course.belongsToMany(models.Discipline, {
         through: "CourseDisciplines",
         foreignKey: "courseId",

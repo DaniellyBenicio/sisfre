@@ -7,16 +7,6 @@ module.exports = {
         autoIncrement: true,
         primaryKey: true,
       },
-      courseId: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        references: {
-          model: "courses",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
-      },
       semester: {
         type: Sequelize.STRING,
         allowNull: false,

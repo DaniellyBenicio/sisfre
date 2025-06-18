@@ -20,7 +20,7 @@ module.exports = {
         type: Sequelize.ENUM(
           "GRADUAÇÃO",
           "TÉCNICO",
-          "INTEGRADO",
+          "TÉCNICO INTEGRADO",
           "MESTRADO",
           "DOUTORADO",
           "EAD",
@@ -30,6 +30,7 @@ module.exports = {
           "RESIDÊNCIA",
           "SEQUENCIAL",
           "PÓS-DOUTORADO",
+          "PÓS-GRADUAÇÃO",
           "CURSO LIVRE"
         ),
         allowNull: false,

@@ -25,7 +25,7 @@ const ClassesList = () => {
     const fetchClasses = async () => {
       try {
         setLoading(true);
-        const response = await api.get('/classes');
+        const response = await api.get('/classes?limit=1000');
         console.log('Resposta da API /classes:', response.data);
 
         let classesArray = Array.isArray(response.data)

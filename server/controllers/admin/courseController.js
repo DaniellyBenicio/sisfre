@@ -46,7 +46,7 @@ export const createCourse = async (req, res) => {
   const validTypes = [
     "GRADUAÇÃO",
     "TÉCNICO",
-    "INTEGRADO",
+    "TÉCNICO INTEGRADO",
     "MESTRADO",
     "DOUTORADO",
     "EAD",
@@ -56,7 +56,8 @@ export const createCourse = async (req, res) => {
     "RESIDÊNCIA",
     "SEQUENCIAL",
     "PÓS-DOUTORADO",
-    "CURSO LIVRE",
+    "PÓS-GRADUAÇÃO",
+    "CURSO LIVRE"
   ];
 
   if (!validTypes.includes(type)) {
@@ -255,11 +256,11 @@ export const updateCourse = async (req, res) => {
     if (name || acronym) {
       const existingCourse = await db.Course.findOne({
         where: {
-          id: { [db.Sequelize.Op.ne]: courseId }, 
+          id: { [db.Sequelize.Op.ne]: courseId },
           [db.Sequelize.Op.or]: [
             name ? { name } : null,
             acronym ? { acronym } : null,
-          ].filter(Boolean), 
+          ].filter(Boolean),
         },
       });
 

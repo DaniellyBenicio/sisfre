@@ -66,7 +66,7 @@ export default (sequelize) => {
         type: DataTypes.ENUM(
           "GRADUAÇÃO",
           "TÉCNICO",
-          "INTEGRADO",
+          "TÉCNICO INTEGRADO",
           "MESTRADO",
           "DOUTORADO",
           "EAD",
@@ -76,6 +76,7 @@ export default (sequelize) => {
           "RESIDÊNCIA",
           "SEQUENCIAL",
           "PÓS-DOUTORADO",
+          "PÓS-GRADUAÇÃO",
           "CURSO LIVRE"
         ),
         allowNull: false,

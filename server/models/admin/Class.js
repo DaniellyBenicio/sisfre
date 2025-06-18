@@ -8,7 +8,7 @@ export default (sequelize) => {
         through: "CourseClass",
         foreignKey: "classId",
         otherKey: "courseId",
-        as: "courses",
+        as: "course",
       });
     }
   }
@@ -20,16 +20,6 @@ export default (sequelize) => {
         autoIncrement: true,
         primaryKey: true,
         allowNull: false,
-      },
-      courseId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-          model: "Courses",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
       },
       semester: {
         type: DataTypes.STRING,

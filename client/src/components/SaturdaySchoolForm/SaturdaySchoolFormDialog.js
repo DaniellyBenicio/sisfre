@@ -401,13 +401,13 @@ const SaturdaySchoolFormDialog = ({
                   },
                 }}
               >
-                Dia da Semana*
+                Dia da Semana *
               </InputLabel>
               <StyledSelect
                 name="dayOfWeek"
                 value={saturdaySchool.dayOfWeek}
                 onChange={(e) => handleInputChange(e.target.name, e.target.value)}
-                label="Dia da Semana*"
+                label="Dia da Semana *"
                 required
                 MenuProps={{
                   PaperProps: {
@@ -459,13 +459,13 @@ const SaturdaySchoolFormDialog = ({
                   },
                 }}
               >
-                Calendário* 
+                Calendário * 
               </InputLabel>
               <StyledSelect
                 name="calendarId"
                 value={saturdaySchool.calendarId}
                 onChange={(e) => handleInputChange(e.target.name, e.target.value)}
-                label="Calendário*"
+                label="Calendário *"
                 required
                 disabled={loadingCalendars}
                 MenuProps={{

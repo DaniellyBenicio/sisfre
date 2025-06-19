@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Route, Routes, Navigate, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
@@ -16,6 +15,7 @@ import CalendarOptionsPage from "../pages/admin/CalendarOptions/CalendarOptionsP
 import ClassSchedulePage from "../pages/classSchedule/ClassSchedulePage.js";
 import ClassOptionsPage from "../pages/admin/ClassOptions/ClassOptionsPage.js";
 import ClassScheduleCreate from "../pages/classSchedule/Coodinator/ClassScheduleCreate.js";
+import HolidayPage from "../pages/admin/Holiday/HolidayPage.js";
 
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
@@ -101,7 +101,7 @@ const AppRoutes = () => {
       <Route
         path="/class-options"
         element={
-          isAuthenticated && accessType === "Admin" || "Coordenador" ? (
+          isAuthenticated && (accessType === "Admin" || accessType === "Coordenador") ? (
             <ClassOptionsPage setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
@@ -202,13 +202,11 @@ const AppRoutes = () => {
         path="/holiday"
         element={
           isAuthenticated && accessType === "Admin" ? (
-            <div>
-              <h2>Feriado</h2>
-              <p>Esta é uma página placeholder para Feriado.</p>
-            </div>
+            <HolidayPage setAuthenticated={handleLogout} /> // Substituí o placeholder
           ) : (
             <Navigate to="/login" />
-  )}
+          )
+        }
       />
     </Routes>
   );

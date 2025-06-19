@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -342,13 +341,11 @@ const SaturdaySchoolFormDialog = ({
                   InputLabelProps: {
                     sx: {
                       color: "#757575",
-                      "&::after": { content: '" *"', color: "#757575" },
                       top: "50%",
                       transform: "translate(14px, -50%)",
                       fontSize: "1rem",
                       "&.Mui-focused, &.MuiInputLabel-shrink": {
                         color: "#000000",
-                        "&::after": { content: '" *"', color: "#000000" },
                         top: 0,
                         transform: "translate(14px, -9px) scale(0.75)",
                       },
@@ -360,7 +357,7 @@ const SaturdaySchoolFormDialog = ({
                       "& fieldset": { borderColor: "#000000" },
                       "&:hover fieldset": { borderColor: "#000000" },
                       "&.Mui-focused fieldset": {
-                        borderColor: "#000000",
+                        borderColor: "#000000 !important",
                         borderWidth: "2px",
                       },
                     },
@@ -404,13 +401,13 @@ const SaturdaySchoolFormDialog = ({
                   },
                 }}
               >
-                Dia da Semana
+                Dia da Semana*
               </InputLabel>
               <StyledSelect
                 name="dayOfWeek"
                 value={saturdaySchool.dayOfWeek}
                 onChange={(e) => handleInputChange(e.target.name, e.target.value)}
-                label="Dia da Semana"
+                label="Dia da Semana*"
                 required
                 MenuProps={{
                   PaperProps: {
@@ -462,13 +459,13 @@ const SaturdaySchoolFormDialog = ({
                   },
                 }}
               >
-                Calendário
+                Calendário* 
               </InputLabel>
               <StyledSelect
                 name="calendarId"
                 value={saturdaySchool.calendarId}
                 onChange={(e) => handleInputChange(e.target.name, e.target.value)}
-                label="Calendário"
+                label="Calendário*"
                 required
                 disabled={loadingCalendars}
                 MenuProps={{

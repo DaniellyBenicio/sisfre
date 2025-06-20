@@ -9,7 +9,7 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
-import { Edit, Tune, Visibility } from "@mui/icons-material";
+import { Edit, FilterListAlt, Visibility } from "@mui/icons-material";
 import { CustomAlert } from "../../../components/alert/CustomAlert";
 import ClassScheduleTable from "./ClassScheduleTable";
 import { StyledSelect } from "../../../components/inputs/Input";
@@ -140,7 +140,7 @@ const ClassScheduleList = () => {
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           {/* Ícone de filtro */}
-          <Tune
+          <FilterListAlt
             sx={{ 
               color: "#087619", 
               fontSize: "1.7rem",
@@ -188,6 +188,14 @@ const ClassScheduleList = () => {
                 value={selectedCalendar}
                 label="Calendário"
                 onChange={(e) => setSelectedCalendar(e.target.value)}
+                sx={{
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "rgba(0, 0, 0, 0.23)",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#000000",
+                  }
+                }}
                 MenuProps={{
                   PaperProps: {
                     sx: {
@@ -248,6 +256,14 @@ const ClassScheduleList = () => {
                 value={selectedClass}
                 label="Turma"
                 onChange={(e) => setSelectedClass(e.target.value)}
+                sx={{
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "rgba(0, 0, 0, 0.23)",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#000000",
+                  }
+                }}
                 MenuProps={{
                   PaperProps: {
                     sx: {

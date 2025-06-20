@@ -16,7 +16,71 @@ import {
 import { ArrowBack, Close, Save } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from "../../../components/SideBar";
-import { StyledSelect } from "../../../components/inputs/Input";
+
+const CustomSelect = ({ label, name, value, onChange, children, ...props }) => {
+  return (
+    <FormControl fullWidth required sx={{ minWidth: 190, maxWidth: 400 }}>
+      <InputLabel
+        id={`${name}-label`}
+        sx={{
+          "&.Mui-focused": {
+            color: "#000000", // Label preto quando focado
+          },
+          "&.MuiInputLabel-shrink": {
+            color: "#000000", // Label preto quando encolhido
+          },
+        }}
+      >
+        {label}
+      </InputLabel>
+      <Select
+        labelId={`${name}-label`}
+        name={name}
+        value={value}
+        onChange={onChange}
+        label={label} // Necessário para o entalhe da borda
+        sx={{
+          "& .MuiOutlinedInput-notchedOutline": {
+            borderColor: "rgba(0, 0, 0, 0.23)", // Borda padrão
+          },
+          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#000000", // Borda preta quando focado
+            borderWidth: "2px", // Espessura da borda
+          },
+          "&:hover .MuiOutlinedInput-notchedOutline": {
+            borderColor: "rgba(0, 0, 0, 0.5)", // Borda ao passar o mouse
+          },
+        }}
+        MenuProps={{
+          PaperProps: {
+            sx: {
+              maxHeight: "200px",
+              overflowY: "auto",
+              width: "auto",
+              "& .MuiMenuItem-root": {
+                minHeight: "36px",
+                display: "flex",
+                alignItems: "center",
+              },
+              "& .MuiMenuItem-root.Mui-selected": {
+                backgroundColor: "#D5FFDB",
+                "&:hover": {
+                  backgroundColor: "#C5F5CB",
+                },
+              },
+              "& .MuiMenuItem-root:hover": {
+                backgroundColor: "#D5FFDB",
+              },
+            },
+          },
+        }}
+        {...props}
+      >
+        {children}
+      </Select>
+    </FormControl>
+  );
+};
 
 const ClassScheduleCreate = ({ setAuthenticated }) => {
 	const [formData, setFormData] = useState({
@@ -52,12 +116,22 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
 				<Sidebar setAuthenticated={setAuthenticated} />
 
 				<Box sx={{ flexGrow: 1, p: 4, mt: 4 }}>
-					<IconButton onClick={() => navigate('/class-schedule')} sx={{ position: 'absolute', left: 24, top: 24 }}>
-						<ArrowBack sx={{ color: 'green' }} />
-					</IconButton>
-					<Typography variant="h5" gutterBottom textAlign="center">
-						Cadastrar Grade de Turma
-					</Typography>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-start",
+              gap: 1,
+              mb: 3,
+            }}
+          >
+            <IconButton onClick={() => navigate("/class-schedule")}>
+              <ArrowBack sx={{ color: "green", fontSize: "2.2rem" }} />
+            </IconButton>
+            <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+              Cadastrar Grade de Turma
+            </Typography>
+          </Box>
 
 					{/* Seção Aula */}
 					<Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
@@ -67,42 +141,55 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
 						<Grid container spacing={2} mt="2px">
 							<Grid item xs={12} md={6}>
 								<FormControl fullWidth required sx={{ minWidth: 190, maxWidth: 400, marginLeft: "5px" }}>
-									<InputLabel>Turma</InputLabel>
-									<Select name="class" value={formData.class} onChange={handleChange}>
+									<CustomSelect 
+										label="Turma"
+										name="class" 
+										value={formData.class} 
+										onChange={handleChange}>
 										<MenuItem value="Turma A">Turma A</MenuItem>
 										<MenuItem value="Turma B">Turma B</MenuItem>
 										<MenuItem value="Turma C">Turma C</MenuItem>
-									</Select>
+									</CustomSelect>
 								</FormControl>
 							</Grid>
 							<Grid item xs={12} md={6}>
 								<FormControl fullWidth required sx={{ minWidth: 190, maxWidth: 400 }}>
-									<InputLabel>Turno</InputLabel>
-									<Select name="turn" value={formData.turn} onChange={handleChange}>
+									<CustomSelect 
+										label="Turno"
+										name="turn" 
+										value={formData.turn} 
+										onChange={handleChange}
+									>
 										<MenuItem value="Manhã">Manhã</MenuItem>
 										<MenuItem value="Tarde">Tarde</MenuItem>
 										<MenuItem value="Noite">Noite</MenuItem>
-									</Select>
+									</CustomSelect>
 								</FormControl>
 							</Grid>
 							<Grid item xs={12} md={6}>
 								<FormControl fullWidth required sx={{ minWidth: 320, maxWidth: 500 }}>
-									<InputLabel>Calendário</InputLabel>
-									<Select name="calendar" value={formData.calendar} onChange={handleChange}>
+									<CustomSelect 
+										label="Calendário"
+										name="calendar" 
+										value={formData.calendar} 
+										onChange={handleChange}>
 										<MenuItem value="2025/1">2025/1</MenuItem>
 										<MenuItem value="2025/2">2025/2</MenuItem>
-									</Select>
+									</CustomSelect>
 								</FormControl>
 							</Grid>
 							<Grid item xs={12} md={6}>
 								<FormControl fullWidth required sx={{ minWidth: 320, maxWidth: 500 }}>
-									<InputLabel>Disciplina</InputLabel>
-									<Select name="discipline" value={formData.discipline} onChange={handleChange}>
+									<CustomSelect 
+										label="Disciplina"
+										name="discipline" 
+										value={formData.discipline} 
+										onChange={handleChange}>
 										<MenuItem value="Matemática">Matemática</MenuItem>
 										<MenuItem value="Física">Física</MenuItem>
 										<MenuItem value="Química">Química</MenuItem>
 										<MenuItem value="Biologia">Biologia</MenuItem>
-									</Select>
+									</CustomSelect>
 								</FormControl>
 							</Grid>
 						</Grid>
@@ -115,57 +202,57 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
 						</Typography>
 						<Grid container spacing={2}>
 							<Grid item xs={12} md={6}>
-								<FormControl fullWidth required sx={{ minWidth: 200, maxWidth: 400 }}>
-									<InputLabel>Professor</InputLabel>
-									<Select name="professor" value={formData.professor} onChange={handleChange}>
+								<FormControl fullWidth required sx={{ minWidth: 320, maxWidth: 500 }}>
+									<CustomSelect 
+										label="Professor"
+										name="professor" 
+										value={formData.professor} 
+										onChange={handleChange}>
 										<MenuItem value="João Silva">João Silva</MenuItem>
 										<MenuItem value="Maria Oliveira">Maria Oliveira</MenuItem>
 										<MenuItem value="Carlos Souza">Carlos Souza</MenuItem>
 										<MenuItem value="Ana Pereira">Ana Pereira</MenuItem>
-									</Select>
+									</CustomSelect>
 								</FormControl>
 							</Grid>
 							<Grid item xs={12} md={6}>
 								<FormControl fullWidth required sx={{ minWidth: 200, maxWidth: 400 }}>
-									<InputLabel>Dia da Semana</InputLabel>
-									<Select name="dayOfWeek" value={formData.dayOfWeek} onChange={handleChange}>
+									<CustomSelect 
+										label="Dias da Semana"
+										name="dayOfWeek" 
+										value={formData.dayOfWeek} 
+										onChange={handleChange}>
 										<MenuItem value="Segunda">Segunda</MenuItem>
 										<MenuItem value="Terça">Terça</MenuItem>
 										<MenuItem value="Quarta">Quarta</MenuItem>
 										<MenuItem value="Quinta">Quinta</MenuItem>
 										<MenuItem value="Sexta">Sexta</MenuItem>
-									</Select>
+									</CustomSelect>
 								</FormControl>
 							</Grid>
 							<Grid item xs={12} md={6}>
-								<TextField
-									fullWidth
-									label="Horário de Início"
-									type="time"
-									name="startTime"
-									value={formData.startTime}
-									onChange={handleChange}
-									sx={{ minWidth: 200, maxWidth: 400 }}
-									InputLabelProps={{
-										shrink: true,
-									}}
-									required
-								/>
+								<FormControl fullWidth required sx={{ minWidth: 190, maxWidth: 400 }}>
+									<CustomSelect 
+										label="Horário de Início"
+										name="startTime" 
+										value={formData.startTime} 
+										onChange={handleChange}>
+										<MenuItem value="13:00">13:00</MenuItem>
+										<MenuItem value="15:20">15:20</MenuItem>
+									</CustomSelect>
+								</FormControl>
 							</Grid>
 							<Grid item xs={12} md={6}>
-								<TextField
-									fullWidth
-									label="Horário de Fim"
-									type="time"
-									name="endTime"
-									value={formData.endTime}
-									onChange={handleChange}
-									sx={{ minWidth: 200, maxWidth: 400 }}
-									InputLabelProps={{
-										shrink: true,
-									}}
-									required
-								/>
+								<FormControl fullWidth required sx={{ minWidth: 190, maxWidth: 400 }}>
+									<CustomSelect 
+										label="Horário de Fim"
+										name="endTime" 
+										value={formData.endTime} 
+										onChange={handleChange}>
+										<MenuItem value="15:00">15:00</MenuItem>
+										<MenuItem value="17:20">17:20</MenuItem>
+									</CustomSelect>
+								</FormControl>
 							</Grid>
 						</Grid>
 					</Box>

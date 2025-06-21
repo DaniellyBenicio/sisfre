@@ -16,6 +16,7 @@ import ClassSchedulePage from "../pages/classSchedule/ClassSchedulePage.js";
 import ClassOptionsPage from "../pages/admin/ClassOptions/ClassOptionsPage.js";
 import ClassScheduleCreate from "../pages/classSchedule/Coodinator/ClassScheduleCreate.js";
 import HolidayPage from "../pages/admin/Holiday/HolidayPage.js";
+import ClassScheduleDetails from "../pages/classSchedule/Coodinator/ClassScheduleDetails.js";
 
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
@@ -173,6 +174,16 @@ const AppRoutes = () => {
         element={
           isAuthenticated ? (
             <ClassScheduleCreate setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
+        path="/class-schedule-details/:disciplineId"
+        element={
+          isAuthenticated ? (
+            <ClassScheduleDetails setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
           )

@@ -6,14 +6,12 @@ import {
   Button,
   FormControl,
   InputLabel,
-  Select,
-  MenuItem,
+  MenuItem
 } from "@mui/material";
 import { Edit, FilterListAlt, Visibility } from "@mui/icons-material";
 import { CustomAlert } from "../../../components/alert/CustomAlert";
 import ClassScheduleTable from "./ClassScheduleTable";
 import { StyledSelect } from "../../../components/inputs/Input";
-import ClassScheduleModal from "../Coodinator/ClassScheduleCreate";
 import { useNavigate } from "react-router-dom";
 
 const ClassScheduleList = () => {
@@ -68,10 +66,8 @@ const ClassScheduleList = () => {
 
   useEffect(() => {
     setDisciplines(mockClassesSchedule);
-    // Extrair calendários únicos
     const uniqueCalendars = [...new Set(mockClassesSchedule.map((item) => item.calendar))];
     setCalendars(uniqueCalendars);
-    // Extrair turmas únicas
     const uniqueClasses = [...new Set(mockClassesSchedule.map((item) => item.class))];
     setClasses(uniqueClasses);
   }, []);
@@ -81,9 +77,7 @@ const ClassScheduleList = () => {
   };
 
   const handleViewClick = (disciplineId) => {
-    const item = mockClassesSchedule.find((d) => d.disciplineId === disciplineId);
-    console.log("Visualizar item:", item);
-    setAlert({ message: `Visualizando grade de turma: ${item.discipline}`, type: "info" });
+    navigate(`/class-schedule-details/${disciplineId}`);
   };
 
   const handleCustomEdit = (item) => {
@@ -127,7 +121,6 @@ const ClassScheduleList = () => {
         Grade de Turma
       </Typography>
 
-      {/* Box de filtros e botão de criação */}
       <Box
         sx={{
           display: "flex",
@@ -139,7 +132,6 @@ const ClassScheduleList = () => {
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          {/* Ícone de filtro */}
           <FilterListAlt
             sx={{ 
               color: "#087619", 
@@ -148,8 +140,6 @@ const ClassScheduleList = () => {
               mt: { xs: 0, sm: 0.5 }
             }} 
           />
-          
-          {/* Box dos selects */}
           <Box
             sx={{
               borderRadius: "8px",

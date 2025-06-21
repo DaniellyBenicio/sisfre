@@ -13,6 +13,7 @@ import coordinatorTeacherRoutes from "./routes/coordinator/coordinatorTeacherRou
 import calendarRoutes from "./routes/admin/calendarRoutes.js";
 import schoolSaturdayRoutes from "./routes/admin/schoolSaturdayRoutes.js";
 import holidayRoutes from "./routes/admin/holidayRoutes.js";
+import ClassScheduleRoutes from "./routes/coordinator/ClassScheduleRoutes.js";
 
 const app = express();
 dotenv.config();
@@ -32,6 +33,7 @@ app.use("/api", coordinatorTeacherRoutes);
 app.use("/api", calendarRoutes);
 app.use("/api", schoolSaturdayRoutes);
 app.use("/api", holidayRoutes);
+app.use("/api", ClassScheduleRoutes);
 
 // Função para criar o usuário administrador, se não existir
 const createAdminIfNotExists = async () => {

@@ -23,6 +23,11 @@ export default (sequelize) => {
         otherKey: "schoolsaturdayId",
         as: "schoolCalendarSaturdays",
       });
+
+      Calendar.hasMany(models.ClassSchedule, {
+        foreignKey: "calendarId",
+        as: "schedules",
+      });
     }
   }
 

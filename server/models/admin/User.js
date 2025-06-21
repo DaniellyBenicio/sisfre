@@ -53,6 +53,11 @@ export default (sequelize) => {
         otherKey: "courseId",
         as: "coursesTaught",
       });
+
+      User.hasMany(models.ClassScheduleDetail, {
+        foreignKey: "userId",
+        as: "scheduleDetails",
+      });
     }
   }
 

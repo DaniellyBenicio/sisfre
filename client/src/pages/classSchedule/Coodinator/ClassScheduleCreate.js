@@ -12,7 +12,7 @@ import {
   CssBaseline,
   IconButton,
   CircularProgress,
-  TextField,
+  TextField, 
   Alert,
 } from "@mui/material";
 import {
@@ -88,18 +88,19 @@ const CustomSelect = ({ label, name, value, onChange, children, ...props }) => {
 const ClassScheduleCreate = ({ setAuthenticated }) => {
   const [formData, setFormData] = useState({
     classId: "",
-    turn: "",
+    turn: "", 
     calendarId: "",
     disciplineId: "",
     professorId: "",
     dayOfWeek: "",
-    startTime: "",
-    endTime: "",
+    startTime: "", 
+    endTime: "", 
   });
   const [classes, setClasses] = useState([]);
   const [disciplines, setDisciplines] = useState([]);
   const [professors, setProfessors] = useState([]);
   const [calendars, setCalendars] = useState([]);
+  const [availableHours, setAvailableHours] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
@@ -186,19 +187,97 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
     fetchData();
   }, []);
 
-  useEffect(() => {}, [professors]);
+  useEffect(() => {
+    const fetchHours = async () => {
+      if (formData.turn) {
+        setLoading(true);
+        try {
+          let backendTurn = "";
+          switch (formData.turn) {
+            case "Manhã":
+              backendTurn = "MATUTINO";
+              break;
+            case "Tarde":
+              backendTurn = "VESPERTINO";
+              break;
+            case "Noite":
+              backendTurn = "NOTURNO";
+              break;
+            default:
+              backendTurn = "";
+          }
 
-  useEffect(() => {}, [calendars]);
+          if (backendTurn) {
+            const response = await api.get(`/hours?turn=${backendTurn}`);
+            setAvailableHours(response.data);
+            const currentStartTimeValid = response.data.some(
+              (h) => h.hourStart === formData.startTime
+            );
+            if (!currentStartTimeValid) {
+              setFormData((prev) => ({ ...prev, startTime: "", endTime: "" }));
+            } else {
+              const selectedHour = response.data.find(
+                (h) => h.hourStart === formData.startTime
+              );
+              if (selectedHour && selectedHour.hourEnd !== formData.endTime) {
+                setFormData((prev) => ({
+                  ...prev,
+                  endTime: selectedHour.hourEnd,
+                }));
+              }
+            }
+          } else {
+            setAvailableHours([]); 
+            setFormData((prev) => ({ ...prev, startTime: "", endTime: "" }));
+          }
+        } catch (error) {
+          console.error("Erro ao buscar horários para o turno:", error);
+          setErrors((prev) => ({
+            ...prev,
+            hours:
+              error.response?.data?.error ||
+              "Erro ao carregar horários para o turno.",
+          }));
+          setAvailableHours([]);
+          setFormData((prev) => ({ ...prev, startTime: "", endTime: "" }));
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setAvailableHours([]); 
+        setFormData((prev) => ({ ...prev, startTime: "", endTime: "" }));
+      }
+    };
+
+    fetchHours();
+  }, [formData.turn]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    setFormData((prevData) => {
+      const newData = { ...prevData, [name]: value };
+
+      if (name === "turn") {
+        newData.startTime = "";
+        newData.endTime = "";
+      }
+
+        if (name === "startTime") {
+        const selectedHour = availableHours.find(
+          (hour) => hour.hourStart === value
+        );
+        if (selectedHour) {
+          newData.endTime = selectedHour.hourEnd;
+        } else {
+          newData.endTime = ""; // Limpa se não encontrar correspondência
+        }
+      }
+      return newData;
+    });
   };
 
   const handleSubmit = async () => {
+    // Validação de campos obrigatórios
     if (Object.values(formData).some((value) => !value)) {
       setErrors((prev) => ({
         ...prev,
@@ -284,6 +363,11 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
         {errors.calendars && (
           <Alert severity="warning" sx={{ mb: 2 }}>
             {errors.calendars}
+          </Alert>
+        )}
+        {errors.hours && ( // NOVO: Para exibir erros de carregamento de horários
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            {errors.hours}
           </Alert>
         )}
 
@@ -414,17 +498,19 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               </CustomSelect>
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
+              <CustomSelect
                 label="Horário de Início"
-                type="time"
                 name="startTime"
                 value={formData.startTime}
                 onChange={handleChange}
-                sx={{ minWidth: 200, maxWidth: 400 }}
-                InputLabelProps={{ shrink: true }}
-                required
-              />
+                disabled={!formData.turn || availableHours.length === 0} 
+              >
+                {availableHours.map((hour) => (
+                  <MenuItem key={hour.id} value={hour.hourStart}>
+                    {hour.hourStart}
+                  </MenuItem>
+                ))}
+              </CustomSelect>
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
@@ -433,10 +519,11 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                 type="time"
                 name="endTime"
                 value={formData.endTime}
-                onChange={handleChange}
+                onChange={handleChange} 
                 sx={{ minWidth: 200, maxWidth: 400 }}
                 InputLabelProps={{ shrink: true }}
                 required
+                disabled 
               />
             </Grid>
           </Grid>

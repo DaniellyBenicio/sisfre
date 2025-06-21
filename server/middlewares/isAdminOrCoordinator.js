@@ -12,7 +12,7 @@ export const isAdminOrCoordinator = () => {
         return res.status(401).json({ error: "Usuário não encontrado." });
       }
 
-      if (user.accessType !== "Administrador" && user.accessType !== "Coordenador") {
+      if (user.accessType !== "Admin" && user.accessType !== "Coordenador") {
         return res.status(403).json({
           error: "Acesso negado. Apenas administradores ou coordenadores podem acessar esta rota.",
         });

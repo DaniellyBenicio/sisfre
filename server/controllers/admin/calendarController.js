@@ -175,11 +175,13 @@ export const listCalendars = async (req, res) => {
 
     const calendars = await db.Calendar.findAll({
       where,
+      attributes: ["id", "type", "year", "period", "startDate", "endDate"],
       order: [
         ["startDate", "DESC"],
         ["period", "DESC"],
       ],
     });
+
     return res.status(200).json({ calendars });
   } catch (error) {
     return res.status(500).json({ error: "Erro ao listar calendários." });

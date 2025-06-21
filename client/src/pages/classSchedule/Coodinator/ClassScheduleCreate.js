@@ -15,7 +15,13 @@ import {
   TextField,
   Alert,
 } from "@mui/material";
-import { ArrowBack, Close, Save, Assignment, Schedule } from "@mui/icons-material";
+import {
+  ArrowBack,
+  Close,
+  Save,
+  Assignment,
+  Schedule,
+} from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../../components/SideBar";
 import api from "../../../service/api";
@@ -103,77 +109,75 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
       setLoading(true);
       setErrors({});
       try {
-        const [classesRes, disciplinesRes, usersRes, calendarsRes] = await Promise.all([
-          api.get("/classes").catch((err) => {
-            console.error("Classes error:", err.response?.data);
-            return { data: [] };
-          }),
-          api.get("/course/discipline").catch((err) => {
-            console.error("Disciplines error:", err.response?.data);
-            return { data: [] };
-          }),
-          api.get("/users").catch((err) => {
-            console.error("Users error:", err.response?.data);
-            return { data: [] };
-          }),
-          api.get("/calendar").catch((err) => {
-            console.error("Calendar error:", err.response?.data);
-            return { data: [] };
-          }),
-        ]);
-
-        console.log("Classes response:", classesRes.data);
-        console.log("Disciplines response:", disciplinesRes.data);
-        console.log("Users response:", usersRes.data);
-        console.log("Calendars response:", calendarsRes.data);
+        const [classesRes, disciplinesRes, usersRes, calendarsRes] =
+          await Promise.all([
+            api.get("/classes").catch((err) => {
+              return { data: [] };
+            }),
+            api.get("/course/discipline").catch((err) => {
+              return { data: [] };
+            }),
+            api.get("/users").catch((err) => {
+              return { data: [] };
+            }),
+            api.get("/calendar").catch((err) => {
+              return { data: [] };
+            }),
+          ]);
 
         setClasses(Array.isArray(classesRes.data) ? classesRes.data : []);
-        setDisciplines(Array.isArray(disciplinesRes.data) ? disciplinesRes.data : []);
-        setProfessors(
-        Array.isArray(usersRes.data.users)
-          ? usersRes.data.users.filter((user) => user.accessType === "Professor")
-          : []
+        setDisciplines(
+          Array.isArray(disciplinesRes.data) ? disciplinesRes.data : []
         );
-        console.log("Professores filtrados:", professors);
+
+        const filteredProfessors = Array.isArray(usersRes.data.users)
+          ? usersRes.data.users.filter(
+              (user) => user.accessType === "Professor"
+            )
+          : [];
+        setProfessors(filteredProfessors);
+
         setCalendars(
-          Array.isArray(calendarsRes.data)
-            ? calendarsRes.data
-            : [
-                { id: 1, period: "2025/1" },
-                { id: 2, period: "2025/2" },
-              ]
+          Array.isArray(calendarsRes.data.calendars)
+            ? calendarsRes.data.calendars.map((calendar) => ({
+                ...calendar,
+                displayPeriod: `${calendar.year}.${
+                  calendar.period
+                } - ${calendar.type.toUpperCase()}`,
+              }))
+            : []
         );
 
         if (!classesRes.data.length) {
           setErrors((prev) => ({
             ...prev,
-            classes: "Não foi possível carregar as turmas. Usando dados padrão.",
+            classes: "Não foi possível carregar as turmas.",
           }));
         }
         if (!disciplinesRes.data.length) {
           setErrors((prev) => ({
             ...prev,
-            disciplines: "Não foi possível carregar as disciplinas. Usando dados padrão.",
+            disciplines: "Não foi possível carregar as disciplinas.",
           }));
         }
-        if (!usersRes.data.length) {
+        if (!usersRes.data.users?.length) {
           setErrors((prev) => ({
             ...prev,
-            professors: "Não foi possível carregar os professores. Usando dados padrão.",
+            professors: "Não foi possível carregar os professores.",
           }));
         }
-        if (!calendarsRes.data.length) {
+        if (!calendarsRes.data.calendars?.length) {
           setErrors((prev) => ({
             ...prev,
-            calendars: "Não foi possível carregar os calendários. Usando dados padrão.",
+            calendars: "Não foi possível carregar os calendários.",
           }));
         }
       } catch (error) {
-        console.error("Erro ao buscar dados para o formulário:", error);
-        console.log("Error response:", error.response?.data);
         setErrors((prev) => ({
           ...prev,
-          general: error.response?.data?.message || "Erro ao carregar os dados. Tente novamente.",
+          general:
+            error.response?.data?.message ||
+            "Erro ao carregar os dados. Tente novamente.",
         }));
       } finally {
         setLoading(false);
@@ -181,6 +185,10 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
     };
     fetchData();
   }, []);
+
+  useEffect(() => {}, [professors]);
+
+  useEffect(() => {}, [calendars]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -192,19 +200,25 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
 
   const handleSubmit = async () => {
     if (Object.values(formData).some((value) => !value)) {
-      setErrors((prev) => ({ ...prev, general: "Todos os campos são obrigatórios." }));
+      setErrors((prev) => ({
+        ...prev,
+        general: "Todos os campos são obrigatórios.",
+      }));
       return;
     }
     setLoading(true);
     setErrors({});
     try {
       const response = await api.post("/class-schedules", formData);
-      navigate("/class-schedule", { state: { success: "Grade de turma criada com sucesso!" } });
+      navigate("/class-schedule", {
+        state: { success: "Grade de turma criada com sucesso!" },
+      });
     } catch (error) {
-      console.error("Erro ao cadastrar grade de turma:", error);
       setErrors((prev) => ({
         ...prev,
-        general: error.response?.data?.message || "Erro ao cadastrar a grade de turma. Tente novamente.",
+        general:
+          error.response?.data?.message ||
+          "Erro ao cadastrar a grade de turma. Tente novamente.",
       }));
     } finally {
       setLoading(false);
@@ -213,7 +227,12 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        height="100vh"
+      >
         <CircularProgress />
       </Box>
     );
@@ -268,8 +287,11 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           </Alert>
         )}
 
-        {/* Seção Aula */}
-        <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
+        <Box
+          component={Paper}
+          elevation={3}
+          sx={{ p: 5, m: 4, borderRadius: 3 }}
+        >
           <Box
             sx={{
               display: "flex",
@@ -285,7 +307,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
             </Typography>
           </Box>
           <Grid container spacing={2.5} mt="10px">
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} sm={6}>
               <CustomSelect
                 label="Turma"
                 name="classId"
@@ -299,7 +321,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                 ))}
               </CustomSelect>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} sm={6}>
               <CustomSelect
                 label="Turno"
                 name="turn"
@@ -311,7 +333,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                 <MenuItem value="Noite">Noite</MenuItem>
               </CustomSelect>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} sm={6}>
               <CustomSelect
                 label="Calendário"
                 name="calendarId"
@@ -320,12 +342,12 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               >
                 {calendars.map((calendar) => (
                   <MenuItem key={calendar.id} value={calendar.id}>
-                    {calendar.period || calendar.name}
+                    {calendar.displayPeriod}
                   </MenuItem>
                 ))}
               </CustomSelect>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} sm={6}>
               <CustomSelect
                 label="Disciplina"
                 name="disciplineId"
@@ -333,7 +355,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                 onChange={handleChange}
               >
                 {disciplines.map((disc) => (
-                  <MenuItem key={disc.id} value={disc.id}>
+                  <MenuItem key={disc.disciplineId} value={disc.disciplineId}>
                     {disc.name}
                   </MenuItem>
                 ))}
@@ -342,8 +364,11 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           </Grid>
         </Box>
 
-        {/* Seção Horários */}
-        <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
+        <Box
+          component={Paper}
+          elevation={3}
+          sx={{ p: 5, m: 4, borderRadius: 3 }}
+        >
           <Box
             sx={{
               display: "flex",
@@ -359,7 +384,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
             </Typography>
           </Box>
           <Grid container spacing={3} mt="10px">
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} sm={6}>
               <CustomSelect
                 label="Professor"
                 name="professorId"
@@ -368,12 +393,12 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               >
                 {professors.map((prof) => (
                   <MenuItem key={prof.id} value={prof.id}>
-                    {prof.name}
+                    {prof.username}
                   </MenuItem>
                 ))}
               </CustomSelect>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} sm={6}>
               <CustomSelect
                 label="Dia da Semana"
                 name="dayOfWeek"
@@ -388,7 +413,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                 <MenuItem value="Sábado">Sábado</MenuItem>
               </CustomSelect>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 label="Horário de Início"
@@ -401,7 +426,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                 required
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 label="Horário de Fim"
@@ -417,7 +442,6 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           </Grid>
         </Box>
 
-        {/* Botões */}
         <Box
           display="flex"
           mt={4}
@@ -468,7 +492,11 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               "&:hover": { backgroundColor: "#066915" },
             }}
           >
-            {loading ? <CircularProgress size={24} color="inherit" /> : <Save sx={{ fontSize: 24 }} />}
+            {loading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              <Save sx={{ fontSize: 24 }} />
+            )}
             Cadastrar
           </Button>
         </Box>

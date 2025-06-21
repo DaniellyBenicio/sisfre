@@ -141,9 +141,10 @@ export const getUsers = async (req, res) => {
       where,
       limit: parseInt(limit),
       offset,
-      order: [
-        ["username", order === "asc" ? "ASC" : "DESC"], // Sorting by username, either ascending or descending
-      ],
+      order: [["username", order === "asc" ? "ASC" : "DESC"]],
+      attributes: {
+        exclude: ["password"], // Exclui o campo 'password' da resposta
+      },
     });
 
     // Return the paginated data along with the total count
@@ -151,10 +152,10 @@ export const getUsers = async (req, res) => {
       users: rows,
       total: count,
       page: parseInt(page),
-      totalPages: Math.ceil(count / limit), // Calculate total pages
+      totalPages: Math.ceil(count / limit),
     });
   } catch (error) {
-    console.log(error);
+    console.error("Erro ao listar usuários:", error.message); // Log mais detalhado
     res.status(500).json({ error: "Erro ao listar usuários" });
   }
 };

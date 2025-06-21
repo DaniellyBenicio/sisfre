@@ -17,10 +17,6 @@ module.exports = {
         type: Sequelize.TIME,
         allowNull: false,
       },
-      turnId: {
-        type: Sequelize.ENUM('Manhã', 'Tarde', 'Noite'),
-        allowNull: false,
-      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,

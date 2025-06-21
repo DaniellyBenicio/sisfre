@@ -3,9 +3,9 @@ import { Model, DataTypes } from "sequelize";
 export default (sequelize) => {
   class Hour extends Model {
     static associate(models) {
-      Hour.hasMany(models.ClassSchedule, {
+      Hour.hasMany(models.ClassScheduleDetail, {
         foreignKey: "hourId",
-        as: "schedules",
+        as: "scheduleDetails",
       });
     }
   }
@@ -32,10 +32,6 @@ export default (sequelize) => {
             }
           },
         },
-      },
-      turnId: {
-        type: DataTypes.ENUM("Manhã", "Tarde", "Noite"),
-        allowNull: false,
       },
       createdAt: {
         type: DataTypes.DATE,

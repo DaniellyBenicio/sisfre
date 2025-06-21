@@ -808,3 +808,240 @@ export const updateClassSchedule = async (req, res) => {
     });
   }
 };
+
+export const getClassSchedule = async (req, res) => {
+  const loggedUserId = req.user?.id;
+
+  try {
+    if (!loggedUserId) {
+      return res.status(401).json({
+        message: "Usuário não autenticado.",
+      });
+    }
+
+    const course = await db.Course.findOne({
+      where: { coordinatorId: loggedUserId },
+    });
+
+    if (!course) {
+      return res.status(403).json({
+        message: "Acesso negado: Usuário não é coordenador ou não está associado a nenhum curso.",
+      });
+    }
+
+    const courseId = course.id;
+
+    const classSchedules = await db.ClassSchedule.findAll({
+      where: { courseId },
+      include: [
+        {
+          model: db.Calendar,
+          as: "calendar",
+          attributes: ["id", "year", "period"],
+        },
+        {
+          model: db.Class,
+          as: "class",
+          attributes: ["id", "semester"],
+        },
+        {
+          model: db.ClassScheduleDetail,
+          as: "details",
+          attributes: ["id", "disciplineId", "userId"],
+          include: [
+            { model: db.Discipline, as: "discipline", attributes: ["id", "name"] },
+            { model: db.User, as: "professor", attributes: ["id", "username"] },
+          ],
+        },
+      ],
+      order: [["id", "ASC"]],
+    });
+
+    const scheduleList = classSchedules.map((schedule) => {
+      const detail = schedule.details[0]; 
+      const calendarInfo = `${schedule.calendar.year}.${schedule.calendar.period}`;
+      return {
+        calendar: calendarInfo,
+        professor: detail.professor ? detail.professor.username : null,
+        turma: schedule.class.semester,
+        disciplina: detail.discipline.name,
+        turno: schedule.turn,
+      };
+    });
+
+    if (!scheduleList.length) {
+      return res.status(404).json({
+        message: "Nenhum horário de aula encontrado para o coordenador.",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Horários de aula recuperados com sucesso!",
+      schedules: scheduleList,
+    });
+  } catch (error) {
+    console.error("Erro ao recuperar horários de aula:", error);
+
+    if (error.name === "SequelizeValidationError") {
+      const errors = error.errors.map((err) => err.message);
+      return res.status(400).json({
+        message: "Erro de validação nos dados fornecidos.",
+        errors,
+      });
+    }
+
+    return res.status(500).json({
+      message: "Erro interno do servidor ao recuperar os horários de aula.",
+      error: error.message,
+    });
+  }
+};
+
+export const getClassScheduleDetails = async (req, res) => {
+  const { classScheduleId } = req.params;
+  const loggedUserId = req.user?.id;
+
+  try {
+    if (!loggedUserId) {
+      return res.status(401).json({ message: "Usuário não autenticado." });
+    }
+
+    const course = await db.Course.findOne({ where: { coordinatorId: loggedUserId } });
+    if (!course) {
+      return res.status(403).json({ message: "Acesso negado." });
+    }
+
+    const schedule = await db.ClassSchedule.findByPk(classScheduleId, {
+      where: { courseId: course.id },
+      include: [
+        { model: db.Calendar, as: "calendar", attributes: ["id", "startDate", "endDate"] },
+        { model: db.Class, as: "class", attributes: ["id", "semester"] },
+        {
+          model: db.ClassScheduleDetail,
+          as: "details",
+          include: [
+            { model: db.Discipline, as: "discipline", attributes: ["id", "name"] },
+            { model: db.User, as: "professor", attributes: ["id", "username"] },
+            { model: db.Hour, as: "hour", attributes: ["id", "hourStart", "hourEnd"] },
+          ],
+        },
+      ],
+    });
+
+    if (!schedule) {
+      return res.status(404).json({ message: "Horário não encontrado." });
+    }
+
+    return res.status(200).json({
+      message: "Detalhes do horário recuperados com sucesso!",
+      schedule,
+    });
+  } catch (error) {
+    console.error("Erro ao recuperar detalhes do horário:", error);
+    return res.status(500).json({ message: "Erro interno do servidor.", error: error.message });
+  }
+};
+
+export const getClassSchedulesFilter = async (req, res) => {
+  const loggedUserId = req.user?.id;
+  const { calendar, turma } = req.query;
+
+  try {
+    if (!loggedUserId) {
+      return res.status(401).json({
+        message: "Usuário não autenticado.",
+      });
+    }
+
+    const course = await db.Course.findOne({
+      where: { coordinatorId: loggedUserId },
+    });
+
+    if (!course) {
+      return res.status(403).json({
+        message: "Acesso negado: Usuário não é coordenador ou não está associado a nenhum curso.",
+      });
+    }
+
+    const courseId = course.id;
+
+    const where = { courseId };
+    if (calendar) {
+      where['$calendar.year$'] = { [Op.like]: `%${calendar}%` };
+      if (calendar.includes('.')) {
+        const [year, period] = calendar.split('.');
+        if (year && period) {
+          where['$calendar.year$'] = { [Op.like]: `%${year}%` };
+          where['$calendar.period$'] = { [Op.eq]: parseInt(period) };
+        }
+      }
+    }
+    if (turma) {
+      where['$class.semester$'] = { [Op.like]: `%${turma}%` };
+    }
+
+    const classSchedules = await db.ClassSchedule.findAll({
+      where,
+      include: [
+        {
+          model: db.Calendar,
+          as: "calendar",
+          attributes: ["id", "year", "period"],
+        },
+        {
+          model: db.Class,
+          as: "class",
+          attributes: ["id", "semester"],
+        },
+        {
+          model: db.ClassScheduleDetail,
+          as: "details",
+          attributes: ["id", "disciplineId", "userId"],
+          include: [
+            { model: db.Discipline, as: "discipline", attributes: ["id", "name"] },
+            { model: db.User, as: "professor", attributes: ["id", "username"] },
+          ],
+        },
+      ],
+      order: [["id", "ASC"]],
+    });
+
+    const scheduleList = classSchedules.map((schedule) => {
+      const detail = schedule.details[0]; 
+      const calendarInfo = `${schedule.calendar.year}.${schedule.calendar.period}`;
+      return {
+        calendar: calendarInfo,
+        professor: detail.professor ? detail.professor.username : null,
+        turma: schedule.class.semester,
+        disciplina: detail.discipline.name,
+        turno: schedule.turn,
+      };
+    });
+
+    if (!scheduleList.length) {
+      return res.status(404).json({
+        message: "Nenhum horário de aula encontrado para os filtros fornecidos.",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Horários de aula filtrados com sucesso!",
+      schedules: scheduleList,
+    });
+  } catch (error) {
+    console.error("Erro ao filtrar horários de aula:", error);
+
+    if (error.name === "SequelizeValidationError") {
+      const errors = error.errors.map((err) => err.message);
+      return res.status(400).json({
+        message: "Erro de validação nos dados fornecidos.",
+        errors,
+      });
+    }
+
+    return res.status(500).json({
+      message: "Erro interno do servidor ao filtrar os horários de aula.",
+      error: error.message,
+    });
+  }
+};

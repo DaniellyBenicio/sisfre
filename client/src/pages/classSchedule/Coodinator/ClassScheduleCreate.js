@@ -269,7 +269,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
         if (selectedHour) {
           newData.endTime = selectedHour.hourEnd;
         } else {
-          newData.endTime = ""; // Limpa se não encontrar correspondência
+          newData.endTime = ""; 
         }
       }
       return newData;
@@ -277,7 +277,6 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
   };
 
   const handleSubmit = async () => {
-    // Validação de campos obrigatórios
     if (Object.values(formData).some((value) => !value)) {
       setErrors((prev) => ({
         ...prev,
@@ -365,7 +364,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
             {errors.calendars}
           </Alert>
         )}
-        {errors.hours && ( // NOVO: Para exibir erros de carregamento de horários
+        {errors.hours && ( 
           <Alert severity="warning" sx={{ mb: 2 }}>
             {errors.hours}
           </Alert>

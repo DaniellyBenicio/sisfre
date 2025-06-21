@@ -172,7 +172,7 @@ const AppRoutes = () => {
       <Route
         path="/class-schedule-create"
         element={
-          isAuthenticated ? (
+          isAuthenticated && accessType === "Coordenador" ? (
             <ClassScheduleCreate setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />

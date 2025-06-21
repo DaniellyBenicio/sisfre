@@ -13,24 +13,14 @@ export default (sequelize) => {
         as: "class",
       });
 
-      ClassSchedule.belongsTo(models.Discipline, {
-        foreignKey: "disciplineId",
-        as: "discipline",
-      });
+      ClassSchedule.belongsTo(models.Course, { 
+        foreignKey: "courseId", 
+        as: "course",
+      });
 
-      ClassSchedule.belongsTo(models.User, {
-        foreignKey: "professorId",
-        as: "professor",
-      });
-
-      ClassSchedule.belongsTo(models.Course, {
-        foreignKey: "courseId",
-        as: "course",
-      });
-
-      ClassSchedule.belongsTo(models.Hour, {
-        foreignKey: "hourId",
-        as: "hour",
+      ClassSchedule.hasMany(models.ClassScheduleDetail, {
+        foreignKey: "classScheduleId",
+        as: "details",
       });
     }
   }
@@ -47,7 +37,7 @@ export default (sequelize) => {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-          model: "Calendar",
+          model: "Calendars",
           key: "id",
         },
         onUpdate: "CASCADE",
@@ -63,49 +53,23 @@ export default (sequelize) => {
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
-      courseId: {
+      courseId: { 
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: false, 
         references: {
-          model: "Courses",
+          model: "Courses", 
           key: "id",
         },
         onUpdate: "CASCADE",
-        onDelete: "CASCADE",
+        onDelete: "CASCADE", 
       },
-      disciplineId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-          model: "Disciplines",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
-      },
-      professorId: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        references: {
-          model: "Users",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
-      },
-      dayOfWeek: {
-        type: DataTypes.ENUM("Segunda", "Terça", "Quarta", "Quinta", "Sexta"),
+      turn: {
+        type: DataTypes.ENUM("MATUTINO", "VESPERTINO", "NOTURNO"),
         allowNull: false,
       },
-      hourId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-          model: "Hours",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
+      isActive: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
       },
     },
     {

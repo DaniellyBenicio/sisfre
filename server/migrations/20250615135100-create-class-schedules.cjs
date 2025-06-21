@@ -13,7 +13,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: "calendar",
+          model: "Calendar",
           key: "id",
         },
         onUpdate: "CASCADE",
@@ -32,46 +32,17 @@ module.exports = {
       courseId: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: {
-          model: "Courses",
-          key: "id",
-        },
+        references: { model: "courses", key: "id" },
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
-      disciplineId: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        references: {
-          model: "Disciplines",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
-      },
-      professorId: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
-        references: {
-          model: "Users",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
-      },
-      dayOfWeek: {
-        type: Sequelize.ENUM("Segunda", "Terça", "Quarta", "Quinta", "Sexta"),
+      turn: {
+        type: Sequelize.ENUM("MATUTINO", "VESPERTINO", "NOTURNO"),
         allowNull: false,
       },
-      hourId: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        references: {
-          model: "Hours",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
+      isActive: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
       },
       createdAt: {
         type: Sequelize.DATE,

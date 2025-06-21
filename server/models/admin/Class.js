@@ -8,7 +8,7 @@ export default (sequelize) => {
         through: "CourseClass",
         foreignKey: "classId",
         otherKey: "courseId",
-        as: "courses",
+        as: "course",
       });
 
       Class.hasMany(models.ClassSchedule, {

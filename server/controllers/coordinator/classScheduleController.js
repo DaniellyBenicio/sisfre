@@ -2,14 +2,14 @@ import db from "../../models/index.js";
 import { Op } from "sequelize";
 
 export const createClassSchedule = async (req, res) => {
-  const { calendarId, classId, courseId, turn, isActive, details } = req.body;
+  const { calendarId, classId, turn, isActive, details } = req.body;
   const loggedUserId = req.user?.id;
 
   try {
+
     if (
       !calendarId ||
       !classId ||
-      !courseId ||
       !turn ||
       !details ||
       !Array.isArray(details) ||
@@ -17,36 +17,51 @@ export const createClassSchedule = async (req, res) => {
     ) {
       return res.status(400).json({
         message:
-          "Dados incompletos ou inválidos. 'calendarId', 'classId', 'courseId', 'turn' e 'details' (como um array não vazio) são obrigatórios.",
+          "Dados incompletos ou inválidos. 'calendarId', 'classId', 'turn' e 'details' (como um array não vazio) são obrigatórios.",
       });
     }
 
-    const [calendar, classRecord, course] = await Promise.all([
+    if (!loggedUserId) {
+      return res.status(401).json({
+        message: "Usuário não autenticado.",
+      });
+    }
+
+    const course = await db.Course.findOne({
+      where: { coordinatorId: loggedUserId },
+    });
+
+    if (!course) {
+      return res.status(403).json({
+        message:
+          "Acesso negado: Usuário não é coordenador ou não está associado a nenhum curso.",
+      });
+    }
+
+    const courseId = course.id; 
+
+    const [calendar, classRecord] = await Promise.all([
       db.Calendar.findByPk(calendarId),
       db.Class.findByPk(classId),
-      db.Course.findByPk(courseId),
     ]);
 
     if (!calendar) {
-      return res.status(404).json({ message: `Calendário com ID ${calendarId} não encontrado.` });
+      return res
+        .status(404)
+        .json({ message: `Calendário com ID ${calendarId} não encontrado.` });
     }
     if (!classRecord) {
-      return res.status(404).json({ message: `Turma com ID ${classId} não encontrada.` });
-    }
-    if (!course) {
-      return res.status(404).json({ message: `Curso com ID ${courseId} não encontrado.` });
-    }
-
-    if (!loggedUserId || course.coordinatorId !== loggedUserId) {
-      return res.status(403).json({
-        message: "Acesso negado: Apenas o coordenador do curso pode criar horários.",
-      });
+      return res
+        .status(404)
+        .json({ message: `Turma com ID ${classId} não encontrada.` });
     }
 
     const validTurns = ["MATUTINO", "VESPERTINO", "NOTURNO"];
     if (!validTurns.includes(turn)) {
       return res.status(400).json({
-        message: `Turno inválido: '${turn}'. Use um dos seguintes: ${validTurns.join(", ")}.`,
+        message: `Turno inválido: '${turn}'. Use um dos seguintes: ${validTurns.join(
+          ", "
+        )}.`,
       });
     }
 
@@ -61,7 +76,8 @@ export const createClassSchedule = async (req, res) => {
 
     if (existingSchedule) {
       return res.status(409).json({
-        message: "Já existe um horário de aula para esta combinação de calendário, turma, curso e turno.",
+        message:
+          "Já existe um horário de aula para esta combinação de calendário, turma, curso e turno.",
       });
     }
 
@@ -74,12 +90,15 @@ export const createClassSchedule = async (req, res) => {
     for (const detail of details) {
       if (!detail.disciplineId || !detail.hourId || !detail.dayOfWeek) {
         return res.status(400).json({
-          message: "Cada detalhe de horário deve ter 'disciplineId', 'hourId' e 'dayOfWeek'.",
+          message:
+            "Cada detalhe de horário deve ter 'disciplineId', 'hourId' e 'dayOfWeek'.",
         });
       }
       if (!validDays.includes(detail.dayOfWeek)) {
         return res.status(400).json({
-          message: `Dia da semana inválido em um detalhe: '${detail.dayOfWeek}'. Use um dos seguintes: ${validDays.join(", ")}.`,
+          message: `Dia da semana inválido em um detalhe: '${
+            detail.dayOfWeek
+          }'. Use um dos seguintes: ${validDays.join(", ")}.`,
         });
       }
 
@@ -99,7 +118,9 @@ export const createClassSchedule = async (req, res) => {
       const users = await db.User.findAll({
         where: { id: { [Op.in]: Array.from(userIds) } },
       });
-      const professorUserIds = new Set(users.filter(u => u.accessType === "Professor").map(u => u.id));
+      const professorUserIds = new Set(
+        users.filter((u) => u.accessType === "Professor").map((u) => u.id)
+      );
       for (const userId of userIds) {
         if (!professorUserIds.has(userId)) {
           return res.status(400).json({
@@ -124,7 +145,9 @@ export const createClassSchedule = async (req, res) => {
     for (const hourId of hourIds) {
       const hour = hourMap[hourId];
       if (!hour) {
-        return res.status(404).json({ message: `Horário com ID ${hourId} não encontrado.` });
+        return res
+          .status(404)
+          .json({ message: `Horário com ID ${hourId} não encontrado.` });
       }
       const turnInterval = turnIntervals[turn];
       if (hour.start < turnInterval.start || hour.end > turnInterval.end) {
@@ -134,13 +157,16 @@ export const createClassSchedule = async (req, res) => {
       }
     }
 
-    const [existingDisciplines, existingHours, existingUsers] = await Promise.all([
-      db.Discipline.findAll({ where: { id: { [Op.in]: Array.from(disciplineIds) } } }),
-      db.Hour.findAll({ where: { id: { [Op.in]: Array.from(hourIds) } } }),
-      userIds.size > 0
-        ? db.User.findAll({ where: { id: { [Op.in]: Array.from(userIds) } } })
-        : Promise.resolve([]),
-    ]);
+    const [existingDisciplines, existingHours, existingUsers] =
+      await Promise.all([
+        db.Discipline.findAll({
+          where: { id: { [Op.in]: Array.from(disciplineIds) } },
+        }),
+        db.Hour.findAll({ where: { id: { [Op.in]: Array.from(hourIds) } } }),
+        userIds.size > 0
+          ? db.User.findAll({ where: { id: { [Op.in]: Array.from(userIds) } } })
+          : Promise.resolve([]),
+      ]);
 
     const foundDisciplineIds = new Set(existingDisciplines.map((d) => d.id));
     const foundHourIds = new Set(existingHours.map((h) => h.id));
@@ -149,7 +175,7 @@ export const createClassSchedule = async (req, res) => {
     for (const id of disciplineIds) {
       if (!foundDisciplineIds.has(id)) {
         return res.status(404).json({
-          message: `Disciplina com ID ${id}  não encontrada.`,
+          message: `Disciplina com ID ${id} não encontrada.`,
         });
       }
     }
@@ -168,12 +194,13 @@ export const createClassSchedule = async (req, res) => {
       }
     }
 
-    const courseDisciplineAssociations = await db.sequelize.models.CourseDisciplines.findAll({
-      where: {
-        courseId: courseId,
-        disciplineId: { [Op.in]: Array.from(disciplineIds) },
-      },
-    });
+    const courseDisciplineAssociations =
+      await db.sequelize.models.CourseDisciplines.findAll({
+        where: {
+          courseId,
+          disciplineId: { [Op.in]: Array.from(disciplineIds) },
+        },
+      });
 
     const associatedDisciplineIds = new Set(
       courseDisciplineAssociations.map((assoc) => assoc.disciplineId)
@@ -199,9 +226,17 @@ export const createClassSchedule = async (req, res) => {
           },
           include: [
             { model: db.User, as: "professor", attributes: ["username", "id"] },
-            { model: db.Hour, as: "hour", attributes: ["hourStart", "hourEnd"] },
+            {
+              model: db.Hour,
+              as: "hour",
+              attributes: ["hourStart", "hourEnd"],
+            },
             { model: db.Discipline, as: "discipline", attributes: ["name"] },
-            { model: db.ClassSchedule, as: "schedule", attributes: ["classId", "courseId"] },
+            {
+              model: db.ClassSchedule,
+              as: "schedule",
+              attributes: ["classId", "courseId"],
+            },
           ],
           transaction: t,
         });
@@ -212,17 +247,19 @@ export const createClassSchedule = async (req, res) => {
             `Conflito de horário! O professor '${
               conflict.professor ? conflict.professor.username : conflict.userId
             }' ` +
-            `já está alocado no(a) '${conflict.dayOfWeek}' às '${
-              conflict.hour ? conflict.hour.hourStart : conflict.hourId
-            }' ` +
-            `com a disciplina '${
-              conflict.discipline ? conflict.discipline.name : conflict.disciplineId
-            }'. ` +
-            `Para a turma ${
-              conflict.schedule ? conflict.schedule.classId : "N/A"
-            } e curso ${
-              conflict.schedule ? conflict.schedule.courseId : "N/A"
-            }.`
+              `já está alocado no(a) '${conflict.dayOfWeek}' às '${
+                conflict.hour ? conflict.hour.hourStart : conflict.hourId
+              }' ` +
+              `com a disciplina '${
+                conflict.discipline
+                  ? conflict.discipline.name
+                  : conflict.disciplineId
+              }'. ` +
+              `Para a turma ${
+                conflict.schedule ? conflict.schedule.classId : "N/A"
+              } e curso ${
+                conflict.schedule ? conflict.schedule.courseId : "N/A"
+              }.`
           );
         }
       }
@@ -279,11 +316,14 @@ export const createClassSchedule = async (req, res) => {
 
     if (error.name === "SequelizeValidationError") {
       const errors = error.errors.map((err) => err.message);
-      return res.status(400).json({ message: "Erro de validação nos dados fornecidos.", errors });
+      return res
+        .status(400)
+        .json({ message: "Erro de validação nos dados fornecidos.", errors });
     }
     if (error.name === "SequelizeUniqueConstraintError") {
       return res.status(409).json({
-        message: "Conflito: Um horário de aula com a mesma combinação de calendário, turma, curso e turno já existe.",
+        message:
+          "Conflito: Um horário de aula com a mesma combinação de calendário, turma, curso e turno já existe.",
         field: error.fields,
       });
     }
@@ -293,7 +333,11 @@ export const createClassSchedule = async (req, res) => {
       error.message.includes("Conflito de horário!") ||
       error.message.includes("Acesso negado")
     ) {
-      const statusCode = error.message.includes("Conflito de horário!") ? 409 : error.message.includes("Acesso negado") ? 403 : 404;
+      const statusCode = error.message.includes("Conflito de horário!")
+        ? 409
+        : error.message.includes("Acesso negado")
+        ? 403
+        : 404;
       return res.status(statusCode).json({ message: error.message });
     }
 

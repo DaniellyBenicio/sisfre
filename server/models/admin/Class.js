@@ -8,7 +8,12 @@ export default (sequelize) => {
         through: "CourseClass",
         foreignKey: "classId",
         otherKey: "courseId",
-        as: "course",
+        as: "courses",
+      });
+
+      Class.hasMany(models.ClassSchedule, {
+        foreignKey: "classId",
+        as: "schedules",
       });
     }
   }

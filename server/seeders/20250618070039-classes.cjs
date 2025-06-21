@@ -1,45 +1,45 @@
-'use strict';
+"use strict";
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    const classes = [];
     const now = new Date();
 
-    for (let courseId = 1; courseId <= 11; courseId++) {
-      for (let s = 1; s <= 8; s++) {
-        classes.push({
-          semester: `S${s}`,
-          createdAt: now,
-          updatedAt: now
-        });
-      }
+    const classes = [];
+    for (let s = 1; s <= 10; s++) {
+      classes.push({
+        semester: `S${s}`,
+        createdAt: now,
+        updatedAt: now,
+      });
     }
+    await queryInterface.bulkInsert("Classes", classes, {});
 
-    await queryInterface.bulkInsert('Classes', classes, {});
-
-    const [results] = await queryInterface.sequelize.query(
-      'SELECT id FROM Classes ORDER BY id ASC'
+    const [classResults] = await queryInterface.sequelize.query(
+      "SELECT id FROM Classes ORDER BY semester ASC"
     );
 
-    const courseClasse = [];
-    let classIndex = 0;
-    for (let courseId = 1; courseId <= 11; courseId++) {
-      for (let s = 1; s <= 8; s++) {
-        courseClasse.push({
+    const [courseResults] = await queryInterface.sequelize.query(
+      "SELECT id FROM Courses"
+    );
+
+    const courseClasses = [];
+    for (const course of courseResults) {
+      const courseId = course.id;
+      for (const classItem of classResults) {
+        courseClasses.push({
           courseId,
-          classId: results[classIndex].id,
+          classId: classItem.id,
           createdAt: now,
-          updatedAt: now
+          updatedAt: now,
         });
-        classIndex++;
       }
     }
 
-    await queryInterface.bulkInsert('course_classes', courseClasse, {});
+    await queryInterface.bulkInsert("course_classes", courseClasses, {});
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.bulkDelete('course_classes', null, {});
-    await queryInterface.bulkDelete('Classes', null, {});
-  }
+    await queryInterface.bulkDelete("course_classes", null, {});
+    await queryInterface.bulkDelete("Classes", null, {});
+  },
 };

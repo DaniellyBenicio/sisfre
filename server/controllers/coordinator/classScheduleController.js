@@ -95,6 +95,20 @@ export const createClassSchedule = async (req, res) => {
       }
     }
 
+    if (userIds.size > 0) {
+      const users = await db.User.findAll({
+        where: { id: { [Op.in]: Array.from(userIds) } },
+      });
+      const professorUserIds = new Set(users.filter(u => u.accessType === "Professor").map(u => u.id));
+      for (const userId of userIds) {
+        if (!professorUserIds.has(userId)) {
+          return res.status(400).json({
+            message: `O usuário com ID ${userId} não tem permissão para ser professor (accessType deve ser 'PROFESSOR').`,
+          });
+        }
+      }
+    }
+
     const allHours = await db.Hour.findAll();
     const hourMap = allHours.reduce((map, hour) => {
       map[hour.id] = { start: hour.hourStart, end: hour.hourEnd };
@@ -135,21 +149,21 @@ export const createClassSchedule = async (req, res) => {
     for (const id of disciplineIds) {
       if (!foundDisciplineIds.has(id)) {
         return res.status(404).json({
-          message: `Disciplina com ID ${id} em um detalhe não encontrada.`,
+          message: `Disciplina com ID ${id}  não encontrada.`,
         });
       }
     }
     for (const id of hourIds) {
       if (!foundHourIds.has(id)) {
         return res.status(404).json({
-          message: `Horário com ID ${id} em um detalhe não encontrado.`,
+          message: `Horário com ID ${id} não encontrado.`,
         });
       }
     }
     for (const id of userIds) {
       if (!foundUserIds.has(id)) {
         return res.status(404).json({
-          message: `Professor com ID ${id} em um detalhe não encontrado.`,
+          message: `Professor com ID ${id} não encontrado.`,
         });
       }
     }
@@ -257,7 +271,7 @@ export const createClassSchedule = async (req, res) => {
     );
 
     return res.status(201).json({
-      message: "Horário de aula e detalhes criados com sucesso!",
+      message: "Horário de aula criado com sucesso!",
       classSchedule: createdScheduleWithDetails,
     });
   } catch (error) {

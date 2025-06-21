@@ -1,5 +1,18 @@
 import db from "../../models/index.js";
 
+const getUTCDateAtMidnight = (dateString = null) => {
+  let d;
+  if (dateString) {
+    d = new Date(dateString + "T00:00:00.000Z");
+  } else {
+    const now = new Date();
+    d = new Date(
+      Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0)
+    );
+  }
+  return d;
+};
+
 export const createCalendar = async (req, res) => {
   const { type, year, period, startDate, endDate } = req.body;
 
@@ -7,12 +20,10 @@ export const createCalendar = async (req, res) => {
     return res.status(400).json({ error: "Todos os campos são obrigatórios." });
   }
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const startDateObj = new Date(startDate);
-  startDateObj.setHours(0, 0, 0, 0);
+  const todayUTC = getUTCDateAtMidnight();
+  const startDateObjUTC = getUTCDateAtMidnight(startDate);
 
-  if (startDateObj < today) {
+  if (startDateObjUTC < todayUTC) {
     return res.status(400).json({
       error: "A data de início não pode ser anterior à data atual.",
     });
@@ -67,12 +78,10 @@ export const updateCalendar = async (req, res) => {
     return res.status(400).json({ error: "Todos os campos são obrigatórios." });
   }
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const startDateObj = new Date(startDate);
-  startDateObj.setHours(0, 0, 0, 0);
+  const todayUTC = getUTCDateAtMidnight();
+  const startDateObjUTC = getUTCDateAtMidnight(startDate);
 
-  if (startDateObj < today) {
+  if (startDateObjUTC < todayUTC) {
     return res.status(400).json({
       error: "A data de início não pode ser anterior à data atual.",
     });
@@ -146,7 +155,6 @@ export const getCalendarTypes = async (req, res) => {
       types: types.map((t) => t.type),
     });
   } catch (error) {
-    console.error("Erro ao buscar tipos de calendário:", error);
     return res
       .status(500)
       .json({ error: "Erro ao buscar tipos de calendário." });
@@ -174,7 +182,6 @@ export const listCalendars = async (req, res) => {
     });
     return res.status(200).json({ calendars });
   } catch (error) {
-    console.error("Erro ao listar calendários:", error);
     return res.status(500).json({ error: "Erro ao listar calendários." });
   }
 };
@@ -183,21 +190,27 @@ export const deleteCalendar = async (req, res) => {
   const calendarId = req.params.id;
   try {
     const calendar = await db.Calendar.findByPk(calendarId, {
-      include: [{ model: db.SchoolSaturday, as: 'schoolCalendarSaturdays' }],
+      include: [{ model: db.SchoolSaturday, as: "schoolCalendarSaturdays" }],
     });
 
     if (!calendar) {
       return res.status(404).json({ error: "Calendário não encontrado." });
     }
 
-    if (calendar.schoolCalendarSaturdays && calendar.schoolCalendarSaturdays.length > 0) {
-      await calendar.removeSchoolCalendarSaturdays(calendar.schoolCalendarSaturdays);
+    if (
+      calendar.schoolCalendarSaturdays &&
+      calendar.schoolCalendarSaturdays.length > 0
+    ) {
+      await calendar.removeSchoolCalendarSaturdays(
+        calendar.schoolCalendarSaturdays
+      );
     }
 
     await calendar.destroy();
-    return res.status(200).json({ message: "Calendário excluído com sucesso." });
+    return res
+      .status(200)
+      .json({ message: "Calendário excluído com sucesso." });
   } catch (error) {
-    console.error("Erro ao excluir calendário:", error);
     return res.status(500).json({ error: "Erro ao excluir calendário." });
   }
 };

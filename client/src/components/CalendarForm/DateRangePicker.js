@@ -8,8 +8,19 @@ import { useTheme } from "@mui/material/styles";
 
 const DateRangePicker = ({ calendarData, handleInputChange }) => {
   const theme = useTheme();
-  // Define a data atual como o limite mínimo
+
   const today = new Date();
+  const todayLocalMidnight = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  );
+
+  const createLocalDate = (dateString) => {
+    if (!dateString) return null;
+    const dateObject = new Date(`${dateString}T00:00:00`);
+    return dateObject;
+  };
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
@@ -24,16 +35,18 @@ const DateRangePicker = ({ calendarData, handleInputChange }) => {
       >
         <DatePicker
           label="Data de Início"
-          value={
-            calendarData.startDate ? new Date(calendarData.startDate) : null
-          }
-          onChange={(newValue) =>
-            handleInputChange(
-              "startDate",
-              newValue ? newValue.toISOString().split("T")[0] : ""
-            )
-          }
-          minDate={today} // Impede a seleção de datas anteriores à atual
+          value={createLocalDate(calendarData.startDate)}
+          onChange={(newValue) => {
+            let formattedDate = "";
+            if (newValue) {
+              const year = newValue.getFullYear();
+              const month = String(newValue.getMonth() + 1).padStart(2, "0");
+              const day = String(newValue.getDate()).padStart(2, "0");
+              formattedDate = `${year}-${month}-${day}`;
+            }
+            handleInputChange("startDate", formattedDate);
+          }}
+          minDate={todayLocalMidnight}
           slotProps={{
             textField: {
               id: "startDate-input",
@@ -75,13 +88,17 @@ const DateRangePicker = ({ calendarData, handleInputChange }) => {
 
         <DatePicker
           label="Data de Fim"
-          value={calendarData.endDate ? new Date(calendarData.endDate) : null}
-          onChange={(newValue) =>
-            handleInputChange(
-              "endDate",
-              newValue ? newValue.toISOString().split("T")[0] : ""
-            )
-          }
+          value={createLocalDate(calendarData.endDate)}
+          onChange={(newValue) => {
+            let formattedDate = "";
+            if (newValue) {
+              const year = newValue.getFullYear();
+              const month = String(newValue.getMonth() + 1).padStart(2, "0");
+              const day = String(newValue.getDate()).padStart(2, "0");
+              formattedDate = `${year}-${month}-${day}`;
+            }
+            handleInputChange("endDate", formattedDate);
+          }}
           slotProps={{
             textField: {
               id: "endDate-input",

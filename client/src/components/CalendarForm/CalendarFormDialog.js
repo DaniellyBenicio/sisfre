@@ -22,7 +22,6 @@ import DateRangePicker from "./DateRangePicker";
 
 const INSTITUTIONAL_COLOR = "#307c34";
 
-// Definindo o StyledButton com estilos responsivos
 const StyledButton = styled(Button)(() => ({
   borderRadius: "8px",
   padding: "8px 28px",
@@ -49,26 +48,30 @@ let calendarTypes = ["CONVENCIONAL", "REGULAR", "PÓS-GREVE", "OUTRO"];
 const formatDateForInput = (date) => {
   if (!date) return "";
   try {
+    let d;
     if (typeof date === "string") {
       const parts = date.split("/");
       if (parts.length === 3) {
-        const parsedDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-        if (!isNaN(parsedDate.getTime())) {
-          return parsedDate.toISOString().split("T")[0];
-        }
+        d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T00:00:00`); 
+      } else {
+
+        d = new Date(`${date}T00:00:00`);
       }
-      const parsedDate = new Date(date);
-      if (!isNaN(parsedDate.getTime())) {
-        return parsedDate.toISOString().split("T")[0];
-      }
-      return "";
+    } else if (date instanceof Date) {
+      d = date; 
+    } else {
+      return ""; 
     }
-    if (date instanceof Date && !isNaN(date.getTime())) {
-      return date.toISOString().split("T")[0];
+
+    if (!isNaN(d.getTime())) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
     }
     return "";
   } catch (error) {
-    console.error("Erro ao formatar data:", error);
+    console.error("Erro ao formatar data para input:", error);
     return "";
   }
 };
@@ -101,15 +104,18 @@ const CalendarFormDialog = ({
     (calendarData.type !== "OUTRO" ||
       (calendarData.type === "OUTRO" && customType));
 
-  const hasChanges = isEditMode && initialCalendarData && (
-    calendarData.type !== initialCalendarData.type ||
-    calendarData.year !== initialCalendarData.year ||
-    calendarData.period !== initialCalendarData.period ||
-    calendarData.startDate !== initialCalendarData.startDate ||
-    calendarData.endDate !== initialCalendarData.endDate ||
-    (calendarData.type === "OUTRO" ? customType : calendarData.type) !==
-    (initialCalendarData.type === "OUTRO" ? initialCalendarData.customType : initialCalendarData.type)
-  );
+  const hasChanges =
+    isEditMode &&
+    initialCalendarData &&
+    (calendarData.type !== initialCalendarData.type ||
+      calendarData.year !== initialCalendarData.year ||
+      calendarData.period !== initialCalendarData.period ||
+      calendarData.startDate !== initialCalendarData.startDate ||
+      calendarData.endDate !== initialCalendarData.endDate ||
+      (calendarData.type === "OUTRO" ? customType : calendarData.type) !==
+        (initialCalendarData.type === "OUTRO"
+          ? initialCalendarData.customType
+          : initialCalendarData.type));
 
   useEffect(() => {
     if (open) {
@@ -144,7 +150,7 @@ const CalendarFormDialog = ({
           startDate: formatDateForInput(calendarToEdit.startDate),
           endDate: formatDateForInput(calendarToEdit.endDate),
         });
-        setInitialCalendarData(calendarDataToSet); // Save initial state
+        setInitialCalendarData(calendarDataToSet); 
         setCustomType(typeToSet === "OUTRO" ? calendarToEdit.type : "");
         setError(null);
       } else {
@@ -587,17 +593,21 @@ const CalendarFormDialog = ({
               <StyledButton
                 type="submit"
                 variant="contained"
-                disabled={isEditMode ? !isFormFilled || !hasChanges : !isFormFilled}
+                disabled={
+                  isEditMode ? !isFormFilled || !hasChanges : !isFormFilled
+                }
                 sx={{
-                  backgroundColor:
-                    isEditMode ? !isFormFilled || !hasChanges : !isFormFilled
-                      ? "#E0E0E0"
-                      : INSTITUTIONAL_COLOR,
+                  backgroundColor: isEditMode
+                    ? !isFormFilled || !hasChanges
+                    : !isFormFilled
+                    ? "#E0E0E0"
+                    : INSTITUTIONAL_COLOR,
                   "&:hover": {
-                    backgroundColor:
-                      isEditMode ? !isFormFilled || !hasChanges : !isFormFilled
-                        ? "#E0E0E0"
-                        : "#26692b",
+                    backgroundColor: isEditMode
+                      ? !isFormFilled || !hasChanges
+                      : !isFormFilled
+                      ? "#E0E0E0"
+                      : "#26692b",
                   },
                 }}
               >

@@ -6,7 +6,7 @@
      const CalendarUpdatePopup = ({ open, onClose, calendar, onUpdate }) => {
        const [alert, setAlert] = useState(null);
 
-       console.log('CalendarUpdatePopup - onUpdate:', typeof onUpdate); // Debug
+       console.log('CalendarUpdatePopup - onUpdate:', typeof onUpdate); 
 
        const normalizedCalendar = useMemo(() => {
          const calendarData = {

@@ -255,7 +255,7 @@ const HolidayFormDialog = ({
 
               <TextField
                 margin="normal"
-                label="Nome *"
+                label="Nome"
                 type="text"
                 fullWidth
                 value={holiday.name}
@@ -268,7 +268,7 @@ const HolidayFormDialog = ({
               />
 
               <DatePicker
-                label="Data *"
+                label="Data"
                 value={holiday.date}
                 onChange={(newValue) => handleInputChange("date", newValue)}
                 format="yyyy-MM-dd"

@@ -20,7 +20,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { ptBR } from "date-fns/locale";
-import { parse, format } from "date-fns";
+import { parse, format, isValid } from "date-fns";
 import api from "../../service/api";
 import CustomAlert from '../alert/CustomAlert';
 
@@ -68,11 +68,19 @@ const HolidayFormDialog = ({
 
   const hasFormChanged = () => {
     if (!isEditMode || !initialHoliday) return true;
-    return (
-      holiday.name !== initialHoliday.name ||
-      format(new Date(holiday.date), "yyyy-MM-dd") !== initialHoliday.date ||
-      holiday.type !== initialHoliday.type
-    );
+    
+    // Comparação segura para o campo 'name'
+    const nameChanged = holiday.name !== (initialHoliday.name || "");
+    
+    // Comparação segura para o campo 'date'
+    const holidayDate = holiday.date && isValid(holiday.date) ? format(new Date(holiday.date), "yyyy-MM-dd") : null;
+    const initialDate = initialHoliday.date && isValid(initialHoliday.date) ? format(new Date(initialHoliday.date), "yyyy-MM-dd") : null;
+    const dateChanged = holidayDate !== initialDate;
+    
+    // Comparação segura para o campo 'type'
+    const typeChanged = holiday.type !== (initialHoliday.type || "");
+
+    return nameChanged || dateChanged || typeChanged;
   };
 
   const handleAlertClose = () => {
@@ -247,7 +255,7 @@ const HolidayFormDialog = ({
 
               <TextField
                 margin="normal"
-                label="Nome"
+                label="Nome *"
                 type="text"
                 fullWidth
                 value={holiday.name}
@@ -260,7 +268,7 @@ const HolidayFormDialog = ({
               />
 
               <DatePicker
-                label="Data"
+                label="Data *"
                 value={holiday.date}
                 onChange={(newValue) => handleInputChange("date", newValue)}
                 format="yyyy-MM-dd"
@@ -367,7 +375,7 @@ const HolidayFormDialog = ({
                     "&:hover": { backgroundColor: "#D4000F" },
                   }}
                 >
-                  <Close sx={{ fontSize: { xs: 20, sm: "24" } }} />
+                  <Close sx={{ fontSize: { xs: 20, sm: 24 } }} />
                   Cancelar
                 </StyledButton>
                 <StyledButton

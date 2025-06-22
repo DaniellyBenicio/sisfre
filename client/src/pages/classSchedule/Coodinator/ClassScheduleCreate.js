@@ -12,7 +12,7 @@ import {
   CssBaseline,
   IconButton,
   CircularProgress,
-  TextField, 
+  TextField,
   Alert,
 } from "@mui/material";
 import {
@@ -88,13 +88,13 @@ const CustomSelect = ({ label, name, value, onChange, children, ...props }) => {
 const ClassScheduleCreate = ({ setAuthenticated }) => {
   const [formData, setFormData] = useState({
     classId: "",
-    turn: "", 
+    turn: "",
     calendarId: "",
     disciplineId: "",
     professorId: "",
     dayOfWeek: "",
-    startTime: "", 
-    endTime: "", 
+    startTime: "",
+    endTime: "",
   });
   const [classes, setClasses] = useState([]);
   const [disciplines, setDisciplines] = useState([]);
@@ -112,7 +112,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
       try {
         const [classesRes, disciplinesRes, usersRes, calendarsRes] =
           await Promise.all([
-            api.get("/classes").catch((err) => {
+            api.get("/classes-coordinator").catch((err) => {
               return { data: [] };
             }),
             api.get("/course/discipline").catch((err) => {
@@ -126,7 +126,10 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
             }),
           ]);
 
-        setClasses(Array.isArray(classesRes.data) ? classesRes.data : []);
+        setClasses(
+          Array.isArray(classesRes.data.classes) ? classesRes.data.classes : []
+        );
+
         setDisciplines(
           Array.isArray(disciplinesRes.data) ? disciplinesRes.data : []
         );
@@ -207,6 +210,11 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               backendTurn = "";
           }
 
+          const dataToSend = {
+            ...formData,
+            turn: backendTurn,
+          };
+
           if (backendTurn) {
             const response = await api.get(`/hours?turn=${backendTurn}`);
             setAvailableHours(response.data);
@@ -227,7 +235,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               }
             }
           } else {
-            setAvailableHours([]); 
+            setAvailableHours([]);
             setFormData((prev) => ({ ...prev, startTime: "", endTime: "" }));
           }
         } catch (error) {
@@ -244,7 +252,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           setLoading(false);
         }
       } else {
-        setAvailableHours([]); 
+        setAvailableHours([]);
         setFormData((prev) => ({ ...prev, startTime: "", endTime: "" }));
       }
     };
@@ -262,14 +270,14 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
         newData.endTime = "";
       }
 
-        if (name === "startTime") {
+      if (name === "startTime") {
         const selectedHour = availableHours.find(
           (hour) => hour.hourStart === value
         );
         if (selectedHour) {
           newData.endTime = selectedHour.hourEnd;
         } else {
-          newData.endTime = ""; 
+          newData.endTime = "";
         }
       }
       return newData;
@@ -364,7 +372,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
             {errors.calendars}
           </Alert>
         )}
-        {errors.hours && ( 
+        {errors.hours && (
           <Alert severity="warning" sx={{ mb: 2 }}>
             {errors.hours}
           </Alert>
@@ -399,7 +407,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               >
                 {classes.map((item) => (
                   <MenuItem key={item.id} value={item.id}>
-                    {item.name}
+                    {item.semester}
                   </MenuItem>
                 ))}
               </CustomSelect>
@@ -502,7 +510,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                 name="startTime"
                 value={formData.startTime}
                 onChange={handleChange}
-                disabled={!formData.turn || availableHours.length === 0} 
+                disabled={!formData.turn || availableHours.length === 0}
               >
                 {availableHours.map((hour) => (
                   <MenuItem key={hour.id} value={hour.hourStart}>
@@ -518,11 +526,11 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                 type="time"
                 name="endTime"
                 value={formData.endTime}
-                onChange={handleChange} 
+                onChange={handleChange}
                 sx={{ minWidth: 200, maxWidth: 400 }}
                 InputLabelProps={{ shrink: true }}
                 required
-                disabled 
+                disabled
               />
             </Grid>
           </Grid>

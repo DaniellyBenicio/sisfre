@@ -58,8 +58,8 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
           coursesArray = [response.data];
         }
 
-        coursesArray = coursesArray.filter(course =>
-          course && typeof course === 'object' && course.id && course.name
+        coursesArray = coursesArray.filter(
+          (course) => course && typeof course === 'object' && course.id && course.name
         );
 
         setCourses(coursesArray);
@@ -124,7 +124,10 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
 
       console.log('ClassFormDialog - Resposta da API:', response.data);
 
-      const course = courses.find(c => c.id === parseInt(classData.courseId)) || { id: classData.courseId, name: 'Desconhecido' };
+      const course = courses.find((c) => c.id === parseInt(classData.courseId)) || {
+        id: classData.courseId,
+        name: 'Desconhecido',
+      };
       const updatedClass = {
         ...response.data.class,
         course: { id: course.id, name: course.name },
@@ -133,8 +136,10 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
       onSubmitSuccess(updatedClass, isEditMode);
       onClose();
     } catch (err) {
-      const errorMessage = err.response?.data?.error || `Erro ao ${isEditMode ? 'atualizar' : 'cadastrar'} turma: ${err.message}`;
-      if (setAlert) setAlert({ type: "error", message: errorMessage });
+      const errorMessage =
+        err.response?.data?.error ||
+        `Erro ao ${isEditMode ? 'atualizar' : 'cadastrar'} turma: ${err.message}`;
+      if (setAlert) setAlert({ type: 'error', message: errorMessage });
       else setErrorMessage(errorMessage); // fallback local
     }
   };
@@ -155,15 +160,12 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
       >
         <DialogTitle sx={{ textAlign: 'center', marginTop: '27px', color: '#087619', fontWeight: 'bold' }}>
           {isEditMode ? 'Editar Turma' : 'Cadastrar Turma'}
-          <IconButton
-            onClick={onClose}
-            sx={{ position: 'absolute', right: 8, top: 8 }}
-          >
+          <IconButton onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
             <Close />
           </IconButton>
         </DialogTitle>
 
-        <DialogContent sx={{ px: 5, py: 0 }}>
+        <DialogContent sx={{ px: 5, py: 2 }}> {/* Reduzido py de 0 para 2 */}
           <Box component="form" onSubmit={handleSubmit}>
             <FormControl
               fullWidth
@@ -322,7 +324,7 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
                 justifyContent: 'center',
                 gap: 2,
                 padding: '10px 24px',
-                marginTop: '35px',
+                marginTop: '15px', // Reduzido de 35px para 15px
               }}
             >
               <StyledButton

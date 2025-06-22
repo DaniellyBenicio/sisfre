@@ -73,28 +73,32 @@ const HolidaysList = () => {
     setOpenFormDialog(true);
   };
 
-  const handleDeleteClick = (holidayItem) => {
-    setHolidayToDelete(holidayItem);
+  // Função atualizada para aceitar o ID do feriado, semelhante ao SaturdaySchoolList
+  const handleDeleteClick = (holidayId) => {
+    const holiday = holidays.find((h) => h.id === holidayId);
+    console.log("Feriado recebido para exclusão:", holiday);
+    console.log("ID do feriado a ser excluído:", holidayId);
+    setHolidayToDelete(holiday);
     setOpenDeleteDialog(true);
   };
 
+  // Função atualizada para manter consistência com SaturdaySchoolList
   const handleConfirmDelete = async () => {
-    if (!holidayToDelete) return;
     try {
       await api.delete(`/holidays/${holidayToDelete.id}`);
-      setHolidays(holidays.filter((h) => h.id !== holidayToDelete.id));
+      setHolidays((prev) => prev.filter((h) => h.id !== holidayToDelete.id));
       setAlert({
         message: `Feriado "${holidayToDelete.name}" excluído com sucesso!`,
         type: 'success',
       });
     } catch (error) {
-      console.error('Erro ao excluir feriado:', error);
+      console.error("Erro ao excluir feriado:", error.message, error.response?.data);
       const errorMessage =
         error.response?.status === 401
-          ? 'Você não está autorizado a excluir feriados.'
+          ? "Você não está autorizado a excluir feriados."
           : error.response?.status === 403
-          ? 'Apenas administradores podem excluir feriados.'
-          : error.response?.data?.error || 'Erro ao excluir feriado.';
+          ? "Apenas administradores podem excluir feriados."
+          : error.response?.data?.error || "Erro ao excluir feriado.";
       setAlert({
         message: errorMessage,
         type: 'error',
@@ -266,8 +270,7 @@ const HolidaysList = () => {
           setHolidayToDelete(null);
         }}
         onConfirm={handleConfirmDelete}
-        message="Deseja realmente excluir o feriado"
-        userName={holidayToDelete?.name}
+        message={`Deseja realmente excluir o feriado "${holidayToDelete?.name || "Desconhecido"}"?`}
       />
 
       {alert && (

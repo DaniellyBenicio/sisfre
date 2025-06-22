@@ -1,18 +1,13 @@
-
 import React from "react";
-import { Stack, Typography, IconButton } from "@mui/material";
+import { Stack, Typography, Box, CircularProgress } from "@mui/material";
 import DataTable from "../../../components/homeScreen/DataTable";
-import { Edit, Delete } from "@mui/icons-material";
 import PropTypes from "prop-types";
 
-const SaturdaySchoolTable = ({ saturdaySchools, search, onUpdate, onDelete, setAlert }) => {
-  const normalizeString = (str) => {
-    if (!str) return "N/A";
-    return str;
-  };
+const SaturdaySchoolTable = ({ saturdaySchools, search, onUpdate, onDelete, setAlert, loading }) => {
+  const normalizeString = (str) => str || "N/A";
 
   const formattedSaturdaySchools = saturdaySchools.map((saturdaySchool) => ({
-    ...saturdaySchool,
+    id: saturdaySchool.id,
     date: normalizeString(saturdaySchool.date),
     dayOfWeek: normalizeString(saturdaySchool.dayOfWeek),
     calendar: normalizeString(saturdaySchool.calendar?.name),
@@ -22,30 +17,6 @@ const SaturdaySchoolTable = ({ saturdaySchools, search, onUpdate, onDelete, setA
     { key: "date", label: "Data" },
     { key: "dayOfWeek", label: "Dia da Semana" },
     { key: "calendar", label: "Calendário" },
-    {
-      key: "actions",
-      label: "Ações",
-      render: (row) => (
-        <Stack direction="row" spacing={1}>
-          {onUpdate && (
-            <IconButton
-              onClick={() => onUpdate(row)}
-              sx={{ color: "#087619", "&:hover": { color: "#065412" } }}
-            >
-              <Edit />
-            </IconButton>
-          )}
-          {onDelete && (
-            <IconButton
-              onClick={() => onDelete(row.id)}
-              sx={{ color: "#F01424", "&:hover": { color: "#D4000F" } }}
-            >
-              <Delete />
-            </IconButton>
-          )}
-        </Stack>
-      ),
-    },
   ];
 
   const renderMobileRow = (saturdaySchool) => (
@@ -59,36 +30,26 @@ const SaturdaySchoolTable = ({ saturdaySchools, search, onUpdate, onDelete, setA
       <Typography>
         <strong>Calendário:</strong> {normalizeString(saturdaySchool.calendar)}
       </Typography>
-      <Stack direction="row" spacing={1}>
-        {onUpdate && (
-          <IconButton
-            onClick={() => onUpdate(saturdaySchool)}
-            sx={{ color: "#087619", "&:hover": { color: "#065412" } }}
-          >
-            <Edit />
-          </IconButton>
-        )}
-        {onDelete && (
-          <IconButton
-            onClick={() => onDelete(saturdaySchool.id)}
-            sx={{ color: "#F01424", "&:hover": { color: "#D4000F" } }}
-          >
-            <Delete />
-          </IconButton>
-        )}
-      </Stack>
     </Stack>
   );
+
+  if (loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", my: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <DataTable
       data={formattedSaturdaySchools}
       headers={headers}
       search={search}
-      renderMobileRow={renderMobileRow}
       onUpdate={onUpdate}
       onDelete={onDelete}
       setAlert={setAlert}
+      renderMobileRow={renderMobileRow}
     />
   );
 };
@@ -109,6 +70,7 @@ SaturdaySchoolTable.propTypes = {
   onUpdate: PropTypes.func,
   onDelete: PropTypes.func,
   setAlert: PropTypes.func,
+  loading: PropTypes.bool.isRequired,
 };
 
 export default SaturdaySchoolTable;

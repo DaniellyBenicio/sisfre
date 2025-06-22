@@ -1,38 +1,45 @@
-import { Stack, Typography } from '@mui/material';
-import DataTable from '../../../components/homeScreen/DataTable';
+import React from 'react';
+import { Stack, Typography, Box, CircularProgress } from '@mui/material';
+import DataTable from "../../../components/homeScreen/DataTable";
 import PropTypes from 'prop-types';
 
-const HolidaysTable = ({ holidays, onDelete, onUpdate, search, setAlert }) => {
-  // Função para normalizar os dados, se necessário
-  const normalizeString = (str) => {
-    if (!str) return 'N/A';
-    return str;
-  };
+const HolidaysTable = ({ holidays, onDelete, onUpdate, search, setAlert, loading }) => {
+  const normalizeString = (str) => str || 'N/A';
 
-  // Formata os dados para exibição
   const formattedHolidays = holidays.map((holidayItem) => ({
-    ...holidayItem,
+    id: holidayItem.id,
+    name: normalizeString(holidayItem.name),
     date: normalizeString(holidayItem.date),
-    observation: normalizeString(holidayItem.observation),
+    type: normalizeString(holidayItem.type),
   }));
 
-  // Define as colunas da tabela
   const headers = [
     { key: 'date', label: 'Data' },
-    { key: 'observation', label: 'Observações' },
+    { key: 'name', label: 'Nome' },
+    { key: 'type', label: 'Tipo' },
   ];
 
-  // Renderiza a linha para visualização em dispositivos móveis
   const renderMobileRow = (holidayItem) => (
     <Stack spacing={0.5}>
       <Typography>
         <strong>Data:</strong> {normalizeString(holidayItem.date)}
       </Typography>
       <Typography>
-        <strong>Observações:</strong> {normalizeString(holidayItem.observation)}
+        <strong>Nome:</strong> {normalizeString(holidayItem.name)}
+      </Typography>
+      <Typography>
+        <strong>Tipo:</strong> {normalizeString(holidayItem.type)}
       </Typography>
     </Stack>
   );
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <DataTable
@@ -46,19 +53,20 @@ const HolidaysTable = ({ holidays, onDelete, onUpdate, search, setAlert }) => {
   );
 };
 
-// Validação de props com PropTypes
 HolidaysTable.propTypes = {
   holidays: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.number.isRequired,
+      name: PropTypes.string.isRequired,
       date: PropTypes.string.isRequired,
-      observation: PropTypes.string.isRequired,
+      type: PropTypes.string.isRequired,
     })
   ).isRequired,
-  onDelete: PropTypes.func,
-  onUpdate: PropTypes.func,
+  onDelete: PropTypes.func.isRequired,
+  onUpdate: PropTypes.func.isRequired,
   search: PropTypes.string,
-  setAlert: PropTypes.func,
+  setAlert: PropTypes.func.isRequired,
+  loading: PropTypes.bool.isRequired,
 };
 
 export default HolidaysTable;

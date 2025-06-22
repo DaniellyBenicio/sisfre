@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, FormControl, InputLabel, Select, MenuItem, Button } from '@mui/material';
 import DeleteConfirmationDialog from '../../../components/DeleteConfirmationDialog';
 import api from '../../../service/api';
-import SearchAndCreateBar from '../../../components/homeScreen/SearchAndCreateBar';
-import HolidayFormDialog from "../../../components/HolidayForm/HolidayFormDialog"; 
+import HolidayFormDialog from "../../../components/HolidayForm/HolidayFormDialog";
 import HolidaysTable from './HolidaysTable';
-import { CustomAlert } from '../../../components/alert/CustomAlert';
+import CustomAlert from "../../../components/alert/CustomAlert";
 
 const HolidaysList = () => {
   const [holidays, setHolidays] = useState([]);
-  const [search, setSearch] = useState('');
-  const [openDialog, setOpenDialog] = useState(false);
+  const [year, setYear] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  const [openFormDialog, setOpenFormDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [holidayToDelete, setHolidayToDelete] = useState(null);
   const [holidayToEdit, setHolidayToEdit] = useState(null);
@@ -21,48 +21,43 @@ const HolidaysList = () => {
     setAlert(null);
   };
 
+  const fetchHolidays = async () => {
+    try {
+      setLoading(true);
+      const queryParams = {};
+      if (year) queryParams.year = year;
+      if (typeFilter) queryParams.type = typeFilter;
+      const response = await api.get('/holidays', { params: queryParams });
+      setHolidays(response.data.holidays || []);
+    } catch (error) {
+      console.error('Erro ao buscar feriados:', error);
+      setAlert({ message: 'Erro ao buscar feriados.', type: 'error' });
+      setHolidays([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchHolidays = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get('/holidays?limit=1000'); // Ajuste a rota conforme sua API
-        console.log('Resposta da API /holidays:', response.data);
-
-        let holidaysArray = Array.isArray(response.data)
-          ? response.data
-          : response.data.holidays || response.data.data || [];
-
-        setHolidays(holidaysArray);
-      } catch (error) {
-        console.error('Erro ao buscar feriados:', error.message, error.response?.data);
-        setAlert({
-          message: 'Erro ao buscar feriados.',
-          type: 'error',
-        });
-        setHolidays([]);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchHolidays();
-  }, []);
+  }, [year, typeFilter]);
 
   const handleRegisterOrUpdate = (updatedHoliday, isEditMode) => {
     try {
       if (isEditMode) {
         setHolidays(holidays.map((h) => (h.id === updatedHoliday.id ? updatedHoliday : h)));
         setAlert({
-          message: `Feriado de ${updatedHoliday.date} atualizado com sucesso!`,
+          message: `Feriado "${updatedHoliday.name}" atualizado com sucesso!`,
           type: 'success',
         });
       } else {
         setHolidays([...holidays, updatedHoliday]);
         setAlert({
-          message: `Feriado de ${updatedHoliday.date} cadastrado com sucesso!`,
+          message: `Feriado "${updatedHoliday.name}" cadastrado com sucesso!`,
           type: 'success',
         });
       }
-      setOpenDialog(false);
+      setOpenFormDialog(false);
       setHolidayToEdit(null);
     } catch (error) {
       console.error('Erro ao atualizar lista de feriados:', error);
@@ -75,27 +70,25 @@ const HolidaysList = () => {
 
   const handleEditHoliday = (holidayItem) => {
     setHolidayToEdit(holidayItem);
-    setOpenDialog(true);
+    setOpenFormDialog(true);
   };
 
-  const handleDeleteClick = (holidayId) => {
-    const holidayItem = holidays.find((h) => h.id === holidayId);
-    console.log('Feriado recebido para exclusão:', holidayItem);
-    console.log('ID do feriado a ser excluído:', holidayId);
+  const handleDeleteClick = (holidayItem) => {
     setHolidayToDelete(holidayItem);
     setOpenDeleteDialog(true);
   };
 
   const handleConfirmDelete = async () => {
+    if (!holidayToDelete) return;
     try {
-      await api.delete(`/holidays/${holidayToDelete.id}`); // Ajuste a rota conforme sua API
+      await api.delete(`/holidays/${holidayToDelete.id}`);
       setHolidays(holidays.filter((h) => h.id !== holidayToDelete.id));
       setAlert({
-        message: `Feriado de ${holidayToDelete.date} excluído com sucesso!`,
+        message: `Feriado "${holidayToDelete.name}" excluído com sucesso!`,
         type: 'success',
       });
     } catch (error) {
-      console.error('Erro ao excluir feriado:', error.message, error.response?.data);
+      console.error('Erro ao excluir feriado:', error);
       const errorMessage =
         error.response?.status === 401
           ? 'Você não está autorizado a excluir feriados.'
@@ -112,17 +105,9 @@ const HolidaysList = () => {
     }
   };
 
-  const filteredHolidays = Array.isArray(holidays)
-    ? holidays.filter((holidayItem) => {
-        const normalizedSearch = search.trim().toLowerCase();
-        const normalizedDate = holidayItem.date?.toLowerCase() || '';
-        const normalizedObservation = holidayItem.observation?.toLowerCase() || '';
-        return (
-          normalizedDate.includes(normalizedSearch) ||
-          normalizedObservation.includes(normalizedSearch)
-        );
-      })
-    : [];
+  const filteredHolidays = holidays;
+
+  const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() + i);
 
   return (
     <Box
@@ -145,34 +130,133 @@ const HolidaysList = () => {
         Feriados
       </Typography>
 
-      <SearchAndCreateBar
-        searchValue={search}
-        onSearchChange={(e) => setSearch(e.target.value)}
-        createButtonLabel='Cadastrar Feriado'
-        onCreateClick={() => {
-          setHolidayToEdit(null);
-          setOpenDialog(true);
-        }}
-      />
+      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'space-between' }}>
+        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+          <FormControl
+            sx={{
+              minWidth: 200,
+              '& .MuiInputBase-root': {
+                height: 36,
+                display: 'flex',
+                alignItems: 'center',
+              },
+              '& .MuiInputLabel-root': {
+                transform: 'translate(14px, 7px) scale(1)',
+                '&.Mui-focused, &.MuiInputLabel-shrink': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                  color: '#000000',
+                },
+              },
+              '& .MuiSelect-select': {
+                display: 'flex',
+                alignItems: 'center',
+                height: '100% !important',
+              },
+            }}
+          >
+            <InputLabel id="year-filter-label">Ano</InputLabel>
+            <Select
+              labelId="year-filter-label"
+              value={year}
+              label="Ano"
+              onChange={(e) => setYear(e.target.value)}
+              sx={{
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(0, 0, 0, 0.23)',
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#000000',
+                },
+              }}
+            >
+              <MenuItem value="">Todos</MenuItem>
+              {years.map((y) => (
+                <MenuItem key={y} value={y}>{y}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl
+            sx={{
+              minWidth: 200,
+              '& .MuiInputBase-root': {
+                height: 36,
+                display: 'flex',
+                alignItems: 'center',
+              },
+              '& .MuiInputLabel-root': {
+                transform: 'translate(14px, 7px) scale(1)',
+                '&.Mui-focused, &.MuiInputLabel-shrink': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                  color: '#000000',
+                },
+              },
+              '& .MuiSelect-select': {
+                display: 'flex',
+                alignItems: 'center',
+                height: '100% !important',
+              },
+            }}
+          >
+            <InputLabel id="type-filter-label">Tipo</InputLabel>
+            <Select
+              labelId="type-filter-label"
+              value={typeFilter}
+              label="Tipo"
+              onChange={(e) => setTypeFilter(e.target.value)}
+              sx={{
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(0, 0, 0, 0.23)',
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#000000',
+                },
+              }}
+            >
+              <MenuItem value="">Todos</MenuItem>
+              <MenuItem value="NACIONAL">Nacional</MenuItem>
+              <MenuItem value="ESTADUAL">Estadual</MenuItem>
+              <MenuItem value="MUNICIPAL">Municipal</MenuItem>
+              <MenuItem value="INSTITUCIONAL">Institucional</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+        <Button
+          variant="contained"
+          onClick={() => {
+            setHolidayToEdit(null);
+            setOpenFormDialog(true);
+          }}
+          sx={{
+            backgroundColor: '#087619',
+            '&:hover': { backgroundColor: '#065412' },
+            textTransform: 'none',
+            width: '200px',
+            height: '36px',
+            fontWeight: 'bold',
+          }}
+        >
+          Cadastrar Feriado
+        </Button>
+      </Box>
 
       <HolidaysTable
         holidays={filteredHolidays}
         onDelete={handleDeleteClick}
         onUpdate={handleEditHoliday}
-        search={search}
+        search={null}
         setAlert={setAlert}
+        loading={loading}
       />
 
       <HolidayFormDialog
-        open={openDialog}
+        open={openFormDialog}
         onClose={() => {
-          setOpenDialog(false);
+          setOpenFormDialog(false);
           setHolidayToEdit(null);
         }}
         holidayToEdit={holidayToEdit}
         onSubmitSuccess={handleRegisterOrUpdate}
         isEditMode={!!holidayToEdit}
-        setAlert={setAlert}
       />
 
       <DeleteConfirmationDialog
@@ -182,7 +266,8 @@ const HolidaysList = () => {
           setHolidayToDelete(null);
         }}
         onConfirm={handleConfirmDelete}
-        message={`Deseja realmente excluir o feriado de "${holidayToDelete?.date}"?`}
+        message="Deseja realmente excluir o feriado"
+        userName={holidayToDelete?.name}
       />
 
       {alert && (

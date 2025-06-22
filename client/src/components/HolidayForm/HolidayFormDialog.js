@@ -9,6 +9,10 @@ import {
   TextField,
   IconButton,
   CircularProgress,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
 } from "@mui/material";
 import { Close, Save } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
@@ -16,7 +20,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { ptBR } from "date-fns/locale";
-import { parse, startOfDay } from "date-fns";
+import { parse, startOfDay, format } from "date-fns";
 import api from "../../service/api";
 import CustomAlert from '../alert/CustomAlert';
 
@@ -43,21 +47,23 @@ const HolidayFormDialog = ({
   isEditMode,
 }) => {
   const [holiday, setHoliday] = useState({
-    date: "",
-    observation: "",
+    name: "",
+    date: null,
+    type: "NACIONAL",
   });
   const [initialHoliday, setInitialHoliday] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [alert, setAlert] = useState(null);
 
-  const isFormFilled = holiday.date && holiday.observation && holiday.observation.trim() !== '';
+  const isFormFilled = holiday.name && holiday.date && holiday.type;
 
   const hasFormChanged = () => {
-    if (!isEditMode || !initialHoliday) return false;
+    if (!isEditMode || !initialHoliday) return true;
     return (
-      holiday.date !== initialHoliday.date ||
-      holiday.observation !== initialHoliday.observation
+      holiday.name !== initialHoliday.name ||
+      format(new Date(holiday.date), "yyyy-MM-dd") !== initialHoliday.date ||
+      holiday.type !== initialHoliday.type
     );
   };
 
@@ -69,14 +75,15 @@ const HolidayFormDialog = ({
     if (open) {
       if (holidayToEdit && isEditMode) {
         const initialData = {
-          date: holidayToEdit.date || "",
-          observation: holidayToEdit.observation || "",
+          name: holidayToEdit.name || "",
+          date: holidayToEdit.date ? parse(holidayToEdit.date, "yyyy-MM-dd", new Date()) : null,
+          type: holidayToEdit.type || "NACIONAL",
         };
         setHoliday(initialData);
         setInitialHoliday(initialData);
         setError(null);
       } else {
-        setHoliday({ date: "", observation: "" });
+        setHoliday({ name: "", date: null, type: "NACIONAL" });
         setInitialHoliday(null);
         setError(null);
       }
@@ -92,21 +99,14 @@ const HolidayFormDialog = ({
     setError(null);
     setLoading(true);
 
-    if (!holiday.date || !holiday.observation) {
-      setError("Os campos data e observações são obrigatórios.");
+    if (!holiday.name || !holiday.date || !holiday.type) {
+      setError("Os campos nome, data e tipo são obrigatórios.");
       setLoading(false);
       return;
     }
 
-    const dateParts = holiday.date.split("-");
-    if (dateParts.length !== 3 || dateParts.some((part) => isNaN(Number(part)))) {
-      setError("Formato de data inválido. Use AAAA-MM-DD.");
-      setLoading(false);
-      return;
-    }
-
-    const inputDate = startOfDay(parse(holiday.date, "yyyy-MM-dd", new Date()));
-    if (isNaN(inputDate.getTime())) {
+    const formattedDate = holiday.date ? format(holiday.date, "yyyy-MM-dd") : null;
+    if (!formattedDate || isNaN(new Date(formattedDate).getTime())) {
       setError("A data fornecida é inválida.");
       setLoading(false);
       return;
@@ -114,8 +114,9 @@ const HolidayFormDialog = ({
 
     try {
       const payload = {
-        date: holiday.date,
-        observation: holiday.observation,
+        name: holiday.name,
+        date: formattedDate,
+        type: holiday.type,
       };
 
       let response;
@@ -127,7 +128,7 @@ const HolidayFormDialog = ({
 
       const updatedHoliday = {
         ...response.data.holiday,
-        id: response.data.holiday.id || holidayToEdit?.id || Date.now(),
+        id: response.data.holiday.id || holidayToEdit?.id,
       };
 
       onSubmitSuccess(updatedHoliday, isEditMode);
@@ -140,12 +141,7 @@ const HolidayFormDialog = ({
       console.error('Erro completo:', err);
       console.error('Resposta do erro:', err.response?.data);
 
-      let errorMessage = err.response?.data?.message ||
-                        err.response?.data?.error ||
-                        err.response?.data?.errors?.[0] ||
-                        err.message ||
-                        `Erro ao ${isEditMode ? 'atualizar' : 'cadastrar'} feriado.`;
-
+      let errorMessage = err.response?.data?.error || `Erro ao ${isEditMode ? 'atualizar' : 'cadastrar'} feriado.`;
       if (Array.isArray(err.response?.data?.errors)) {
         errorMessage = err.response.data.errors.join(', ');
       }
@@ -203,15 +199,41 @@ const HolidayFormDialog = ({
                 </Box>
               )}
 
+              <TextField
+                margin="normal"
+                label="Nome"
+                type="text"
+                fullWidth
+                value={holiday.name}
+                onChange={(e) => handleInputChange("name", e.target.value)}
+                required
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    height: "56px",
+                    "& fieldset": { borderColor: "#000000" },
+                    "&:hover fieldset": { borderColor: "#000000" },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#000000",
+                      borderWidth: "2px",
+                    },
+                  },
+                  my: 1.5,
+                  "& .MuiInputLabel-root": {
+                    top: "50%",
+                    transform: "translate(14px, -50%)",
+                    fontSize: "1rem",
+                  },
+                  "& .MuiInputLabel-shrink": {
+                    top: 0,
+                    transform: "translate(14px, -9px) scale(0.75)",
+                  },
+                }}
+              />
+
               <DatePicker
                 label="Data"
-                value={holiday.date ? parse(holiday.date, "yyyy-MM-dd", new Date()) : null}
-                onChange={(newValue) =>
-                  handleInputChange(
-                    "date",
-                    newValue ? newValue.toISOString().split("T")[0] : ""
-                  )
-                }
+                value={holiday.date}
+                onChange={(newValue) => handleInputChange("date", newValue)}
                 format="yyyy-MM-dd"
                 minDate={new Date("2025-01-01")}
                 slotProps={{
@@ -245,36 +267,31 @@ const HolidayFormDialog = ({
                 }}
               />
 
-              <TextField
-                margin="normal"
-                label="Observações"
-                type="text"
-                fullWidth
-                value={holiday.observation}
-                onChange={(e) => handleInputChange("observation", e.target.value)}
-                required
-                sx={{
-                  "& .MuiOutlinedInput-root": {
+              <FormControl fullWidth sx={{ my: 1.5 }}>
+                <InputLabel id="type-label">Tipo</InputLabel>
+                <Select
+                  labelId="type-label"
+                  id="type-select"
+                  value={holiday.type}
+                  label="Tipo"
+                  onChange={(e) => handleInputChange("type", e.target.value)}
+                  required
+                  sx={{
                     height: "56px",
-                    "& fieldset": { borderColor: "#000000" },
-                    "&:hover fieldset": { borderColor: "#000000" },
-                    "&.Mui-focused fieldset": {
+                    "& .MuiOutlinedInput-notchedOutline": { borderColor: "#000000" },
+                    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#000000" },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                       borderColor: "#000000",
                       borderWidth: "2px",
                     },
-                  },
-                  my: 1.5,
-                  "& .MuiInputLabel-root": {
-                    top: "50%",
-                    transform: "translate(14px, -50%)",
-                    fontSize: "1rem",
-                  },
-                  "& .MuiInputLabel-shrink": {
-                    top: 0,
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                }}
-              />
+                  }}
+                >
+                  <MenuItem value="NACIONAL">Nacional</MenuItem>
+                  <MenuItem value="ESTADUAL">Estadual</MenuItem>
+                  <MenuItem value="MUNICIPAL">Municipal</MenuItem>
+                  <MenuItem value="INSTITUCIONAL">Institucional</MenuItem>
+                </Select>
+              </FormControl>
 
               <DialogActions
                 sx={{

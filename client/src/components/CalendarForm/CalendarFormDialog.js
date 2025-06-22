@@ -571,50 +571,42 @@ const CalendarFormDialog = ({
               handleInputChange={handleInputChange}
             />
 
-            <DialogActions
-              sx={{
-                justifyContent: "center",
-                gap: 2,
-                padding: "10px 24px",
-                marginTop: "10px",
-              }}
-            >
-              <StyledButton
-                onClick={onClose}
-                variant="contained"
-                sx={{
-                  backgroundColor: "#F01424",
-                  "&:hover": { backgroundColor: "#D4000F" },
-                }}
-              >
-                <Close sx={{ fontSize: 24 }} />
-                Cancelar
-              </StyledButton>
-              <StyledButton
-                type="submit"
-                variant="contained"
-                disabled={
-                  isEditMode ? !isFormFilled || !hasChanges : !isFormFilled
-                }
-                sx={{
-                  backgroundColor: isEditMode
-                    ? !isFormFilled || !hasChanges
-                    : !isFormFilled
-                    ? "#E0E0E0"
-                    : INSTITUTIONAL_COLOR,
-                  "&:hover": {
-                    backgroundColor: isEditMode
-                      ? !isFormFilled || !hasChanges
-                      : !isFormFilled
-                      ? "#E0E0E0"
-                      : "#26692b",
-                  },
-                }}
-              >
-                <Save sx={{ fontSize: 24 }} />
-                {isEditMode ? "Atualizar" : "Cadastrar"}
-              </StyledButton>
-            </DialogActions>
+<DialogActions
+  sx={{
+    justifyContent: "center",
+    gap: 2,
+    padding: "10px 24px",
+    marginTop: "10px",
+  }}
+>
+  <StyledButton
+    onClick={onClose}
+    variant="contained"
+    sx={{
+      backgroundColor: "#F01424",
+      "&:hover": { backgroundColor: "#D4000F" },
+    }}
+  >
+    <Close sx={{ fontSize: 24 }} />
+    Cancelar
+  </StyledButton>
+  <StyledButton
+    type="submit"
+    variant="contained"
+    disabled={
+      isEditMode ? !isFormFilled || !hasChanges : !isFormFilled
+    }
+    sx={{
+      backgroundColor: !isFormFilled ? "#E0E0E0" : INSTITUTIONAL_COLOR,
+      "&:hover": {
+        backgroundColor: !isFormFilled ? "#E0E0E0" : "#26692b",
+      },
+    }}
+  >
+    <Save sx={{ fontSize: 24 }} />
+    {isEditMode ? "Atualizar" : "Cadastrar"}
+  </StyledButton>
+</DialogActions>
           </Box>
         </DialogContent>
       </Dialog>

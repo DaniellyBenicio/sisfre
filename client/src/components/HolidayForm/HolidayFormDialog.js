@@ -164,8 +164,8 @@ const HolidayFormDialog = ({
   const grayBorderFieldStyles = {
     "& .MuiOutlinedInput-root": {
       minHeight: { xs: "40px", sm: "56px" },
-      "& fieldset": { borderColor: "#c7c7c7" },
-      "&:hover fieldset": { borderColor: "#c7c7c7" },
+      "& fieldset": { borderColor: "#9b9b9b" },
+      "&:hover fieldset": { borderColor: "#9b9b9b" },
       "&.Mui-focused fieldset": {
         borderColor: "#000000 !important",
         borderWidth: "2px",
@@ -178,7 +178,7 @@ const HolidayFormDialog = ({
   };
 
   const inputLabelStyles = {
-    color: "#c7c7c7",
+    color: "#9b9b9b",
     top: "50%",
     transform: "translate(14px, -50%)",
     fontSize: "1rem",
@@ -303,10 +303,10 @@ const HolidayFormDialog = ({
                     borderWidth: "2px",
                   },
                   "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#c7c7c7",
+                    borderColor: "#9b9b9b",
                   },
                   "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#c7c7c7",
+                    borderColor: "#9b9b9b",
                   },
                 }}
               >

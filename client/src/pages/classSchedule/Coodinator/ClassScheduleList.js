@@ -6,99 +6,109 @@ import {
   Button,
   FormControl,
   InputLabel,
-  MenuItem
+  MenuItem,
 } from "@mui/material";
 import { Edit, FilterListAlt, Visibility } from "@mui/icons-material";
 import { CustomAlert } from "../../../components/alert/CustomAlert";
 import ClassScheduleTable from "./ClassScheduleTable";
 import { StyledSelect } from "../../../components/inputs/Input";
 import { useNavigate } from "react-router-dom";
+import api from "../../../service/api";
 
 const ClassScheduleList = () => {
   const [disciplines, setDisciplines] = useState([]);
   const [search, setSearch] = useState("");
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(false);
-  const accessType = localStorage.getItem("accessType") || "Admin";
-  const [classScheduleToEdit, setClassScheduleToEdit] = useState(null);
   const [selectedCalendar, setSelectedCalendar] = useState("");
   const [selectedClass, setSelectedClass] = useState("");
   const [calendars, setCalendars] = useState([]);
   const [classes, setClasses] = useState([]);
-  const [openCreateModal, setOpenCreateModal] = useState(false);
   const navigate = useNavigate();
 
-  // Simulação
-  const mockClassesSchedule = [
-    {
-      disciplineId: 1,
-      calendar: "2025/1",
-      teacher: "João Silva",
-      class: "Turma A",
-      discipline: "Matemática",
-      turn: "Manhã",
-    },
-    {
-      disciplineId: 2,
-      calendar: "2025/1",
-      teacher: "Maria Oliveira",
-      class: "Turma B",
-      discipline: "Física",
-      turn: "Tarde",
-    },
-    {
-      disciplineId: 3,
-      calendar: "2025/2",
-      teacher: "Carlos Souza",
-      class: "Turma C",
-      discipline: "Química",
-      turn: "Noite",
-    },
-    {
-      disciplineId: 4,
-      calendar: "2025/2",
-      teacher: "Ana Pereira",
-      class: "Turma A",
-      discipline: "Biologia",
-      turn: "Manhã",
-    },
-  ];
-
   useEffect(() => {
-    setDisciplines(mockClassesSchedule);
-    const uniqueCalendars = [...new Set(mockClassesSchedule.map((item) => item.calendar))];
-    setCalendars(uniqueCalendars);
-    const uniqueClasses = [...new Set(mockClassesSchedule.map((item) => item.class))];
-    setClasses(uniqueClasses);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const response = await api.get("/class-schedules");
+        console.log("API Response:", response.data);
+
+        const schedules = Array.isArray(response.data.schedules)
+          ? response.data.schedules.map((schedule) => ({
+              calendar: schedule.calendar,
+              teacher: schedule.professor || "Sem professor",
+              class: schedule.turma,
+              discipline: schedule.disciplina,
+              turn: schedule.turno === "MATUTINO"
+                ? "Manhã"
+                : schedule.turno === "VESPERTINO"
+                ? "Tarde"
+                : "Noite",
+            }))
+          : [];
+
+        console.log("Mapped Schedules:", schedules);
+
+        setDisciplines(schedules);
+
+        const uniqueCalendars = [
+          ...new Set(schedules.map((item) => item.calendar)),
+        ].filter((cal) => cal);
+        const uniqueClasses = [
+          ...new Set(schedules.map((item) => item.class)),
+        ].filter((cls) => cls);
+
+        setCalendars(uniqueCalendars);
+        setClasses(uniqueClasses);
+      } catch (error) {
+        console.error("API Error:", error.response || error);
+        setAlert({
+          message:
+            error.response?.data?.message || "Erro ao carregar as grades de turma.",
+          type: "error",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const onCreateClick = () => {
     navigate("/class-schedule-create");
   };
 
-  const handleViewClick = (disciplineId) => {
-    navigate(`/class-schedule-details/${disciplineId}`);
+  const handleViewClick = (item) => {
+    console.log("View Clicked Item:", item);
+    navigate("/class-schedule-details", { state: { schedule: item } });
   };
 
   const handleCustomEdit = (item) => {
-    console.log("Editar item:", item);
-    setClassScheduleToEdit(item);
-    setAlert({ message: `Editar grade de turma: ${item.discipline}`, type: "info" });
+    console.log("Edit Clicked Item:", item);
+    setAlert({
+      message: `Editar grade de turma: ${item.discipline}`,
+      type: "info",
+    });
+    navigate("/class-schedule-create", { state: { schedule: item } });
   };
 
   const handleAlertClose = () => {
-    console.log("Fechar alerta");
     setAlert(null);
   };
 
   const filteredDisciplines = disciplines.filter((item) => {
     const matchesSearch = Object.values(item).some((val) =>
-      val.toString().toLowerCase().includes(search.toLowerCase())
+      val?.toString().toLowerCase().includes(search.toLowerCase())
     );
-    const matchesCalendar = selectedCalendar ? item.calendar === selectedCalendar : true;
+    const matchesCalendar = selectedCalendar
+      ? item.calendar === selectedCalendar
+      : true;
     const matchesClass = selectedClass ? item.class === selectedClass : true;
     return matchesSearch && matchesCalendar && matchesClass;
   });
+
+  console.log("Filtered Disciplines:", filteredDisciplines);
 
   return (
     <Box
@@ -121,6 +131,20 @@ const ClassScheduleList = () => {
         Grade de Turma
       </Typography>
 
+      {loading && (
+        <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
+          <Typography>Carregando...</Typography>
+        </Box>
+      )}
+
+      {alert && (
+        <CustomAlert
+          message={alert.message}
+          type={alert.type}
+          onClose={handleAlertClose}
+        />
+      )}
+
       <Box
         sx={{
           display: "flex",
@@ -133,12 +157,12 @@ const ClassScheduleList = () => {
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <FilterListAlt
-            sx={{ 
-              color: "#087619", 
+            sx={{
+              color: "#087619",
               fontSize: "1.7rem",
               alignSelf: "center",
-              mt: { xs: 0, sm: 0.5 }
-            }} 
+              mt: { xs: 0, sm: 0.5 },
+            }}
           />
           <Box
             sx={{
@@ -184,7 +208,7 @@ const ClassScheduleList = () => {
                   },
                   "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                     borderColor: "#000000",
-                  }
+                  },
                 }}
                 MenuProps={{
                   PaperProps: {
@@ -252,7 +276,7 @@ const ClassScheduleList = () => {
                   },
                   "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                     borderColor: "#000000",
-                  }
+                  },
                 }}
                 MenuProps={{
                   PaperProps: {
@@ -319,7 +343,7 @@ const ClassScheduleList = () => {
               <Edit />
             </IconButton>
             <IconButton
-              onClick={() => handleViewClick(item.disciplineId)}
+              onClick={() => handleViewClick(item)}
               sx={{ color: "#666666", "&:hover": { color: "#535252" } }}
             >
               <Visibility />
@@ -327,14 +351,6 @@ const ClassScheduleList = () => {
           </>
         )}
       />
-
-      {alert && (
-        <CustomAlert
-          message={alert.message}
-          type={alert.type}
-          onClose={handleAlertClose}
-        />
-      )}
     </Box>
   );
 };

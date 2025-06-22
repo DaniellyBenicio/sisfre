@@ -16,7 +16,7 @@ export const createClassSchedule = async (req, res) => {
     ) {
       return res.status(400).json({
         message:
-          "Dados incompletos ou inválidos. Os campos são obrigatórios.",
+          "Dados incompletos ou inválidos. Os campos (calendarId, classId, turn, details) são obrigatórios e 'details' deve ser um array não vazio.",
       });
     }
 
@@ -83,7 +83,14 @@ export const createClassSchedule = async (req, res) => {
     const disciplineIds = new Set();
     const userIds = new Set();
     const hourIds = new Set();
-    const validDays = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"];
+    const validDays = [
+      "Segunda",
+      "Terça",
+      "Quarta",
+      "Quinta",
+      "Sexta",
+      "Sábado",
+    ]; 
     const proposedTeacherScheduleSlots = [];
     const scheduleSlots = new Set();
 
@@ -94,6 +101,7 @@ export const createClassSchedule = async (req, res) => {
             "Cada detalhe de horário deve ter 'disciplineId', 'hourId' e 'dayOfWeek'.",
         });
       }
+
       if (!validDays.includes(detail.dayOfWeek)) {
         return res.status(400).json({
           message: `Dia da semana inválido em um detalhe: '${
@@ -105,7 +113,7 @@ export const createClassSchedule = async (req, res) => {
       const slotKey = `${detail.dayOfWeek}-${detail.hourId}`;
       if (scheduleSlots.has(slotKey)) {
         return res.status(400).json({
-          message: `Apenas uma disciplina é permitida por bloco de horário.`,
+          message: `Apenas uma disciplina é permitida por bloco de horário (${detail.dayOfWeek} - ${detail.hourId}).`,
         });
       }
       scheduleSlots.add(slotKey);
@@ -132,7 +140,7 @@ export const createClassSchedule = async (req, res) => {
       for (const userId of userIds) {
         if (!professorUserIds.has(userId)) {
           return res.status(400).json({
-            message: `O usuário com ID ${userId} não tem permissão para ser professor (accessType deve ser 'PROFESSOR').`,
+            message: `O usuário com ID ${userId} não tem permissão para ser professor (accessType deve ser 'Professor').`,
           });
         }
       }
@@ -251,24 +259,24 @@ export const createClassSchedule = async (req, res) => {
 
         if (conflictingDetails.length > 0) {
           const conflict = conflictingDetails[0];
-          throw new Error(
+          const errorMessage =
             `Conflito de horário! O professor '${
               conflict.professor ? conflict.professor.username : conflict.userId
             }' ` +
-              `já está alocado no(a) '${conflict.dayOfWeek}' às '${
-                conflict.hour ? conflict.hour.hourStart : conflict.hourId
-              }' ` +
-              `com a disciplina '${
-                conflict.discipline
-                  ? conflict.discipline.name
-                  : conflict.disciplineId
-              }'. ` +
-              `Para a turma ${
-                conflict.schedule ? conflict.schedule.classId : "N/A"
-              } e curso ${
-                conflict.schedule ? conflict.schedule.courseId : "N/A"
-              }.`
-          );
+            `já está alocado no(a) '${conflict.dayOfWeek}' às '${
+              conflict.hour ? conflict.hour.hourStart : conflict.hourId
+            }' ` +
+            `com a disciplina '${
+              conflict.discipline
+                ? conflict.discipline.name
+                : conflict.disciplineId
+            }'. ` +
+            `Para a turma ${
+              conflict.schedule ? conflict.schedule.classId : "N/A"
+            } e curso ${
+              conflict.schedule ? conflict.schedule.courseId : "N/A"
+            }.`;
+          throw new Error(errorMessage);
         }
       }
 
@@ -320,8 +328,6 @@ export const createClassSchedule = async (req, res) => {
       classSchedule: createdScheduleWithDetails,
     });
   } catch (error) {
-    console.error("Erro ao criar horário de aula:", error);
-
     if (error.name === "SequelizeValidationError") {
       const errors = error.errors.map((err) => err.message);
       return res
@@ -340,14 +346,16 @@ export const createClassSchedule = async (req, res) => {
       error.message.includes("inválido") ||
       error.message.includes("Conflito de horário!") ||
       error.message.includes("Acesso negado") ||
-      error.message.includes("Múltiplas disciplinas alocadas")
+      error.message.includes("Múltiplas disciplinas alocadas") ||
+      error.message.includes("professor (accessType deve ser 'Professor')")
     ) {
-      const statusCode = error.message.includes("Conflito de horário!") ||
-                        error.message.includes("Múltiplas disciplinas alocadas")
-        ? 409
-        : error.message.includes("Acesso negado")
-        ? 403
-        : 404;
+      const statusCode =
+        error.message.includes("Conflito de horário!") ||
+        error.message.includes("Múltiplas disciplinas alocadas")
+          ? 409
+          : error.message.includes("Acesso negado")
+          ? 403
+          : 400;
       return res.status(statusCode).json({ message: error.message });
     }
 
@@ -502,7 +510,12 @@ export const updateClassSchedule = async (req, res) => {
   const loggedUserId = req.user?.id;
 
   try {
-    if (!classScheduleId || !details || !Array.isArray(details) || details.length === 0) {
+    if (
+      !classScheduleId ||
+      !details ||
+      !Array.isArray(details) ||
+      details.length === 0
+    ) {
       return res.status(400).json({
         message: "Dados incompletos ou inválidos. Os campos são obrigatórios.",
       });
@@ -520,7 +533,8 @@ export const updateClassSchedule = async (req, res) => {
 
     if (!course) {
       return res.status(403).json({
-        message: "Acesso negado: Usuário não é coordenador ou não está associado a nenhum curso.",
+        message:
+          "Acesso negado: Usuário não é coordenador ou não está associado a nenhum curso.",
       });
     }
 
@@ -542,7 +556,8 @@ export const updateClassSchedule = async (req, res) => {
 
     if (classSchedule.courseId !== courseId) {
       return res.status(403).json({
-        message: "Acesso negado: Este horário de aula não pertence ao curso coordenado pelo usuário.",
+        message:
+          "Acesso negado: Este horário de aula não pertence ao curso coordenado pelo usuário.",
       });
     }
 
@@ -556,13 +571,16 @@ export const updateClassSchedule = async (req, res) => {
     for (const detail of details) {
       if (!detail.disciplineId || !detail.hourId || !detail.dayOfWeek) {
         return res.status(400).json({
-          message: "Cada detalhe de horário deve ter 'disciplineId', 'hourId' e 'dayOfWeek'.",
+          message:
+            "Cada detalhe de horário deve ter 'disciplineId', 'hourId' e 'dayOfWeek'.",
         });
       }
 
       if (!validDays.includes(detail.dayOfWeek)) {
         return res.status(400).json({
-          message: `Dia da semana inválido em um detalhe: '${detail.dayOfWeek}'. Use um dos seguintes: ${validDays.join(", ")}.`,
+          message: `Dia da semana inválido em um detalhe: '${
+            detail.dayOfWeek
+          }'. Use um dos seguintes: ${validDays.join(", ")}.`,
         });
       }
 
@@ -630,15 +648,16 @@ export const updateClassSchedule = async (req, res) => {
       }
     }
 
-    const [existingDisciplines, existingHours, existingUsers] = await Promise.all([
-      db.Discipline.findAll({
-        where: { id: { [Op.in]: Array.from(disciplineIds) } },
-      }),
-      db.Hour.findAll({ where: { id: { [Op.in]: Array.from(hourIds) } } }),
-      userIds.size > 0
-        ? db.User.findAll({ where: { id: { [Op.in]: Array.from(userIds) } } })
-        : Promise.resolve([]),
-    ]);
+    const [existingDisciplines, existingHours, existingUsers] =
+      await Promise.all([
+        db.Discipline.findAll({
+          where: { id: { [Op.in]: Array.from(disciplineIds) } },
+        }),
+        db.Hour.findAll({ where: { id: { [Op.in]: Array.from(hourIds) } } }),
+        userIds.size > 0
+          ? db.User.findAll({ where: { id: { [Op.in]: Array.from(userIds) } } })
+          : Promise.resolve([]),
+      ]);
 
     const foundDisciplineIds = new Set(existingDisciplines.map((d) => d.id));
     const foundHourIds = new Set(existingHours.map((h) => h.id));
@@ -666,12 +685,13 @@ export const updateClassSchedule = async (req, res) => {
       }
     }
 
-    const courseDisciplineAssociations = await db.sequelize.models.CourseDisciplines.findAll({
-      where: {
-        courseId,
-        disciplineId: { [Op.in]: Array.from(disciplineIds) },
-      },
-    });
+    const courseDisciplineAssociations =
+      await db.sequelize.models.CourseDisciplines.findAll({
+        where: {
+          courseId,
+          disciplineId: { [Op.in]: Array.from(disciplineIds) },
+        },
+      });
 
     const associatedDisciplineIds = new Set(
       courseDisciplineAssociations.map((assoc) => assoc.disciplineId)
@@ -694,11 +714,15 @@ export const updateClassSchedule = async (req, res) => {
               dayOfWeek: slot.dayOfWeek,
               hourId: slot.hourId,
             })),
-            classScheduleId: { [Op.ne]: classScheduleId }, 
+            classScheduleId: { [Op.ne]: classScheduleId },
           },
           include: [
             { model: db.User, as: "professor", attributes: ["username", "id"] },
-            { model: db.Hour, as: "hour", attributes: ["hourStart", "hourEnd"] },
+            {
+              model: db.Hour,
+              as: "hour",
+              attributes: ["hourStart", "hourEnd"],
+            },
             { model: db.Discipline, as: "discipline", attributes: ["name"] },
             {
               model: db.ClassSchedule,
@@ -715,17 +739,19 @@ export const updateClassSchedule = async (req, res) => {
             `Conflito de horário! O professor '${
               conflict.professor ? conflict.professor.username : conflict.userId
             }' ` +
-            `já está alocado no(a) '${conflict.dayOfWeek}' às '${
-              conflict.hour ? conflict.hour.hourStart : conflict.hourId
-            }' ` +
-            `com a disciplina '${
-              conflict.discipline ? conflict.discipline.name : conflict.disciplineId
-            }'. ` +
-            `Para a turma ${
-              conflict.schedule ? conflict.schedule.classId : "N/A"
-            } e curso ${
-              conflict.schedule ? conflict.schedule.courseId : "N/A"
-            }.`
+              `já está alocado no(a) '${conflict.dayOfWeek}' às '${
+                conflict.hour ? conflict.hour.hourStart : conflict.hourId
+              }' ` +
+              `com a disciplina '${
+                conflict.discipline
+                  ? conflict.discipline.name
+                  : conflict.disciplineId
+              }'. ` +
+              `Para a turma ${
+                conflict.schedule ? conflict.schedule.classId : "N/A"
+              } e curso ${
+                conflict.schedule ? conflict.schedule.courseId : "N/A"
+              }.`
           );
         }
       }
@@ -793,12 +819,11 @@ export const updateClassSchedule = async (req, res) => {
       error.message.includes("Conflito de horário!") ||
       error.message.includes("Acesso negado")
     ) {
-      const statusCode =
-        error.message.includes("Conflito de horário!")
-          ? 409
-          : error.message.includes("Acesso negado")
-          ? 403
-          : 404;
+      const statusCode = error.message.includes("Conflito de horário!")
+        ? 409
+        : error.message.includes("Acesso negado")
+        ? 403
+        : 404;
       return res.status(statusCode).json({ message: error.message });
     }
 
@@ -825,7 +850,8 @@ export const getClassSchedule = async (req, res) => {
 
     if (!course) {
       return res.status(403).json({
-        message: "Acesso negado: Usuário não é coordenador ou não está associado a nenhum curso.",
+        message:
+          "Acesso negado: Usuário não é coordenador ou não está associado a nenhum curso.",
       });
     }
 
@@ -849,7 +875,11 @@ export const getClassSchedule = async (req, res) => {
           as: "details",
           attributes: ["id", "disciplineId", "userId"],
           include: [
-            { model: db.Discipline, as: "discipline", attributes: ["id", "name"] },
+            {
+              model: db.Discipline,
+              as: "discipline",
+              attributes: ["id", "name"],
+            },
             { model: db.User, as: "professor", attributes: ["id", "username"] },
           ],
         },
@@ -858,7 +888,7 @@ export const getClassSchedule = async (req, res) => {
     });
 
     const scheduleList = classSchedules.map((schedule) => {
-      const detail = schedule.details[0]; 
+      const detail = schedule.details[0];
       const calendarInfo = `${schedule.calendar.year}.${schedule.calendar.period}`;
       return {
         calendar: calendarInfo,
@@ -906,7 +936,9 @@ export const getClassScheduleDetails = async (req, res) => {
       return res.status(401).json({ message: "Usuário não autenticado." });
     }
 
-    const course = await db.Course.findOne({ where: { coordinatorId: loggedUserId } });
+    const course = await db.Course.findOne({
+      where: { coordinatorId: loggedUserId },
+    });
     if (!course) {
       return res.status(403).json({ message: "Acesso negado." });
     }
@@ -914,15 +946,27 @@ export const getClassScheduleDetails = async (req, res) => {
     const schedule = await db.ClassSchedule.findByPk(classScheduleId, {
       where: { courseId: course.id },
       include: [
-        { model: db.Calendar, as: "calendar", attributes: ["id", "startDate", "endDate"] },
+        {
+          model: db.Calendar,
+          as: "calendar",
+          attributes: ["id", "startDate", "endDate"],
+        },
         { model: db.Class, as: "class", attributes: ["id", "semester"] },
         {
           model: db.ClassScheduleDetail,
           as: "details",
           include: [
-            { model: db.Discipline, as: "discipline", attributes: ["id", "name"] },
+            {
+              model: db.Discipline,
+              as: "discipline",
+              attributes: ["id", "name"],
+            },
             { model: db.User, as: "professor", attributes: ["id", "username"] },
-            { model: db.Hour, as: "hour", attributes: ["id", "hourStart", "hourEnd"] },
+            {
+              model: db.Hour,
+              as: "hour",
+              attributes: ["id", "hourStart", "hourEnd"],
+            },
           ],
         },
       ],
@@ -938,7 +982,9 @@ export const getClassScheduleDetails = async (req, res) => {
     });
   } catch (error) {
     console.error("Erro ao recuperar detalhes do horário:", error);
-    return res.status(500).json({ message: "Erro interno do servidor.", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Erro interno do servidor.", error: error.message });
   }
 };
 
@@ -959,7 +1005,8 @@ export const getClassSchedulesFilter = async (req, res) => {
 
     if (!course) {
       return res.status(403).json({
-        message: "Acesso negado: Usuário não é coordenador ou não está associado a nenhum curso.",
+        message:
+          "Acesso negado: Usuário não é coordenador ou não está associado a nenhum curso.",
       });
     }
 
@@ -967,17 +1014,17 @@ export const getClassSchedulesFilter = async (req, res) => {
 
     const where = { courseId };
     if (calendar) {
-      where['$calendar.year$'] = { [Op.like]: `%${calendar}%` };
-      if (calendar.includes('.')) {
-        const [year, period] = calendar.split('.');
+      where["$calendar.year$"] = { [Op.like]: `%${calendar}%` };
+      if (calendar.includes(".")) {
+        const [year, period] = calendar.split(".");
         if (year && period) {
-          where['$calendar.year$'] = { [Op.like]: `%${year}%` };
-          where['$calendar.period$'] = { [Op.eq]: parseInt(period) };
+          where["$calendar.year$"] = { [Op.like]: `%${year}%` };
+          where["$calendar.period$"] = { [Op.eq]: parseInt(period) };
         }
       }
     }
     if (turma) {
-      where['$class.semester$'] = { [Op.like]: `%${turma}%` };
+      where["$class.semester$"] = { [Op.like]: `%${turma}%` };
     }
 
     const classSchedules = await db.ClassSchedule.findAll({
@@ -998,7 +1045,11 @@ export const getClassSchedulesFilter = async (req, res) => {
           as: "details",
           attributes: ["id", "disciplineId", "userId"],
           include: [
-            { model: db.Discipline, as: "discipline", attributes: ["id", "name"] },
+            {
+              model: db.Discipline,
+              as: "discipline",
+              attributes: ["id", "name"],
+            },
             { model: db.User, as: "professor", attributes: ["id", "username"] },
           ],
         },
@@ -1007,7 +1058,7 @@ export const getClassSchedulesFilter = async (req, res) => {
     });
 
     const scheduleList = classSchedules.map((schedule) => {
-      const detail = schedule.details[0]; 
+      const detail = schedule.details[0];
       const calendarInfo = `${schedule.calendar.year}.${schedule.calendar.period}`;
       return {
         calendar: calendarInfo,
@@ -1020,7 +1071,8 @@ export const getClassSchedulesFilter = async (req, res) => {
 
     if (!scheduleList.length) {
       return res.status(404).json({
-        message: "Nenhum horário de aula encontrado para os filtros fornecidos.",
+        message:
+          "Nenhum horário de aula encontrado para os filtros fornecidos.",
       });
     }
 

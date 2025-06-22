@@ -90,11 +90,17 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
     classId: "",
     turn: "",
     calendarId: "",
-    disciplineId: "",
-    professorId: "",
-    dayOfWeek: "",
-    startTime: "",
-    endTime: "",
+    details: [
+      {
+        disciplineId: "",
+        professorId: "",
+        dayOfWeek: "",
+        startTime: "",
+        endTime: "",
+        hourId: "",
+      },
+    ],
+    isActive: true,
   });
   const [classes, setClasses] = useState([]);
   const [disciplines, setDisciplines] = useState([]);
@@ -119,10 +125,10 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               return { data: [] };
             }),
             api.get("/users").catch((err) => {
-              return { data: [] };
+              return { data: { users: [] } };
             }),
             api.get("/calendar").catch((err) => {
-              return { data: [] };
+              return { data: { calendars: [] } };
             }),
           ]);
 
@@ -152,25 +158,28 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
             : []
         );
 
-        if (!classesRes.data.length) {
+        if (!classesRes.data.classes || classesRes.data.classes.length === 0) {
           setErrors((prev) => ({
             ...prev,
             classes: "Não foi possível carregar as turmas.",
           }));
         }
-        if (!disciplinesRes.data.length) {
+        if (!disciplinesRes.data || disciplinesRes.data.length === 0) {
           setErrors((prev) => ({
             ...prev,
             disciplines: "Não foi possível carregar as disciplinas.",
           }));
         }
-        if (!usersRes.data.users?.length) {
+        if (!usersRes.data.users || filteredProfessors.length === 0) {
           setErrors((prev) => ({
             ...prev,
             professors: "Não foi possível carregar os professores.",
           }));
         }
-        if (!calendarsRes.data.calendars?.length) {
+        if (
+          !calendarsRes.data.calendars ||
+          calendarsRes.data.calendars.length === 0
+        ) {
           setErrors((prev) => ({
             ...prev,
             calendars: "Não foi possível carregar os calendários.",
@@ -210,36 +219,52 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               backendTurn = "";
           }
 
-          const dataToSend = {
-            ...formData,
-            turn: backendTurn,
-          };
-
           if (backendTurn) {
             const response = await api.get(`/hours?turn=${backendTurn}`);
             setAvailableHours(response.data);
+
+            const currentDetail = formData.details[0];
             const currentStartTimeValid = response.data.some(
-              (h) => h.hourStart === formData.startTime
+              (h) => h.hourStart === currentDetail.startTime
             );
+
             if (!currentStartTimeValid) {
-              setFormData((prev) => ({ ...prev, startTime: "", endTime: "" }));
+              setFormData((prev) => ({
+                ...prev,
+                details: [
+                  { ...currentDetail, startTime: "", endTime: "", hourId: "" },
+                ],
+              }));
             } else {
               const selectedHour = response.data.find(
-                (h) => h.hourStart === formData.startTime
+                (h) => h.hourStart === currentDetail.startTime
               );
-              if (selectedHour && selectedHour.hourEnd !== formData.endTime) {
+              if (
+                selectedHour &&
+                selectedHour.hourEnd !== currentDetail.endTime
+              ) {
                 setFormData((prev) => ({
                   ...prev,
-                  endTime: selectedHour.hourEnd,
+                  details: [
+                    {
+                      ...currentDetail,
+                      endTime: selectedHour.hourEnd,
+                      hourId: selectedHour.id,
+                    },
+                  ],
                 }));
               }
             }
           } else {
             setAvailableHours([]);
-            setFormData((prev) => ({ ...prev, startTime: "", endTime: "" }));
+            setFormData((prev) => ({
+              ...prev,
+              details: [
+                { ...prev.details[0], startTime: "", endTime: "", hourId: "" },
+              ],
+            }));
           }
         } catch (error) {
-          console.error("Erro ao buscar horários para o turno:", error);
           setErrors((prev) => ({
             ...prev,
             hours:
@@ -247,13 +272,23 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               "Erro ao carregar horários para o turno.",
           }));
           setAvailableHours([]);
-          setFormData((prev) => ({ ...prev, startTime: "", endTime: "" }));
+          setFormData((prev) => ({
+            ...prev,
+            details: [
+              { ...prev.details[0], startTime: "", endTime: "", hourId: "" },
+            ],
+          }));
         } finally {
           setLoading(false);
         }
       } else {
         setAvailableHours([]);
-        setFormData((prev) => ({ ...prev, startTime: "", endTime: "" }));
+        setFormData((prev) => ({
+          ...prev,
+          details: [
+            { ...prev.details[0], startTime: "", endTime: "", hourId: "" },
+          ],
+        }));
       }
     };
 
@@ -262,40 +297,105 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
     setFormData((prevData) => {
-      const newData = { ...prevData, [name]: value };
+      let newData = { ...prevData };
 
-      if (name === "turn") {
-        newData.startTime = "";
-        newData.endTime = "";
-      }
-
-      if (name === "startTime") {
-        const selectedHour = availableHours.find(
-          (hour) => hour.hourStart === value
-        );
-        if (selectedHour) {
-          newData.endTime = selectedHour.hourEnd;
-        } else {
-          newData.endTime = "";
+      if (["classId", "turn", "calendarId"].includes(name)) {
+        newData[name] = value;
+        if (name === "turn") {
+          newData.details = [
+            { ...newData.details[0], startTime: "", endTime: "", hourId: "" },
+          ];
         }
+      } else if (
+        ["disciplineId", "professorId", "dayOfWeek", "startTime"].includes(name)
+      ) {
+        const updatedDetails = [...newData.details];
+        const currentDetail = { ...updatedDetails[0] };
+
+        if (name === "startTime") {
+          const selectedHour = availableHours.find(
+            (hour) => hour.hourStart === value
+          );
+          if (selectedHour) {
+            currentDetail.startTime = value;
+            currentDetail.endTime = selectedHour.hourEnd;
+            currentDetail.hourId = selectedHour.id;
+          } else {
+            currentDetail.startTime = "";
+            currentDetail.endTime = "";
+            currentDetail.hourId = "";
+          }
+        } else if (name === "professorId") {
+          currentDetail.professorId = value;
+        } else {
+          currentDetail[name] = value;
+        }
+        updatedDetails[0] = currentDetail;
+        newData.details = updatedDetails;
       }
       return newData;
     });
   };
 
   const handleSubmit = async () => {
-    if (Object.values(formData).some((value) => !value)) {
+    const currentDetail = formData.details[0];
+    if (
+      !formData.calendarId ||
+      !formData.classId ||
+      !formData.turn ||
+      !currentDetail.disciplineId ||
+      !currentDetail.dayOfWeek ||
+      !currentDetail.hourId
+    ) {
       setErrors((prev) => ({
         ...prev,
-        general: "Todos os campos são obrigatórios.",
+        general:
+          "Todos os campos obrigatórios (Turma, Turno, Calendário, Disciplina, Dia da Semana, Horário de Início) devem ser preenchidos.",
       }));
       return;
     }
+
     setLoading(true);
     setErrors({});
+
     try {
-      const response = await api.post("/class-schedules", formData);
+      let backendTurn = "";
+      switch (formData.turn) {
+        case "Manhã":
+          backendTurn = "MATUTINO";
+          break;
+        case "Tarde":
+          backendTurn = "VESPERTINO";
+          break;
+        case "Noite":
+          backendTurn = "NOTURNO";
+          break;
+        default:
+          backendTurn = "";
+      }
+
+      const backendDayOfWeek = currentDetail.dayOfWeek.replace("-feira", "");
+
+      const detailsToSend = [
+        {
+          disciplineId: currentDetail.disciplineId,
+          hourId: currentDetail.hourId,
+          dayOfWeek: backendDayOfWeek,
+          userId: currentDetail.professorId || null,
+        },
+      ];
+
+      const dataToSend = {
+        calendarId: formData.calendarId,
+        classId: formData.classId,
+        turn: backendTurn,
+        isActive: formData.isActive,
+        details: detailsToSend,
+      };
+
+      const response = await api.post("/class-schedules", dataToSend);
       navigate("/class-schedule", {
         state: { success: "Grade de turma criada com sucesso!" },
       });
@@ -311,7 +411,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
     }
   };
 
-  if (loading) {
+  if (loading && !errors.general && Object.keys(errors).length === 0) {
     return (
       <Box
         display="flex"
@@ -442,7 +542,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               <CustomSelect
                 label="Disciplina"
                 name="disciplineId"
-                value={formData.disciplineId}
+                value={formData.details[0].disciplineId}
                 onChange={handleChange}
               >
                 {disciplines.map((disc) => (
@@ -479,7 +579,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               <CustomSelect
                 label="Professor"
                 name="professorId"
-                value={formData.professorId}
+                value={formData.details[0].professorId}
                 onChange={handleChange}
               >
                 {professors.map((prof) => (
@@ -493,7 +593,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               <CustomSelect
                 label="Dia da Semana"
                 name="dayOfWeek"
-                value={formData.dayOfWeek}
+                value={formData.details[0].dayOfWeek}
                 onChange={handleChange}
               >
                 <MenuItem value="Segunda-feira">Segunda-feira</MenuItem>
@@ -508,7 +608,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               <CustomSelect
                 label="Horário de Início"
                 name="startTime"
-                value={formData.startTime}
+                value={formData.details[0].startTime}
                 onChange={handleChange}
                 disabled={!formData.turn || availableHours.length === 0}
               >
@@ -525,7 +625,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                 label="Horário de Fim"
                 type="time"
                 name="endTime"
-                value={formData.endTime}
+                value={formData.details[0].endTime}
                 onChange={handleChange}
                 sx={{ minWidth: 200, maxWidth: 400 }}
                 InputLabelProps={{ shrink: true }}

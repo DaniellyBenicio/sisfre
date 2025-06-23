@@ -180,7 +180,7 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/class-schedule-details"
+        path="/class-schedule-details/:classScheduleId"
         element={
           isAuthenticated ? (
             <ClassScheduleDetails setAuthenticated={handleLogout} />

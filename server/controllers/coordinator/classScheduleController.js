@@ -891,6 +891,7 @@ export const getClassSchedule = async (req, res) => {
       const detail = schedule.details[0];
       const calendarInfo = `${schedule.calendar.year}.${schedule.calendar.period}`;
       return {
+        id: schedule.id,
         calendar: calendarInfo,
         professor: detail.professor ? detail.professor.username : null,
         turma: schedule.class.semester,

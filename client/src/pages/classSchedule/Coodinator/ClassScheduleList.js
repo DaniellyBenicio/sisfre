@@ -35,15 +35,17 @@ const ClassScheduleList = () => {
 
         const schedules = Array.isArray(response.data.schedules)
           ? response.data.schedules.map((schedule) => ({
+              id: schedule.id,
               calendar: schedule.calendar,
               teacher: schedule.professor || "Sem professor",
               class: schedule.turma,
               discipline: schedule.disciplina,
-              turn: schedule.turno === "MATUTINO"
-                ? "Manhã"
-                : schedule.turno === "VESPERTINO"
-                ? "Tarde"
-                : "Noite",
+              turn:
+                schedule.turno === "MATUTINO"
+                  ? "Manhã"
+                  : schedule.turno === "VESPERTINO"
+                  ? "Tarde"
+                  : "Noite",
             }))
           : [];
 
@@ -63,8 +65,7 @@ const ClassScheduleList = () => {
       } catch (error) {
         console.error("API Error:", error.response || error);
         setAlert({
-          message:
-            error.response?.data?.message || "Erro ao carregar as grades de turma.",
+          message: error.response?.data?.message || "Erro ao carregar as grades de turma.",
           type: "error",
         });
       } finally {
@@ -81,7 +82,7 @@ const ClassScheduleList = () => {
 
   const handleViewClick = (item) => {
     console.log("View Clicked Item:", item);
-    navigate("/class-schedule-details", { state: { schedule: item } });
+    navigate(`/class-schedule-details/${item.id}`);
   };
 
   const handleCustomEdit = (item) => {
@@ -101,9 +102,7 @@ const ClassScheduleList = () => {
     const matchesSearch = Object.values(item).some((val) =>
       val?.toString().toLowerCase().includes(search.toLowerCase())
     );
-    const matchesCalendar = selectedCalendar
-      ? item.calendar === selectedCalendar
-      : true;
+    const matchesCalendar = selectedCalendar ? item.calendar === selectedCalendar : true;
     const matchesClass = selectedClass ? item.class === selectedClass : true;
     return matchesSearch && matchesCalendar && matchesClass;
   });

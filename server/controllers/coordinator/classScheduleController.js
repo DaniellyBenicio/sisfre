@@ -90,7 +90,7 @@ export const createClassSchedule = async (req, res) => {
       "Quinta",
       "Sexta",
       "Sábado",
-    ]; 
+    ];
     const proposedTeacherScheduleSlots = [];
     const scheduleSlots = new Set();
 
@@ -870,6 +870,11 @@ export const getClassSchedule = async (req, res) => {
           as: "class",
           attributes: ["id", "semester"],
         },
+        {
+          model: db.Course,
+          as: "course",
+          attributes: ["name", "acronym"],
+        },
       ],
       attributes: ["id", "calendarId", "classId", "turn"],
       order: [["id", "ASC"]],
@@ -882,6 +887,8 @@ export const getClassSchedule = async (req, res) => {
         calendar: calendarInfo,
         turma: schedule.class.semester,
         turno: schedule.turn,
+        nome_curso: schedule.course.name,
+        sigla_curso: schedule.course.acronym,
       };
     });
 
@@ -939,15 +946,24 @@ export const getClassScheduleDetails = async (req, res) => {
         },
         { model: db.Class, as: "class", attributes: ["id", "semester"] },
         {
+          model: db.Course,
+          as: "course",
+          attributes: ["id", "name", "acronym"],
+        },
+        {
           model: db.ClassScheduleDetail,
           as: "details",
           include: [
             {
               model: db.Discipline,
               as: "discipline",
-              attributes: ["id", "name"],
+              attributes: ["id", "name", "acronym"],
             },
-            { model: db.User, as: "professor", attributes: ["id", "username"] },
+            {
+              model: db.User,
+              as: "professor",
+              attributes: ["id", "username", "acronym"],
+            },
             {
               model: db.Hour,
               as: "hour",
@@ -1027,6 +1043,11 @@ export const getClassSchedulesFilter = async (req, res) => {
           attributes: ["id", "semester"],
         },
         {
+          model: db.Course,
+          as: "course",
+          attributes: ["name", "acronym"], 
+        },
+        {
           model: db.ClassScheduleDetail,
           as: "details",
           attributes: ["id", "disciplineId", "userId"],
@@ -1034,9 +1055,13 @@ export const getClassSchedulesFilter = async (req, res) => {
             {
               model: db.Discipline,
               as: "discipline",
-              attributes: ["id", "name"],
+              attributes: ["id", "name", "acronym"],
             },
-            { model: db.User, as: "professor", attributes: ["id", "username"] },
+            {
+              model: db.User,
+              as: "professor",
+              attributes: ["id", "username", "acronym"],
+            },
           ],
         },
       ],
@@ -1051,7 +1076,12 @@ export const getClassSchedulesFilter = async (req, res) => {
         professor: detail.professor ? detail.professor.username : null,
         turma: schedule.class.semester,
         disciplina: detail.discipline.name,
+        disciplina_sigla: detail. discipline.acronym,
         turno: schedule.turn,
+        curso: {
+          sigla: schedule.course.acronym,
+          name: schedule.course.name,
+        },
       };
     });
 

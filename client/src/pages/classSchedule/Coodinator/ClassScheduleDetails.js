@@ -13,7 +13,7 @@ import {
   Divider,
   Button
 } from "@mui/material";
-import { ArrowBack, Assignment, Schedule, Edit } from "@mui/icons-material";
+import { ArrowBack, Assignment, Edit, History, ChevronLeft, ChevronRight } from "@mui/icons-material";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import Sidebar from "../../../components/SideBar";
 import api from "../../../service/api";
@@ -26,6 +26,7 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
   const { schedule: initialSchedule } = location.state || {};
   const [schedule, setSchedule] = useState(initialSchedule);
   const [error, setError] = useState(null);
+  const [currentDetailIndex, setCurrentDetailIndex] = useState(0);
 
   useEffect(() => {
     if (!initialSchedule && classScheduleId) {
@@ -41,6 +42,7 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
           });
           setSchedule(response.data.schedule);
           setError(null);
+
         } catch (error) {
           console.error("Erro ao buscar horário:", error);
           setError(error.response?.data?.message || "Erro ao carregar os detalhes do horário.");
@@ -49,6 +51,18 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
       fetchSchedule();
     }
   }, [initialSchedule, classScheduleId]);
+
+  const handlePreviousDetail = () => {
+    setCurrentDetailIndex((prev) => Math.max(prev - 1, 0));
+  };
+
+  const handleNextDetail = () => {
+    setCurrentDetailIndex((prev) =>
+      Math.min(prev + 1, (schedule?.details?.length || 1) - 1)
+    );
+  };
+
+  const currentDetail = schedule?.details?.[currentDetailIndex];
 
   return (
     <Box display="flex">
@@ -90,14 +104,6 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
           ) : schedule ? (
             <Box>
               <Typography variant="body1" sx={{ mb: 1 }}>
-                <strong>Professor:</strong>{" "}
-                {schedule.details[0]?.professor?.username || "N/A"}
-              </Typography>
-              <Typography variant="body1" sx={{ mb: 1 }}>
-                <strong>Disciplina:</strong>{" "}
-                {schedule.details[0]?.discipline?.name || "N/A"}
-              </Typography>
-              <Typography variant="body1" sx={{ mb: 1 }}>
                 <strong>Turma:</strong> {schedule.class?.semester || "N/A"}
               </Typography>
               <Typography variant="body1" sx={{ mb: 1 }}>
@@ -108,16 +114,65 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
                   ? "Tarde"
                   : "Noite"}
               </Typography>
-              <Typography variant="body1" sx={{ mb: 1 }}>
+              <Typography variant="body1" sx={{ mb: 2 }}>
                 <strong>Calendário:</strong>{" "}
                   {schedule.calendar?.startDate
                   ? `${new Date(schedule.calendar.startDate).getFullYear()}.${new Date(schedule.calendar.startDate).getMonth() < 6 ? '1' : '2'}`
                   : "N/A"}              
               </Typography>
+
+              {schedule.details?.length > 0 ? (
+                <>
+                  <Typography variant="body1" sx={{ mb: 1 }}>
+                    <strong>Professor:</strong>{" "}
+                    {currentDetail?.professor?.username || "Sem professor"}
+                  </Typography>
+                  <Typography variant="body1" sx={{ mb: 1 }}>
+                    <strong>Disciplina:</strong>{" "}
+                    {currentDetail?.discipline?.name || "N/A"}
+                  </Typography>
+                  
+                  <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 2, mt: 2 }}>
+                    <IconButton
+                      onClick={handlePreviousDetail}
+                      disabled={currentDetailIndex === 0}
+                      sx={{
+                        color: "green",
+                        "&:hover": {
+                          backgroundColor: "rgba(0,128,0,0.1)",
+                        },
+                      }}
+                    >
+                      <ChevronLeft />
+                    </IconButton>
+
+                    <Typography variant="body2" sx={{ minWidth: 60, textAlign: "center" }}>
+                      {currentDetailIndex + 1} de {schedule.details.length}
+                    </Typography>
+
+                    <IconButton
+                      onClick={handleNextDetail}
+                      disabled={currentDetailIndex === schedule.details.length - 1}
+                      sx={{
+                        color: "green",
+                        "&:hover": {
+                          backgroundColor: "rgba(0,128,0,0.1)",
+                        },
+                      }}
+                    >
+                      <ChevronRight />
+                    </IconButton>
+                  </Box>
+                </>
+              ) : (
+                <Typography variant="body1" color="text.secondary">
+                  Nenhum detalhe de aula disponível.
+                </Typography>
+              )}
             </Box>
           ) : (
             <Typography variant="body1" color="error">
-              Nenhum dado disponível para est a grade de turma.
+              Nenhum dado disponível para esta grade de turma.
             </Typography>
           )}
         </Box>
@@ -126,7 +181,19 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
         {schedule && schedule.details && schedule.details.length > 0 ? (
           <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-              <Schedule sx={{ fontSize: "31px", color: "green" }} />
+              <Box
+                sx={{
+                  backgroundColor: "green",
+                  borderRadius: "50%",
+                  width: 35,
+                  height: 35,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <History sx={{ color: "white", fontSize: 27 }} />
+              </Box>
               <Typography variant="h5" color="green" >
                 Horários
               </Typography>

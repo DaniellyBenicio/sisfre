@@ -14,6 +14,11 @@ import {
   CircularProgress,
   TextField,
   Alert,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
 } from "@mui/material";
 import {
   ArrowBack,
@@ -21,6 +26,8 @@ import {
   Save,
   Assignment,
   Schedule,
+  Check,
+  Delete,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../../components/SideBar";
@@ -102,6 +109,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
     ],
     isActive: true,
   });
+  const [confirmedDetails, setConfirmedDetails] = useState([]);
   const [classes, setClasses] = useState([]);
   const [disciplines, setDisciplines] = useState([]);
   const [professors, setProfessors] = useState([]);
@@ -118,18 +126,10 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
       try {
         const [classesRes, disciplinesRes, usersRes, calendarsRes] =
           await Promise.all([
-            api.get("/classes-coordinator").catch((err) => {
-              return { data: [] };
-            }),
-            api.get("/course/discipline").catch((err) => {
-              return { data: [] };
-            }),
-            api.get("/users").catch((err) => {
-              return { data: { users: [] } };
-            }),
-            api.get("/calendar").catch((err) => {
-              return { data: { calendars: [] } };
-            }),
+            api.get("/classes-coordinator").catch((err) => ({ data: [] })),
+            api.get("/course/discipline").catch((err) => ({ data: [] })),
+            api.get("/users").catch((err) => ({ data: { users: [] } })),
+            api.get("/calendar").catch((err) => ({ data: { calendars: [] } })),
           ]);
 
         setClasses(
@@ -151,35 +151,30 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           Array.isArray(calendarsRes.data.calendars)
             ? calendarsRes.data.calendars.map((calendar) => ({
                 ...calendar,
-                displayPeriod: `${calendar.year}.${
-                  calendar.period
-                } - ${calendar.type.toUpperCase()}`,
+                display: `${calendar.year}.${calendar.period}`,
               }))
             : []
         );
 
-        if (!classesRes.data.classes || classesRes.data.classes.length === 0) {
+        if (!classesRes.data.classes?.length) {
           setErrors((prev) => ({
             ...prev,
             classes: "Não foi possível carregar as turmas.",
           }));
         }
-        if (!disciplinesRes.data || disciplinesRes.data.length === 0) {
+        if (!disciplinesRes.data?.length) {
           setErrors((prev) => ({
             ...prev,
             disciplines: "Não foi possível carregar as disciplinas.",
           }));
         }
-        if (!usersRes.data.users || filteredProfessors.length === 0) {
+        if (!filteredProfessors.length) {
           setErrors((prev) => ({
             ...prev,
             professors: "Não foi possível carregar os professores.",
           }));
         }
-        if (
-          !calendarsRes.data.calendars ||
-          calendarsRes.data.calendars.length === 0
-        ) {
+        if (!calendarsRes.data.calendars?.length) {
           setErrors((prev) => ({
             ...prev,
             calendars: "Não foi possível carregar os calendários.",
@@ -188,7 +183,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
       } catch (error) {
         setErrors((prev) => ({
           ...prev,
-          general:
+          message:
             error.response?.data?.message ||
             "Erro ao carregar os dados. Tente novamente.",
         }));
@@ -221,12 +216,10 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
 
           if (backendTurn) {
             const response = await api.get(`/hours?turn=${backendTurn}`);
-            setAvailableHours(response.data);
+            setAvailableHours(response.data.hours || response.data);
 
             const currentDetail = formData.details[0];
-            const currentStartTimeValid = response.data.some(
-              (h) => h.hourStart === currentDetail.startTime
-            );
+            const currentStartTimeValid = response.data?.hours?.some((h) => h.hourStart === currentDetail?.startTime) || response.data?.data?.some((h) => h.hourStart === currentDetail?.startTime);
 
             if (!currentStartTimeValid) {
               setFormData((prev) => ({
@@ -236,9 +229,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                 ],
               }));
             } else {
-              const selectedHour = response.data.find(
-                (h) => h.hourStart === currentDetail.startTime
-              );
+              const selectedHour = response.data?.hours?.find((h) => h.hourStart === currentDetail?.startTime) || response.data?.data?.find((h) => h.hourStart === currentDetail?.startTime);
               if (
                 selectedHour &&
                 selectedHour.hourEnd !== currentDetail.endTime
@@ -248,8 +239,8 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                   details: [
                     {
                       ...currentDetail,
-                      endTime: selectedHour.hourEnd,
-                      hourId: selectedHour.id,
+                      endTime: selectedHour?.hourEnd,
+                      hourId: selectedHour?.id,
                     },
                   ],
                 }));
@@ -268,9 +259,9 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           setErrors((prev) => ({
             ...prev,
             hours:
-              error.response?.data?.error ||
+              error.response?.data?.message ||
               "Erro ao carregar horários para o turno.",
-          }));
+            }));
           setAvailableHours([]);
           setFormData((prev) => ({
             ...prev,
@@ -291,7 +282,6 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
         }));
       }
     };
-
     fetchHours();
   }, [formData.turn]);
 
@@ -327,8 +317,6 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
             currentDetail.endTime = "";
             currentDetail.hourId = "";
           }
-        } else if (name === "professorId") {
-          currentDetail.professorId = value;
         } else {
           currentDetail[name] = value;
         }
@@ -339,20 +327,67 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
     });
   };
 
-  const handleSubmit = async () => {
+  const handleAddDetail = () => {
     const currentDetail = formData.details[0];
     if (
-      !formData.calendarId ||
-      !formData.classId ||
-      !formData.turn ||
       !currentDetail.disciplineId ||
       !currentDetail.dayOfWeek ||
       !currentDetail.hourId
     ) {
       setErrors((prev) => ({
         ...prev,
-        general:
-          "Todos os campos obrigatórios (Turma, Turno, Calendário, Disciplina, Dia da Semana, Horário de Início) devem ser preenchidos.",
+        detail: "Disciplina, Dia da Semana e Horário de Início são obrigatórios.",
+      }));
+      return;
+    }
+
+    const discipline = disciplines.find(
+      (d) => d.disciplineId === currentDetail.disciplineId
+    );
+    const professor = professors.find(
+      (p) => p.id === currentDetail.professorId
+    );
+
+    setConfirmedDetails((prev) => [
+      ...prev,
+      {
+        ...currentDetail,
+        disciplineName: discipline?.name || "N/A",
+        professorName: professor?.username || "Sem professor",
+      },
+    ]);
+
+    setFormData((prev) => ({
+      ...prev,
+      details: [
+        {
+          disciplineId: "",
+          professorId: "",
+          dayOfWeek: "",
+          startTime: "",
+          endTime: "",
+          hourId: "",
+        },
+      ],
+    }));
+    setErrors((prev) => ({ ...prev, detail: null }));
+  };
+
+  const handleDeleteDetail = (index) => {
+    setConfirmedDetails((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async () => {
+    if (
+      !formData.calendarId ||
+      !formData.classId ||
+      !formData.turn ||
+      confirmedDetails.length === 0
+    ) {
+      setErrors((prev) => ({
+        ...prev,
+        message:
+          "Turma, Turno, Calendário e pelo menos um horário são obrigatórios.",
       }));
       return;
     }
@@ -376,16 +411,12 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           backendTurn = "";
       }
 
-      const backendDayOfWeek = currentDetail.dayOfWeek.replace("-feira", "");
-
-      const detailsToSend = [
-        {
-          disciplineId: currentDetail.disciplineId,
-          hourId: currentDetail.hourId,
-          dayOfWeek: backendDayOfWeek,
-          userId: currentDetail.professorId || null,
-        },
-      ];
+      const detailsToSend = confirmedDetails.map((detail) => ({
+        disciplineId: detail.disciplineId,
+        hourId: detail.hourId,
+        dayOfWeek: detail.dayOfWeek.replace("-feira", ""),
+        userId: detail.professorId || null,
+      }));
 
       const dataToSend = {
         calendarId: formData.calendarId,
@@ -395,14 +426,14 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
         details: detailsToSend,
       };
 
-      const response = await api.post("/class-schedules", dataToSend);
+      await api.post("/class-schedules", dataToSend);
       navigate("/class-schedule", {
         state: { success: "Grade de turma criada com sucesso!" },
       });
     } catch (error) {
       setErrors((prev) => ({
         ...prev,
-        general:
+        message:
           error.response?.data?.message ||
           "Erro ao cadastrar a grade de turma. Tente novamente.",
       }));
@@ -411,7 +442,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
     }
   };
 
-  if (loading && !errors.general && Object.keys(errors).length === 0) {
+  if (loading && !errors.message && Object.keys(errors).length === 0) {
     return (
       <Box
         display="flex"
@@ -447,9 +478,9 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           </Typography>
         </Box>
 
-        {errors.general && (
+        {errors.message && (
           <Alert severity="error" sx={{ mb: 2 }}>
-            {errors.general}
+            {errors.message}
           </Alert>
         )}
         {errors.classes && (
@@ -475,6 +506,11 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
         {errors.hours && (
           <Alert severity="warning" sx={{ mb: 2 }}>
             {errors.hours}
+          </Alert>
+        )}
+        {errors.detail && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {errors.detail}
           </Alert>
         )}
 
@@ -533,21 +569,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               >
                 {calendars.map((calendar) => (
                   <MenuItem key={calendar.id} value={calendar.id}>
-                    {calendar.displayPeriod}
-                  </MenuItem>
-                ))}
-              </CustomSelect>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <CustomSelect
-                label="Disciplina"
-                name="disciplineId"
-                value={formData.details[0].disciplineId}
-                onChange={handleChange}
-              >
-                {disciplines.map((disc) => (
-                  <MenuItem key={disc.disciplineId} value={disc.disciplineId}>
-                    {disc.name}
+                    {calendar.display}
                   </MenuItem>
                 ))}
               </CustomSelect>
@@ -582,9 +604,24 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                 value={formData.details[0].professorId}
                 onChange={handleChange}
               >
+                <MenuItem value="">Sem professor</MenuItem>
                 {professors.map((prof) => (
                   <MenuItem key={prof.id} value={prof.id}>
                     {prof.username}
+                  </MenuItem>
+                ))}
+              </CustomSelect>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <CustomSelect
+                label="Disciplina"
+                name="disciplineId"
+                value={formData.details[0].disciplineId}
+                onChange={handleChange}
+              >
+                {disciplines.map((disc) => (
+                  <MenuItem key={disc.disciplineId} value={disc.disciplineId}>
+                    {disc.name}
                   </MenuItem>
                 ))}
               </CustomSelect>
@@ -633,7 +670,70 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                 disabled
               />
             </Grid>
+            <Grid item xs={12}>
+              <Button
+                variant="contained"
+                color="success"
+                onClick={handleAddDetail}
+                sx={{
+                  mt: 2,
+                  backgroundColor: "#087619",
+                  "&:hover": { backgroundColor: "#066915" },
+                  textTransform: "none",
+                  fontWeight: "bold",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <Check sx={{ fontSize: 24 }} />
+                OK
+              </Button>
+            </Grid>
           </Grid>
+        </Box>
+
+        <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Horários Confirmados
+          </Typography>
+          {confirmedDetails.length > 0 ? (
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell><strong>Dia da Semana</strong></TableCell>
+                  <TableCell><strong>Horário de Início</strong></TableCell>
+                  <TableCell><strong>Horário de Fim</strong></TableCell>
+                  <TableCell><strong>Disciplina</strong></TableCell>
+                  <TableCell><strong>Professor</strong></TableCell>
+                  <TableCell><strong>Ações</strong></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {confirmedDetails.map((detail, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{detail.dayOfWeek}</TableCell>
+                    <TableCell>{detail.startTime}</TableCell>
+                    <TableCell>{detail.endTime}</TableCell>
+                    <TableCell>{detail.disciplineName}</TableCell>
+                    <TableCell>{detail.professorName}</TableCell>
+                    <TableCell>
+                      <IconButton
+                        onClick={() => handleDeleteDetail(index)}
+                        sx={{ color: "#F01424", "&:hover": { color: "#D4000F" } }}
+                      >
+                        <Delete />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <Typography variant="body1" color="text.secondary">
+              Nenhum horário confirmado.
+            </Typography>
+          )}
         </Box>
 
         <Box
@@ -671,7 +771,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
             variant="contained"
             color="success"
             onClick={handleSubmit}
-            disabled={loading}
+            disabled={loading || confirmedDetails.length === 0}
             sx={{
               width: "fit-content",
               minWidth: 100,

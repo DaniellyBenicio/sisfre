@@ -870,32 +870,17 @@ export const getClassSchedule = async (req, res) => {
           as: "class",
           attributes: ["id", "semester"],
         },
-        {
-          model: db.ClassScheduleDetail,
-          as: "details",
-          attributes: ["id", "disciplineId", "userId"],
-          include: [
-            {
-              model: db.Discipline,
-              as: "discipline",
-              attributes: ["id", "name"],
-            },
-            { model: db.User, as: "professor", attributes: ["id", "username"] },
-          ],
-        },
       ],
+      attributes: ["id", "calendarId", "classId", "turn"],
       order: [["id", "ASC"]],
     });
 
     const scheduleList = classSchedules.map((schedule) => {
-      const detail = schedule.details[0];
       const calendarInfo = `${schedule.calendar.year}.${schedule.calendar.period}`;
       return {
         id: schedule.id,
         calendar: calendarInfo,
-        professor: detail.professor ? detail.professor.username : null,
         turma: schedule.class.semester,
-        disciplina: detail.discipline.name,
         turno: schedule.turn,
       };
     });

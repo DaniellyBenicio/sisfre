@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../../../service/api";
 
 const ClassScheduleList = () => {
-  const [disciplines, setDisciplines] = useState([]);
+  const [schedules, setSchedules] = useState([]);
   const [search, setSearch] = useState("");
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -37,9 +37,7 @@ const ClassScheduleList = () => {
           ? response.data.schedules.map((schedule) => ({
               id: schedule.id,
               calendar: schedule.calendar,
-              teacher: schedule.professor || "Sem professor",
               class: schedule.turma,
-              discipline: schedule.disciplina,
               turn:
                 schedule.turno === "MATUTINO"
                   ? "Manhã"
@@ -51,7 +49,7 @@ const ClassScheduleList = () => {
 
         console.log("Mapped Schedules:", schedules);
 
-        setDisciplines(schedules);
+        setSchedules(schedules);
 
         const uniqueCalendars = [
           ...new Set(schedules.map((item) => item.calendar)),
@@ -88,7 +86,7 @@ const ClassScheduleList = () => {
   const handleCustomEdit = (item) => {
     console.log("Edit Clicked Item:", item);
     setAlert({
-      message: `Editar grade de turma: ${item.discipline}`,
+      message: `Editar grade de turma: ${item.class}`,
       type: "info",
     });
     navigate("/class-schedule-create", { state: { schedule: item } });
@@ -98,7 +96,7 @@ const ClassScheduleList = () => {
     setAlert(null);
   };
 
-  const filteredDisciplines = disciplines.filter((item) => {
+  const filteredSchedules = schedules.filter((item) => {
     const matchesSearch = Object.values(item).some((val) =>
       val?.toString().toLowerCase().includes(search.toLowerCase())
     );
@@ -107,7 +105,7 @@ const ClassScheduleList = () => {
     return matchesSearch && matchesCalendar && matchesClass;
   });
 
-  console.log("Filtered Disciplines:", filteredDisciplines);
+  console.log("Filtered Schedules:", filteredSchedules);
 
   return (
     <Box
@@ -329,7 +327,7 @@ const ClassScheduleList = () => {
       </Box>
 
       <ClassScheduleTable
-        classesSchedule={filteredDisciplines}
+        classesSchedule={filteredSchedules}
         onUpdate={handleCustomEdit}
         search={search}
         showActions={true}

@@ -25,7 +25,7 @@ import {
   Close,
   Save,
   Assignment,
-  Schedule,
+  History,
   Check,
   Delete,
 } from "@mui/icons-material";
@@ -540,6 +540,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                 name="classId"
                 value={formData.classId}
                 onChange={handleChange}
+                sx={{ width: "250px" }}
               >
                 {classes.map((item) => (
                   <MenuItem key={item.id} value={item.id}>
@@ -554,6 +555,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                 name="turn"
                 value={formData.turn}
                 onChange={handleChange}
+                sx={{ width: "350px" }}
               >
                 <MenuItem value="Manhã">Manhã</MenuItem>
                 <MenuItem value="Tarde">Tarde</MenuItem>
@@ -591,7 +593,19 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               mb: 2,
             }}
           >
-            <Schedule sx={{ fontSize: "31px", color: "green" }} />
+            <Box
+              sx={{
+                backgroundColor: "green",
+                borderRadius: "50%",
+                width: 35,
+                height: 35,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <History sx={{ color: "white", fontSize: 27 }} />
+            </Box>
             <Typography variant="h5" color="green">
               Horários
             </Typography>

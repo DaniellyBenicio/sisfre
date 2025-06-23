@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   Box,
@@ -8,7 +7,7 @@ import {
   CardContent,
   CardActionArea,
 } from "@mui/material";
-import { Class, Schedule } from "@mui/icons-material";
+import { Class } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
 const ClassOptionsList = () => {
@@ -19,11 +18,6 @@ const ClassOptionsList = () => {
       title: "Turmas",
       icon: <Class sx={{ fontSize: 60, color: "#087619" }} />,
       path: "/classes",
-    },
-    {
-      title: "Grade de Turmas",
-      icon: <Schedule sx={{ fontSize: 60, color: "#087619" }} />,
-      path: "/class-schedule",
     },
   ];
 
@@ -85,7 +79,7 @@ const ClassOptionsList = () => {
                 overflow: "visible",
                 transition: "all 0.4s ease-in-out",
                 "&:hover": {
-                  transform: "translateY(-12px)", // Elevação mais pronunciada
+                  transform: "translateY(-12px)",
                   boxShadow:
                     "0 12px 24px rgba(8, 118, 25, 0.3), 0 0 12px rgba(8, 118, 25, 0.5)",
                   border: "3px solid #0A8C1F",
@@ -134,7 +128,7 @@ const ClassOptionsList = () => {
                       mb: 2,
                       transition: "transform 0.4s ease-in-out",
                       "&:hover": {
-                        transform: "scale(1.15)", // Escala um pouco maior para efeito mais "pulo"
+                        transform: "scale(1.15)",
                       },
                     }}
                   >
@@ -149,9 +143,9 @@ const ClassOptionsList = () => {
                       transition:
                         "transform 0.4s ease-in-out, color 0.4s ease-in-out",
                       "&:hover": {
-                        transform: "scale(1.1)", // Escala um pouco maior
+                        transform: "scale(1.1)",
                         color: "#0A8C1F",
-                        fontSize: "1.35rem", // Tamanho da fonte maior
+                        fontSize: "1.35rem",
                       },
                     }}
                   >

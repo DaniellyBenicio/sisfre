@@ -13,7 +13,7 @@ import DisciplinePage from "../pages/disciplines/DisciplinePage.js";
 import SaturdaySchoolPage from "../pages/admin/SaturdaySchool/SaturdaySchoolPage.js";
 import CalendarOptionsPage from "../pages/admin/CalendarOptions/CalendarOptionsPage.js";
 import ClassSchedulePage from "../pages/classSchedule/ClassSchedulePage.js";
-import ClassOptionsPage from "../pages/admin/ClassOptions/ClassOptionsPage.js";
+import ClassOptionsPage from "../pages/disciplines/Teacher/ClassTeacher/ClassOptionsPage.js";
 import ClassScheduleCreate from "../pages/classSchedule/Coodinator/ClassScheduleCreate.js";
 import HolidayPage from "../pages/admin/Holiday/HolidayPage.js";
 import ClassScheduleDetails from "../pages/classSchedule/Coodinator/ClassScheduleDetails.js";
@@ -21,42 +21,49 @@ import ClassScheduleDetails from "../pages/classSchedule/Coodinator/ClassSchedul
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
     const token = localStorage.getItem("token");
-    console.log("Initial isAuthenticated:", !!token); // Depuração
     return !!token;
   });
-  const accessType = localStorage.getItem("accessType");
+  const [accessType, setAccessType] = useState(localStorage.getItem("accessType"));
   const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    console.log("Checking token:", token); // Depuração
     if (token) {
       try {
         const decoded = jwtDecode(token);
         const currentTime = Date.now() / 1000;
-        console.log("Token decoded, exp:", decoded.exp, "currentTime:", currentTime);
         if (decoded.exp < currentTime) {
           localStorage.removeItem("token");
           localStorage.removeItem("accessType");
           setAuthenticated(false);
+          setAccessType(null);
           navigate("/login");
+        } else {
+          const storedAccessType = localStorage.getItem("accessType");
+          if (storedAccessType !== accessType) {
+            setAccessType(storedAccessType);
+          }
         }
       } catch (err) {
         console.error("Token error:", err);
         localStorage.removeItem("token");
         localStorage.removeItem("accessType");
         setAuthenticated(false);
+        setAccessType(null);
         alert("Erro com o token de autenticação. Faça login novamente.");
         navigate("/login");
       }
+    } else {
+      setAuthenticated(false);
+      setAccessType(null);
+      navigate("/login");
     }
-  }, [navigate]);
+  }, [navigate, accessType]);
 
   const handleLogin = () => {
-    console.log("Handle login called");
     setAuthenticated(true);
     const access = localStorage.getItem("accessType");
-    console.log("Access type after login:", access);
+    setAccessType(access);
     if (access === "Admin") {
       navigate("/calendar-options");
     } else {
@@ -65,11 +72,11 @@ const AppRoutes = () => {
   };
 
   const handleLogout = () => {
-    console.log("Handle logout called");
     localStorage.removeItem("token");
     localStorage.removeItem("accessType");
     localStorage.removeItem("username");
     setAuthenticated(false);
+    setAccessType(null);
     navigate("/login");
   };
 
@@ -102,8 +109,24 @@ const AppRoutes = () => {
       <Route
         path="/class-options"
         element={
-          isAuthenticated && (accessType === "Admin" || accessType === "Coordenador") ? (
+          isAuthenticated && accessType === "Professor" ? (
             <ClassOptionsPage setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
+        path="/classes"
+        element={
+          isAuthenticated ? (
+            accessType === "Professor" ? (
+              <ClassOptionsPage setAuthenticated={handleLogout} />
+            ) : accessType === "Admin" || accessType === "Coordenador" ? (
+              <ClassesPage setAuthenticated={handleLogout} />
+            ) : (
+              <Navigate to="/Classes" />
+            )
           ) : (
             <Navigate to="/login" />
           )
@@ -140,16 +163,6 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/classes"
-        element={
-          isAuthenticated ? (
-            <ClassesPage setAuthenticated={handleLogout} />
-          ) : (
-            <Navigate to="/login" />
-          )
-        }
-      />
-      <Route
         path="/calendar"
         element={
           isAuthenticated && accessType === "Admin" ? (
@@ -160,15 +173,15 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/class-schedule"
-        element={
-          isAuthenticated ? (
-            <ClassSchedulePage setAuthenticated={handleLogout} />
-          ) : (
-            <Navigate to="/login" />
-          )
-        }
-      />
+  path="/class-schedule"
+  element={
+    isAuthenticated && accessType === "Coordenador" ? (
+      <ClassSchedulePage setAuthenticated={handleLogout} />
+    ) : (
+      <Navigate to="/login" />
+    )
+  }
+/>
       <Route
         path="/class-schedule-create"
         element={
@@ -213,7 +226,7 @@ const AppRoutes = () => {
         path="/holiday"
         element={
           isAuthenticated && accessType === "Admin" ? (
-            <HolidayPage setAuthenticated={handleLogout} /> // Substituí o placeholder
+            <HolidayPage setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
           )

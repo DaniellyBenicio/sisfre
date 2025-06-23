@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   Drawer,
@@ -25,13 +24,14 @@ import {
   Class,
   LibraryBooks,
   CalendarToday,
+  Schedule, // Ícone para Grade de Turmas
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useMediaQuery } from "@mui/material";
 import LogoMenu from "../assets/LogoMenu.svg";
 import { logout } from "../service/Auth.js";
 
-const Sidebar = ({ setAuthenticated, useRole }) => {
+const Sidebar = ({ setAuthenticated }) => {
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -53,7 +53,8 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
     else if (path === "/courses") setSelectedItem("courses");
     else if (path === "/disciplines") setSelectedItem("disciplines");
     else if (path === "/calendar-options") setSelectedItem("calendar");
-    else if (path === "/class-options") setSelectedItem("classes");
+    else if (path === "/classes") setSelectedItem("classes");
+    else if (path === "/class-schedule") setSelectedItem("class-schedule");
   }, [location.pathname]);
 
   const handleOpenConfirmDialog = () => setOpenConfirmDialog(true);
@@ -154,7 +155,7 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
               </ListItem>
               <ListItem
                 button
-                onClick={() => handleItemClick("/class-options", "classes")}
+                onClick={() => handleItemClick("/classes", "classes")}
                 sx={getListItemStyle(selectedItem, "classes")}
               >
                 <Class sx={{ mr: 1 }} />
@@ -175,11 +176,11 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
               </ListItem>
               <ListItem
                 button
-                onClick={() => handleItemClick("/class-options", "classes")}
-                sx={getListItemStyle(selectedItem, "classes")}
+                onClick={() => handleItemClick("/class-schedule", "class-schedule")}
+                sx={getListItemStyle(selectedItem, "class-schedule")}
               >
-                <Class sx={{ mr: 1 }} />
-                <ListItemText primary="Turmas" />
+                <Schedule sx={{ mr: 1 }} />
+                <ListItemText primary="Grade de Turmas" />
               </ListItem>
             </>
           )}
@@ -193,6 +194,14 @@ const Sidebar = ({ setAuthenticated, useRole }) => {
               >
                 <LibraryBooks sx={{ mr: 1 }} />
                 <ListItemText primary="Disciplinas" />
+              </ListItem>
+              <ListItem
+                button
+                onClick={() => handleItemClick("/classes", "classes")}
+                sx={getListItemStyle(selectedItem, "classes")}
+              >
+                <Class sx={{ mr: 1 }} />
+                <ListItemText primary="Turmas" />
               </ListItem>
             </>
           )}

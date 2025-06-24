@@ -757,13 +757,30 @@ export const getClassSchedule = async (req, res) => {
       order: [["id", "ASC"]],
     });
 
+    const countTurns = (details) => {
+      const counts = {
+        MATUTINO: 0,
+        VESPERTINO: 0,
+        NOTURNO: 0,
+        INTEGRADO: 0,
+      };
+
+      details.forEach((detail) => {
+        if (counts.hasOwnProperty(detail.turn)) {
+          counts[detail.turn]++;
+        }
+      });
+      return counts;
+    };
+
     const scheduleList = classSchedules.map((schedule) => {
       const calendarInfo = `${schedule.calendar.year}.${schedule.calendar.period}`;
+      const turnCounts = countTurns(schedule.details);
+
       return {
         id: schedule.id,
         calendar: calendarInfo,
         turma: schedule.class.semester,
-        turno: schedule.turn,
         nome_curso: schedule.course.name,
         sigla_curso: schedule.course.acronym,
         details: schedule.details.map((detail) => ({
@@ -776,6 +793,7 @@ export const getClassSchedule = async (req, res) => {
           dayOfWeek: detail.dayOfWeek,
           turn: detail.turn,
         })),
+        turnCounts: turnCounts,
       };
     });
 
@@ -970,8 +988,24 @@ export const getClassSchedulesFilter = async (req, res) => {
       order: [["id", "ASC"]],
     });
 
+    const countTurns = (details) => {
+        const counts = {
+            MATUTINO: 0,
+            VESPERTINO: 0,
+            NOTURNO: 0,
+        };
+        details.forEach(detail => {
+            if (counts.hasOwnProperty(detail.turn)) {
+                counts[detail.turn]++;
+            }
+        });
+        return counts;
+    };
+
     const scheduleList = classSchedules.map((schedule) => {
       const calendarInfo = `${schedule.calendar.year}.${schedule.calendar.period}`;
+      const turnCounts = countTurns(schedule.details); 
+
       return {
         calendar: calendarInfo,
         turma: schedule.class.semester,
@@ -987,6 +1021,7 @@ export const getClassSchedulesFilter = async (req, res) => {
             : null,
           turn: detail.turn,
         })),
+        turnCounts: turnCounts,
       };
     });
 

@@ -1,22 +1,24 @@
 import React from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom"; // Importar useNavigate
 import {
   Box,
   Typography,
   Card,
   CardContent,
-  Table,        // Importar Table
-  TableBody,    // Importar TableBody
-  TableCell,    // Importar TableCell
-  TableContainer, // Importar TableContainer (opcional, mas recomendado para responsividade)
-  TableHead,    // Importar TableHead
-  TableRow,     // Importar TableRow
-  Paper,        // Importar Paper (para o TableContainer)
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton, // Importar IconButton
 } from "@mui/material";
-import { Class, AccessTime } from "@mui/icons-material"; // Verifique se Class está correto ou se é GridView como no card
+import { Class, AccessTime, ArrowBack } from "@mui/icons-material"; // Importar ArrowBack
 
 const ClassDetailsList = ({ setAuthenticated }) => {
   const location = useLocation();
+  const navigate = useNavigate(); // Hook para navegação
   const { state } = location;
 
   // Dados de exemplo fixos caso não haja state.classItem
@@ -37,6 +39,13 @@ const ClassDetailsList = ({ setAuthenticated }) => {
   // Usa os dados do state, se existirem, senão usa os dados de exemplo
   const classItem = state?.classItem || defaultClassItem;
 
+  const handleBackClick = () => {
+    // Pode navegar para uma rota específica (ex: "/minhas-turmas")
+    // ou voltar para a página anterior no histórico.
+    navigate(-1); // Volta para a página anterior
+    // Ou navigate("/minhas-turmas"); // Se você tiver uma rota específica para a lista de turmas
+  };
+
   return (
     <Box
       sx={{
@@ -49,20 +58,44 @@ const ClassDetailsList = ({ setAuthenticated }) => {
         gap: 3,
       }}
     >
-      <Typography
-        variant="h5"
-        align="center"
-        gutterBottom
-        sx={{ fontWeight: "bold", mt: 2, mb: 2, color: "#087619" }}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center", // Centraliza o título
+          position: "relative", // Para posicionar o botão de voltar
+          mb: 2,
+        }}
       >
-        Minhas Turmas
-      </Typography>
+        <IconButton
+          onClick={handleBackClick}
+          sx={{
+            position: "absolute",
+            left: 0,
+            color: "#087619", // Cor do ícone
+            "&:hover": {
+              backgroundColor: "rgba(8, 118, 25, 0.08)", // Efeito hover
+            },
+          }}
+        >
+          <ArrowBack />
+        </IconButton>
+        <Typography
+          variant="h5"
+          align="center"
+          gutterBottom
+          sx={{ fontWeight: "bold", color: "#087619", m: 0 }} // m:0 para remover margin padrão do Typography
+        >
+          Detalhes da Turma
+        </Typography>
+      </Box>
 
-      {/* Cartão de Detalhes da Turma - Sem Alterações */}
+      {/* Cartão de Detalhes da Turma - Sem Alterações Funcionais */}
       <Card
         sx={{
           backgroundColor: "#FFFFFF",
-          boxShadow: "0 6px 12px rgba(8, 118, 25, 0.1), 0 3px 6px rgba(8, 118, 25, 0.05)",
+          boxShadow:
+            "0 6px 12px rgba(8, 118, 25, 0.1), 0 3px 6px rgba(8, 118, 25, 0.05)",
           borderRadius: 2,
           border: "1px solid #e0e0e0",
           p: 2,
@@ -98,11 +131,12 @@ const ClassDetailsList = ({ setAuthenticated }) => {
         </CardContent>
       </Card>
 
-      {/* Cartão de Horário - AGORA COM TABELA */}
+      {/* Cartão de Horário - Com Tabela */}
       <Card
         sx={{
           backgroundColor: "#FFFFFF",
-          boxShadow: "0 6px 12px rgba(8, 118, 25, 0.1), 0 3px 6px rgba(8, 118, 25, 0.05)",
+          boxShadow:
+            "0 6px 12px rgba(8, 118, 25, 0.1), 0 3px 6px rgba(8, 118, 25, 0.05)",
           borderRadius: 2,
           border: "1px solid #e0e0e0",
           p: 2,
@@ -124,19 +158,25 @@ const ClassDetailsList = ({ setAuthenticated }) => {
             </Typography>
           </Box>
 
-          <TableContainer component={Paper} elevation={0}> {/* Paper para o fundo, elevation 0 para remover sombra */}
-            <Table size="small" aria-label="horário da turma"> {/* size="small" para tabelas mais compactas */}
+          <TableContainer component={Paper} elevation={0}>
+            <Table size="small" aria-label="horário da turma">
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: "bold", pl: 0 }}>Dia da Semana</TableCell> {/* pl:0 para alinhar com o protótipo */}
-                  <TableCell align="center" sx={{ fontWeight: "bold" }}>Horário de Início</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: "bold" }}>Horário de Fim</TableCell>
+                  <TableCell sx={{ fontWeight: "bold", pl: 0 }}>
+                    Dia da Semana
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                    Horário de Início
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                    Horário de Fim
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {classItem.schedule.map((slot, index) => (
                   <TableRow key={index}>
-                    <TableCell sx={{ pl: 0 }}>{slot.day}</TableCell> {/* pl:0 para alinhar com o protótipo */}
+                    <TableCell sx={{ pl: 0 }}>{slot.day}</TableCell>
                     <TableCell align="center">{slot.startTime}</TableCell>
                     <TableCell align="center">{slot.endTime}</TableCell>
                   </TableRow>

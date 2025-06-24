@@ -18,7 +18,7 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { ptBR } from "date-fns/locale";
 import api from "../../service/api";
 import { StyledTextField, StyledSelect } from "../../components/inputs/Input";
-import DateRangePicker from "./DateRangePicker";
+import DateRangePicker, { createLocalDate } from "./DateRangePicker"; // Importa createLocalDate
 
 const INSTITUTIONAL_COLOR = "#307c34";
 
@@ -52,15 +52,16 @@ const formatDateForInput = (date) => {
     if (typeof date === "string") {
       const parts = date.split("/");
       if (parts.length === 3) {
-        d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T00:00:00`); 
+        // Assume DD/MM/YYYY
+        d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T00:00:00`);
       } else {
-
+        // Assume YYYY-MM-DD
         d = new Date(`${date}T00:00:00`);
       }
     } else if (date instanceof Date) {
-      d = date; 
+      d = date;
     } else {
-      return ""; 
+      return "";
     }
 
     if (!isNaN(d.getTime())) {
@@ -124,24 +125,28 @@ const CalendarFormDialog = ({
           localCalendarTypes.includes(calendarToEdit.type) ||
           calendarToEdit.type === "OUTRO"
             ? calendarToEdit.type
-            : calendarToEdit.type;
+            : calendarToEdit.type; // Se o tipo não está na lista, usa o tipo existente
+
+        // Adiciona o tipo do calendário a ser editado à lista de tipos locais se ele não estiver lá
         if (
           !localCalendarTypes.includes(calendarToEdit.type) &&
           calendarToEdit.type !== "OUTRO"
         ) {
-          setLocalCalendarTypes([
-            ...localCalendarTypes.filter((t) => t !== "OUTRO"),
-            calendarToEdit.type,
-            "OUTRO",
-          ]);
+          setLocalCalendarTypes((prevTypes) => {
+            const newTypes = [...prevTypes.filter((t) => t !== "OUTRO"), calendarToEdit.type, "OUTRO"];
+            calendarTypes = newTypes; // Atualiza a variável global (se necessário)
+            return newTypes;
+          });
         }
+
         const calendarDataToSet = {
           type: typeToSet,
           year: calendarToEdit.year || "",
           period: calendarToEdit.period || "",
           startDate: formatDateForInput(calendarToEdit.startDate),
           endDate: formatDateForInput(calendarToEdit.endDate),
-          customType: typeToSet === "OUTRO" ? calendarToEdit.type : "",
+          // customType para o initialCalendarData, se o tipo original era 'OUTRO'
+          customType: typeToSet === "OUTRO" ? calendarToEdit.type : "", 
         };
         setCalendarData({
           type: typeToSet,
@@ -150,7 +155,7 @@ const CalendarFormDialog = ({
           startDate: formatDateForInput(calendarToEdit.startDate),
           endDate: formatDateForInput(calendarToEdit.endDate),
         });
-        setInitialCalendarData(calendarDataToSet); 
+        setInitialCalendarData(calendarDataToSet);
         setCustomType(typeToSet === "OUTRO" ? calendarToEdit.type : "");
         setError(null);
       } else {
@@ -164,9 +169,11 @@ const CalendarFormDialog = ({
         setInitialCalendarData(null);
         setCustomType("");
         setError(null);
+        // Garante que os tipos sejam resetados para o padrão ao abrir para cadastro
+        setLocalCalendarTypes(calendarTypes.filter(t => t === "CONVENCIONAL" || t === "REGULAR" || t === "PÓS-GREVE" || t === "OUTRO"));
       }
     }
-  }, [calendarToEdit, open, localCalendarTypes]);
+  }, [calendarToEdit, open]);
 
   const handleInputChange = (name, value) => {
     setCalendarData({ ...calendarData, [name]: value });
@@ -220,6 +227,49 @@ const CalendarFormDialog = ({
       return;
     }
 
+    // --- Validação de Datas no Frontend ---
+    const currentStartDate = createLocalDate(calendarData.startDate);
+    const currentEndDate = createLocalDate(calendarData.endDate);
+    const todayLocalMidnight = new Date();
+    todayLocalMidnight.setHours(0, 0, 0, 0);
+
+    // 1. Validação geral: Data de Início não pode ser posterior à Data de Fim (sempre válida)
+    if (currentStartDate > currentEndDate) {
+      setError("A data de início não pode ser posterior à data de fim.");
+      return;
+    }
+
+    // 2. Validação específica por modo (Cadastro vs. Edição) e por alteração da data de início
+    if (isEditMode) {
+      const initialStartDate = createLocalDate(initialCalendarData?.startDate);
+
+      // NOVO: Se a data de início *NÃO FOI ALTERADA*, então ela é válida para edição de outros campos.
+      if (calendarData.startDate === initialCalendarData.startDate) {
+          // Se a data de início não mudou, não aplicamos validações de "data retroativa".
+          // Apenas seguimos em frente, permitindo a edição de outros campos.
+      } else {
+          // A data de início FOI ALTERADA. Agora precisamos validar a nova data.
+          // Cenário 1: Calendário já começou (initialStartDate <= today) e está tentando retroceder a data de início
+          if (initialStartDate <= todayLocalMidnight && currentStartDate < initialStartDate) {
+              setError("Não é permitido retroceder a data de início de um calendário em andamento.");
+              return;
+          }
+          // Cenário 2: Calendário futuro (initialStartDate > today) e está tentando definir uma data passada
+          // OU tentando definir uma data anterior à initialStartDate (que ainda é futura)
+          if (initialStartDate > todayLocalMidnight && currentStartDate < initialStartDate) {
+              setError("A data de início de um calendário futuro não pode ser anterior à data original, nem passada.");
+              return;
+          }
+      }
+    } else { // Modo de Cadastro
+        // Para um NOVO calendário, a data de início SEMPRE deve ser hoje ou no futuro.
+        if (currentStartDate < todayLocalMidnight) {
+            setError("A data de início para um novo calendário não pode ser anterior à data atual.");
+            return;
+        }
+    }
+    // --- Fim da Validação de Datas no Frontend ---
+
     try {
       const payload = {
         type: finalType,
@@ -240,8 +290,9 @@ const CalendarFormDialog = ({
           calendarData.type === "OUTRO" &&
           !localCalendarTypes.includes(finalType)
         ) {
+          // Atualiza a lista de tipos locais e a variável global calendarTypes
           const newTypes = [
-            ...localCalendarTypes.filter((t) => t !== "OUTRO"),
+            ...calendarTypes.filter((t) => t !== "OUTRO"),
             finalType,
             "OUTRO",
           ];
@@ -260,6 +311,7 @@ const CalendarFormDialog = ({
       onSubmitSuccess(response.data.calendar, isEditMode);
       onClose();
     } catch (err) {
+      // Captura o erro do backend e exibe
       const errorMessage =
         err.response?.data?.error ||
         `Erro ao ${isEditMode ? "atualizar" : "cadastrar"} calendário: ${
@@ -569,44 +621,45 @@ const CalendarFormDialog = ({
             <DateRangePicker
               calendarData={calendarData}
               handleInputChange={handleInputChange}
+              isEditMode={isEditMode}
             />
 
-<DialogActions
-  sx={{
-    justifyContent: "center",
-    gap: 2,
-    padding: "10px 24px",
-    marginTop: "10px",
-  }}
->
-  <StyledButton
-    onClick={onClose}
-    variant="contained"
-    sx={{
-      backgroundColor: "#F01424",
-      "&:hover": { backgroundColor: "#D4000F" },
-    }}
-  >
-    <Close sx={{ fontSize: 24 }} />
-    Cancelar
-  </StyledButton>
-  <StyledButton
-    type="submit"
-    variant="contained"
-    disabled={
-      isEditMode ? !isFormFilled || !hasChanges : !isFormFilled
-    }
-    sx={{
-      backgroundColor: !isFormFilled ? "#E0E0E0" : INSTITUTIONAL_COLOR,
-      "&:hover": {
-        backgroundColor: !isFormFilled ? "#E0E0E0" : "#26692b",
-      },
-    }}
-  >
-    <Save sx={{ fontSize: 24 }} />
-    {isEditMode ? "Atualizar" : "Cadastrar"}
-  </StyledButton>
-</DialogActions>
+            <DialogActions
+              sx={{
+                justifyContent: "center",
+                gap: 2,
+                padding: "10px 24px",
+                marginTop: "10px",
+              }}
+            >
+              <StyledButton
+                onClick={onClose}
+                variant="contained"
+                sx={{
+                  backgroundColor: "#F01424",
+                  "&:hover": { backgroundColor: "#D4000F" },
+                }}
+              >
+                <Close sx={{ fontSize: 24 }} />
+                Cancelar
+              </StyledButton>
+              <StyledButton
+                type="submit"
+                variant="contained"
+                disabled={
+                  isEditMode ? !isFormFilled || !hasChanges : !isFormFilled
+                }
+                sx={{
+                  backgroundColor: !isFormFilled ? "#E0E0E0" : INSTITUTIONAL_COLOR,
+                  "&:hover": {
+                    backgroundColor: !isFormFilled ? "#E0E0E0" : "#26692b",
+                  },
+                }}
+              >
+                <Save sx={{ fontSize: 24 }} />
+                {isEditMode ? "Atualizar" : "Cadastrar"}
+              </StyledButton>
+            </DialogActions>
           </Box>
         </DialogContent>
       </Dialog>

@@ -18,7 +18,7 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { ptBR } from "date-fns/locale";
 import api from "../../service/api";
 import { StyledTextField, StyledSelect } from "../../components/inputs/Input";
-import DateRangePicker, { createLocalDate } from "./DateRangePicker"; // Importa createLocalDate
+import DateRangePicker, { createLocalDate } from "./DateRangePicker";
 
 const INSTITUTIONAL_COLOR = "#307c34";
 
@@ -95,7 +95,9 @@ const CalendarFormDialog = ({
   const [customType, setCustomType] = useState("");
   const [error, setError] = useState(null);
   const [localCalendarTypes, setLocalCalendarTypes] = useState(calendarTypes);
+  const [isYearDisabled, setIsYearDisabled] = useState(false);
 
+  // Definições de isFormFilled e hasChanges
   const isFormFilled =
     calendarData.type &&
     calendarData.year &&
@@ -120,14 +122,13 @@ const CalendarFormDialog = ({
 
   useEffect(() => {
     if (open) {
-      if (calendarToEdit) {
+      if (isEditMode && calendarToEdit) { // Condição explícita para modo de edição
         const typeToSet =
           localCalendarTypes.includes(calendarToEdit.type) ||
           calendarToEdit.type === "OUTRO"
             ? calendarToEdit.type
-            : calendarToEdit.type; // Se o tipo não está na lista, usa o tipo existente
+            : calendarToEdit.type;
 
-        // Adiciona o tipo do calendário a ser editado à lista de tipos locais se ele não estiver lá
         if (
           !localCalendarTypes.includes(calendarToEdit.type) &&
           calendarToEdit.type !== "OUTRO"
@@ -145,20 +146,26 @@ const CalendarFormDialog = ({
           period: calendarToEdit.period || "",
           startDate: formatDateForInput(calendarToEdit.startDate),
           endDate: formatDateForInput(calendarToEdit.endDate),
-          // customType para o initialCalendarData, se o tipo original era 'OUTRO'
-          customType: typeToSet === "OUTRO" ? calendarToEdit.type : "", 
+          customType: typeToSet === "OUTRO" ? calendarToEdit.type : "",
         };
         setCalendarData({
-          type: typeToSet,
-          year: calendarToEdit.year || "",
-          period: calendarToEdit.period || "",
-          startDate: formatDateForInput(calendarToEdit.startDate),
-          endDate: formatDateForInput(calendarToEdit.endDate),
+          type: calendarDataToSet.type,
+          year: calendarDataToSet.year,
+          period: calendarDataToSet.period,
+          startDate: calendarDataToSet.startDate,
+          endDate: calendarDataToSet.endDate,
         });
         setInitialCalendarData(calendarDataToSet);
         setCustomType(typeToSet === "OUTRO" ? calendarToEdit.type : "");
         setError(null);
-      } else {
+
+        // Lógica para desativar o ano no modo de edição se o calendário já começou
+        const todayLocalMidnight = new Date();
+        todayLocalMidnight.setHours(0, 0, 0, 0);
+        const calendarStartDate = createLocalDate(calendarToEdit.startDate);
+        setIsYearDisabled(calendarStartDate <= todayLocalMidnight); // Definir o estado
+
+      } else { // Modo de cadastro
         setCalendarData({
           type: "",
           year: "",
@@ -169,14 +176,25 @@ const CalendarFormDialog = ({
         setInitialCalendarData(null);
         setCustomType("");
         setError(null);
-        // Garante que os tipos sejam resetados para o padrão ao abrir para cadastro
-        setLocalCalendarTypes(calendarTypes.filter(t => t === "CONVENCIONAL" || t === "REGULAR" || t === "PÓS-GREVE" || t === "OUTRO"));
+        // Garantir que os tipos de calendário estejam corretos no modo de cadastro
+        // e que o campo de ano não esteja desativado.
+        setLocalCalendarTypes(calendarTypes); // Usar a lista original de tipos
+        setIsYearDisabled(false); // Resetar para o modo de cadastro (ano sempre habilitado)
       }
     }
-  }, [calendarToEdit, open]);
+  }, [calendarToEdit, open, isEditMode, localCalendarTypes]);
 
   const handleInputChange = (name, value) => {
-    setCalendarData({ ...calendarData, [name]: value });
+    if (name === "year" || name === "period") {
+      setCalendarData((prevData) => ({
+        ...prevData,
+        [name]: value,
+        startDate: "",
+        endDate: "",
+      }));
+    } else {
+      setCalendarData({ ...calendarData, [name]: value });
+    }
   };
 
   const handleTypeChange = (e) => {
@@ -233,9 +251,9 @@ const CalendarFormDialog = ({
     const todayLocalMidnight = new Date();
     todayLocalMidnight.setHours(0, 0, 0, 0);
 
-    // 1. Validação geral: Data de Início não pode ser posterior à Data de Fim (sempre válida)
-    if (currentStartDate > currentEndDate) {
-      setError("A data de início não pode ser posterior à data de fim.");
+    // 1. Validação geral: Data de Fim deve ser posterior à Data de Início (duração mínima de 1 dia)
+    if (currentStartDate >= currentEndDate) {
+      setError("A data de fim deve ser posterior à data de início.");
       return;
     }
 
@@ -243,7 +261,6 @@ const CalendarFormDialog = ({
     if (isEditMode) {
       const initialStartDate = createLocalDate(initialCalendarData?.startDate);
 
-      // NOVO: Se a data de início *NÃO FOI ALTERADA*, então ela é válida para edição de outros campos.
       if (calendarData.startDate === initialCalendarData.startDate) {
           // Se a data de início não mudou, não aplicamos validações de "data retroativa".
           // Apenas seguimos em frente, permitindo a edição de outros campos.
@@ -270,6 +287,16 @@ const CalendarFormDialog = ({
     }
     // --- Fim da Validação de Datas no Frontend ---
 
+    // Validação para garantir que as datas estejam dentro do ano selecionado
+    const selectedYear = parseInt(calendarData.year);
+    const startYear = currentStartDate.getFullYear();
+    const endYear = currentEndDate.getFullYear();
+
+    if (startYear !== selectedYear || endYear !== selectedYear) {
+      setError(`As datas de início e fim devem estar dentro do ano ${selectedYear}.`);
+      return;
+    }
+
     try {
       const payload = {
         type: finalType,
@@ -290,14 +317,13 @@ const CalendarFormDialog = ({
           calendarData.type === "OUTRO" &&
           !localCalendarTypes.includes(finalType)
         ) {
-          // Atualiza a lista de tipos locais e a variável global calendarTypes
           const newTypes = [
             ...calendarTypes.filter((t) => t !== "OUTRO"),
             finalType,
             "OUTRO",
           ];
           setLocalCalendarTypes(newTypes);
-          calendarTypes = newTypes;
+          calendarTypes = newTypes; // Atualiza a variável global (se necessário)
           try {
             await api.post("/calendar-types", { type: finalType });
           } catch (typeError) {
@@ -311,7 +337,6 @@ const CalendarFormDialog = ({
       onSubmitSuccess(response.data.calendar, isEditMode);
       onClose();
     } catch (err) {
-      // Captura o erro do backend e exibe
       const errorMessage =
         err.response?.data?.error ||
         `Erro ao ${isEditMode ? "atualizar" : "cadastrar"} calendário: ${
@@ -499,6 +524,10 @@ const CalendarFormDialog = ({
                       top: 0,
                       transform: "translate(14px, -9px) scale(0.75)",
                     },
+                    ...(isYearDisabled && {
+                      color: "rgba(0, 0, 0, 0.38) !important",
+                      "&::after": { content: '" *"', color: "rgba(0, 0, 0, 0.38) !important" },
+                    }),
                   }}
                 >
                   Ano
@@ -512,6 +541,7 @@ const CalendarFormDialog = ({
                   }
                   label="Ano"
                   required
+                  disabled={isYearDisabled}
                   MenuProps={{
                     PaperProps: {
                       sx: {
@@ -622,6 +652,7 @@ const CalendarFormDialog = ({
               calendarData={calendarData}
               handleInputChange={handleInputChange}
               isEditMode={isEditMode}
+              selectedYear={parseInt(calendarData.year)}
             />
 
             <DialogActions

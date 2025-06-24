@@ -22,19 +22,21 @@ export const createLocalDate = (dateString) => {
   }
 };
 
-const DateRangePicker = ({ calendarData, handleInputChange, isEditMode }) => { // Adicionado isEditMode como prop
+const DateRangePicker = ({ calendarData, handleInputChange, isEditMode, selectedYear }) => { // NOVO: selectedYear
 
-  // Data atual no fuso horário do Brasil, ajustada para meia-noite
   const today = new Date();
   const todayLocalMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   todayLocalMidnight.setHours(0, 0, 0, 0);
 
-  // Verifica se o calendário já iniciou.
-  // No modo de edição, se a data de início salva for anterior ou igual ao dia atual, ele é considerado iniciado.
   const isCalendarStarted =
-    isEditMode && // Apenas faz sentido verificar isso no modo de edição
+    isEditMode &&
     calendarData.startDate &&
     createLocalDate(calendarData.startDate) <= todayLocalMidnight;
+
+  // NOVO: Definir minDate e maxDate com base no selectedYear
+  const yearStartDate = selectedYear ? new Date(selectedYear, 0, 1) : null; // 1º de janeiro do ano selecionado
+  const yearEndDate = selectedYear ? new Date(selectedYear, 11, 31) : null; // 31 de dezembro do ano selecionado
+
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
@@ -60,12 +62,19 @@ const DateRangePicker = ({ calendarData, handleInputChange, isEditMode }) => { /
             }
             handleInputChange("startDate", formattedDate);
           }}
-          // Desativa o DatePicker se o calendário já iniciou (no modo de edição)
-          disabled={isCalendarStarted} 
-          // minDate:
-          // Se o calendário JÁ COMEÇOU (isCalendarStarted é true), não há minDate, permitindo qualquer data para exibir a salva.
-          // Se o calendário AINDA NÃO COMEÇOU (isCalendarStarted é false), a minDate é o dia atual.
-          minDate={isCalendarStarted ? null : todayLocalMidnight} // Usar null para nenhum limite inferior
+          disabled={isCalendarStarted}
+          // minDate para Data de Início:
+          // Se o calendário JÁ COMEÇOU, permite que a data original (passada) seja exibida, mas não para seleção.
+          // O minDate real para seleção deve ser o hoje OU o início do ano selecionado, o que for MAIOR.
+          minDate={
+            isCalendarStarted 
+              ? null // No modo de edição de calendário iniciado, não queremos minDate para exibição
+              : (yearStartDate && todayLocalMidnight && yearStartDate > todayLocalMidnight)
+                ? yearStartDate
+                : todayLocalMidnight // Se yearStartDate é antes de today, use today
+          }
+          // NOVO: maxDate para Data de Início (fim do ano selecionado)
+          maxDate={yearEndDate}
           slotProps={{
             textField: {
               id: "startDate-input",
@@ -125,8 +134,19 @@ const DateRangePicker = ({ calendarData, handleInputChange, isEditMode }) => { /
             }
             handleInputChange("endDate", formattedDate);
           }}
-          // minDate para Data de Fim: deve ser a Data de Início ou o dia atual (se Data de Início estiver vazia)
-          minDate={createLocalDate(calendarData.startDate) || todayLocalMidnight}
+          // minDate para Data de Fim:
+          // Deve ser o dia seguinte à data de início (para garantir 1 dia de duração),
+          // OU o início do ano selecionado (se calendarData.startDate estiver vazio),
+          // OU o dia atual (se calendarData.startDate estiver vazio e o ano selecionado for o ano atual).
+          minDate={
+            calendarData.startDate
+              ? new Date(createLocalDate(calendarData.startDate).getTime() + (24 * 60 * 60 * 1000)) // Dia seguinte à startDate
+              : (yearStartDate && todayLocalMidnight && yearStartDate > todayLocalMidnight)
+                ? yearStartDate
+                : todayLocalMidnight
+          }
+          // NOVO: maxDate para Data de Fim (fim do ano selecionado)
+          maxDate={yearEndDate}
           slotProps={{
             textField: {
               id: "endDate-input",

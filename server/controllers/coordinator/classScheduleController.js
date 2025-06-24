@@ -2,21 +2,20 @@ import db from "../../models/index.js";
 import { Op } from "sequelize";
 
 export const createClassSchedule = async (req, res) => {
-  const { calendarId, classId, turn, isActive, details } = req.body;
+  const { calendarId, classId, isActive, details } = req.body;
   const loggedUserId = req.user?.id;
 
   try {
     if (
       !calendarId ||
       !classId ||
-      !turn ||
       !details ||
       !Array.isArray(details) ||
       details.length === 0
     ) {
       return res.status(400).json({
         message:
-          "Dados incompletos ou inválidos. Os campos (calendarId, classId, turn, details) são obrigatórios e 'details' deve ser um array não vazio.",
+          "Dados incompletos ou inválidos. Os campos (calendarId, classId, details) são obrigatórios e 'details' deve ser um array não vazio.",
       });
     }
 
@@ -55,31 +54,6 @@ export const createClassSchedule = async (req, res) => {
         .json({ message: `Turma com ID ${classId} não encontrada.` });
     }
 
-    const validTurns = ["MATUTINO", "VESPERTINO", "NOTURNO"];
-    if (!validTurns.includes(turn)) {
-      return res.status(400).json({
-        message: `Turno inválido: '${turn}'. Use um dos seguintes: ${validTurns.join(
-          ", "
-        )}.`,
-      });
-    }
-
-    const existingSchedule = await db.ClassSchedule.findOne({
-      where: {
-        calendarId,
-        classId,
-        courseId,
-        turn,
-      },
-    });
-
-    if (existingSchedule) {
-      return res.status(409).json({
-        message:
-          "Já existe um horário de aula para esta combinação de calendário, turma, curso e turno.",
-      });
-    }
-
     const disciplineIds = new Set();
     const userIds = new Set();
     const hourIds = new Set();
@@ -93,12 +67,24 @@ export const createClassSchedule = async (req, res) => {
     ];
     const proposedTeacherScheduleSlots = [];
     const scheduleSlots = new Set();
+    const validTurns = ["MATUTINO", "VESPERTINO", "NOTURNO", "INTEGRADO"];
+    const turnIntervals = {
+      MATUTINO: { start: "07:00:00", end: "11:59:59" },
+      VESPERTINO: { start: "12:00:00", end: "17:59:59" },
+      NOTURNO: { start: "18:00:00", end: "23:59:59" },
+      INTEGRADO: { start: "07:00:00", end: "17:59:59" },
+    };
 
     for (const detail of details) {
-      if (!detail.disciplineId || !detail.hourId || !detail.dayOfWeek) {
+      if (
+        !detail.disciplineId ||
+        !detail.hourId ||
+        !detail.dayOfWeek ||
+        !detail.turn
+      ) {
         return res.status(400).json({
           message:
-            "Cada detalhe de horário deve ter 'disciplineId', 'hourId' e 'dayOfWeek'.",
+            "Cada detalhe de horário deve ter disciplina, hora, dia da semana e turno.",
         });
       }
 
@@ -110,6 +96,14 @@ export const createClassSchedule = async (req, res) => {
         });
       }
 
+      if (!validTurns.includes(detail.turn)) {
+        return res.status(400).json({
+          message: `Turno inválido em um detalhe: '${
+            detail.turn
+          }'. Use um dos seguintes: ${validTurns.join(", ")}.`,
+        });
+      }
+
       const slotKey = `${detail.dayOfWeek}-${detail.hourId}`;
       if (scheduleSlots.has(slotKey)) {
         return res.status(400).json({
@@ -117,6 +111,24 @@ export const createClassSchedule = async (req, res) => {
         });
       }
       scheduleSlots.add(slotKey);
+
+      const allHours = await db.Hour.findAll();
+      const hourMap = allHours.reduce((map, hour) => {
+        map[hour.id] = { start: hour.hourStart, end: hour.hourEnd };
+        return map;
+      }, {});
+      const hour = hourMap[detail.hourId];
+      if (!hour) {
+        return res
+          .status(404)
+          .json({ message: `Horário com ID ${detail.hourId} não encontrado.` });
+      }
+      const turnInterval = turnIntervals[detail.turn];
+      if (hour.start < turnInterval.start || hour.end > turnInterval.end) {
+        return res.status(400).json({
+          message: `O horário com ID ${detail.hourId} (${hour.start} - ${hour.end}) não é compatível com o turno ${detail.turn}.`,
+        });
+      }
 
       disciplineIds.add(detail.disciplineId);
       hourIds.add(detail.hourId);
@@ -140,36 +152,9 @@ export const createClassSchedule = async (req, res) => {
       for (const userId of userIds) {
         if (!professorUserIds.has(userId)) {
           return res.status(400).json({
-            message: `O usuário com ID ${userId} não tem permissão para ser professor (accessType deve ser 'Professor').`,
+            message: `O usuário não é professor.`,
           });
         }
-      }
-    }
-
-    const allHours = await db.Hour.findAll();
-    const hourMap = allHours.reduce((map, hour) => {
-      map[hour.id] = { start: hour.hourStart, end: hour.hourEnd };
-      return map;
-    }, {});
-
-    const turnIntervals = {
-      MATUTINO: { start: "07:00:00", end: "11:59:59" },
-      VESPERTINO: { start: "12:00:00", end: "17:59:59" },
-      NOTURNO: { start: "18:00:00", end: "23:59:59" },
-    };
-
-    for (const hourId of hourIds) {
-      const hour = hourMap[hourId];
-      if (!hour) {
-        return res
-          .status(404)
-          .json({ message: `Horário com ID ${hourId} não encontrado.` });
-      }
-      const turnInterval = turnIntervals[turn];
-      if (hour.start < turnInterval.start || hour.end > turnInterval.end) {
-        return res.status(400).json({
-          message: `O horário com ID ${hourId} (${hour.start} - ${hour.end}) não é compatível com o turno ${turn}.`,
-        });
       }
     }
 
@@ -190,23 +175,19 @@ export const createClassSchedule = async (req, res) => {
 
     for (const id of disciplineIds) {
       if (!foundDisciplineIds.has(id)) {
-        return res.status(404).json({
-          message: `Disciplina com ID ${id} não encontrada.`,
-        });
+        return res
+          .status(404)
+          .json({ message: `Disciplina com ID ${id} não encontrada.` });
       }
     }
     for (const id of hourIds) {
       if (!foundHourIds.has(id)) {
-        return res.status(404).json({
-          message: `Horário com ID ${id} não encontrado.`,
-        });
+        return res.status(404).json({ message: `Horário não encontrado.` });
       }
     }
     for (const id of userIds) {
       if (!foundUserIds.has(id)) {
-        return res.status(404).json({
-          message: `Professor com ID ${id} não encontrado.`,
-        });
+        return res.status(404).json({ message: `Professor não encontrado.` });
       }
     }
 
@@ -225,7 +206,7 @@ export const createClassSchedule = async (req, res) => {
     for (const disciplineId of disciplineIds) {
       if (!associatedDisciplineIds.has(disciplineId)) {
         return res.status(400).json({
-          message: `A disciplina com ID ${disciplineId} não está associada ao curso com ID ${courseId}.`,
+          message: `A disciplina não está associada ao curso.`,
         });
       }
     }
@@ -285,7 +266,6 @@ export const createClassSchedule = async (req, res) => {
           calendarId,
           classId,
           courseId,
-          turn,
           isActive: isActive !== undefined ? isActive : true,
         },
         { transaction: t }
@@ -337,7 +317,7 @@ export const createClassSchedule = async (req, res) => {
     if (error.name === "SequelizeUniqueConstraintError") {
       return res.status(409).json({
         message:
-          "Conflito: Um horário de aula com a mesma combinação de calendário, turma, curso e turno já existe.",
+          "Conflito: Um horário de aula com a mesma combinação já existe.",
         field: error.fields,
       });
     }
@@ -378,7 +358,8 @@ export const updateClassSchedule = async (req, res) => {
       details.length === 0
     ) {
       return res.status(400).json({
-        message: "Dados incompletos ou inválidos. Os campos são obrigatórios.",
+        message:
+          "Dados incompletos ou inválidos. Os campos (classScheduleId, details) são obrigatórios e 'details' deve ser um array não vazio.",
       });
     }
 
@@ -428,12 +409,24 @@ export const updateClassSchedule = async (req, res) => {
     const hourIds = new Set();
     const proposedTeacherScheduleSlots = [];
     const scheduleSlots = new Set();
+    const validTurns = ["MATUTINO", "VESPERTINO", "NOTURNO", "INTEGRADO"];
+    const turnIntervals = {
+      MATUTINO: { start: "07:00:00", end: "11:59:59" },
+      VESPERTINO: { start: "12:00:00", end: "17:59:59" },
+      NOTURNO: { start: "18:00:00", end: "23:59:59" },
+      INTEGRADO: { start: "07:00:00", end: "17:59:59" },
+    };
 
     for (const detail of details) {
-      if (!detail.disciplineId || !detail.hourId || !detail.dayOfWeek) {
+      if (
+        !detail.disciplineId ||
+        !detail.hourId ||
+        !detail.dayOfWeek ||
+        !detail.turn
+      ) {
         return res.status(400).json({
           message:
-            "Cada detalhe de horário deve ter 'disciplineId', 'hourId' e 'dayOfWeek'.",
+            "Cada detalhe de horário deve ter 'disciplineId', 'hourId', 'dayOfWeek' e 'turn'.",
         });
       }
 
@@ -445,13 +438,39 @@ export const updateClassSchedule = async (req, res) => {
         });
       }
 
+      if (!validTurns.includes(detail.turn)) {
+        return res.status(400).json({
+          message: `Turno inválido em um detalhe: '${
+            detail.turn
+          }'. Use um dos seguintes: ${validTurns.join(", ")}.`,
+        });
+      }
+
       const slotKey = `${detail.dayOfWeek}-${detail.hourId}`;
       if (scheduleSlots.has(slotKey)) {
         return res.status(400).json({
-          message: `Apenas uma disciplina é permitida por bloco de horário.`,
+          message: `Apenas uma disciplina é permitida por bloco de horário (${detail.dayOfWeek} - ${detail.hourId}).`,
         });
       }
       scheduleSlots.add(slotKey);
+
+      const allHours = await db.Hour.findAll();
+      const hourMap = allHours.reduce((map, hour) => {
+        map[hour.id] = { start: hour.hourStart, end: hour.hourEnd };
+        return map;
+      }, {});
+      const hour = hourMap[detail.hourId];
+      if (!hour) {
+        return res
+          .status(404)
+          .json({ message: `Horário com ID ${detail.hourId} não encontrado.` });
+      }
+      const turnInterval = turnIntervals[detail.turn];
+      if (hour.start < turnInterval.start || hour.end > turnInterval.end) {
+        return res.status(400).json({
+          message: `O horário com ID ${detail.hourId} (${hour.start} - ${hour.end}) não é compatível com o turno ${detail.turn}.`,
+        });
+      }
 
       disciplineIds.add(detail.disciplineId);
       hourIds.add(detail.hourId);
@@ -478,34 +497,6 @@ export const updateClassSchedule = async (req, res) => {
             message: `O usuário com ID ${userId} não tem permissão para ser professor (accessType deve ser 'PROFESSOR').`,
           });
         }
-      }
-    }
-
-    const allHours = await db.Hour.findAll();
-    const hourMap = allHours.reduce((map, hour) => {
-      map[hour.id] = { start: hour.hourStart, end: hour.hourEnd };
-      return map;
-    }, {});
-
-    const turnIntervals = {
-      MATUTINO: { start: "07:00:00", end: "11:59:59" },
-      VESPERTINO: { start: "12:00:00", end: "17:59:59" },
-      NOTURNO: { start: "18:00:00", end: "23:59:59" },
-    };
-
-    const turn = classSchedule.turn;
-    for (const hourId of hourIds) {
-      const hour = hourMap[hourId];
-      if (!hour) {
-        return res.status(404).json({
-          message: `Horário com ID ${hourId} não encontrado.`,
-        });
-      }
-      const turnInterval = turnIntervals[turn];
-      if (hour.start < turnInterval.start || hour.end > turnInterval.end) {
-        return res.status(400).json({
-          message: `O horário com ID ${hourId} (${hour.start} - ${hour.end}) não é compatível com o turno ${turn}.`,
-        });
       }
     }
 
@@ -736,8 +727,33 @@ export const getClassSchedule = async (req, res) => {
           as: "course",
           attributes: ["name", "acronym"],
         },
+        {
+          model: db.ClassScheduleDetail,
+          as: "details",
+          include: [
+            {
+              model: db.Discipline,
+              as: "discipline",
+              attributes: ["id", "name"],
+            },
+            { model: db.User, as: "professor", attributes: ["id", "username"] },
+            {
+              model: db.Hour,
+              as: "hour",
+              attributes: ["id", "hourStart", "hourEnd"],
+            },
+          ],
+          attributes: [
+            "id",
+            "disciplineId",
+            "userId",
+            "hourId",
+            "dayOfWeek",
+            "turn",
+          ],
+        },
       ],
-      attributes: ["id", "calendarId", "classId", "turn"],
+      attributes: ["id", "calendarId", "classId"],
       order: [["id", "ASC"]],
     });
 
@@ -750,6 +766,16 @@ export const getClassSchedule = async (req, res) => {
         turno: schedule.turn,
         nome_curso: schedule.course.name,
         sigla_curso: schedule.course.acronym,
+        details: schedule.details.map((detail) => ({
+          id: detail.id,
+          discipline: detail.discipline ? detail.discipline.name : null,
+          professor: detail.professor ? detail.professor.username : null,
+          hour: detail.hour
+            ? `${detail.hour.hourStart} - ${detail.hour.hourEnd}`
+            : null,
+          dayOfWeek: detail.dayOfWeek,
+          turn: detail.turn,
+        })),
       };
     });
 
@@ -831,6 +857,14 @@ export const getClassScheduleDetails = async (req, res) => {
               attributes: ["id", "hourStart", "hourEnd"],
             },
           ],
+          attributes: [
+            "id",
+            "disciplineId",
+            "userId",
+            "hourId",
+            "dayOfWeek",
+            "turn",
+          ],
         },
       ],
     });
@@ -906,12 +940,19 @@ export const getClassSchedulesFilter = async (req, res) => {
         {
           model: db.Course,
           as: "course",
-          attributes: ["name", "acronym"], 
+          attributes: ["name", "acronym"],
         },
         {
           model: db.ClassScheduleDetail,
           as: "details",
-          attributes: ["id", "disciplineId", "userId"],
+          attributes: [
+            "id",
+            "disciplineId",
+            "userId",
+            "hourId",
+            "dayOfWeek",
+            "turn",
+          ],
           include: [
             {
               model: db.Discipline,
@@ -930,19 +971,22 @@ export const getClassSchedulesFilter = async (req, res) => {
     });
 
     const scheduleList = classSchedules.map((schedule) => {
-      const detail = schedule.details[0];
       const calendarInfo = `${schedule.calendar.year}.${schedule.calendar.period}`;
       return {
         calendar: calendarInfo,
-        professor: detail.professor ? detail.professor.username : null,
         turma: schedule.class.semester,
-        disciplina: detail.discipline.name,
-        disciplina_sigla: detail. discipline.acronym,
-        turno: schedule.turn,
         curso: {
           sigla: schedule.course.acronym,
           name: schedule.course.name,
         },
+        details: schedule.details.map((detail) => ({
+          professor: detail.professor ? detail.professor.username : null,
+          disciplina: detail.discipline ? detail.discipline.name : null,
+          disciplina_sigla: detail.discipline
+            ? detail.discipline.acronym
+            : null,
+          turn: detail.turn,
+        })),
       };
     });
 

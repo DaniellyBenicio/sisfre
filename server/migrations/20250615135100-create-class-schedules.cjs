@@ -36,10 +36,6 @@ module.exports = {
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
-      turn: {
-        type: Sequelize.ENUM("MATUTINO", "VESPERTINO", "NOTURNO"),
-        allowNull: false,
-      },
       isActive: {
         type: Sequelize.BOOLEAN,
         defaultValue: false,

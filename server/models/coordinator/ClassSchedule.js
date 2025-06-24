@@ -63,10 +63,6 @@ export default (sequelize) => {
         onUpdate: "CASCADE",
         onDelete: "CASCADE", 
       },
-      turn: {
-        type: DataTypes.ENUM("MATUTINO", "VESPERTINO", "NOTURNO"),
-        allowNull: false,
-      },
       isActive: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,

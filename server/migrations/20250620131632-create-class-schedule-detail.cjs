@@ -49,6 +49,10 @@ module.exports = {
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
+      turn: {
+        type: Sequelize.ENUM("MATUTINO", "VESPERTINO", "NOTURNO", "INTEGRADO"),
+        allowNull: false,
+      },
       dayOfWeek: {
         type: Sequelize.ENUM("Segunda", "Terça", "Quarta", "Quinta", "Sexta"),
         allowNull: false,

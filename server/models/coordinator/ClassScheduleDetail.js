@@ -73,6 +73,10 @@ export default (sequelize) => {
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
+      turn: {
+        type: DataTypes.ENUM("MATUTINO", "VESPERTINO", "NOTURNO", "INTEGRADO"),
+        allowNull: false,
+      },
       dayOfWeek: {
         type: DataTypes.ENUM("Segunda", "Terça", "Quarta", "Quinta", "Sexta"),
         allowNull: false,

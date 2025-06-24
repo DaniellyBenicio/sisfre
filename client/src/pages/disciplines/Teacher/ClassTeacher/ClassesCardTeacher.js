@@ -5,18 +5,18 @@ import {
   Grid,
   Card,
   CardContent,
-  CardActionArea,
+  Button,
   CircularProgress,
 } from "@mui/material";
-import { Class } from "@mui/icons-material";
+import { School } from "@mui/icons-material"; // Changed to School icon
 import { useNavigate } from "react-router-dom";
 
 const ClassesCardTeacher = ({ classes, loading }) => {
   const navigate = useNavigate();
 
-  const handleCardClick = (classId) => {
-    navigate(`/class-details/${classId}`);
-  };
+  const handleDetailsClick = (classId, classItem) => {
+    navigate(`/class-details-page/${classId}`, { state: { classItem } }); 
+    };
 
   return (
     <Box sx={{ width: "100%", mt: 3 }}>
@@ -25,20 +25,20 @@ const ClassesCardTeacher = ({ classes, loading }) => {
           <CircularProgress />
         </Box>
       ) : (
-        <Grid container spacing={5} justifyContent="center">
+        <Grid container spacing={3} justifyContent="center">
           {classes.length > 0 ? (
             classes.map((classItem) => (
-              <Grid item xs={12} sm={6} md={4} key={classItem.id}>
+              <Grid item xs={12} sm={4} md={2} key={classItem.id}> {/* Changed md to 2 for 6 cards per row */}
                 <Card
                   sx={{
-                    width: { xs: 300, sm: 300 },
-                    height: { xs: 250, sm: 300 },
+                    width: { xs: 200, sm: 220 }, // Reduced width
+                    height: { xs: 180, sm: 200 }, // Reduced height
                     backgroundColor: "#FFFFFF",
                     boxShadow:
                       "0 6px 12px rgba(8, 118, 25, 0.1), 0 3px 6px rgba(8, 118, 25, 0.05)",
                     display: "flex",
                     flexDirection: "column",
-                    justifyContent: "center",
+                    justifyContent: "space-between",
                     alignItems: "center",
                     textAlign: "center",
                     borderRadius: 3,
@@ -52,6 +52,7 @@ const ClassesCardTeacher = ({ classes, loading }) => {
                         "0 10px 20px rgba(8, 118, 25, 0.3), 0 0 10px rgba(8, 118, 25, 0.5)",
                       border: "3px solid #0A8C1F",
                     },
+                    p: 1.5, // Slightly reduced padding
                   }}
                 >
                   <Box
@@ -60,7 +61,7 @@ const ClassesCardTeacher = ({ classes, loading }) => {
                       top: -2,
                       left: 0,
                       right: 0,
-                      height: "10px",
+                      height: "8px", // Slightly thinner top bar
                       backgroundColor: "#087619",
                       borderTopLeftRadius: "12px",
                       borderTopRightRadius: "12px",
@@ -71,55 +72,60 @@ const ClassesCardTeacher = ({ classes, loading }) => {
                       },
                     }}
                   />
-                  <CardActionArea
-                    onClick={() => handleCardClick(classItem.id)}
+                  <CardContent
                     sx={{
-                      height: "100%",
-                      width: "100%",
+                      padding: 0,
                       display: "flex",
                       flexDirection: "column",
                       justifyContent: "center",
                       alignItems: "center",
-                      p: 2,
-                      zIndex: 2,
-                      "&:hover": {
-                        backgroundColor: "transparent",
-                      },
+                      flexGrow: 1,
+                      width: "100%",
+                      mt: 1.5, // Adjusted for smaller card
                     }}
                   >
-                    <CardContent sx={{ padding: 0 }}>
-                      <Box
-                        sx={{
-                          mb: 2,
-                          transition: "transform 0.4s ease-in-out",
-                          "&:hover": {
-                            transform: "scale(1.1)",
-                          },
-                        }}
-                      >
-                        <Class sx={{ fontSize: 60, color: "#087619" }} />
-                      </Box>
-                      <Typography
-                        variant="h6"
-                        sx={{
-                          fontWeight: "bold",
-                          color: "#087619",
-                          mb: 1,
-                        }}
-                      >
-                        {classItem.name}
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary">
-                        Curso: {classItem.course}
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary">
-                        Período: {classItem.period}
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary">
-                        Disciplina: {classItem.discipline}
-                      </Typography>
-                    </CardContent>
-                  </CardActionArea>
+                    <Box
+                      sx={{
+                        mb: 1.5,
+                        transition: "transform 0.4s ease-in-out",
+                        "&:hover": {
+                          transform: "scale(1.1)",
+                        },
+                      }}
+                    >
+                      <School sx={{ fontSize: 40, color: "#087619" }} /> {/* Changed to School icon, smaller size */}
+                    </Box>
+                    <Typography
+                      variant="body1" // Smaller typography variant
+                      sx={{
+                        fontWeight: "bold",
+                        color: "#087619",
+                        mb: 1.5,
+                      }}
+                    >
+                      {classItem.name}
+                    </Typography>
+                  </CardContent>
+                  <Button
+                    variant="outlined"
+                    sx={{
+                      mt: "auto",
+                      borderColor: "#087619",
+                      color: "#087619",
+                      "&:hover": {
+                        borderColor: "#0A8C1F",
+                        color: "#0A8C1F",
+                        backgroundColor: "rgba(8, 118, 25, 0.04)",
+                      },
+                      width: "80%",
+                      maxWidth: "150px", // Smaller button
+                      borderRadius: 2,
+                      fontSize: "0.8rem", // Smaller button text
+                    }}
+                    onClick={() => handleDetailsClick(classItem.id)}
+                  >
+                    Detalhes
+                  </Button>
                 </Card>
               </Grid>
             ))

@@ -17,6 +17,8 @@ import ClassOptionsPage from "../pages/disciplines/Teacher/ClassTeacher/ClassOpt
 import ClassScheduleCreate from "../pages/classSchedule/Coodinator/ClassScheduleCreate.js";
 import HolidayPage from "../pages/admin/Holiday/HolidayPage.js";
 import ClassScheduleDetails from "../pages/classSchedule/Coodinator/ClassScheduleDetails.js";
+import ClassDetailsPage from "../pages/disciplines/Teacher/ClassTeacher/ClassDetails/ClassDetailsPage.js"; // Adicione esta importação
+
 
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
@@ -232,6 +234,16 @@ const AppRoutes = () => {
           )
         }
       />
+      <Route
+        path="/class-details-page/:classId"
+        element={
+          isAuthenticated ? (
+            <ClassDetailsPage setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      /> {/* Nova rota adicionada */}
     </Routes>
   );
 };

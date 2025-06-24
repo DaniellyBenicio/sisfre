@@ -6,17 +6,35 @@ import ClassesCardTeacher from "./ClassesCardTeacher";
 const sampleClasses = [
   {
     id: 1,
-    name: "Turma A",
-    course: "Engenharia",
-    period: "2025.1",
-    discipline: "Matemática",
+    name: "S1 - SI",
   },
   {
     id: 2,
-    name: "Turma B",
-    course: "Ciência da Computação",
-    period: "2025.1",
-    discipline: "Programação",
+    name: "S7 - SI",
+  },
+  {
+    id: 1,
+    name: "S1 - SI",
+  },
+  {
+    id: 2,
+    name: "S7 - SI",
+  },
+  {
+    id: 1,
+    name: "S1 - SI",
+  },
+  {
+    id: 2,
+    name: "S7 - SI",
+  },
+  {
+    id: 1,
+    name: "S1 - SI",
+  },
+  {
+    id: 2,
+    name: "S7 - SI",
   },
 ];
 

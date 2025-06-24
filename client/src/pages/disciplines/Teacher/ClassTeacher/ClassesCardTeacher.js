@@ -103,10 +103,10 @@ const ClassesCardTeacher = ({ classes, loading }) => {
                         },
                       }}
                     >
-                      <School sx={{ fontSize: 40, color: "#087619" }} /> {/* Ajustado o tamanho do ícone */}
+                      <School sx={{ fontSize: 40, color: "#087619" }} />
                     </Box>
                     <Typography
-                      variant="body1" // Ajustado a variante da tipografia
+                      variant="body1"
                       sx={{
                         fontWeight: "bold",
                         color: "#087619",
@@ -117,20 +117,24 @@ const ClassesCardTeacher = ({ classes, loading }) => {
                     </Typography>
                   </CardContent>
                   <Button
-                    variant="outlined"
+                    variant="outlined" // Volta para "outlined" para a borda
                     sx={{
                       mt: "auto",
-                      borderColor: "#087619",
-                      color: "#087619",
+                      backgroundColor: "#FFFFFF", // Fundo branco
+                      borderColor: "#087619", // Borda verde
+                      color: "#087619", // Texto verde
+                      borderWidth: "1px", // Borda fininha (padrão 1px para outlined)
+                      boxShadow: "0 2px 4px rgba(8, 118, 25, 0.2)", // Sombra para o relevo
                       "&:hover": {
+                        backgroundColor: "rgba(8, 118, 25, 0.04)", // Leve fundo verde no hover
                         borderColor: "#0A8C1F",
                         color: "#0A8C1F",
-                        backgroundColor: "rgba(8, 118, 25, 0.04)",
+                        boxShadow: "0 4px 8px rgba(8, 118, 25, 0.3)", // Sombra mais proeminente no hover
                       },
                       width: "80%",
-                      maxWidth: "150px", // Ajustado o tamanho do botão
+                      maxWidth: "150px",
                       borderRadius: 2,
-                      fontSize: "0.8rem", // Ajustado o tamanho do texto do botão
+                      fontSize: "0.8rem",
                     }}
                     onClick={() => handleDetailsClick(classItem.id, classItem)}
                   >

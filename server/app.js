@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import db from "./models/index.js";
+import initializeApp from './tasks/initTasks.js';
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/admin/userRoutes.js";
 import courseRoutes from "./routes/admin/courseRoutes.js";
@@ -23,7 +23,6 @@ dotenv.config();
 app.use(cors());
 app.use(express.json());
 
-// Rotas
 app.use("/api/auth", authRoutes);
 app.use("/api", userRoutes);
 app.use("/api", courseRoutes);
@@ -38,42 +37,6 @@ app.use("/api", holidayRoutes);
 app.use("/api", ClassScheduleRoutes);
 app.use("/api", hourRoutes);
 app.use("/api", coordinatorClassesRoutes);
-
-// Função para criar o usuário administrador, se não existir
-const createAdminIfNotExists = async () => {
-  try {
-    const adminExists = await db.User.findOne({
-      where: { accessType: "Admin" },
-    });
-
-    if (!adminExists) {
-      console.log("Nenhum administrador encontrado. Criando um...");
-      await db.User.create({
-        username: "admin",
-        email: "diren.cedro@ifce.edu.br",
-        password: "123456", // A senha será hasheada pelo hook beforeCreate
-        accessType: "Admin",
-      });
-      console.log("Administrador criado com sucesso!");
-    } else {
-      console.log("Administrador já existe.");
-    }
-  } catch (error) {
-    console.error("Erro ao verificar/criar administrador:", error);
-  }
-};
-
-db.sequelize
-  .sync({ force: false }) // force: false para não apagar os dados existentes
-  .then(async () => {
-    console.log("Banco de dados sincronizado.");
-    await createAdminIfNotExists();
-    app.listen(3000, () => console.log("API rodando na porta 3000"));
-  })
-  .catch((error) => {
-    console.error(
-      "Erro ao sincronizar o banco de dados ou iniciar o servidor:",
-      error
-    );
-    process.exit(1); // Encerra o processo se houver um erro crítico
-  });
+initializeApp().then(() => {
+  app.listen(3000, () => console.log('API rodando na porta 3000'));
+});

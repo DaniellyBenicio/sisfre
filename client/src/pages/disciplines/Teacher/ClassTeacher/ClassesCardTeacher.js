@@ -8,15 +8,15 @@ import {
   Button,
   CircularProgress,
 } from "@mui/material";
-import { School } from "@mui/icons-material"; // Changed to School icon
+import { School } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
 const ClassesCardTeacher = ({ classes, loading }) => {
   const navigate = useNavigate();
 
   const handleDetailsClick = (classId, classItem) => {
-    navigate(`/class-details-page/${classId}`, { state: { classItem } }); 
-    };
+    navigate(`/class-details-page/${classId}`, { state: { classItem } });
+  };
 
   return (
     <Box sx={{ width: "100%", mt: 3 }}>
@@ -28,11 +28,21 @@ const ClassesCardTeacher = ({ classes, loading }) => {
         <Grid container spacing={3} justifyContent="center">
           {classes.length > 0 ? (
             classes.map((classItem) => (
-              <Grid item xs={12} sm={4} md={2} key={classItem.id}> {/* Changed md to 2 for 6 cards per row */}
+              <Grid
+                item
+                xs={12} // 1 card por linha em telas extra pequenas
+                sm={6} // 2 cards por linha em telas pequenas
+                md={4} // 3 cards por linha em telas médias e maiores
+                key={classItem.id}
+                sx={{
+                  display: "flex", // Garante que o Card dentro do Grid item se alinhe
+                  justifyContent: "center", // Centraliza o Card dentro do Grid item
+                }}
+              >
                 <Card
                   sx={{
-                    width: { xs: 200, sm: 220 }, // Reduced width
-                    height: { xs: 180, sm: 200 }, // Reduced height
+                    width: { xs: 200, sm: 220, md: 240 }, // Reduzida a largura do card
+                    height: { xs: 180, sm: 200, md: 220 }, // Reduzida a altura do card
                     backgroundColor: "#FFFFFF",
                     boxShadow:
                       "0 6px 12px rgba(8, 118, 25, 0.1), 0 3px 6px rgba(8, 118, 25, 0.05)",
@@ -52,7 +62,7 @@ const ClassesCardTeacher = ({ classes, loading }) => {
                         "0 10px 20px rgba(8, 118, 25, 0.3), 0 0 10px rgba(8, 118, 25, 0.5)",
                       border: "3px solid #0A8C1F",
                     },
-                    p: 1.5, // Slightly reduced padding
+                    p: 1.5, // Ajustado padding
                   }}
                 >
                   <Box
@@ -61,7 +71,7 @@ const ClassesCardTeacher = ({ classes, loading }) => {
                       top: -2,
                       left: 0,
                       right: 0,
-                      height: "8px", // Slightly thinner top bar
+                      height: "8px",
                       backgroundColor: "#087619",
                       borderTopLeftRadius: "12px",
                       borderTopRightRadius: "12px",
@@ -81,7 +91,7 @@ const ClassesCardTeacher = ({ classes, loading }) => {
                       alignItems: "center",
                       flexGrow: 1,
                       width: "100%",
-                      mt: 1.5, // Adjusted for smaller card
+                      mt: 1.5,
                     }}
                   >
                     <Box
@@ -93,10 +103,10 @@ const ClassesCardTeacher = ({ classes, loading }) => {
                         },
                       }}
                     >
-                      <School sx={{ fontSize: 40, color: "#087619" }} /> {/* Changed to School icon, smaller size */}
+                      <School sx={{ fontSize: 40, color: "#087619" }} /> {/* Ajustado o tamanho do ícone */}
                     </Box>
                     <Typography
-                      variant="body1" // Smaller typography variant
+                      variant="body1" // Ajustado a variante da tipografia
                       sx={{
                         fontWeight: "bold",
                         color: "#087619",
@@ -118,11 +128,11 @@ const ClassesCardTeacher = ({ classes, loading }) => {
                         backgroundColor: "rgba(8, 118, 25, 0.04)",
                       },
                       width: "80%",
-                      maxWidth: "150px", // Smaller button
+                      maxWidth: "150px", // Ajustado o tamanho do botão
                       borderRadius: 2,
-                      fontSize: "0.8rem", // Smaller button text
+                      fontSize: "0.8rem", // Ajustado o tamanho do texto do botão
                     }}
-                    onClick={() => handleDetailsClick(classItem.id)}
+                    onClick={() => handleDetailsClick(classItem.id, classItem)}
                   >
                     Detalhes
                   </Button>
@@ -130,7 +140,10 @@ const ClassesCardTeacher = ({ classes, loading }) => {
               </Grid>
             ))
           ) : (
-            <Typography variant="body1" sx={{ mt: 2, textAlign: "center", width: "100%" }}>
+            <Typography
+              variant="body1"
+              sx={{ mt: 2, textAlign: "center", width: "100%" }}
+            >
               Nenhuma turma encontrada.
             </Typography>
           )}

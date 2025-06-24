@@ -51,7 +51,7 @@ const ClassDetailsList = ({ setAuthenticated }) => {
       sx={{
         p: 3,
         width: "100%",
-        maxWidth: "800px",
+        maxWidth: "900px",
         margin: "0 auto",
         display: "flex",
         flexDirection: "column",

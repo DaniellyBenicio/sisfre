@@ -72,19 +72,10 @@ export const createCalendar = async (req, res) => {
 
 export const updateCalendar = async (req, res) => {
   const calendarId = req.params.id;
-  const { type, year, period, startDate, endDate } = req.body;
+  const { type, year, period, startDate, endDate } = req.body; // startDate é a nova data
 
   if (!type || !year || !period || !startDate || !endDate) {
     return res.status(400).json({ error: "Todos os campos são obrigatórios." });
-  }
-
-  const todayUTC = getUTCDateAtMidnight();
-  const startDateObjUTC = getUTCDateAtMidnight(startDate);
-
-  if (startDateObjUTC < todayUTC) {
-    return res.status(400).json({
-      error: "A data de início não pode ser anterior à data atual.",
-    });
   }
 
   try {
@@ -92,7 +83,25 @@ export const updateCalendar = async (req, res) => {
     if (!calendar) {
       return res.status(404).json({ error: "Calendário não encontrado." });
     }
+    const todayUTC = getUTCDateAtMidnight();
+    const newStartDateObjUTC = getUTCDateAtMidnight(startDate); 
+    const oldStartDateObjUTC = getUTCDateAtMidnight(calendar.startDate); 
 
+    if (newStartDateObjUTC.toISOString().split('T')[0] !== oldStartDateObjUTC.toISOString().split('T')[0]) {
+      if (oldStartDateObjUTC <= todayUTC) {
+        if (newStartDateObjUTC < oldStartDateObjUTC) {
+          return res.status(400).json({
+            error: "Não é permitido retroceder a data de início de um calendário em andamento.",
+          });
+        }
+      } else {
+        if (newStartDateObjUTC < oldStartDateObjUTC || newStartDateObjUTC < todayUTC) {
+          return res.status(400).json({
+            error: "A data de início de um calendário futuro não pode ser anterior à data original, nem passada.",
+          });
+        }
+      }
+    }
     const duplicate = await db.Calendar.findOne({
       where: {
         type: type.toUpperCase(),
@@ -104,11 +113,12 @@ export const updateCalendar = async (req, res) => {
     if (duplicate) {
       return res.status(400).json({
         error:
-          "Já existe um calendário com esses dados informados. Por favor, tente novamente.",
+          "Já existe um calendário com o mesmo tipo, ano e período. Por favor, tente novamente.",
       });
     }
 
-    const existing = await db.Calendar.findOne({
+    // Validação de dados exatos duplicados (apenas se todos os campos forem idênticos a outro calendário)
+    const existingExact = await db.Calendar.findOne({
       where: {
         type: type.toUpperCase(),
         year,
@@ -118,12 +128,13 @@ export const updateCalendar = async (req, res) => {
         id: { [db.Sequelize.Op.ne]: calendarId },
       },
     });
-    if (existing) {
+    if (existingExact) {
       return res
         .status(400)
         .json({ error: "Já existe um calendário com esses dados exatos." });
     }
 
+    // Atualiza os campos do calendário
     calendar.type = type.toUpperCase();
     calendar.year = year;
     calendar.period = period;
@@ -140,10 +151,10 @@ export const updateCalendar = async (req, res) => {
       const messages = error.errors.map((err) => err.message);
       return res.status(400).json({ error: messages.join(" ") });
     }
+    console.error("Erro ao atualizar calendário no backend:", error); // Log do erro completo
     return res.status(500).json({ error: "Erro ao atualizar calendário." });
   }
 };
-
 export const getCalendarTypes = async (req, res) => {
   try {
     const types = await db.Calendar.findAll({

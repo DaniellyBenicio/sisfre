@@ -33,9 +33,9 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../../../components/SideBar";
 import api from "../../../service/api";
 
-const CustomSelect = ({ label, name, value, onChange, children, ...props }) => {
+const CustomSelect = ({ label, name, value, onChange, children, selectSx, ...props }) => {
   return (
-    <FormControl fullWidth required sx={{ minWidth: 190, maxWidth: 400 }}>
+    <FormControl fullWidth required sx={{ minWidth: 190, maxWidth: 600, ...props.sx }}>
       <InputLabel
         id={`${name}-label`}
         sx={{
@@ -62,6 +62,7 @@ const CustomSelect = ({ label, name, value, onChange, children, ...props }) => {
           "&:hover .MuiOutlinedInput-notchedOutline": {
             borderColor: "#000",
           },
+          ...selectSx,
         }}
         MenuProps={{
           PaperProps: {
@@ -151,7 +152,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           Array.isArray(calendarsRes.data.calendars)
             ? calendarsRes.data.calendars.map((calendar) => ({
                 ...calendar,
-                display: `${calendar.year}.${calendar.period}`,
+                display: `${calendar.year}.${calendar.period} - ${calendar.type || "N/A"}`,
               }))
             : []
         );
@@ -261,7 +262,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
             hours:
               error.response?.data?.message ||
               "Erro ao carregar horários para o turno.",
-            }));
+          }));
           setAvailableHours([]);
           setFormData((prev) => ({
             ...prev,
@@ -533,20 +534,27 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               Aula
             </Typography>
           </Box>
-          <Grid container spacing={2.5} mt="10px">
+          <Grid container spacing={2.5} mt="10px" justifyContent="center">
             <Grid item xs={12} sm={6}>
               <CustomSelect
                 label="Turma"
                 name="classId"
                 value={formData.classId}
                 onChange={handleChange}
-                sx={{ width: "250px" }}
+                selectSx={{ width: "320px" }}
               >
-                {classes.map((item) => (
+                {classes
+                .slice() // Faz uma cópia pra não mexer na lista original
+                .sort((a, b) => {
+                  const getNumber = (s) => parseInt(s.semester.replace("S", ""), 10);
+                  return getNumber(a) - getNumber(b);
+                })
+                .map((item) => (
                   <MenuItem key={item.id} value={item.id}>
                     {item.semester}
                   </MenuItem>
                 ))}
+
               </CustomSelect>
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -555,7 +563,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                 name="turn"
                 value={formData.turn}
                 onChange={handleChange}
-                sx={{ width: "350px" }}
+                selectSx={{ width: "320px" }}
               >
                 <MenuItem value="Manhã">Manhã</MenuItem>
                 <MenuItem value="Tarde">Tarde</MenuItem>
@@ -568,6 +576,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                 name="calendarId"
                 value={formData.calendarId}
                 onChange={handleChange}
+                selectSx={{ width: "380px" }}
               >
                 {calendars.map((calendar) => (
                   <MenuItem key={calendar.id} value={calendar.id}>
@@ -597,28 +606,28 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               sx={{
                 backgroundColor: "green",
                 borderRadius: "50%",
-                width: 35,
-                height: 35,
+                width: 33,
+                height: 33,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <History sx={{ color: "white", fontSize: 27 }} />
+              <History sx={{ color: "white", fontSize: 25 }} />
             </Box>
             <Typography variant="h5" color="green">
               Horários
             </Typography>
           </Box>
-          <Grid container spacing={3} mt="10px">
+          <Grid container spacing={3} mt="10px" justifyContent="center">
             <Grid item xs={12} sm={6}>
               <CustomSelect
                 label="Professor"
                 name="professorId"
                 value={formData.details[0].professorId}
                 onChange={handleChange}
+                selectSx={{ width: "520px" }}
               >
-                <MenuItem value="">Sem professor</MenuItem>
                 {professors.map((prof) => (
                   <MenuItem key={prof.id} value={prof.id}>
                     {prof.username}
@@ -632,6 +641,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                 name="disciplineId"
                 value={formData.details[0].disciplineId}
                 onChange={handleChange}
+                selectSx={{ width: "520px" }}
               >
                 {disciplines.map((disc) => (
                   <MenuItem key={disc.disciplineId} value={disc.disciplineId}>
@@ -646,6 +656,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                 name="dayOfWeek"
                 value={formData.details[0].dayOfWeek}
                 onChange={handleChange}
+                selectSx={{ width: "520px" }}
               >
                 <MenuItem value="Segunda-feira">Segunda-feira</MenuItem>
                 <MenuItem value="Terça-feira">Terça-feira</MenuItem>
@@ -662,6 +673,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                 value={formData.details[0].startTime}
                 onChange={handleChange}
                 disabled={!formData.turn || availableHours.length === 0}
+                selectSx={{ width: "215px" }}
               >
                 {availableHours.map((hour) => (
                   <MenuItem key={hour.id} value={hour.hourStart}>
@@ -678,7 +690,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                 name="endTime"
                 value={formData.details[0].endTime}
                 onChange={handleChange}
-                sx={{ minWidth: 200, maxWidth: 400 }}
+                sx={{ width: "215px" }}
                 InputLabelProps={{ shrink: true }}
                 required
                 disabled
@@ -686,22 +698,17 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
             </Grid>
             <Grid item xs={12}>
               <Button
-                variant="contained"
-                color="success"
                 onClick={handleAddDetail}
                 sx={{
-                  mt: 2,
-                  backgroundColor: "#087619",
+                  minWidth: 0,
+                  width: 40,
+                  height: 40,
+                  padding: 0,
+                  mt: 1,
                   "&:hover": { backgroundColor: "#066915" },
-                  textTransform: "none",
-                  fontWeight: "bold",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
                 }}
               >
-                <Check sx={{ fontSize: 24 }} />
-                OK
+                <Check sx={{ fontSize: 34, color: "green" }} />
               </Button>
             </Grid>
           </Grid>

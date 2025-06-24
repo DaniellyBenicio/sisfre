@@ -1,7 +1,19 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
-import { Box, Typography, Card, CardContent, Divider, Grid } from "@mui/material";
-import { Class, AccessTime } from "@mui/icons-material";
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  Table,        // Importar Table
+  TableBody,    // Importar TableBody
+  TableCell,    // Importar TableCell
+  TableContainer, // Importar TableContainer (opcional, mas recomendado para responsividade)
+  TableHead,    // Importar TableHead
+  TableRow,     // Importar TableRow
+  Paper,        // Importar Paper (para o TableContainer)
+} from "@mui/material";
+import { Class, AccessTime } from "@mui/icons-material"; // Verifique se Class está correto ou se é GridView como no card
 
 const ClassDetailsList = ({ setAuthenticated }) => {
   const location = useLocation();
@@ -18,6 +30,7 @@ const ClassDetailsList = ({ setAuthenticated }) => {
     schedule: [
       { day: "Segunda - Feira", startTime: "15:20", endTime: "17:00" },
       { day: "Quarta - Feira", startTime: "13:00", endTime: "15:00" },
+      { day: "Sexta - Feira", startTime: "08:00", endTime: "12:00" },
     ],
   };
 
@@ -45,6 +58,7 @@ const ClassDetailsList = ({ setAuthenticated }) => {
         Minhas Turmas
       </Typography>
 
+      {/* Cartão de Detalhes da Turma - Sem Alterações */}
       <Card
         sx={{
           backgroundColor: "#FFFFFF",
@@ -84,6 +98,7 @@ const ClassDetailsList = ({ setAuthenticated }) => {
         </CardContent>
       </Card>
 
+      {/* Cartão de Horário - AGORA COM TABELA */}
       <Card
         sx={{
           backgroundColor: "#FFFFFF",
@@ -108,30 +123,27 @@ const ClassDetailsList = ({ setAuthenticated }) => {
               Horário
             </Typography>
           </Box>
-          <Grid container spacing={1}>
-            <Grid item xs={4}>
-              <Typography sx={{ fontWeight: "bold" }}>Dia da Semana</Typography>
-            </Grid>
-            <Grid item xs={4}>
-              <Typography sx={{ fontWeight: "bold" }}>Horário de Início</Typography>
-            </Grid>
-            <Grid item xs={4}>
-              <Typography sx={{ fontWeight: "bold" }}>Horário de Fim</Typography>
-            </Grid>
-            {classItem.schedule.map((slot, index) => (
-              <React.Fragment key={index}>
-                <Grid item xs={4}>
-                  <Typography>{slot.day}</Typography>
-                </Grid>
-                <Grid item xs={4}>
-                  <Typography>{slot.startTime}</Typography>
-                </Grid>
-                <Grid item xs={4}>
-                  <Typography>{slot.endTime}</Typography>
-                </Grid>
-              </React.Fragment>
-            ))}
-          </Grid>
+
+          <TableContainer component={Paper} elevation={0}> {/* Paper para o fundo, elevation 0 para remover sombra */}
+            <Table size="small" aria-label="horário da turma"> {/* size="small" para tabelas mais compactas */}
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: "bold", pl: 0 }}>Dia da Semana</TableCell> {/* pl:0 para alinhar com o protótipo */}
+                  <TableCell align="center" sx={{ fontWeight: "bold" }}>Horário de Início</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: "bold" }}>Horário de Fim</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {classItem.schedule.map((slot, index) => (
+                  <TableRow key={index}>
+                    <TableCell sx={{ pl: 0 }}>{slot.day}</TableCell> {/* pl:0 para alinhar com o protótipo */}
+                    <TableCell align="center">{slot.startTime}</TableCell>
+                    <TableCell align="center">{slot.endTime}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </CardContent>
       </Card>
     </Box>

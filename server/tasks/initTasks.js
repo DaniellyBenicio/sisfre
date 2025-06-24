@@ -1,6 +1,7 @@
 import cron from "node-cron";
 import db from "../models/index.js";
 import { autoArchiveClassSchedules } from "./autoArchiveClassSchedules.js";
+import "../tasks/holidaySeedTask.js";
 
 //Cria o usuário administrador, se não existir
 const createAdminIfNotExists = async () => {

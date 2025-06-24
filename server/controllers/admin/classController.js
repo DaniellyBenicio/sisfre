@@ -116,55 +116,31 @@ export const getClasses = async (req, res) => {
     const offset = (page - 1) * limit;
     const where = {};
     if (courseId) {
-      const { rows, count } = await db.Class.findAndCountAll({
-        limit: parseInt(limit),
-        offset,
-        order: [["createdAt", "DESC"]],
-        include: [{
-          model: db.Course,
-          as: "course",
-          where: { id: courseId }
-        }]
-      });
-
-      const classes = rows.map(cls => {
-        const course = Array.isArray(cls.course) && cls.course.length > 0 ? cls.course[0] : null;
-        return {
-          id: cls.id,
-          semester: cls.semester,
-          createdAt: cls.createdAt,
-          updatedAt: cls.updatedAt,
-          courseId: course ? course.id : null,
-          course: course
-        };
-      });
-
-      return res.json({
-        classes,
-        total: count,
-        page: parseInt(page),
-        totalPages: Math.ceil(count / limit),
-      });
+      where.courseId = courseId;
     }
 
-    const { rows, count } = await db.Class.findAndCountAll({
+    const { count, rows } = await db.CourseClass.findAndCountAll({
+      where,
+      include: [
+        { model: db.Course, as: "course" },
+        { model: db.Class, as: "class" }
+      ],
       limit: parseInt(limit),
       offset,
-      order: [["createdAt", "DESC"]],
-      include: [{ model: db.Course, as: "course" }]
+      order: [
+        [{ model: db.Course, as: "course" }, "id", "ASC"],
+        [{ model: db.Class, as: "class" }, "semester", "ASC"]
+      ]
     });
 
-    const classes = rows.map(cls => {
-      const course = Array.isArray(cls.course) && cls.course.length > 0 ? cls.course[0] : null;
-      return {
-        id: cls.id,
-        semester: cls.semester,
-        createdAt: cls.createdAt,
-        updatedAt: cls.updatedAt,
-        courseId: course ? course.id : null,
-        course: course
-      };
-    });
+    const classes = rows.map(row => ({
+      id: row.class.id,
+      semester: row.class.semester,
+      createdAt: row.class.createdAt,
+      updatedAt: row.class.updatedAt,
+      courseId: row.course.id,
+      course: row.course
+    }));
 
     res.json({
       classes,

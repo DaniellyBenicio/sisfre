@@ -35,6 +35,51 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
   const [error, setError] = useState(null);
   const [currentDetailIndex, setCurrentDetailIndex] = useState(0);
 
+  const determineTurn = (data) => {
+    let turnCounts = data.turnCounts || {
+      MATUTINO: 0,
+      VESPERTINO: 0,
+      NOTURNO: 0,
+    };
+
+    if (!data.turnCounts && data.details) {
+      turnCounts = data.details.reduce(
+        (counts, detail) => {
+          if (detail.turn) {
+            counts[detail.turn] = (counts[detail.turn] || 0) + 1;
+          }
+          return counts;
+        },
+        { MATUTINO: 0, VESPERTINO: 0, NOTURNO: 0 }
+      );
+    }
+
+    const { MATUTINO, VESPERTINO, NOTURNO } = turnCounts;
+    const totalLessons = MATUTINO + VESPERTINO + NOTURNO;
+
+    if (totalLessons === 0) {
+      return "N/A";
+    }
+
+    const maxLessons = Math.max(MATUTINO, VESPERTINO, NOTURNO);
+
+    const maxShifts = [
+      { shift: "Manhã", count: MATUTINO },
+      { shift: "Tarde", count: VESPERTINO },
+      { shift: "Noite", count: NOTURNO },
+    ].filter((s) => s.count === maxLessons);
+
+    if (maxShifts.length > 1) {
+      return "Integral";
+    }
+
+    if (maxLessons === MATUTINO) return "Manhã";
+    if (maxLessons === VESPERTINO) return "Tarde";
+    if (maxLessons === NOTURNO) return "Noite";
+
+    return "N/A";
+  };
+
   useEffect(() => {
     if (!initialSchedule && classScheduleId) {
       const fetchSchedule = async () => {
@@ -142,14 +187,7 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
                 <strong>Turma:</strong> {schedule.class?.semester || "N/A"}
               </Typography>
               <Typography variant="body1" sx={{ mb: 1 }}>
-                <strong>Turno:</strong>{" "}
-                {schedule.turn === "MATUTINO"
-                  ? "Manhã"
-                  : schedule.turn === "VESPERTINO"
-                  ? "Tarde"
-                  : schedule.turn === "NOTURNO"
-                  ? "Noite"
-                  : "N/A"}
+                <strong>Turno: </strong>{determineTurn(schedule)}
               </Typography>
               <Typography variant="body1" sx={{ mb: 2 }}>
                 <strong>Calendário:</strong>{" "}
@@ -204,8 +242,6 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
                       <ChevronRight />
                     </IconButton>
                   </Box>
-
-
                 </>
               ) : (
                 <Typography variant="body1" color="text.secondary">
@@ -286,7 +322,7 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
           <Button
             variant="contained"
             startIcon={<Edit />}
-            onClick={() => navigate(`/class-schedule/${classScheduleId}/edit`)}
+            onClick={() => navigate(`/class-schedule/edit/${classScheduleId}`)}
             sx={{
               width: "fit-content",
               minWidth: 100,

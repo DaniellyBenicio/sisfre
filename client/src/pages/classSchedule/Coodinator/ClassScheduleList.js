@@ -33,17 +33,41 @@ const ClassScheduleList = () => {
         const response = await api.get("/class-schedules");
         console.log("API Response:", response.data);
 
+        const determineTurn = (turnCounts) => {
+          const { MATUTINO, VESPERTINO, NOTURNO } = turnCounts;
+
+          const totalLessons = MATUTINO + VESPERTINO + NOTURNO;
+
+          if (totalLessons === 0) {
+            return "N/A";
+          }
+
+          const maxLessons = Math.max(MATUTINO, VESPERTINO, NOTURNO);
+
+          const maxShifts = [
+            { shift: "Manhã", count: MATUTINO },
+            { shift: "Tarde", count: VESPERTINO },
+            { shift: "Noite", count: NOTURNO },
+          ].filter((s) => s.count === maxLessons);
+
+          if (maxShifts.length > 1) {
+            return "Integral";
+          }
+
+          if (maxLessons === MATUTINO) return "Manhã";
+          if (maxLessons === VESPERTINO) return "Tarde";
+          if (maxLessons === NOTURNO) return "Noite";
+
+          return "N/A";
+        };
+
         const schedules = Array.isArray(response.data.schedules)
           ? response.data.schedules.map((schedule) => ({
               id: schedule.id,
               calendar: schedule.calendar,
               class: schedule.turma,
-              turn:
-                schedule.turno === "MATUTINO"
-                  ? "Manhã"
-                  : schedule.turno === "VESPERTINO"
-                  ? "Tarde"
-                  : "Noite",
+              turn: determineTurn(schedule.turnCounts),
+              details: schedule.details,
             }))
           : [];
 
@@ -75,21 +99,17 @@ const ClassScheduleList = () => {
   }, []);
 
   const onCreateClick = () => {
-    navigate("/class-schedule-create");
+    navigate("/class-schedule/create");
   };
 
   const handleViewClick = (item) => {
     console.log("View Clicked Item:", item);
-    navigate(`/class-schedule-details/${item.id}`);
+    navigate(`/class-schedule/details/${item.id}`);
   };
 
   const handleCustomEdit = (item) => {
     console.log("Edit Clicked Item:", item);
-    setAlert({
-      message: `Editar grade de turma: ${item.class}`,
-      type: "info",
-    });
-    navigate("/class-schedule-create", { state: { schedule: item } });
+    navigate(`/class-schedule/edit/${item.id}`, { state: { schedule: item } });
   };
 
   const handleAlertClose = () => {
@@ -152,7 +172,7 @@ const ClassScheduleList = () => {
           mb: 1,
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2}}>
           <FilterListAlt
             sx={{
               color: "#087619",

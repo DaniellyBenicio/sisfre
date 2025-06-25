@@ -1,29 +1,13 @@
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Grid,
-  Paper,
-  CssBaseline,
-  IconButton,
-  CircularProgress,
-  TextField,
-  Alert,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
+import { Box, Typography, Button, FormControl, InputLabel, Select, MenuItem, Grid, Paper,
+  CssBaseline, IconButton, CircularProgress, TextField, Alert, Table, TableHead, TableRow,
+  TableCell, TableBody,
 } from "@mui/material";
 import { ArrowBack, Close, Save, School, History, Check, Delete, } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../../components/SideBar";
 import api from "../../../service/api";
+import { CustomAlert } from "../../../components/alert/CustomAlert";
 
 const CustomSelect = ({ label, name, value, onChange, children, selectSx, ...props }) => {
   return (
@@ -109,7 +93,12 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
   const [availableHours, setAvailableHours] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [alert, setAlert] = useState(null);
   const navigate = useNavigate();
+
+  const handleAlertClose = () => {
+    setAlert(null);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -206,7 +195,6 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
             default:
               backendTurn = "";
           }
-
           if (backendTurn) {
             const response = await api.get(`/hours?turn=${backendTurn}`);
             setAvailableHours(response.data.hours || response.data);
@@ -413,9 +401,15 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
       };
 
       await api.post("/class-schedules", dataToSend);
-      navigate("/class-schedule", {
-        state: { success: "Grade de turma criada com sucesso!" },
+      setAlert({
+        message: "Grade de turma criada com sucesso!",
+        type: "success",
       });
+      setTimeout(() => {
+        navigate("/class-schedule", {
+          state: { success: "Grade de turma criada com sucesso!" },
+        });
+      }, 3000);
     } catch (error) {
       setErrors((prev) => ({
         ...prev,
@@ -498,6 +492,13 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           <Alert severity="error" sx={{ mb: 2 }}>
             {errors.detail}
           </Alert>
+        )} 
+        {alert && (
+          <CustomAlert
+            message={alert.message}
+            type={alert.type}
+            onClose={handleAlertClose}
+          />
         )}
 
         <Box
@@ -544,19 +545,6 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
             </Grid>
             <Grid item xs={12} sm={6}>
               <CustomSelect
-                label="Turno"
-                name="turn"
-                value={formData.details[0].turn}
-                onChange={handleChange}
-                selectSx={{ width: "320px" }}
-              >
-                <MenuItem value="Manhã">Manhã</MenuItem>
-                <MenuItem value="Tarde">Tarde</MenuItem>
-                <MenuItem value="Noite">Noite</MenuItem>
-              </CustomSelect>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <CustomSelect
                 label="Calendário"
                 name="calendarId"
                 value={formData.calendarId}
@@ -568,6 +556,19 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                     {calendar.display}
                   </MenuItem>
                 ))}
+              </CustomSelect>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <CustomSelect
+                label="Turno"
+                name="turn"
+                value={formData.details[0].turn}
+                onChange={handleChange}
+                selectSx={{ width: "320px" }}
+              >
+                <MenuItem value="Manhã">Manhã</MenuItem>
+                <MenuItem value="Tarde">Tarde</MenuItem>
+                <MenuItem value="Noite">Noite</MenuItem>
               </CustomSelect>
             </Grid>
           </Grid>
@@ -671,7 +672,6 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               <TextField
                 fullWidth
                 label="Horário de Fim"
-                type="time"
                 name="endTime"
                 value={formData.details[0].endTime}
                 onChange={handleChange}

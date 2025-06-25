@@ -1,37 +1,13 @@
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Grid,
-  Paper,
-  CssBaseline,
-  IconButton,
-  CircularProgress,
-  TextField,
-  Alert,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
+import { Box, Typography, Button, FormControl, InputLabel, Select, MenuItem, Grid, Paper,
+  CssBaseline, IconButton, CircularProgress, TextField, Alert, Table, TableHead, TableRow,
+  TableCell, TableBody,
 } from "@mui/material";
-import {
-  ArrowBack,
-  Close,
-  Save,
-  School,
-  History,
-  Check,
-  Delete,
-} from "@mui/icons-material";
+import { ArrowBack, Close, Save, School, History, Check, Delete, } from "@mui/icons-material";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../../components/SideBar";
 import api from "../../../service/api";
+import { CustomAlert } from "../../../components/alert/CustomAlert";
 
 const CustomSelect = ({ label, name, value, onChange, children, selectSx, disabled, ...props }) => {
   return (
@@ -120,9 +96,13 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
   const [availableHours, setAvailableHours] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [alert, setAlert] = useState(null);
   const navigate = useNavigate();
 
-  // Function to determine the overall turn for display
+  const handleAlertClose = () => {
+    setAlert(null);
+  };
+
   const determineTurn = (details) => {
     const turnCounts = details.reduce(
       (counts, detail) => {
@@ -159,11 +139,10 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
     return "N/A";
   };
 
-  // Helper function to format dayOfWeek for frontend
   const formatDayOfWeek = (day) => {
     if (!day) return "";
     const dayLower = day.toLowerCase();
-    return dayLower.charAt(0).toUpperCase() + dayLower.slice(1); // e.g., "SEGUNDA" -> "Segunda"
+    return dayLower.charAt(0).toUpperCase() + dayLower.slice(1);
   };
 
   useEffect(() => {
@@ -222,7 +201,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
               startTime: detail.hour?.hourStart || "",
               endTime: detail.hour?.hourEnd || "",
               hourId: detail.hourId || "",
-              turn: turnMap[detail.turn] || "", // Use turnMap with fallback
+              turn: turnMap[detail.turn] || "",
               disciplineName: detail.discipline?.name || "N/A",
               professorName: detail.professor?.username || "Sem professor",
             }))
@@ -532,22 +511,25 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
         isActive: formData.isActive,
         details: detailsToSend,
       };
-
       console.log("Payload being sent:", JSON.stringify(dataToSend, null, 2));
 
       const response = await api.put(`/class-schedule/${id}`, dataToSend);
       console.log("API Response:", response.data);
 
-      navigate("/class-schedule", {
-        state: { success: "Grade de turma atualizada com sucesso!" },
+      setAlert({
+        message: "Grade de turma criada com sucesso!",
+        type: "success",
       });
+      setTimeout(() => {
+        navigate("/class-schedule", {
+          state: { success: "Grade de turma criada com sucesso!" },
+        });
+      }, 3000);
     } catch (error) {
       console.error("Error during submit:", error.response?.data);
       setErrors((prev) => ({
         ...prev,
-        message:
-          error.response?.data?.message ||
-          "Erro ao atualizar a grade de turma. Tente novamente.",
+        message: error.response?.data?.message || "Erro ao atualizar a grade de turma. Tente novamente.",
       }));
     } finally {
       setLoading(false);
@@ -624,6 +606,13 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
           <Alert severity="error" sx={{ mb: 2 }}>
             {errors.detail}
           </Alert>
+        )}
+        {alert && (
+          <CustomAlert
+            message={alert.message}
+            type={alert.type}
+            onClose={handleAlertClose}
+          />
         )}
 
         <Box

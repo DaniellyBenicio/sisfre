@@ -22,7 +22,7 @@ const DataTable = ({
   onUpdate,
   search,
   renderMobileRow,
-  setAlert, // Adicionado para passar alertas de erro
+  setAlert,
 }) => {
   const isMobile = useMediaQuery("(max-width:600px)");
   const [page, setPage] = useState(1);

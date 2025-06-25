@@ -60,9 +60,15 @@ const Tables = ({
   if (isMobile) {
     return (
       <Stack spacing={1} sx={{ width: "100%" }}>
-        {visibleData.length === 0 && search ? (
-          <Paper sx={{ p: 1 }}>
-            <Typography align="center">Nenhum item encontrado!</Typography>
+        {visibleData.length === 0 ? (
+          <Paper sx={{ p: 2, textAlign: 'center' }}>
+            <Typography variant="body1" color="text.secondary" fontStyle="italic">
+              {data.length === 0
+                ? "Nenhum item encontrado"
+                : search
+                ? "Nenhum item encontrado com a busca atual"
+                : "Nenhum item encontrado com os filtros aplicados"}
+            </Typography>
           </Paper>
         ) : (
           visibleData.map((item) =>
@@ -157,14 +163,18 @@ const Tables = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {visibleData.length === 0 && search ? (
+            {visibleData.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={headers.length + (showActions ? 1 : 0)}
                   align="center"
                   sx={tableBodyCellStyle}
                 >
-                  Nenhum item encontrado
+                  {data.length === 0
+                    ? "Nenhum item encontrado"
+                    : search
+                    ? "Nenhum item encontrado com a busca atual"
+                    : "Nenhum item encontrado com os filtros aplicados"}
                 </TableCell>
               </TableRow>
             ) : (

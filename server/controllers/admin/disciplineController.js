@@ -50,7 +50,6 @@ export const createDiscipline = async (req, res) => {
     const discipline = await db.Discipline.create({ name, acronym });
     return res.status(201).json({ discipline });
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ error: "Erro ao cadastrar a disciplina." });
   }
 };
@@ -123,29 +122,19 @@ export const updateDiscipline = async (req, res) => {
       .status(200)
       .json({ message: "Disciplina atualizada com sucesso.", discipline });
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ error: "Erro ao atualizar a disciplina." });
   }
 };
-
 export const getDisciplines = async (req, res) => {
   const { name, acronym, page = 1, limit = 10, order = "asc" } = req.query;
 
   try {
-    console.log("Parâmetros recebidos em getDisciplines:", {
-      name,
-      acronym,
-      page,
-      limit,
-      order,
-    }); 
-
     const offset = (page - 1) * limit;
     const where = {};
 
     if (name && name.trim()) {
       where.name = {
-        [db.Sequelize.Op.like]: `%${name.trim()}%`, 
+        [db.Sequelize.Op.like]: `%${name.trim()}%`,
       };
     }
 
@@ -163,8 +152,6 @@ export const getDisciplines = async (req, res) => {
       order: [["name", order === "asc" ? "ASC" : "DESC"]],
     });
 
-    console.log("Disciplinas encontradas:", rows); 
-
     res.json({
       disciplines: rows,
       total: count,
@@ -172,7 +159,6 @@ export const getDisciplines = async (req, res) => {
       totalPages: Math.ceil(count / limit),
     });
   } catch (error) {
-    console.error("Erro em getDisciplines:", error);
     res
       .status(500)
       .json({ message: "Erro ao listar disciplinas", error: error.message });
@@ -183,16 +169,11 @@ export const getAllDisciplines = async (req, res) => {
   const { name, acronym } = req.query;
 
   try {
-    console.log("Parâmetros recebidos em getAllDisciplines:", {
-      name,
-      acronym,
-    }); 
-
     const where = {};
 
     if (name && name.trim()) {
       where.name = {
-        [db.Sequelize.Op.like]: `%${name.trim()}%`, 
+        [db.Sequelize.Op.like]: `%${name.trim()}%`,
       };
     }
 
@@ -208,11 +189,8 @@ export const getAllDisciplines = async (req, res) => {
       order: [["name", "ASC"]],
     });
 
-    console.log("Disciplinas encontradas:", disciplines); 
-
     res.json({ disciplines });
   } catch (error) {
-    console.error("Erro em getAllDisciplines:", error);
     res
       .status(500)
       .json({ message: "Erro ao listar disciplinas", error: error.message });
@@ -260,7 +238,6 @@ export const deleteDiscipline = async (req, res) => {
     await discipline.destroy();
     res.status(200).json({ message: "Disciplina excluída com sucesso." });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "Erro ao excluir a disciplina." });
   }
 };

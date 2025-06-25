@@ -949,7 +949,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
             ) : (
               <Save sx={{ fontSize: 24 }} />
             )}
-            Salvar
+            Atualizar
           </Button>
         </Box>
       </Box>

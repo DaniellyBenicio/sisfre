@@ -17,7 +17,8 @@ import ClassOptionsPage from "../pages/disciplines/Teacher/ClassTeacher/ClassOpt
 import ClassScheduleCreate from "../pages/classSchedule/Coodinator/ClassScheduleCreate.js";
 import HolidayPage from "../pages/admin/Holiday/HolidayPage.js";
 import ClassScheduleDetails from "../pages/classSchedule/Coodinator/ClassScheduleDetails.js";
-import ClassDetailsPage from "../pages/disciplines/Teacher/ClassTeacher/ClassDetails/ClassDetailsPage.js"; // Adicione esta importação
+import ClassDetailsPage from "../pages/disciplines/Teacher/ClassTeacher/ClassDetails/ClassDetailsPage.js";
+import ClassScheduleEdit from "../pages/classSchedule/Coodinator/ClassScheduleEdit.js";
 
 
 const AppRoutes = () => {
@@ -175,17 +176,17 @@ const AppRoutes = () => {
         }
       />
       <Route
-  path="/class-schedule"
-  element={
-    isAuthenticated && accessType === "Coordenador" ? (
-      <ClassSchedulePage setAuthenticated={handleLogout} />
-    ) : (
-      <Navigate to="/login" />
-    )
-  }
-/>
+        path="/class-schedule"
+        element={
+          isAuthenticated && accessType === "Coordenador" ? (
+            <ClassSchedulePage setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
       <Route
-        path="/class-schedule-create"
+        path="/class-schedule/create"
         element={
           isAuthenticated && accessType === "Coordenador" ? (
             <ClassScheduleCreate setAuthenticated={handleLogout} />
@@ -195,10 +196,20 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/class-schedule-details/:classScheduleId"
+        path="/class-schedule/details/:classScheduleId"
         element={
           isAuthenticated ? (
             <ClassScheduleDetails setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
+        path="/class-schedule/edit/:id"
+        element={
+          isAuthenticated && accessType === "Coordenador" ? (
+            <ClassScheduleEdit setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
           )

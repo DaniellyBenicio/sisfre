@@ -23,12 +23,24 @@ const DisciplineTeacher = () => {
   const fetchDisciplines = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/disciplines/all");
+      const response = await api.get("/teacher-disciplines");
       console.log("DisciplineList - Resposta da API:", response.data);
       if (!response.data || !Array.isArray(response.data.disciplines)) {
         throw new Error("Erro ao buscar disciplinas: Dados inválidos");
       }
-      setDisciplines(response.data.disciplines);
+      const processedDisciplines = response.data.disciplines.map(
+        (discipline) => {
+          const firstWorkload =
+            discipline.courses && discipline.courses.length > 0
+              ? discipline.courses[0].workload
+              : null;
+          return {
+            ...discipline,
+            workload: firstWorkload,
+          };
+        }
+      );
+      setDisciplines(processedDisciplines);
     } catch (error) {
       console.error("Erro ao buscar disciplinas:", error);
       setAlert({ message: "Erro ao carregar disciplinas.", type: "error" });
@@ -41,8 +53,12 @@ const DisciplineTeacher = () => {
   const filteredDisciplines = Array.isArray(disciplines)
     ? disciplines.filter(
         (discipline) =>
-          discipline.acronym?.toLowerCase().includes(search.trim().toLowerCase()) ||
-          discipline.name?.toLowerCase().includes(search.trim().toLowerCase()) ||
+          discipline.acronym
+            ?.toLowerCase()
+            .includes(search.trim().toLowerCase()) ||
+          discipline.name
+            ?.toLowerCase()
+            .includes(search.trim().toLowerCase()) ||
           String(discipline.workload)
             .toLowerCase()
             .includes(search.trim().toLowerCase())

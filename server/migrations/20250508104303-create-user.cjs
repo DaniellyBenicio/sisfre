@@ -12,7 +12,7 @@ module.exports = {
         allowNull: false,
       },
       acronym: {
-        type: Sequelize.STRING(2),
+        type: Sequelize.STRING(3),
         allowNull: true,
         unique: true,
       },

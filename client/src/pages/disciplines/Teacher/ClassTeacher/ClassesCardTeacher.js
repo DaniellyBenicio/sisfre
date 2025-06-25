@@ -30,19 +30,19 @@ const ClassesCardTeacher = ({ classes, loading }) => {
             classes.map((classItem) => (
               <Grid
                 item
-                xs={12} // 1 card por linha em telas extra pequenas
-                sm={6} // 2 cards por linha em telas pequenas
-                md={4} // 3 cards por linha em telas médias e maiores
+                xs={12}
+                sm={6}
+                md={4}
                 key={classItem.id}
                 sx={{
-                  display: "flex", // Garante que o Card dentro do Grid item se alinhe
-                  justifyContent: "center", // Centraliza o Card dentro do Grid item
+                  display: "flex",
+                  justifyContent: "center",
                 }}
               >
                 <Card
                   sx={{
-                    width: { xs: 200, sm: 220, md: 240 }, // Reduzida a largura do card
-                    height: { xs: 180, sm: 200, md: 220 }, // Reduzida a altura do card
+                    width: { xs: 200, sm: 220, md: 240 },
+                    height: { xs: 180, sm: 200, md: 220 },
                     backgroundColor: "#FFFFFF",
                     boxShadow:
                       "0 6px 12px rgba(8, 118, 25, 0.1), 0 3px 6px rgba(8, 118, 25, 0.05)",
@@ -62,7 +62,7 @@ const ClassesCardTeacher = ({ classes, loading }) => {
                         "0 10px 20px rgba(8, 118, 25, 0.3), 0 0 10px rgba(8, 118, 25, 0.5)",
                       border: "3px solid #0A8C1F",
                     },
-                    p: 1.5, // Ajustado padding
+                    p: 1.5,
                   }}
                 >
                   <Box
@@ -117,19 +117,19 @@ const ClassesCardTeacher = ({ classes, loading }) => {
                     </Typography>
                   </CardContent>
                   <Button
-                    variant="outlined" // Volta para "outlined" para a borda
+                    variant="outlined"
                     sx={{
                       mt: "auto",
-                      backgroundColor: "#FFFFFF", // Fundo branco
-                      borderColor: "#087619", // Borda verde
-                      color: "#087619", // Texto verde
-                      borderWidth: "1px", // Borda fininha (padrão 1px para outlined)
-                      boxShadow: "0 2px 4px rgba(8, 118, 25, 0.2)", // Sombra para o relevo
+                      backgroundColor: "#FFFFFF",
+                      borderColor: "#087619",
+                      color: "#087619",
+                      borderWidth: "1px",
+                      boxShadow: "0 2px 4px rgba(8, 118, 25, 0.2)",
                       "&:hover": {
-                        backgroundColor: "rgba(8, 118, 25, 0.04)", // Leve fundo verde no hover
+                        backgroundColor: "rgba(8, 118, 25, 0.04)",
                         borderColor: "#0A8C1F",
                         color: "#0A8C1F",
-                        boxShadow: "0 4px 8px rgba(8, 118, 25, 0.3)", // Sombra mais proeminente no hover
+                        boxShadow: "0 4px 8px rgba(8, 118, 25, 0.3)",
                       },
                       width: "80%",
                       maxWidth: "150px",

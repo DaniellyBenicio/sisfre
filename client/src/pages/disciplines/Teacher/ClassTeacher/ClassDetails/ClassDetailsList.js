@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom"; // Importar useNavigate
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -12,39 +12,37 @@ import {
   TableHead,
   TableRow,
   Paper,
-  IconButton, // Importar IconButton
+  IconButton,
 } from "@mui/material";
-import { Class, AccessTime, ArrowBack } from "@mui/icons-material"; // Importar ArrowBack
+import { Class, AccessTime, ArrowBack } from "@mui/icons-material";
 
 const ClassDetailsList = ({ setAuthenticated }) => {
   const location = useLocation();
-  const navigate = useNavigate(); // Hook para navegação
+  const navigate = useNavigate();
   const { state } = location;
 
-  // Dados de exemplo fixos caso não haja state.classItem
-  const defaultClassItem = {
-    id: 1,
-    name: "S4",
-    course: "Sistemas de Informação",
-    calendar: "Convencional - 2025.1",
-    discipline: "Programação Orientada a Objetos",
-    shift: "Tarde",
-    schedule: [
-      { day: "Segunda - Feira", startTime: "15:20", endTime: "17:00" },
-      { day: "Quarta - Feira", startTime: "13:00", endTime: "15:00" },
-      { day: "Sexta - Feira", startTime: "08:00", endTime: "12:00" },
-    ],
-  };
-
-  // Usa os dados do state, se existirem, senão usa os dados de exemplo
-  const classItem = state?.classItem || defaultClassItem;
+  // Verificar se classItem existe
+  const classItem = state?.classItem;
 
   const handleBackClick = () => {
-    // Pode navegar para uma rota específica (ex: "/minhas-turmas")
-    // ou voltar para a página anterior no histórico.
-    navigate(-1); // Volta para a página anterior
-    // Ou navigate("/minhas-turmas"); // Se você tiver uma rota específica para a lista de turmas
+    navigate(-1);
   };
+
+  if (!classItem) {
+    return (
+      <Box sx={{ p: 3, textAlign: "center" }}>
+        <Typography variant="h6" color="error">
+          Nenhuma turma selecionada.
+        </Typography>
+        <IconButton
+          onClick={handleBackClick}
+          sx={{ mt: 2, color: "#087619" }}
+        >
+          <ArrowBack />
+        </IconButton>
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -62,8 +60,8 @@ const ClassDetailsList = ({ setAuthenticated }) => {
         sx={{
           display: "flex",
           alignItems: "center",
-          justifyContent: "center", // Centraliza o título
-          position: "relative", // Para posicionar o botão de voltar
+          justifyContent: "center",
+          position: "relative",
           mb: 2,
         }}
       >
@@ -72,9 +70,9 @@ const ClassDetailsList = ({ setAuthenticated }) => {
           sx={{
             position: "absolute",
             left: 0,
-            color: "#087619", // Cor do ícone
+            color: "#087619",
             "&:hover": {
-              backgroundColor: "rgba(8, 118, 25, 0.08)", // Efeito hover
+              backgroundColor: "rgba(8, 118, 25, 0.08)",
             },
           }}
         >
@@ -84,13 +82,12 @@ const ClassDetailsList = ({ setAuthenticated }) => {
           variant="h5"
           align="center"
           gutterBottom
-          sx={{ fontWeight: "bold", color: "#087619", m: 0 }} // m:0 para remover margin padrão do Typography
+          sx={{ fontWeight: "bold", color: "#087619", m: 0 }}
         >
           Detalhes da Turma
         </Typography>
       </Box>
 
-      {/* Cartão de Detalhes da Turma - Sem Alterações Funcionais */}
       <Card
         sx={{
           backgroundColor: "#FFFFFF",
@@ -117,21 +114,20 @@ const ClassDetailsList = ({ setAuthenticated }) => {
             </Typography>
           </Box>
           <Typography sx={{ mb: 1 }}>
-            <strong>Curso:</strong> {classItem.course}
+            <strong>Curso:</strong> {classItem.course || "N/A"}
           </Typography>
           <Typography sx={{ mb: 1 }}>
-            <strong>Calendário Letivo:</strong> {classItem.calendar}
+            <strong>Calendário Letivo:</strong> {classItem.calendar || "N/A"}
           </Typography>
           <Typography sx={{ mb: 1 }}>
-            <strong>Disciplina:</strong> {classItem.discipline}
+            <strong>Disciplina:</strong> {classItem.discipline || "N/A"}
           </Typography>
           <Typography sx={{ mb: 1 }}>
-            <strong>Turno:</strong> {classItem.shift}
+            <strong>Turno:</strong> {classItem.shift || "N/A"}
           </Typography>
         </CardContent>
       </Card>
 
-      {/* Cartão de Horário - Com Tabela */}
       <Card
         sx={{
           backgroundColor: "#FFFFFF",
@@ -174,13 +170,21 @@ const ClassDetailsList = ({ setAuthenticated }) => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {classItem.schedule.map((slot, index) => (
-                  <TableRow key={index}>
-                    <TableCell sx={{ pl: 0 }}>{slot.day}</TableCell>
-                    <TableCell align="center">{slot.startTime}</TableCell>
-                    <TableCell align="center">{slot.endTime}</TableCell>
+                {classItem.schedule && classItem.schedule.length > 0 ? (
+                  classItem.schedule.map((slot, index) => (
+                    <TableRow key={index}>
+                      <TableCell sx={{ pl: 0 }}>{slot.day || "N/A"}</TableCell>
+                      <TableCell align="center">{slot.startTime || "N/A"}</TableCell>
+                      <TableCell align="center">{slot.endTime || "N/A"}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={3} align="center">
+                      Nenhum horário disponível
+                    </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </TableContainer>

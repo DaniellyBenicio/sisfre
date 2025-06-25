@@ -1,7 +1,9 @@
 import db from "../../models/index.js";
+import { Op } from "sequelize";
 
 export const getProfessorDisciplines = async (req, res) => {
   const loggedUserId = req.user?.id;
+  const searchTerm = req.query.search?.trim(); 
 
   try {
     if (!loggedUserId) {
@@ -17,6 +19,14 @@ export const getProfessorDisciplines = async (req, res) => {
           model: db.Discipline,
           as: "discipline",
           attributes: ["id", "name", "acronym"],
+          where: searchTerm
+            ? {
+                [Op.or]: [
+                  { name: { [Op.like]: `%${searchTerm}%` } },
+                  { acronym: { [Op.like]: `%${searchTerm}%` } },
+                ],
+              }
+            : {}, 
           include: [
             {
               model: db.Course,
@@ -46,7 +56,6 @@ export const getProfessorDisciplines = async (req, res) => {
       distinct: true,
     });
 
-
     if (!classScheduleDetails.length) {
       return res.status(404).json({
         message: "Nenhuma disciplina encontrada para o professor.",
@@ -69,6 +78,7 @@ export const getProfessorDisciplines = async (req, res) => {
                 course.courseDiscipline?.workload ||
                 course.courseDisciplines?.workload ||
                 null;
+
               return {
                 name: course.name,
                 acronym: course.acronym,

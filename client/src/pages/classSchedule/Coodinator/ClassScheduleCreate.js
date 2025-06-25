@@ -20,15 +20,7 @@ import {
   TableCell,
   TableBody,
 } from "@mui/material";
-import {
-  ArrowBack,
-  Close,
-  Save,
-  Assignment,
-  History,
-  Check,
-  Delete,
-} from "@mui/icons-material";
+import { ArrowBack, Close, Save, School, History, Check, Delete, } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../../components/SideBar";
 import api from "../../../service/api";
@@ -36,8 +28,7 @@ import api from "../../../service/api";
 const CustomSelect = ({ label, name, value, onChange, children, selectSx, ...props }) => {
   return (
     <FormControl fullWidth required sx={{ minWidth: 190, maxWidth: 600, ...props.sx }}>
-      <InputLabel
-        id={`${name}-label`}
+      <InputLabel id={`${name}-label`}
         sx={{
           "&.Mui-focused": { color: "#000" },
           "&.MuiInputLabel-shrink": { color: "#000" },
@@ -523,9 +514,9 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               mb: 2,
             }}
           >
-            <Assignment sx={{ fontSize: "31px", color: "green" }} />
+            <School sx={{ fontSize: "31px", color: "green" }} />
             <Typography variant="h5" color="green">
-              Aula
+              Turma
             </Typography>
           </Box>
           <Grid container spacing={2.5} mt="10px" justifyContent="center">
@@ -699,7 +690,11 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                   height: 40,
                   padding: 0,
                   mt: 1,
-                  "&:hover": { backgroundColor: "#066915" },
+                  borderRadius: "50%",
+                  backgroundColor: "transparent",
+                  "&:hover": {
+                    backgroundColor: "rgba(76, 175, 80, 0.15)",
+                  },
                 }}
               >
                 <Check sx={{ fontSize: 34, color: "green" }} />

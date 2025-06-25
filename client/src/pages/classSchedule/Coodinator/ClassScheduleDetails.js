@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import {
   ArrowBack,
-  Assignment,
+  School,
   History,
   ChevronLeft,
   ChevronRight,
@@ -169,9 +169,9 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
 
         <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-            <Assignment sx={{ fontSize: "31px", color: "green" }} />
+            <School sx={{ fontSize: "31px", color: "green" }} />
             <Typography variant="h5" color="green">
-              Aula
+              Turma
             </Typography>
           </Box>
 

@@ -8,7 +8,7 @@ export const getArchivedClassSchedules = async (req, res) => {
     if (!loggedUserId) {
       return res.status(401).json({
         success: false,
-        message: 'Usuário não autenticado.',
+        message: "Usuário não autenticado.",
       });
     }
 
@@ -19,98 +19,126 @@ export const getArchivedClassSchedules = async (req, res) => {
     if (!course) {
       return res.status(403).json({
         success: false,
-        message: 'Acesso negado: Usuário não é coordenador ou não está associado a nenhum curso.',
+        message:
+          "Acesso negado: Usuário não é coordenador ou não está associado a nenhum curso.",
       });
     }
 
     const classSchedules = await db.ClassSchedule.findAll({
       where: {
         courseId: course.id,
-        isActive: false, 
+        isActive: false,
       },
       include: [
         {
           model: db.Calendar,
-          as: 'calendar',
-          attributes: ['id', 'year', 'period'],
+          as: "calendar",
+          attributes: ["id", "year", "period"],
         },
         {
           model: db.Class,
-          as: 'class',
-          attributes: ['id', 'semester'],
+          as: "class",
+          attributes: ["id", "semester"],
         },
         {
           model: db.Course,
-          as: 'course',
-          attributes: ['name', 'acronym'],
+          as: "course",
+          attributes: ["name", "acronym"],
         },
         {
           model: db.ClassScheduleDetail,
-          as: 'details',
-          attributes: ['id', 'disciplineId', 'userId', 'dayOfWeek'],
+          as: "details",
+          attributes: [
+            "id",
+            "disciplineId",
+            "userId",
+            "dayOfWeek",
+            "turn",
+            "hourId",
+          ],
           include: [
             {
               model: db.Discipline,
-              as: 'discipline',
-              attributes: ['id', 'name', 'acronym'],
+              as: "discipline",
+              attributes: ["id", "name", "acronym"],
             },
             {
               model: db.User,
-              as: 'professor',
-              attributes: ['id', 'username', 'acronym'],
+              as: "professor",
+              attributes: ["id", "username", "acronym"],
             },
             {
               model: db.Hour,
-              as: 'hour',
-              attributes: ['id', 'hourStart', 'hourEnd'],
+              as: "hour",
+              attributes: ["id", "hourStart", "hourEnd"],
             },
           ],
         },
       ],
       order: [
-        ['calendar', 'year', 'DESC'],
-        ['calendar', 'period', 'DESC'],
-        ['class', 'semester', 'ASC'],
+        ["calendar", "year", "DESC"],
+        ["calendar", "period", "DESC"],
+        ["class", "semester", "ASC"],
       ],
     });
 
     if (!classSchedules.length) {
       return res.status(404).json({
         success: false,
-        message: 'Nenhuma disciplina arquivada encontrada para o coordenador.',
+        message: "Nenhuma grade arquivada encontrada para o coordenador.",
       });
     }
 
+    const countTurns = (details) => {
+      const counts = {
+        MATUTINO: 0,
+        VESPERTINO: 0,
+        NOTURNO: 0,
+        INTEGRADO: 0,
+      };
+      details.forEach((detail) => {
+        if (counts.hasOwnProperty(detail.turn)) {
+          counts[detail.turn]++;
+        }
+      });
+      return counts;
+    };
+
     const scheduleList = classSchedules.map((schedule) => {
       const calendarInfo = `${schedule.calendar.year}.${schedule.calendar.period}`;
+      const turnCounts = countTurns(schedule.details);
+
       return {
         id: schedule.id,
         calendar: calendarInfo,
         turma: schedule.class.semester,
-        turno: schedule.turn,
         nome_curso: schedule.course.name,
         sigla_curso: schedule.course.acronym,
         details: schedule.details.map((detail) => ({
-          discipline: detail.discipline.name,
-          discipline_acronym: detail.discipline.acronym,
+          id: detail.id,
+          discipline: detail.discipline ? detail.discipline.name : null,
+          discipline_acronym: detail.discipline
+            ? detail.discipline.acronym
+            : null,
           professor: detail.professor ? detail.professor.username : null,
           dayOfWeek: detail.dayOfWeek,
-          hourStart: detail.hour.hourStart,
-          hourEnd: detail.hour.hourEnd,
+          turn: detail.turn,
+          hour: detail.hour
+            ? `${detail.hour.hourStart} - ${detail.hour.hourEnd}`
+            : null,
         })),
+        turnCounts,
       };
     });
 
     return res.status(200).json({
-      success: true,
-      message: 'Disciplinas arquivadas recuperadas com sucesso!',
-      data: scheduleList,
+      message: "Grades arquivadas recuperadas com sucesso!",
+      schedules: scheduleList,
     });
   } catch (error) {
-    console.error('Erro ao listar disciplinas arquivadas:', error);
     return res.status(500).json({
       success: false,
-      message: 'Erro interno do servidor ao recuperar disciplinas arquivadas.',
+      message: "Erro interno do servidor ao recuperar grades arquivadas.",
       error: error.message,
     });
   }
@@ -124,7 +152,7 @@ export const getArchivedClassSchedulesFilter = async (req, res) => {
     if (!loggedUserId) {
       return res.status(401).json({
         success: false,
-        message: 'Usuário não autenticado.',
+        message: "Usuário não autenticado.",
       });
     }
 
@@ -135,28 +163,29 @@ export const getArchivedClassSchedulesFilter = async (req, res) => {
     if (!course) {
       return res.status(403).json({
         success: false,
-        message: 'Acesso negado: Usuário não é coordenador ou não está associado a nenhum curso.',
+        message:
+          "Acesso negado: Usuário não é coordenador ou não está associado a nenhum curso.",
       });
     }
 
     const where = {
       courseId: course.id,
-      isActive: false, 
+      isActive: false,
     };
 
     if (calendar) {
-      where['$calendar.year$'] = { [Op.like]: `%${calendar}%` };
-      if (calendar.includes('.')) {
-        const [year, period] = calendar.split('.');
+      where["$calendar.year$"] = { [Op.like]: `%${calendar}%` };
+      if (calendar.includes(".")) {
+        const [year, period] = calendar.split(".");
         if (year && period) {
-          where['$calendar.year$'] = { [Op.like]: `%${year}%` };
-          where['$calendar.period$'] = { [Op.eq]: parseInt(period) };
+          where["$calendar.year$"] = { [Op.like]: `%${year}%` };
+          where["$calendar.period$"] = { [Op.eq]: parseInt(period) };
         }
       }
     }
 
     if (turma) {
-      where['$class.semester$'] = { [Op.like]: `%${turma}%` };
+      where["$class.semester$"] = { [Op.like]: `%${turma}%` };
     }
 
     if (courseId) {
@@ -168,86 +197,113 @@ export const getArchivedClassSchedulesFilter = async (req, res) => {
       include: [
         {
           model: db.Calendar,
-          as: 'calendar',
-          attributes: ['id', 'year', 'period'],
+          as: "calendar",
+          attributes: ["id", "year", "period"],
         },
         {
           model: db.Class,
-          as: 'class',
-          attributes: ['id', 'semester'],
+          as: "class",
+          attributes: ["id", "semester"],
         },
         {
           model: db.Course,
-          as: 'course',
-          attributes: ['name', 'acronym'],
+          as: "course",
+          attributes: ["name", "acronym"],
         },
         {
           model: db.ClassScheduleDetail,
-          as: 'details',
-          attributes: ['id', 'disciplineId', 'userId', 'dayOfWeek'],
+          as: "details",
+          attributes: [
+            "id",
+            "disciplineId",
+            "userId",
+            "dayOfWeek",
+            "turn",
+            "hourId",
+          ],
           include: [
             {
               model: db.Discipline,
-              as: 'discipline',
-              attributes: ['id', 'name', 'acronym'],
+              as: "discipline",
+              attributes: ["id", "name", "acronym"],
             },
             {
               model: db.User,
-              as: 'professor',
-              attributes: ['id', 'username', 'acronym'],
+              as: "professor",
+              attributes: ["id", "username", "acronym"],
             },
             {
               model: db.Hour,
-              as: 'hour',
-              attributes: ['id', 'hourStart', 'hourEnd'],
+              as: "hour",
+              attributes: ["id", "hourStart", "hourEnd"],
             },
           ],
         },
       ],
       order: [
-        ['calendar', 'year', 'DESC'],
-        ['calendar', 'period', 'DESC'],
-        ['class', 'semester', 'ASC'],
+        ["calendar", "year", "DESC"],
+        ["calendar", "period", "DESC"],
+        ["class", "semester", "ASC"],
       ],
     });
 
     if (!classSchedules.length) {
       return res.status(404).json({
         success: false,
-        message: 'Nenhuma disciplina arquivada encontrada para os filtros fornecidos.',
+        message:
+          "Nenhuma grade arquivada encontrada para os filtros fornecidos.",
       });
     }
 
+    const countTurns = (details) => {
+      const counts = {
+        MATUTINO: 0,
+        VESPERTINO: 0,
+        NOTURNO: 0,
+        INTEGRADO: 0,
+      };
+      details.forEach((detail) => {
+        if (counts.hasOwnProperty(detail.turn)) {
+          counts[detail.turn]++;
+        }
+      });
+      return counts;
+    };
+
     const scheduleList = classSchedules.map((schedule) => {
       const calendarInfo = `${schedule.calendar.year}.${schedule.calendar.period}`;
+      const turnCounts = countTurns(schedule.details);
+
       return {
         id: schedule.id,
         calendar: calendarInfo,
         turma: schedule.class.semester,
-        turno: schedule.turn,
         nome_curso: schedule.course.name,
         sigla_curso: schedule.course.acronym,
         details: schedule.details.map((detail) => ({
-          discipline: detail.discipline.name,
-          discipline_acronym: detail.discipline.acronym,
+          id: detail.id,
+          discipline: detail.discipline ? detail.discipline.name : null,
+          discipline_acronym: detail.discipline
+            ? detail.discipline.acronym
+            : null,
           professor: detail.professor ? detail.professor.username : null,
           dayOfWeek: detail.dayOfWeek,
-          hourStart: detail.hour.hourStart,
-          hourEnd: detail.hour.hourEnd,
+          turn: detail.turn,
+          hour: detail.hour
+            ? `${detail.hour.hourStart} - ${detail.hour.hourEnd}`
+            : null,
         })),
+        turnCounts,
       };
     });
 
     return res.status(200).json({
-      success: true,
-      message: 'Disciplinas arquivadas filtradas com sucesso!',
-      data: scheduleList,
+      message: "Grades arquivadas filtradas com sucesso!",
+      schedules: scheduleList,
     });
   } catch (error) {
-    console.error('Erro ao filtrar disciplinas arquivadas:', error);
     return res.status(500).json({
-      success: false,
-      message: 'Erro interno do servidor ao filtrar disciplinas arquivadas.',
+      message: "Erro interno do servidor ao filtrar grades arquivadas.",
       error: error.message,
     });
   }

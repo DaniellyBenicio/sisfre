@@ -1,0 +1,496 @@
+Nome,codigo
+Probabilidade e Estatística,PRES
+Fundamentos de Sistemas de Informação,FSIN
+Inglês Instrumental,INGI
+Lógica Matemática,LOGM
+Tecnologias Web,TWB
+Metodologia do Trabalho Científico,MTC
+Introdução à Administração,INTA
+Lógica e Linguagem de Programação,LLPR
+Arquitetura de Computadores,ARQC
+Redes de Computadores I,REDC1
+Programação Estruturada e Estrutura de Dados,PEED
+Gerência de Redes,GERE
+Banco de Dados I,BD1
+Introdução à Contabilidade e Finanças,ICF
+Sistemas Operacionais,SOP
+Sociologia Aplicada a Ética Profissional,SAEP
+Design e Multimídia,DEM
+Processamento Digital de Imagens,PDI
+Programação Orientada a Objetos,POO
+Sistemas Distribuídos,SDIS
+Construção e Análise de Algoritmos,CAA
+Banco de Dados II,BD2
+Engenharia de Software,ENGS
+Interface Homem-Computador,IHC
+Gerência de Projetos,GERP
+Legislação e Informática,LINF
+Programação Web I,PWEB1
+Comércio Eletrônico,COME
+Análise e Projeto de Sistemas,APSI
+Marketing,MKT
+Projeto Integrador I,PRINT1
+Programação Web II,PWEB2
+Redes de Computadores II,REDC2
+Laboratório e Desenvolvimento de Sistemas,LDS
+Governança de Tecnologia da Informação,GOTI
+Inteligência Computacional,ICOM
+Projeto Integrador II,PRINT2
+Sistemas de Apoio a Decisão,SAD
+Auditoria e Segurança de Sistemas de Informação,ASSI
+Programação para Dispositivos Móveis,PDM
+Empreendedorismo,EMP
+Introdução ao Desenvolvimento de Jogos Digitais,IDJD
+Responsabilidade Social e Ambiental,RSA
+Trabalho de Conclusão de Curso,TCC
+Álgebra Linear,ALGL
+Libras,LBR
+Engenharia de Vendas e Negócios de Informática,EVNI
+Computação Gráfica,CMP
+Gerenciamento de Projetos em Softwares Livres,GPSL
+Higiene e Segurança do Trabalho,HST
+Química Geral e Experimental,QGEX
+Introdução a Engenharia Elétrica,INEE
+Álgebra Vetorial,ALVE
+Lógica de Programação,LOPR
+Metodologia do Trabalho Científico,MTC
+Desenho Técnico,DTEC
+Física 1,FIS1
+Álgebra Linear,ALIN
+Programação Orientada a Objetos,PROO
+Eletrônica Digital,ELED
+Física 2,FIS2
+Materiais Elétricos e Magnéticos,MAEM
+Sistemas Microprocessados,SMIC
+Equações Diferenciais,EDIF
+Probabilidade e Estatística,PBET
+Cálculo Numérico,CALN
+Física 3,FIS3
+Variáveis Complexas,VACO
+Circuitos Elétricos,CIEL1
+Resistências dos Materiais,REMA
+Circuitos Elétricos 2,ENGS
+Análise de Sinais e Sistema Lineares,ASSL
+Eletromagnetismo,EMAG
+Eletrônica 1,ELET1
+Sistemas de Comunicações,SCOM
+Sistemas de Controle,SCON
+Conversão Eletromecânica de Energia,CEME
+Geração Transmissão e Distribuição de Energia Elétrica,GTDE
+Eletrônica 2,ELET2
+Sistemas Elétricos 1,SIS1
+Instalações Elétricas,INST
+Máquinas Elétricas 1,MAEL1
+Eletrônica de Potência 1,ELPO1
+Higiene e Segurança no Trabalho,HST
+Fontes Alternativas e Renováveis de Energia,FARE
+Acionamento de Máquinas Elétricas,ACME
+Fenômenos de Transportes,FENT
+Máquinas Elétricas 2,MQE2
+Transformadores,TFMD
+Controle Digital,CTDG
+Instrumentação Eletrônica,INTE
+Eletrônica de Potência II,ELPO2
+Sistemas de Automação Industrial I,SAUI1
+Instrumentação de Eletrônica,INTE
+Sistema Elétrico II,SEL2
+Economia,ECON
+Projeto Social,PRSO
+Introdução ao Direito,INDI
+Subestações,SUBE
+Equipamentos Elétricos,EQPE
+Operação e Controle de Sistemas Elétricos de Potência,OCSEP
+Redes de Computadores,REDC
+Circuitos para Comunicação,CRPC
+Processamento Digital de Sinais,PDSN
+Sistemas de Automação Industrial II,SAUI2
+Engenharia Econômica,ENGE
+Engenharia Econômica,EECO
+Empreendedorismo,EMPO
+Proteção de Sistemas Elétricos,PSET
+Qualidade de Energia,QE
+Técnicas de Alta Tensão,TEAT
+Projeto de Circuitos Integrados,PRCI
+Sistemas Embarcados,SEM
+Sistemas de Aquisição de Dados,SIAD
+Gerência e Controle de Produção,GCPR
+Robótica,ROB
+Artes,ART
+Libras,LBR
+Educação Física,ED
+Sociologia Industrial,SOC
+Química Geral,QUIM
+Ética e Cidadania,ETCID
+Desenho Técnico,DTEC
+Desenho Assistido por Computador,CAD
+Metrologia,METR
+Física Experimental I,FISEXPI
+Ciências do Ambiente,CIENC
+Mecânica Geral,MECG
+Metodologia Científica e Tecnológica,METC
+Materiais I,MCMI
+Métodos Numéricos,MNUM
+Direito para Engenharia,DIR
+Materiais II,MCMII
+Processo de Fabricação I,PROCF1
+Mecanismos,MECNS
+Resistência dos Materiais,REM
+Física Experimental II,FISEXP2
+Optativa,OPT
+Termodinâmica,TERMO
+Mecânica dos Sólidos,MECS
+Soldagem,SOL
+Processos de Fabricação II,PROCFII
+Ensaios Mecânicos,ENSM
+Eletrotécnica,ELET
+Gestão da Manutenção Industrial,GESMI
+Mecânica dos Fluidos,MECF
+Sistemas Mecânicos I,SIMEC1
+Administração e Empreendedorismo,ADME
+Laboratório de Processos de Fabricação,LBPF
+Transportadores Industriais,TRIN
+Transferência de Calor,TRFC
+Acionamentos Hidráulicos e Pneumáticos,AHP
+Controle de Qualidade,CQUA
+Manutenção Industrial,MIND
+Sistemas Mecânicos II,SIMEC2
+Máquinas Térmicas e de Fluxo,MTF
+CNC/CAM,CC
+Planejamento e Controle da Produção,PCP
+Tratamentos Térmicos e Termoquímicos,TTT
+Projeto Social,PRSO
+Projeto de Engenharia,PROENG
+Optativa,OPT
+Corrosão e Proteção Anticorrosiva,CPA
+Tribologia e Lubrificação,TL
+Máquinas de Elevação,ME
+Gestão de Projetos,GESP
+Manufatura Integrada por Componentes,MNIP
+Refrigeração Industrial,RFI
+Materiais Compostos,MATC
+Metalurgia da Soldagem,MTSL
+Ergonomia,ERG
+Vibrações Mecânicas,VM
+Robótica I,RB1
+Comunicação e Linguagem,CML
+Energias Renováveis,ENR
+Física Aplicada,FAPL
+Eletricidade Corrente Contínua,ELCC
+Linguagem de Programação,LRPO
+Materiais para Construção Mecânica,MCM
+Eletromagnetismo,ELM
+Eletrônica Analógica,ELA
+Resistência dos Materiais,RES
+Metrologia Dimensional,MET
+Eletricidade Corrente Alternada,ELCA
+Eletrônica Digital,ELD
+Desenho Técnico,DTE
+Elementos de Máquinas,EMAQ
+Eletrônica Industrial,ELIN
+Mecanismos,MECN
+Processo de Fabricação Mecânica,PFM
+Desenho Assistido por Computador,CAD
+Microcontroladores,MCT
+Instrumentação,INST
+Acionamentos de Máquinas I,ACM1
+Comandos Eletroeletrônicos,CEE
+Usinagem,USIN
+Acionamentos de Máquinas II,ACM2
+Sistemas de Controle Distribuído,SCD
+Robótica I,ROB1
+CAM/CNC/CIM,CCC
+Acionamento Hidráulico e Pneumático,ACHP
+Projeto Social,PRS
+Projeto de Conclusão de Curso,PCCM
+Sistema de Supervisão,SSUP
+Controle de Qualidade,CTR
+Gestão de Manutenção,GEA1
+Robótica II,ROB2
+Gestão Empresarial,GEMP
+Inteligência Artificial,INA
+Libras,LPE
+Linguagem de Programação Estruturada,LPE
+Fundamentos da Educação Superior,FES
+Educação e Diversidade,ED
+Metodologia da Pesquisa I,MTP1
+Estrutura e Funcionamento do Ensino Superior,EFES
+Metodologia da Pesquisa II,MTP2
+Fundamentos Psicológicos da Educação,FPE
+Didática do Ensino Superior,DES
+Novas Tecnologias e Formação Docente,NTFD
+Currículo Planejamento e Avaliação Educacional,CPAD
+Empreendedorismo e Redes de Cooperação em Educação,ERCE
+Política Gestão e Avaliação do Ensino Superior,PGAES
+Tópicos Especiais I Ludicidade na Educação Superior,TE1
+Tópicos Especiais II Educação Profissional e Tecnológica,TE2
+Tópicos Especiais III Educação a Distância,TE3
+Comunicação e Linguagem,COML
+Fundamentos da Matemática I,FMA1
+Fundamentos Sócio-Filosóficos da Educação,FSFE
+Geometria Plana e Espacial,LRPO
+Introdução às Ciências,INTC
+Trigonometria,TRG
+Desenho Geométrico,DGEO
+Fundamentos da Matemática II,FMA2
+Geometria Analítica Plana e Números Complexos,GAPN
+História da Educação no Brasil,HEB
+Laboratório do Ensino da Matemática,LEM
+Cálculo I,CAL1
+Estrutura e Funcionamento do Ensino,EFEN
+Fundamentos da Matemática III,EMAQ
+Geometria Analítica Espacial,GAE
+Psicologia do Desenvolvimento,PSID
+Cálculo II,CAL2
+Currículos e Programas,CPRO
+Didática Educacional,DIDE
+Informática Aplicada ao Ensino,IAE
+Libras,LIB
+Probabilidades,PROB
+Álgebra Linear,ALIN
+Cálculo III,CAL3
+Estágio I,EST1
+Estatística,ESTA
+Programa Residência Pedagógica,PRPE
+Psicologia da Aprendizagem,PAPR
+Equações Diferenciais e Séries,EDS
+Estágio II,EST2
+Lógica de Programação,LRPO
+Teoria dos Números,ACHP
+Organização e Gestão da Educação Brasileira,OGEP
+Cálculo Numérico,CALN
+Estágio III,EST3
+Estruturas Algébricas,EALG
+Matemática Comercial e Financeira,MATC
+Metodologia do Ensino da Matemática,MEM
+Estágio IV,EST4
+Introdução à Variável Complexa,IVC
+História da Matemática,HISM
+Introdução à Análise,INTA
+Monografia,MONO
+Física Aplicada,FISA
+Tópicos de Álgebra,TPA
+Linguagem de Programação,LPRO
+Arte de Resolver Problemas,ARP
+Matemática Computacional,MTCP
+Educação Inclusiva,EDIC
+Introdução às Ciências da Natureza I,ICN1
+Pré-Cálculo,PCAL
+Introdução à Física I,IFS1
+Psicologia do Desenvolvimento,PD
+Fundamentos Filosóficos e Sociológicos da Educação,FFSE
+Cálculo Diferencial e Integral I,CDI1
+Geometria Analítica e Álgebra Linear,GAAL
+Introdução a Física II,INF2
+Introdução às Ciências da Natureza II,ICN2
+História da Educação,HD
+Psicologia da Aprendizagem,PLA
+Cálculo Diferencial e Integral II,CDI2
+Mecânica Básica I,MB1
+Seminário I Educação Ambiental,SM1
+Política Educacional,PLE
+Didática,DIT
+Cálculo Diferencial e Integral III,CDI3
+Mecânica Básica II,MB2
+Física Experimental I,FSE1
+Metodologia do Ensino da Mecânica,MTEM
+Cálculo Diferencial e Integral IV,CDI4
+Eletricidade e Magnetismo I,ELM1
+Termodinâmica,TERM
+Metodologia do Ensino de Termodinâmica,MTET
+Currículos e Programas,CRP
+Estágio Supervisionado I,EST1
+Estágio Supervisionado II,EST2
+Projeto Social,PRS
+Eletricidade e Magnetismo II,ELM2
+Oscilações e Ondas,OCEO
+Metodologia do Ensino de Eletricidade e Magnetismo,MEEM
+Física Experimental II,FSE2
+Estágio Supervisionado III,EST3
+Trabalho de Conclusão de Curso I,TCC1
+Ética,OTC
+Física Moderna,FSM
+História da Física,HSF
+Estágio Supervisionado IV,EST4
+Introdução à Mecânica Quântica,IMQ
+Física Experimental III,INTA
+Educação Inclusiva,EI
+Metodologia do Ensino de Ética e Física Moderna,MEOFM
+Trabalho de Conclusão de Curso II,TCC2
+Seminários II Educação Para as Relações Étnico-Raciais,SM2
+Informática Aplicada ao Ensino da Física,IAEF
+Eletrodinâmica,ELT
+Eletrônica Analógica,EA
+Eletrônica Digital,ED
+Física Moderna II,FSM2
+Artes I,ART1
+Biologia I,BIO1
+Educação Física I,EDF1
+Filosofia I,FL1
+Física I,FS1
+Geografia I,GEO1
+História I,HST1
+Inglês I,ING1
+Português I,PORT1
+Química I,QUI1
+Introdução ao Curso e Orientação Profissional,ITCOP
+Informática Básica,IFB
+Matemática I,MT1
+Desenho Técnico,DST
+Artes II,ART2
+Biologia II,BIO2
+Espanhol I,ESP1
+Física II,FS2
+Geografia II,GEO2
+História II,HST2
+Matemática II,MT2
+Português II,PORT2
+Química II,QUI2
+Sociologia I,SOC1
+Técnicas de Manutenção,TECM
+Educação Física II,EDF2
+Biologia III,ELM1
+Artes III,ART3
+Desenho Assistido por Computador,CAD
+Filosofia II,FL2
+Geografia III,GEO3
+Inglês II,ING2
+História III,HST3
+Matemática III,MT3
+Português III,PORT3
+Química III,QUI3
+Análise de Circuitos,ANC
+Educação Física III,EDF3
+Física III,FS3
+Biologia IV,BIO4
+Espanhol II,ESP2
+Física IV,FS4
+Geografia IV,GEO4
+História IV,HST4
+Matemática IV,MT4
+Português IV,PORT4
+Química IV,QUI4
+Sociologia II,SOC2
+Eletricidade CA,ELCA
+Eletrônica Básica,ELB
+Educação Física IV,EDF4
+Artes IV,ART4
+Biologia V,BIO5
+Educação Física V,EDF5
+Filosofia III,FL3
+Física V,FS4
+Geografia V,GEO5
+Inglês III,ING3
+Matemática V,MT5
+Português V,PORT5
+Química V,QUI5
+Comandos Elétricos,CME
+Eletrônica Industrial,ELIN
+Gestão e Empreendedorismo,GEMP
+Instalações Elétricas em Baixa Tensão,IEBT
+História V,HST5
+Transformadores,TRF
+Medidas Elétricas,MDE
+Biologia VI,BIO6
+Física VI,FS6
+Geografia VI,GEO6
+História VI,HST6
+Matemática VI,MT6
+Português VI,PORT6
+Química VI,QUI6
+Redes Industriais,REIT
+Sensores e Transdutores,SETR
+Máquinas de Corrente Alternada,MCA
+Subestações Industriais,SBI
+Sistemas de Potência,SPOT
+Educação Física VI,EDF6
+Espanhol III,ESP3
+Sociologia III,SOC3
+Conservação de Energia,COEN
+Máquinas de Corrente Contínua,MQCC
+Redes de Distribuição,RDIS
+Geografia I,GEO1
+Química I,QUI1
+Introdução a Lógica de Programação,ILPRO
+Espanhol I,ESP1
+Arquitetura Montagem e Manutenção de Computadores,AMMC
+Tecnologias Web,TWEB
+Artes II,ART2
+Biologia II,BIO2
+Espanhol II,ESP2
+Geografia III,GEO3
+Química III,QUI3
+Introdução a Estrutura de Dados,IED
+Sistemas Operacionais,SO
+História IV,HST4
+Banco de Dados,BD
+Programação WEB,PWEB
+Biologia V,BIO5
+Espanhol IV,ESP4
+Gestão e Empreendedorismo,GSEM
+Biologia VI,BIO6
+Geografia VI,GEO6
+História VI,HST6
+Administração de Redes com Software Livre,ADRSL
+Estágio,EST
+Laboratório de Desenvolvimento de Software,LDS
+Desenho Técnico,DTE
+Metrologia,MET
+Manutenção de Máquinas e Equipamentos,MMEQ
+Planejamento e Controle da Produção,PCP
+Máquinas Hidráulicas e Pneumáticas,MHP
+Tecnologia Mecânica,TECM
+Máquinas Térmicas,MAQT
+Tecnologia da Soldagem,TSOL
+Acionamentos Hidráulicos e Pneumáticos,AHP
+Comandos Elétricos,CELE
+Ensaios Mecânicos,EMAT
+Mecanismos,MECN
+Robótica Industrial,ROBI
+Eletricidade Aplicada,ELAP
+Informática Básica,INFB
+Mecânica Geral,MECG
+Metrologia,METR
+Bombas Hidráulicas e Compressores,BHC
+Desenho Assistido por Computador,CAD
+Higiene e Segurança no Trabalho,HSTR
+Mecanismos,MCN
+Resistências dos Materiais,REM
+Robótica Industrial,ROBI
+Acionamentos Hidráulicos e Pneumáticos,ACHP
+Elementos de Máquinas,EMAQ
+Máquinas Térmicas,MAQT
+Tecnologia Mecânica,TECM
+Análise de Circuitos CC,ACCC
+Matemática Aplicada,MATA
+Gestão e Empreendedorismo,GEEM
+Análise de Circuitos CA,ANCA
+Medidas Elétricas,ME
+Controle e Planejamento de Manutenção,CPMT
+Eletrônica Básica,ELBA
+Eletromagnetismo Aplicado,ELMA
+Gerenciamento de Energia,GERE
+Instalações Elétricas Prediais,IEPR
+Automação Industrial,AUTI
+Energias Renováveis,ENRV
+Máquinas Elétricas,MAQE
+Subestações Industriais,SUBI
+Eletrônica de Potência,ELTP
+Redes de Distribuição,REDS
+Comunicação e Redação Empresarial,CRE
+Informática e Tecnologias Aplicadas,IFTA
+Introdução à Administração,INTA
+Gestão de Pessoas,GESP
+Aspectos Legais de Gestão Empresarial,ALGE
+Matemática Básica e Lógica Matemática,MBLM
+Empreendedorismo e Inovação I,EMI1
+Administração Estratégica,ADME
+Marketing Digital,MKTD
+Empreendedorismo e Inovação II,EMI2
+Matemática Financeira,MTF
+Contabilidade Geral,CNTB
+Gestão Financeira,GSTF
+Estatística,EST
+Logística,LOG
+Gestão de Processos e Qualidade,GSPQ
+Arte Educação Cultural e Música,AECM
+Educação Física,EDF

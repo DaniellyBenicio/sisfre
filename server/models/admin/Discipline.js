@@ -46,13 +46,12 @@ export default (sequelize) => {
         unique: true,
         validate: {
           notEmpty: true,
-          len: [3, 50],
+          len: [3, 100],
         },
       },
       acronym: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true,
         validate: {
           len: [2, 10],
           is: /^[a-zA-Z0-9]+$/,

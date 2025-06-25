@@ -9,13 +9,13 @@ export const createDiscipline = async (req, res) => {
     });
   }
 
-  if (name.length < 3 || name.length > 50) {
+  if (name.length < 3 || name.length > 100) {
     return res.status(400).json({
-      error: "O nome deve ter entre 3 e 50 caracteres.",
+      error: "O nome deve ter entre 3 e 100 caracteres.",
     });
   }
 
-  if (!/^[A-Za-zÀ-ÿ0-9\s]+$/.test(name)) {
+  if (!/^[A-Za-zÀ-ÿ0-9\s/-]+$/.test(name)) {
     return res.status(400).json({
       error: "O nome deve conter apenas letras, números, acentos e espaços.",
     });
@@ -27,25 +27,22 @@ export const createDiscipline = async (req, res) => {
     });
   }
 
-  if (!/^[a-zA-Z0-9]+$/.test(acronym)) {
+  if (!/^[a-zA-Z0-9\s]+$/.test(acronym)) {
     return res.status(400).json({
       error:
-        "A sigla deve conter apenas letras e números, sem espaços ou acentos.",
+        "A sigla deve conter apenas letras, números e espaços, sem acentos.",
     });
   }
 
   try {
     const existing = await db.Discipline.findOne({
       where: {
-        [db.Sequelize.Op.or]: [{ name }, { acronym }],
+        name,
       },
     });
 
     if (existing) {
-      const duplicatedFields = [];
-      if (existing.name === name) duplicatedFields.push("nome");
-      if (existing.acronym === acronym) duplicatedFields.push("sigla");
-
+      const duplicatedFields = ["nome"];
       const mensagem = buildDuplicatedMessage(duplicatedFields);
       return res.status(400).json({ error: mensagem });
     }
@@ -59,14 +56,8 @@ export const createDiscipline = async (req, res) => {
 };
 
 function buildDuplicatedMessage(fields) {
-  if (fields.length === 1) {
-    if (fields[0] === "nome")
-      return "Já existe uma disciplina com o nome informado.";
-    if (fields[0] === "sigla")
-      return "Já existe uma disciplina com a sigla informada.";
-  }
-  if (fields.length === 2) {
-    return "Já existe uma disciplina com o nome e a sigla informados.";
+  if (fields.includes("nome")) {
+    return "Já existe uma disciplina com o nome informado.";
   }
   return "Campos duplicados.";
 }
@@ -82,12 +73,12 @@ export const updateDiscipline = async (req, res) => {
     }
 
     if (name) {
-      if (name.length < 3 || name.length > 50) {
+      if (name.length < 3 || name.length > 100) {
         return res.status(400).json({
-          error: "O nome deve ter entre 3 e 50 caracteres.",
+          error: "O nome deve ter entre 3 e 100 caracteres.",
         });
       }
-      if (!/^[A-Za-zÀ-ÿ0-9\s]+$/.test(name)) {
+      if (!/^[A-Za-zÀ-ÿ0-9\s/-]+$/.test(name)) {
         return res.status(400).json({
           error:
             "O nome deve conter apenas letras, números, acentos e espaços.",
@@ -101,31 +92,24 @@ export const updateDiscipline = async (req, res) => {
           error: "A sigla deve ter entre 2 e 10 caracteres.",
         });
       }
-      if (!/^[a-zA-Z0-9]+$/.test(acronym)) {
+      if (!/^[a-zA-Z0-9\s]+$/.test(acronym)) {
         return res.status(400).json({
           error:
-            "A sigla deve conter apenas letras e números, sem espaços ou acentos.",
+            "A sigla deve conter apenas letras, números e espaços, sem acentos.",
         });
       }
     }
 
-    if (name || acronym) {
+    if (name && name !== discipline.name) {
       const existing = await db.Discipline.findOne({
         where: {
           id: { [db.Sequelize.Op.ne]: disciplineId },
-          [db.Sequelize.Op.or]: [
-            name ? { name } : null,
-            acronym ? { acronym } : null,
-          ].filter(Boolean),
+          name,
         },
       });
 
       if (existing) {
-        const duplicatedFields = [];
-        if (name && existing.name === name) duplicatedFields.push("nome");
-        if (acronym && existing.acronym === acronym)
-          duplicatedFields.push("sigla");
-
+        const duplicatedFields = ["nome"];
         const mensagem = buildDuplicatedMessage(duplicatedFields);
         return res.status(400).json({ error: mensagem });
       }
@@ -148,18 +132,26 @@ export const getDisciplines = async (req, res) => {
   const { name, acronym, page = 1, limit = 10, order = "asc" } = req.query;
 
   try {
+    console.log("Parâmetros recebidos em getDisciplines:", {
+      name,
+      acronym,
+      page,
+      limit,
+      order,
+    }); 
+
     const offset = (page - 1) * limit;
     const where = {};
 
-    if (name) {
+    if (name && name.trim()) {
       where.name = {
-        [db.Sequelize.Op.iLike]: `%${name}%`,
+        [db.Sequelize.Op.like]: `%${name.trim()}%`, 
       };
     }
 
-    if (acronym) {
+    if (acronym && acronym.trim()) {
       where.acronym = {
-        [db.Sequelize.Op.iLike]: `%${acronym}%`,
+        [db.Sequelize.Op.like]: `%${acronym.trim()}%`,
       };
     }
 
@@ -170,6 +162,8 @@ export const getDisciplines = async (req, res) => {
       offset: parseInt(offset),
       order: [["name", order === "asc" ? "ASC" : "DESC"]],
     });
+
+    console.log("Disciplinas encontradas:", rows); 
 
     res.json({
       disciplines: rows,
@@ -189,17 +183,22 @@ export const getAllDisciplines = async (req, res) => {
   const { name, acronym } = req.query;
 
   try {
+    console.log("Parâmetros recebidos em getAllDisciplines:", {
+      name,
+      acronym,
+    }); 
+
     const where = {};
 
-    if (name) {
+    if (name && name.trim()) {
       where.name = {
-        [db.Sequelize.Op.like]: `%${name}%`,
+        [db.Sequelize.Op.like]: `%${name.trim()}%`, 
       };
     }
 
-    if (acronym) {
+    if (acronym && acronym.trim()) {
       where.acronym = {
-        [db.Sequelize.Op.like]: `%${acronym}%`,
+        [db.Sequelize.Op.like]: `%${acronym.trim()}%`,
       };
     }
 
@@ -209,10 +208,14 @@ export const getAllDisciplines = async (req, res) => {
       order: [["name", "ASC"]],
     });
 
+    console.log("Disciplinas encontradas:", disciplines); 
+
     res.json({ disciplines });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Erro ao listar disciplinas" });
+    console.error("Erro em getAllDisciplines:", error);
+    res
+      .status(500)
+      .json({ message: "Erro ao listar disciplinas", error: error.message });
   }
 };
 

@@ -46,7 +46,7 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await api.get('/courses');
+        const response = await api.get('/courses?limit=100');
         console.log('ClassFormDialog - Cursos retornados:', response.data);
 
         let coursesArray = [];

@@ -27,7 +27,7 @@ const CourseList = () => {
       try {
         setLoading(true);
         const [coursesResponse, usersResponse] = await Promise.all([
-          api.get("/courses"),
+          api.get("/courses?limit=100"),
           api.get("/users"),
         ]);
         console.log("Resposta da API /courses:", coursesResponse.data);

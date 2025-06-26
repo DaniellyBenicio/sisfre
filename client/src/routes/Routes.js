@@ -20,6 +20,7 @@ import ClassScheduleDetails from "../pages/classSchedule/Coodinator/ClassSchedul
 import ClassDetailsPage from "../pages/disciplines/Teacher/ClassTeacher/ClassDetails/ClassDetailsPage.js";
 import ClassScheduleEdit from "../pages/classSchedule/Coodinator/ClassScheduleEdit.js";
 import ClassScheduleOptions from "../pages/classSchedule/ClassScheduleOptions.js";
+import ClassScheduleListArchived from "../pages/classSchedule/Coodinator/classScheduleArchived/ClassScheduleArchivedList.js";
 
 
 const AppRoutes = () => {
@@ -191,6 +192,16 @@ const AppRoutes = () => {
         element={
           isAuthenticated && accessType === "Coordenador" ? (
             <ClassSchedulePage setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
+        path="/class-schedule/archived"
+        element={
+          isAuthenticated && accessType === "Coordenador" ? (
+            <ClassScheduleListArchived setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
           )

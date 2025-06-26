@@ -23,7 +23,7 @@ const ClassScheduleOptions = ({ setAuthenticated }) => {
 		{
 			title: "Grades Arquivadas",
 			icon: <Event sx={{ fontSize: 60, color: "#087619" }} />,
-			path: "/class-schedule",
+			path: "/class-schedule/archived",
 		}
 	];
 

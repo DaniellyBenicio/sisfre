@@ -60,9 +60,12 @@ const ClassScheduleList = () => {
 
           return "N/A";
         };
+        console.log("Raw Schedules:", response.data.schedules);
 
         const schedules = Array.isArray(response.data.schedules)
-          ? response.data.schedules.map((schedule) => ({
+          ? response.data.schedules
+            .filter((schedule) => schedule.isActive !== false)
+            .map((schedule) => ({
               id: schedule.id,
               calendar: schedule.calendar,
               class: schedule.turma,
@@ -72,7 +75,6 @@ const ClassScheduleList = () => {
           : [];
 
         console.log("Mapped Schedules:", schedules);
-
         setSchedules(schedules);
 
         const uniqueCalendars = [
@@ -94,7 +96,6 @@ const ClassScheduleList = () => {
         setLoading(false);
       }
     };
-
     fetchData();
   }, []);
 

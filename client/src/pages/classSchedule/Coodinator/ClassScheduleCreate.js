@@ -1,18 +1,35 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, Button, FormControl, InputLabel, Select, MenuItem, Grid, Paper,
-  CssBaseline, IconButton, CircularProgress, TextField, Alert, Table, TableHead, TableRow,
-  TableCell, TableBody,
+import {
+  Box,
+  Typography,
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Grid,
+  Paper,
+  CssBaseline,
+  IconButton,
+  CircularProgress,
+  Alert,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
 } from "@mui/material";
-import { ArrowBack, Close, Save, School, History, Check, Delete, } from "@mui/icons-material";
+import { ArrowBack, Close, Save, School, History, Check, Delete } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../../components/SideBar";
 import api from "../../../service/api";
 import { CustomAlert } from "../../../components/alert/CustomAlert";
 
-const CustomSelect = ({ label, name, value, onChange, children, selectSx, ...props }) => {
+const CustomSelect = ({ label, name, value, onChange, children, selectSx, disabled, loading, ...props }) => {
   return (
     <FormControl fullWidth required sx={{ minWidth: 190, maxWidth: 600, ...props.sx }}>
-      <InputLabel id={`${name}-label`}
+      <InputLabel
+        id={`${name}-label`}
         sx={{
           "&.Mui-focused": { color: "#000" },
           "&.MuiInputLabel-shrink": { color: "#000" },
@@ -27,6 +44,7 @@ const CustomSelect = ({ label, name, value, onChange, children, selectSx, ...pro
         onChange={onChange}
         label={label}
         displayEmpty={false}
+        disabled={disabled || loading}
         sx={{
           "& .MuiOutlinedInput-notchedOutline": {
             borderColor: "rgba(0, 0, 0, 0.23)",
@@ -62,7 +80,15 @@ const CustomSelect = ({ label, name, value, onChange, children, selectSx, ...pro
         }}
         {...props}
       >
-        {children}
+        {loading ? (
+          <MenuItem disabled>
+            <Box display="flex" alignItems="center" justifyContent="center" width="100%">
+              <CircularProgress size={20} />
+            </Box>
+          </MenuItem>
+        ) : (
+          children
+        )}
       </Select>
     </FormControl>
   );
@@ -77,10 +103,11 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
         disciplineId: "",
         professorId: "",
         dayOfWeek: "",
-        startTime: "",
-        endTime: "",
-        hourId: "",
         turn: "",
+        selectedHourStartId: "",
+        selectedHourEndId: "",
+        displayStartTime: "",
+        displayEndTime: "",
       },
     ],
     isActive: true,
@@ -91,7 +118,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
   const [professors, setProfessors] = useState([]);
   const [calendars, setCalendars] = useState([]);
   const [availableHours, setAvailableHours] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [hoursLoading, setHoursLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [alert, setAlert] = useState(null);
   const navigate = useNavigate();
@@ -102,32 +129,21 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
       setErrors({});
       try {
-        const [classesRes, disciplinesRes, usersRes, calendarsRes] =
-          await Promise.all([
-            api.get("/classes-coordinator").catch((err) => ({ data: [] })),
-            api.get("/course/discipline").catch((err) => ({ data: [] })),
-            api.get("/users").catch((err) => ({ data: { users: [] } })),
-            api.get("/calendar").catch((err) => ({ data: { calendars: [] } })),
-          ]);
+        const [classesRes, disciplinesRes, usersRes, calendarsRes] = await Promise.all([
+          api.get("/classes-coordinator").catch((err) => ({ data: [] })),
+          api.get("/course/discipline").catch((err) => ({ data: [] })),
+          api.get("/users").catch((err) => ({ data: { users: [] } })),
+          api.get("/calendar").catch((err) => ({ data: { calendars: [] } })),
+        ]);
 
-        setClasses(
-          Array.isArray(classesRes.data.classes) ? classesRes.data.classes : []
-        );
-
-        setDisciplines(
-          Array.isArray(disciplinesRes.data) ? disciplinesRes.data : []
-        );
-
+        setClasses(Array.isArray(classesRes.data.classes) ? classesRes.data.classes : []);
+        setDisciplines(Array.isArray(disciplinesRes.data) ? disciplinesRes.data : []);
         const filteredProfessors = Array.isArray(usersRes.data.users)
-          ? usersRes.data.users.filter(
-              (user) => user.accessType === "Professor"
-            )
+          ? usersRes.data.users.filter((user) => user.accessType === "Professor")
           : [];
         setProfessors(filteredProfessors);
-
         setCalendars(
           Array.isArray(calendarsRes.data.calendars)
             ? calendarsRes.data.calendars.map((calendar) => ({
@@ -164,12 +180,8 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
       } catch (error) {
         setErrors((prev) => ({
           ...prev,
-          message:
-            error.response?.data?.message ||
-            "Erro ao carregar os dados. Tente novamente.",
+          message: error.response?.data?.message || "Erro ao carregar os dados. Tente novamente.",
         }));
-      } finally {
-        setLoading(false);
       }
     };
     fetchData();
@@ -179,7 +191,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
     const fetchHours = async () => {
       const currentDetail = formData.details[0];
       if (currentDetail.turn) {
-        setLoading(true);
+        setHoursLoading(true);
         try {
           let backendTurn = "";
           switch (currentDetail.turn) {
@@ -197,77 +209,71 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           }
           if (backendTurn) {
             const response = await api.get(`/hours?turn=${backendTurn}`);
-            setAvailableHours(response.data.hours || response.data);
-
-            const currentStartTimeValid = response.data?.hours?.some(
-              (h) => h.hourStart === currentDetail.startTime
-            ) || response.data?.data?.some(
-              (h) => h.hourStart === currentDetail.startTime
-            );
-
-            if (!currentStartTimeValid) {
-              setFormData((prev) => ({
-                ...prev,
-                details: [
-                  { ...currentDetail, startTime: "", endTime: "", hourId: "" },
-                ],
-              }));
-            } else {
-              const selectedHour = response.data?.hours?.find(
-                (h) => h.hourStart === currentDetail.startTime
-              ) || response.data?.data?.find(
-                (h) => h.hourStart === currentDetail.startTime
-              );
-              if (
-                selectedHour &&
-                selectedHour.hourEnd !== currentDetail.endTime
-              ) {
-                setFormData((prev) => ({
-                  ...prev,
-                  details: [
-                    {
-                      ...currentDetail,
-                      endTime: selectedHour?.hourEnd,
-                      hourId: selectedHour?.id,
-                    },
-                  ],
-                }));
-              }
-            }
+            const fetchedHours = response.data.hours || response.data;
+            setAvailableHours(fetchedHours);
+            setFormData((prev) => ({
+              ...prev,
+              details: [
+                {
+                  ...prev.details[0],
+                  selectedHourStartId: "",
+                  selectedHourEndId: "",
+                  displayStartTime: "",
+                  displayEndTime: "",
+                },
+              ],
+            }));
           } else {
             setAvailableHours([]);
             setFormData((prev) => ({
               ...prev,
               details: [
-                { ...prev.details[0], startTime: "", endTime: "", hourId: "" },
+                {
+                  ...prev.details[0],
+                  selectedHourStartId: "",
+                  selectedHourEndId: "",
+                  displayStartTime: "",
+                  displayEndTime: "",
+                },
               ],
             }));
           }
         } catch (error) {
           setErrors((prev) => ({
             ...prev,
-            hours:
-              error.response?.data?.message ||
-              "Erro ao carregar horários para o turno.",
+            hours: error.response?.data?.message || "Erro ao carregar horários para o turno.",
           }));
           setAvailableHours([]);
           setFormData((prev) => ({
             ...prev,
             details: [
-              { ...prev.details[0], startTime: "", endTime: "", hourId: "" },
+              {
+                ...prev.details[0],
+                selectedHourStartId: "",
+                selectedHourEndId: "",
+                displayStartTime: "",
+                displayEndTime: "",
+              },
             ],
           }));
         } finally {
-          setLoading(false);
+          setHoursLoading(false);
         }
       } else {
         setAvailableHours([]);
         setFormData((prev) => ({
           ...prev,
           details: [
-            { ...prev.details[0], startTime: "", endTime: "", hourId: "" },
+            {
+              ...prev.details[0],
+              selectedHourStartId: "",
+              selectedHourEndId: "",
+              displayStartTime: "",
+              displayEndTime: "",
+            },
           ],
         }));
+        setHoursLoading(false);
       }
     };
     fetchHours();
@@ -275,41 +281,35 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     setFormData((prevData) => {
       let newData = { ...prevData };
-
-      if (["classId", "calendarId"].includes(name)) {
+      const currentDetail = { ...newData.details[0] };
+      if (["classId", "calendarId", "isActive"].includes(name)) {
         newData[name] = value;
       } else if (
-        ["disciplineId", "professorId", "dayOfWeek", "startTime", "turn"].includes(name)
+        [
+          "disciplineId",
+          "professorId",
+          "dayOfWeek",
+          "turn",
+          "selectedHourStartId",
+          "selectedHourEndId",
+        ].includes(name)
       ) {
-        const updatedDetails = [...newData.details];
-        const currentDetail = { ...updatedDetails[0] };
-
-        if (name === "startTime") {
-          const selectedHour = availableHours.find(
-            (hour) => hour.hourStart === value
-          );
-          if (selectedHour) {
-            currentDetail.startTime = value;
-            currentDetail.endTime = selectedHour.hourEnd;
-            currentDetail.hourId = selectedHour.id;
-          } else {
-            currentDetail.startTime = "";
-            currentDetail.endTime = "";
-            currentDetail.hourId = "";
-          }
-        } else if (name === "turn") {
-          currentDetail.turn = value;
-          currentDetail.startTime = "";
-          currentDetail.endTime = "";
-          currentDetail.hourId = "";
-        } else {
-          currentDetail[name] = value;
+        currentDetail[name] = value;
+        if (name === "turn") {
+          currentDetail.selectedHourStartId = "";
+          currentDetail.selectedHourEndId = "";
+          currentDetail.displayStartTime = "";
+          currentDetail.displayEndTime = "";
+        } else if (name === "selectedHourStartId") {
+          const selectedHour = availableHours.find((h) => h.id === value);
+          currentDetail.displayStartTime = selectedHour?.hourStart || "";
+        } else if (name === "selectedHourEndId") {
+          const selectedHour = availableHours.find((h) => h.id === value);
+          currentDetail.displayEndTime = selectedHour?.hourEnd || "";
         }
-        updatedDetails[0] = currentDetail;
-        newData.details = updatedDetails;
+        newData.details[0] = currentDetail;
       }
       return newData;
     });
@@ -320,32 +320,88 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
     if (
       !currentDetail.disciplineId ||
       !currentDetail.dayOfWeek ||
-      !currentDetail.hourId ||
-      !currentDetail.turn
+      !currentDetail.turn ||
+      !currentDetail.selectedHourStartId ||
+      !currentDetail.selectedHourEndId
     ) {
       setErrors((prev) => ({
         ...prev,
-        detail: "Disciplina, Dia da Semana, Turno e Horário de Início são obrigatórios.",
+        detail: "Disciplina, Dia da Semana, Turno, Horário de Início e Horário de Fim são obrigatórios.",
       }));
       return;
     }
 
-    const discipline = disciplines.find(
-      (d) => d.disciplineId === currentDetail.disciplineId
+    const startIndex = availableHours.findIndex(
+      (h) => h.id === currentDetail.selectedHourStartId
     );
-    const professor = professors.find(
-      (p) => p.id === currentDetail.professorId
+    const endIndex = availableHours.findIndex(
+      (h) => h.id === currentDetail.selectedHourEndId
     );
+    if (startIndex === -1 || endIndex === -1 || startIndex > endIndex) {
+      setErrors((prev) => ({
+        ...prev,
+        detail: "Selecione um intervalo de horários válido e sequencial.",
+      }));
+      return;
+    }
+    if (endIndex - startIndex > 1) {
+      setErrors((prev) => ({
+        ...prev,
+        detail: "A aula não pode exceder dois blocos de horários consecutivos (ex: 7:20 - 9:20).",
+      }));
+      return;
+    }
 
-    setConfirmedDetails((prev) => [
-      ...prev,
-      {
-        ...currentDetail,
+    const newDetailsToAdd = [];
+    for (let i = startIndex; i <= endIndex; i++) {
+      const hourBlock = availableHours[i];
+      if (i > startIndex) {
+        const prevHourBlock = availableHours[i - 1];
+        if (hourBlock.hourStart !== prevHourBlock.hourEnd) {
+          setErrors((prev) => ({
+            ...prev,
+            detail: "Os horários selecionados devem ser blocos consecutivos. Verifique os intervalos na seed.",
+          }));
+          return;
+        }
+      }
+      const discipline = disciplines.find(
+        (d) => d.disciplineId === currentDetail.disciplineId
+      );
+      const professor = professors.find(
+        (p) => p.id === currentDetail.professorId
+      );
+      newDetailsToAdd.push({
+        disciplineId: currentDetail.disciplineId,
+        professorId: currentDetail.professorId,
+        dayOfWeek: currentDetail.dayOfWeek,
+        turn: currentDetail.turn,
+        hourId: hourBlock.id,
+        startTime: hourBlock.hourStart,
+        endTime: hourBlock.hourEnd,
         disciplineName: discipline?.name || "N/A",
         professorName: professor?.username || "Sem professor",
-      },
-    ]);
+      });
+    }
 
+    const existingConfirmedDetailsSet = new Set(
+      confirmedDetails.map(
+        (d) => `${d.dayOfWeek}-${d.hourId}-${d.disciplineId}`
+      )
+    );
+
+    for (const newDetail of newDetailsToAdd) {
+      const slotKey = `${newDetail.dayOfWeek}-${newDetail.hourId}-${newDetail.disciplineId}`;
+      if (existingConfirmedDetailsSet.has(slotKey)) {
+        setErrors((prev) => ({
+          ...prev,
+          detail: `O horário ${newDetail.dayOfWeek} ${newDetail.startTime} - ${newDetail.endTime} para a disciplina ${newDetail.disciplineName} já foi adicionado.`,
+        }));
+        return;
+      }
+    }
+
+    setConfirmedDetails((prev) => [...prev, ...newDetailsToAdd]);
     setFormData((prev) => ({
       ...prev,
       details: [
@@ -353,10 +409,11 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           disciplineId: "",
           professorId: "",
           dayOfWeek: "",
-          startTime: "",
-          endTime: "",
-          hourId: "",
           turn: "",
+          selectedHourStartId: "",
+          selectedHourEndId: "",
+          displayStartTime: "",
+          displayEndTime: "",
         },
       ],
     }));
@@ -375,14 +432,10 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
     ) {
       setErrors((prev) => ({
         ...prev,
-        message:
-          "Turma, Calendário e pelo menos um horário são obrigatórios.",
+        message: "Turma, Calendário e pelo menos um horário são obrigatórios.",
       }));
       return;
     }
-
-    setLoading(true);
-    setErrors({});
 
     try {
       const detailsToSend = confirmedDetails.map((detail) => ({
@@ -390,7 +443,12 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
         hourId: detail.hourId,
         dayOfWeek: detail.dayOfWeek.replace("-feira", ""),
         userId: detail.professorId || null,
-        turn: detail.turn === "Manhã" ? "MATUTINO" : detail.turn === "Tarde" ? "VESPERTINO" : "NOTURNO",
+        turn:
+          detail.turn === "Manhã"
+            ? "MATUTINO"
+            : detail.turn === "Tarde"
+            ? "VESPERTINO"
+            : "NOTURNO",
       }));
 
       const dataToSend = {
@@ -413,33 +471,15 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
     } catch (error) {
       setErrors((prev) => ({
         ...prev,
-        message:
-          error.response?.data?.message ||
-          "Erro ao cadastrar a grade de turma. Tente novamente.",
+        message: error.response?.data?.message || "Erro ao cadastrar a grade de turma. Tente novamente.",
       }));
-    } finally {
-      setLoading(false);
     }
   };
-
-  if (loading && !errors.message && Object.keys(errors).length === 0) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        height="100vh"
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
 
   return (
     <Box display="flex">
       <CssBaseline />
       <Sidebar setAuthenticated={setAuthenticated} />
-
       <Box sx={{ flexGrow: 1, p: 4, mt: 4 }}>
         <Box
           sx={{
@@ -492,7 +532,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           <Alert severity="error" sx={{ mb: 2 }}>
             {errors.detail}
           </Alert>
-        )} 
+        )}
         {alert && (
           <CustomAlert
             message={alert.message}
@@ -501,20 +541,8 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           />
         )}
 
-        <Box
-          component={Paper}
-          elevation={3}
-          sx={{ p: 5, m: 4, borderRadius: 3 }}
-        >
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              marginLeft: "5px",
-              mb: 2,
-            }}
-          >
+        <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, marginLeft: "5px", mb: 2 }}>
             <School sx={{ fontSize: "31px", color: "green" }} />
             <Typography variant="h5" color="green">
               Turma
@@ -530,17 +558,16 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                 selectSx={{ width: "320px" }}
               >
                 {classes
-                .slice()
-                .sort((a, b) => {
-                  const getNumber = (s) => parseInt(s.semester.replace("S", ""), 10);
-                  return getNumber(a) - getNumber(b);
-                })
-                .map((item) => (
-                  <MenuItem key={item.id} value={item.id}>
-                    {item.semester}
-                  </MenuItem>
-                ))}
-
+                  .slice()
+                  .sort((a, b) => {
+                    const getNumber = (s) => parseInt(s.semester.replace("S", ""), 10);
+                    return getNumber(a) - getNumber(b);
+                  })
+                  .map((item) => (
+                    <MenuItem key={item.id} value={item.id}>
+                      {item.semester}
+                    </MenuItem>
+                  ))}
               </CustomSelect>
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -574,20 +601,8 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           </Grid>
         </Box>
 
-        <Box
-          component={Paper}
-          elevation={3}
-          sx={{ p: 5, m: 4, borderRadius: 3 }}
-        >
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              marginLeft: "5px",
-              mb: 2,
-            }}
-          >
+        <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, marginLeft: "5px", mb: 2 }}>
             <Box
               sx={{
                 backgroundColor: "green",
@@ -654,32 +669,47 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
             </Grid>
             <Grid item xs={12} sm={6}>
               <CustomSelect
-                label="Horário de Início"
-                name="startTime"
-                value={formData.details[0].startTime}
+                label="Início da Aula"
+                name="selectedHourStartId"
+                value={formData.details[0].selectedHourStartId}
                 onChange={handleChange}
-                disabled={!formData.details[0].turn || availableHours.length === 0}
+                disabled={!formData.details[0].turn}
+                loading={hoursLoading}
                 selectSx={{ width: "215px" }}
               >
                 {availableHours.map((hour) => (
-                  <MenuItem key={hour.id} value={hour.hourStart}>
+                  <MenuItem key={hour.id} value={hour.id}>
                     {hour.hourStart}
                   </MenuItem>
                 ))}
               </CustomSelect>
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Horário de Fim"
-                name="endTime"
-                value={formData.details[0].endTime}
+              <CustomSelect
+                label="Fim da Aula"
+                name="selectedHourEndId"
+                value={formData.details[0].selectedHourEndId}
                 onChange={handleChange}
-                sx={{ width: "215px" }}
-                InputLabelProps={{ shrink: true }}
-                required
-                disabled
-              />
+                disabled={!formData.details[0].turn || !formData.details[0].selectedHourStartId}
+                loading={hoursLoading}
+                selectSx={{ width: "215px" }}
+              >
+                {availableHours
+                  .filter((hour) => {
+                    const startIndex = availableHours.findIndex(
+                      (h) => h.id === formData.details[0].selectedHourStartId
+                    );
+                    const currentIndex = availableHours.findIndex(
+                      (h) => h.id === hour.id
+                    );
+                    return currentIndex >= startIndex && currentIndex <= startIndex + 1;
+                  })
+                  .map((hour) => (
+                    <MenuItem key={hour.id} value={hour.id}>
+                      {hour.hourEnd}
+                    </MenuItem>
+                  ))}
+              </CustomSelect>
             </Grid>
             <Grid item xs={12}>
               <Button
@@ -692,9 +722,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                   mt: 1,
                   borderRadius: "50%",
                   backgroundColor: "transparent",
-                  "&:hover": {
-                    backgroundColor: "rgba(76, 175, 80, 0.15)",
-                  },
+                  "&:hover": { backgroundColor: "rgba(76, 175, 80, 0.15)" },
                 }}
               >
                 <Check sx={{ fontSize: 34, color: "green" }} />
@@ -716,6 +744,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                   <TableCell><strong>Horário de Fim</strong></TableCell>
                   <TableCell><strong>Disciplina</strong></TableCell>
                   <TableCell><strong>Professor</strong></TableCell>
+                  <TableCell><strong>Turno</strong></TableCell>
                   <TableCell><strong>Ações</strong></TableCell>
                 </TableRow>
               </TableHead>
@@ -727,6 +756,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                     <TableCell>{detail.endTime}</TableCell>
                     <TableCell>{detail.disciplineName}</TableCell>
                     <TableCell>{detail.professorName}</TableCell>
+                    <TableCell>{detail.turn}</TableCell>
                     <TableCell>
                       <IconButton
                         onClick={() => handleDeleteDetail(index)}
@@ -749,12 +779,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
         <Box
           display="flex"
           mt={4}
-          sx={{
-            justifyContent: "center",
-            gap: 2,
-            padding: "10px 24px",
-            marginTop: "35px",
-          }}
+          sx={{ justifyContent: "center", gap: 2, padding: "10px 24px", marginTop: "35px" }}
         >
           <Button
             variant="contained"
@@ -781,7 +806,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
             variant="contained"
             color="success"
             onClick={handleSubmit}
-            disabled={loading || confirmedDetails.length === 0}
+            disabled={confirmedDetails.length === 0}
             sx={{
               width: "fit-content",
               minWidth: 100,
@@ -796,11 +821,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               "&:hover": { backgroundColor: "#066915" },
             }}
           >
-            {loading ? (
-              <CircularProgress size={24} color="inherit" />
-            ) : (
-              <Save sx={{ fontSize: 24 }} />
-            )}
+            <Save sx={{ fontSize: 24 }} />
             Cadastrar
           </Button>
         </Box>

@@ -1,15 +1,31 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, Button, FormControl, InputLabel, Select, MenuItem, Grid, Paper,
-  CssBaseline, IconButton, CircularProgress, TextField, Alert, Table, TableHead, TableRow,
-  TableCell, TableBody,
+import {
+  Box,
+  Typography,
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Grid,
+  Paper,
+  CssBaseline,
+  IconButton,
+  CircularProgress,
+  Alert,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
 } from "@mui/material";
-import { ArrowBack, Close, Save, School, History, Check, Delete, } from "@mui/icons-material";
+import { ArrowBack, Close, Save, School, History, Check, Delete } from "@mui/icons-material";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../../components/SideBar";
 import api from "../../../service/api";
 import { CustomAlert } from "../../../components/alert/CustomAlert";
 
-const CustomSelect = ({ label, name, value, onChange, children, selectSx, disabled, ...props }) => {
+const CustomSelect = ({ label, name, value, onChange, children, selectSx, disabled, loading, ...props }) => {
   return (
     <FormControl fullWidth required sx={{ minWidth: 190, maxWidth: 600, ...props.sx }}>
       <InputLabel
@@ -28,7 +44,7 @@ const CustomSelect = ({ label, name, value, onChange, children, selectSx, disabl
         onChange={onChange}
         label={label}
         displayEmpty={false}
-        disabled={disabled}
+        disabled={disabled || loading}
         sx={{
           "& .MuiOutlinedInput-notchedOutline": {
             borderColor: "rgba(0, 0, 0, 0.23)",
@@ -64,7 +80,15 @@ const CustomSelect = ({ label, name, value, onChange, children, selectSx, disabl
         }}
         {...props}
       >
-        {children}
+        {loading ? (
+          <MenuItem disabled>
+            <Box display="flex" alignItems="center" justifyContent="center" width="100%">
+              <CircularProgress size={20} />
+            </Box>
+          </MenuItem>
+        ) : (
+          children
+        )}
       </Select>
     </FormControl>
   );
@@ -80,10 +104,11 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
         disciplineId: "",
         professorId: "",
         dayOfWeek: "",
-        startTime: "",
-        endTime: "",
-        hourId: "",
         turn: "",
+        selectedHourStartId: "",
+        selectedHourEndId: "",
+        displayStartTime: "",
+        displayEndTime: "",
       },
     ],
     isActive: true,
@@ -94,7 +119,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
   const [professors, setProfessors] = useState([]);
   const [calendars, setCalendars] = useState([]);
   const [availableHours, setAvailableHours] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [hoursLoading, setHoursLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [alert, setAlert] = useState(null);
   const navigate = useNavigate();
@@ -141,30 +166,32 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
 
   const formatDayOfWeek = (day) => {
     if (!day) return "";
+    const dayMap = {
+      segunda: "Segunda-feira",
+      terça: "Terça-feira",
+      quarta: "Quarta-feira",
+      quinta: "Quinta-feira",
+      sexta: "Sexta-feira",
+      sábado: "Sábado",
+    };
     const dayLower = day.toLowerCase();
-    return dayLower.charAt(0).toUpperCase() + dayLower.slice(1);
+    return dayMap[dayLower] || dayLower.charAt(0).toUpperCase() + dayLower.slice(1);
   };
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
       setErrors({});
       try {
         const responses = await Promise.all([
-          api.get(`/class-schedules/${id}/details`).catch((err) => {
-            console.error("Error fetching schedule:", err);
-            return { data: { schedule: {} } };
-          }),
-          api.get("/classes-coordinator").catch((err) => ({ data: [] })),
-          api.get("/course/discipline").catch((err) => ({ data: [] })),
-          api.get("/users").catch((err) => ({ data: { users: [] } })),
-          api.get("/calendar").catch((err) => ({ data: { calendars: [] } })),
+          api.get(`/class-schedules/${id}/details`),
+          api.get("/classes-coordinator"),
+          api.get("/course/discipline"),
+          api.get("/users"),
+          api.get("/calendar"),
         ]);
 
         const [scheduleRes, classesRes, disciplinesRes, usersRes, calendarsRes] = responses;
         const scheduleData = scheduleRes.data.schedule || {};
-
-        console.log("Schedule Data:", scheduleData);
 
         setFormData({
           classId: scheduleData.classId || "",
@@ -175,10 +202,11 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
               disciplineId: "",
               professorId: "",
               dayOfWeek: "",
-              startTime: "",
-              endTime: "",
-              hourId: "",
               turn: "",
+              selectedHourStartId: "",
+              selectedHourEndId: "",
+              displayStartTime: "",
+              displayEndTime: "",
             },
           ],
           isActive: scheduleData.isActive ?? true,
@@ -198,16 +226,15 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
               disciplineId: detail.disciplineId || "",
               professorId: detail.userId || "",
               dayOfWeek: formatDayOfWeek(detail.dayOfWeek) || "",
+              turn: turnMap[detail.turn] || "",
+              hourId: detail.hourId || "",
               startTime: detail.hour?.hourStart || "",
               endTime: detail.hour?.hourEnd || "",
-              hourId: detail.hourId || "",
-              turn: turnMap[detail.turn] || "",
               disciplineName: detail.discipline?.name || "N/A",
               professorName: detail.professor?.username || "Sem professor",
             }))
           : [];
 
-        console.log("Confirmed Details:", mappedDetails);
         setConfirmedDetails(mappedDetails);
 
         setClasses(Array.isArray(classesRes.data.classes) ? classesRes.data.classes : []);
@@ -250,14 +277,11 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
           }));
         }
       } catch (error) {
-        console.error("Erro na requisição:", error);
         setErrors((prev) => ({
           ...prev,
           message:
             error.response?.data?.message || "Erro ao carregar os dados. Tente novamente.",
         }));
-      } finally {
-        setLoading(false);
       }
     };
     fetchData();
@@ -267,7 +291,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
     const fetchHours = async () => {
       const currentDetail = formData.details[0];
       if (currentDetail.turn) {
-        setLoading(true);
+        setHoursLoading(true);
         try {
           let backendTurn = "";
           switch (currentDetail.turn) {
@@ -283,56 +307,34 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
             default:
               backendTurn = "";
           }
-
           if (backendTurn) {
             const response = await api.get(`/hours?turn=${backendTurn}`);
-            setAvailableHours(response.data.hours || response.data);
-
-            const currentStartTimeValid =
-              response.data?.hours?.some(
-                (h) => h.hourStart === currentDetail?.startTime
-              ) ||
-              response.data?.data?.some(
-                (h) => h.hourStart === currentDetail?.startTime
-              );
-
-            if (!currentStartTimeValid) {
-              setFormData((prev) => ({
-                ...prev,
-                details: [
-                  { ...currentDetail, startTime: "", endTime: "", hourId: "" },
-                ],
-              }));
-            } else {
-              const selectedHour =
-                response.data?.hours?.find(
-                  (h) => h.hourStart === currentDetail?.startTime
-                ) ||
-                response.data?.data?.find(
-                  (h) => h.hourStart === currentDetail?.startTime
-                );
-              if (
-                selectedHour &&
-                selectedHour.hourEnd !== currentDetail.endTime
-              ) {
-                setFormData((prev) => ({
-                  ...prev,
-                  details: [
-                    {
-                      ...currentDetail,
-                      endTime: selectedHour?.hourEnd,
-                      hourId: selectedHour?.id,
-                    },
-                  ],
-                }));
-              }
-            }
+            const fetchedHours = response.data.hours || response.data;
+            setAvailableHours(fetchedHours);
+            setFormData((prev) => ({
+              ...prev,
+              details: [
+                {
+                  ...prev.details[0],
+                  selectedHourStartId: "",
+                  selectedHourEndId: "",
+                  displayStartTime: "",
+                  displayEndTime: "",
+                },
+              ],
+            }));
           } else {
             setAvailableHours([]);
             setFormData((prev) => ({
               ...prev,
               details: [
-                { ...prev.details[0], startTime: "", endTime: "", hourId: "" },
+                {
+                  ...prev.details[0],
+                  selectedHourStartId: "",
+                  selectedHourEndId: "",
+                  displayStartTime: "",
+                  displayEndTime: "",
+                },
               ],
             }));
           }
@@ -347,20 +349,33 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
           setFormData((prev) => ({
             ...prev,
             details: [
-              { ...prev.details[0], startTime: "", endTime: "", hourId: "" },
+              {
+                ...prev.details[0],
+                selectedHourStartId: "",
+                selectedHourEndId: "",
+                displayStartTime: "",
+                displayEndTime: "",
+              },
             ],
           }));
         } finally {
-          setLoading(false);
+          setHoursLoading(false);
         }
       } else {
         setAvailableHours([]);
         setFormData((prev) => ({
           ...prev,
           details: [
-            { ...prev.details[0], startTime: "", endTime: "", hourId: "" },
+            {
+              ...prev.details[0],
+              selectedHourStartId: "",
+              selectedHourEndId: "",
+              displayStartTime: "",
+              displayEndTime: "",
+            },
           ],
         }));
+        setHoursLoading(false);
       }
     };
     fetchHours();
@@ -368,41 +383,35 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     setFormData((prevData) => {
       let newData = { ...prevData };
-
-      if (["classId", "calendarId"].includes(name)) {
+      const currentDetail = { ...newData.details[0] };
+      if (["classId", "calendarId", "isActive"].includes(name)) {
         newData[name] = value;
       } else if (
-        ["disciplineId", "professorId", "dayOfWeek", "startTime", "turn"].includes(name)
+        [
+          "disciplineId",
+          "professorId",
+          "dayOfWeek",
+          "turn",
+          "selectedHourStartId",
+          "selectedHourEndId",
+        ].includes(name)
       ) {
-        const updatedDetails = [...newData.details];
-        const currentDetail = { ...updatedDetails[0] };
-
-        if (name === "startTime") {
-          const selectedHour = availableHours.find(
-            (hour) => hour.hourStart === value
-          );
-          if (selectedHour) {
-            currentDetail.startTime = value;
-            currentDetail.endTime = selectedHour.hourEnd;
-            currentDetail.hourId = selectedHour.id;
-          } else {
-            currentDetail.startTime = "";
-            currentDetail.endTime = "";
-            currentDetail.hourId = "";
-          }
-        } else if (name === "turn") {
-          currentDetail.turn = value;
-          currentDetail.startTime = "";
-          currentDetail.endTime = "";
-          currentDetail.hourId = "";
-        } else {
-          currentDetail[name] = value;
+        currentDetail[name] = value;
+        if (name === "turn") {
+          currentDetail.selectedHourStartId = "";
+          currentDetail.selectedHourEndId = "";
+          currentDetail.displayStartTime = "";
+          currentDetail.displayEndTime = "";
+        } else if (name === "selectedHourStartId") {
+          const selectedHour = availableHours.find((h) => h.id === value);
+          currentDetail.displayStartTime = selectedHour?.hourStart || "";
+        } else if (name === "selectedHourEndId") {
+          const selectedHour = availableHours.find((h) => h.id === value);
+          currentDetail.displayEndTime = selectedHour?.hourEnd || "";
         }
-        updatedDetails[0] = currentDetail;
-        newData.details = updatedDetails;
+        newData.details[0] = currentDetail;
       }
       return newData;
     });
@@ -413,31 +422,91 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
     if (
       !currentDetail.disciplineId ||
       !currentDetail.dayOfWeek ||
-      !currentDetail.hourId ||
-      !currentDetail.turn
+      !currentDetail.turn ||
+      !currentDetail.selectedHourStartId ||
+      !currentDetail.selectedHourEndId
     ) {
       setErrors((prev) => ({
         ...prev,
-        detail: "Disciplina, Dia da Semana, Turno e Horário de Início são obrigatórios.",
+        detail:
+          "Disciplina, Dia da Semana, Turno, Horário de Início e Horário de Fim são obrigatórios.",
       }));
       return;
     }
 
-    const discipline = disciplines.find(
-      (d) => d.disciplineId === currentDetail.disciplineId
+    const startIndex = availableHours.findIndex(
+      (h) => h.id === currentDetail.selectedHourStartId
     );
-    const professor = professors.find(
-      (p) => p.id === currentDetail.professorId
+    const endIndex = availableHours.findIndex(
+      (h) => h.id === currentDetail.selectedHourEndId
     );
+    if (startIndex === -1 || endIndex === -1 || startIndex > endIndex) {
+      setErrors((prev) => ({
+        ...prev,
+        detail: "Selecione um intervalo de horários válido e sequencial.",
+      }));
+      return;
+    }
+    if (endIndex - startIndex > 1) {
+      setErrors((prev) => ({
+        ...prev,
+        detail:
+          "A aula não pode exceder dois blocos de horários consecutivos (ex: 7:20 - 9:20).",
+      }));
+      return;
+    }
 
-    setConfirmedDetails((prev) => [
-      ...prev,
-      {
-        ...currentDetail,
+    const newDetailsToAdd = [];
+    for (let i = startIndex; i <= endIndex; i++) {
+      const hourBlock = availableHours[i];
+      if (i > startIndex) {
+        const prevHourBlock = availableHours[i - 1];
+        if (hourBlock.hourStart !== prevHourBlock.hourEnd) {
+          setErrors((prev) => ({
+            ...prev,
+            detail:
+              "Os horários selecionados devem ser blocos consecutivos. Verifique os intervalos na seed.",
+          }));
+          return;
+        }
+      }
+      const discipline = disciplines.find(
+        (d) => d.disciplineId === currentDetail.disciplineId
+      );
+      const professor = professors.find(
+        (p) => p.id === currentDetail.professorId
+      );
+      newDetailsToAdd.push({
+        disciplineId: currentDetail.disciplineId,
+        professorId: currentDetail.professorId,
+        dayOfWeek: currentDetail.dayOfWeek,
+        turn: currentDetail.turn,
+        hourId: hourBlock.id,
+        startTime: hourBlock.hourStart,
+        endTime: hourBlock.hourEnd,
         disciplineName: discipline?.name || "N/A",
         professorName: professor?.username || "Sem professor",
-      },
-    ]);
+      });
+    }
+
+    const existingConfirmedDetailsSet = new Set(
+      confirmedDetails.map(
+        (d) => `${d.dayOfWeek}-${d.hourId}-${d.disciplineId}`
+      )
+    );
+
+    for (const newDetail of newDetailsToAdd) {
+      const slotKey = `${newDetail.dayOfWeek}-${newDetail.hourId}-${newDetail.disciplineId}`;
+      if (existingConfirmedDetailsSet.has(slotKey)) {
+        setErrors((prev) => ({
+          ...prev,
+          detail: `O horário ${newDetail.dayOfWeek} ${newDetail.startTime} - ${newDetail.endTime} para a disciplina ${newDetail.disciplineName} já foi adicionado.`,
+        }));
+        return;
+      }
+    }
+
+    setConfirmedDetails((prev) => [...prev, ...newDetailsToAdd]);
 
     setFormData((prev) => ({
       ...prev,
@@ -446,10 +515,11 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
           disciplineId: "",
           professorId: "",
           dayOfWeek: "",
-          startTime: "",
-          endTime: "",
-          hourId: "",
           turn: "",
+          selectedHourStartId: "",
+          selectedHourEndId: "",
+          displayStartTime: "",
+          displayEndTime: "",
         },
       ],
     }));
@@ -468,39 +538,24 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
     ) {
       setErrors((prev) => ({
         ...prev,
-        message:
-          "Turma, Calendário e pelo menos um horário são obrigatórios.",
+        message: "Turma, Calendário e pelo menos um horário são obrigatórios.",
       }));
       return;
     }
 
-    setLoading(true);
-    setErrors({});
-
     try {
-      const turnMap = {
-        Manhã: "MATUTINO",
-        Tarde: "VESPERTINO",
-        Noite: "NOTURNO",
-      };
-
-      // Map dayOfWeek to backend-expected format (e.g., "Segunda")
-      const dayOfWeekMap = {
-        Segunda: "Segunda",
-        Terça: "Terça",
-        Quarta: "Quarta",
-        Quinta: "Quinta",
-        Sexta: "Sexta",
-        Sábado: "Sábado",
-      };
-
       const detailsToSend = confirmedDetails.map((detail) => ({
         id: detail.id || null,
         disciplineId: parseInt(detail.disciplineId, 10),
         hourId: parseInt(detail.hourId, 10),
-        dayOfWeek: dayOfWeekMap[detail.dayOfWeek] || detail.dayOfWeek,
+        dayOfWeek: detail.dayOfWeek.replace("-feira", ""),
         userId: detail.professorId ? parseInt(detail.professorId, 10) : null,
-        turn: turnMap[detail.turn] || null,
+        turn:
+          detail.turn === "Manhã"
+            ? "MATUTINO"
+            : detail.turn === "Tarde"
+            ? "VESPERTINO"
+            : "NOTURNO",
       }));
 
       const dataToSend = {
@@ -511,43 +566,25 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
         isActive: formData.isActive,
         details: detailsToSend,
       };
-      console.log("Payload being sent:", JSON.stringify(dataToSend, null, 2));
 
-      const response = await api.put(`/class-schedule/${id}`, dataToSend);
-      console.log("API Response:", response.data);
-
+      await api.put(`/class-schedule/${id}`, dataToSend);
       setAlert({
-        message: "Grade de turma criada com sucesso!",
+        message: "Grade de turma atualizada com sucesso!",
         type: "success",
       });
       setTimeout(() => {
         navigate("/class-schedule", {
-          state: { success: "Grade de turma criada com sucesso!" },
+          state: { success: "Grade de turma atualizada com sucesso!" },
         });
       }, 3000);
     } catch (error) {
-      console.error("Error during submit:", error.response?.data);
       setErrors((prev) => ({
         ...prev,
-        message: error.response?.data?.message || "Erro ao atualizar a grade de turma. Tente novamente.",
+        message:
+          error.response?.data?.message || "Erro ao atualizar a grade de turma. Tente novamente.",
       }));
-    } finally {
-      setLoading(false);
     }
   };
-
-  if (loading && !errors.message && Object.keys(errors).length === 0) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        height="100vh"
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
 
   return (
     <Box display="flex">
@@ -675,23 +712,17 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
               </CustomSelect>
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Turno Geral"
-                value={determineTurn(confirmedDetails)}
-                InputProps={{ readOnly: true }}
-                sx={{
-                  width: "320px",
-                  "& .MuiInputBase-root.Mui-disabled": {
-                    backgroundColor: "#f5f5f5",
-                    color: "#000",
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "rgba(0, 0, 0, 0.23)",
-                    },
-                  },
-                }}
-                disabled
-              />
+              <CustomSelect
+                label="Turno"
+                name="turn"
+                value={formData.details[0].turn}
+                onChange={handleChange}
+                selectSx={{ width: "320px" }}
+              >
+                <MenuItem value="Manhã">Manhã</MenuItem>
+                <MenuItem value="Tarde">Tarde</MenuItem>
+                <MenuItem value="Noite">Noite</MenuItem>
+              </CustomSelect>
             </Grid>
           </Grid>
         </Box>
@@ -764,57 +795,65 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                 name="dayOfWeek"
                 value={formData.details[0].dayOfWeek}
                 onChange={handleChange}
-                selectSx={{ width: "250px" }}
+                selectSx={{ width: "520px" }}
               >
-                <MenuItem value="Segunda">Segunda-feira</MenuItem>
-                <MenuItem value="Terça">Terça-feira</MenuItem>
-                <MenuItem value="Quarta">Quarta-feira</MenuItem>
-                <MenuItem value="Quinta">Quinta-feira</MenuItem>
-                <MenuItem value="Sexta">Sexta-feira</MenuItem>
+                <MenuItem value="Segunda-feira">Segunda-feira</MenuItem>
+                <MenuItem value="Terça-feira">Terça-feira</MenuItem>
+                <MenuItem value="Quarta-feira">Quarta-feira</MenuItem>
+                <MenuItem value="Quinta-feira">Quinta-feira</MenuItem>
+                <MenuItem value="Sexta-feira">Sexta-feira</MenuItem>
                 <MenuItem value="Sábado">Sábado</MenuItem>
               </CustomSelect>
             </Grid>
             <Grid item xs={12} sm={6}>
               <CustomSelect
-                label="Turno"
-                name="turn"
-                value={formData.details[0].turn}
+                label="Início da Aula"
+                name="selectedHourStartId"
+                value={formData.details[0].selectedHourStartId}
                 onChange={handleChange}
-                selectSx={{ width: "250px" }}
-              >
-                <MenuItem value="Manhã">Manhã</MenuItem>
-                <MenuItem value="Tarde">Tarde</MenuItem>
-                <MenuItem value="Noite">Noite</MenuItem>
-              </CustomSelect>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <CustomSelect
-                label="Horário de Início"
-                name="startTime"
-                value={formData.details[0].startTime}
-                onChange={handleChange}
-                disabled={!formData.details[0].turn || availableHours.length === 0}
+                disabled={!formData.details[0].turn}
+                loading={hoursLoading}
                 selectSx={{ width: "215px" }}
               >
                 {availableHours.map((hour) => (
-                  <MenuItem key={hour.id} value={hour.hourStart}>
+                  <MenuItem key={hour.id} value={hour.id}>
                     {hour.hourStart}
                   </MenuItem>
                 ))}
               </CustomSelect>
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Horário de Fim"
-                name="endTime"
-                value={formData.details[0].endTime}
+              <CustomSelect
+                label="Fim da Aula"
+                name="selectedHourEndId"
+                value={formData.details[0].selectedHourEndId}
                 onChange={handleChange}
-                sx={{ width: "215px" }}
-                InputLabelProps={{ shrink: true }}
-                required
-                disabled
-              />
+                disabled={
+                  !formData.details[0].turn ||
+                  !formData.details[0].selectedHourStartId
+                }
+                loading={hoursLoading}
+                selectSx={{ width: "215px" }}
+              >
+                {availableHours
+                  .filter((hour) => {
+                    const startIndex = availableHours.findIndex(
+                      (h) => h.id === formData.details[0].selectedHourStartId
+                    );
+                    const currentIndex = availableHours.findIndex(
+                      (h) => h.id === hour.id
+                    );
+                    return (
+                      currentIndex >= startIndex &&
+                      currentIndex <= startIndex + 1
+                    );
+                  })
+                  .map((hour) => (
+                    <MenuItem key={hour.id} value={hour.id}>
+                      {hour.hourEnd}
+                    </MenuItem>
+                  ))}
+              </CustomSelect>
             </Grid>
             <Grid item xs={12}>
               <Button
@@ -846,24 +885,24 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell><strong>Turno</strong></TableCell>
                   <TableCell><strong>Dia da Semana</strong></TableCell>
                   <TableCell><strong>Horário de Início</strong></TableCell>
                   <TableCell><strong>Horário de Fim</strong></TableCell>
                   <TableCell><strong>Disciplina</strong></TableCell>
                   <TableCell><strong>Professor</strong></TableCell>
+                  <TableCell><strong>Turno</strong></TableCell>
                   <TableCell><strong>Ações</strong></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {confirmedDetails.map((detail, index) => (
                   <TableRow key={index}>
-                    <TableCell>{detail.turn}</TableCell>
                     <TableCell>{detail.dayOfWeek}</TableCell>
                     <TableCell>{detail.startTime}</TableCell>
                     <TableCell>{detail.endTime}</TableCell>
                     <TableCell>{detail.disciplineName}</TableCell>
                     <TableCell>{detail.professorName}</TableCell>
+                    <TableCell>{detail.turn}</TableCell>
                     <TableCell>
                       <IconButton
                         onClick={() => handleDeleteDetail(index)}
@@ -918,26 +957,22 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
             variant="contained"
             color="success"
             onClick={handleSubmit}
-            disabled={loading || confirmedDetails.length === 0}
+            disabled={confirmedDetails.length === 0}
             sx={{
               width: "fit-content",
               minWidth: 100,
               padding: { xs: "8px 20px", sm: "8px 28px" },
               backgroundColor: "#087619",
               borderRadius: "8px",
-              "&:hover": { backgroundColor: "#066915" },
               textTransform: "none",
               fontWeight: "bold",
               display: "flex",
               alignItems: "center",
-              gap: "10px",
+              gap: "8px",
+              "&:hover": { backgroundColor: "#066915" },
             }}
           >
-            {loading ? (
-              <CircularProgress size={24} color="inherit" />
-            ) : (
-              <Save sx={{ fontSize: 24 }} />
-            )}
+            <Save sx={{ fontSize: 24 }} />
             Atualizar
           </Button>
         </Box>

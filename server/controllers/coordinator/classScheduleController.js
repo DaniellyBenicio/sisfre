@@ -71,7 +71,7 @@ export const createClassSchedule = async (req, res) => {
     const turnIntervals = {
       MATUTINO: { start: "07:00:00", end: "11:59:59" },
       VESPERTINO: { start: "12:00:00", end: "17:59:59" },
-      NOTURNO: { start: "18:00:00", end: "23:59:59" },
+      NOTURNO: { start: "18:20:00", end: "22:00:00" },
       INTEGRADO: { start: "07:00:00", end: "17:59:59" },
     };
 
@@ -403,7 +403,7 @@ export const updateClassSchedule = async (req, res) => {
       });
     }
 
-    const validDays = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"];
+    const validDays = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
     const disciplineIds = new Set();
     const userIds = new Set();
     const hourIds = new Set();
@@ -413,7 +413,7 @@ export const updateClassSchedule = async (req, res) => {
     const turnIntervals = {
       MATUTINO: { start: "07:00:00", end: "11:59:59" },
       VESPERTINO: { start: "12:00:00", end: "17:59:59" },
-      NOTURNO: { start: "18:00:00", end: "23:59:59" },
+      NOTURNO: { start: "18:20:00", end: "22:00:00" },
       INTEGRADO: { start: "07:00:00", end: "17:59:59" },
     };
 

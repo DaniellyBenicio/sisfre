@@ -54,7 +54,7 @@ module.exports = {
         allowNull: false,
       },
       dayOfWeek: {
-        type: Sequelize.ENUM("Segunda", "Terça", "Quarta", "Quinta", "Sexta"),
+        type: Sequelize.ENUM("Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"),
         allowNull: false,
       },
       createdAt: {

@@ -715,7 +715,7 @@ export const getClassSchedule = async (req, res) => {
         {
           model: db.Calendar,
           as: "calendar",
-          attributes: ["id", "year", "period"],
+          attributes: ["id", "year", "period", "type"],
         },
         {
           model: db.Class,
@@ -847,7 +847,7 @@ export const getClassScheduleDetails = async (req, res) => {
         {
           model: db.Calendar,
           as: "calendar",
-          attributes: ["id", "startDate", "endDate"],
+          attributes: ["id", "startDate", "endDate", "type"],
         },
         { model: db.Class, as: "class", attributes: ["id", "semester"] },
         {

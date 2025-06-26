@@ -33,7 +33,7 @@ export const getArchivedClassSchedules = async (req, res) => {
         {
           model: db.Calendar,
           as: "calendar",
-          attributes: ["id", "year", "period"],
+          attributes: ["id", "year", "period", "type"],
         },
         {
           model: db.Class,
@@ -198,7 +198,7 @@ export const getArchivedClassSchedulesFilter = async (req, res) => {
         {
           model: db.Calendar,
           as: "calendar",
-          attributes: ["id", "year", "period"],
+          attributes: ["id", "year", "period", "type"],
         },
         {
           model: db.Class,

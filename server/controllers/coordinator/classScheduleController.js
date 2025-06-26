@@ -403,7 +403,14 @@ export const updateClassSchedule = async (req, res) => {
       });
     }
 
-    const validDays = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+    const validDays = [
+      "Segunda",
+      "Terça",
+      "Quarta",
+      "Quinta",
+      "Sexta",
+      "Sábado",
+    ];
     const disciplineIds = new Set();
     const userIds = new Set();
     const hourIds = new Set();
@@ -710,7 +717,7 @@ export const getClassSchedule = async (req, res) => {
     const courseId = course.id;
 
     const classSchedules = await db.ClassSchedule.findAll({
-      where: { courseId },
+      where: { courseId, isActive: true },
       include: [
         {
           model: db.Calendar,
@@ -774,7 +781,7 @@ export const getClassSchedule = async (req, res) => {
     };
 
     const scheduleList = classSchedules.map((schedule) => {
-      const calendarInfo = `${schedule.calendar.year}.${schedule.calendar.period}`;
+      const calendarInfo = `${schedule.calendar.year}.${schedule.calendar.period}.${schedule.calendar.type}`;
       const turnCounts = countTurns(schedule.details);
 
       return {
@@ -927,7 +934,7 @@ export const getClassSchedulesFilter = async (req, res) => {
 
     const courseId = course.id;
 
-    const where = { courseId };
+    const where = { courseId, isActive: true };
     if (calendar) {
       where["$calendar.year$"] = { [Op.like]: `%${calendar}%` };
       if (calendar.includes(".")) {
@@ -948,7 +955,7 @@ export const getClassSchedulesFilter = async (req, res) => {
         {
           model: db.Calendar,
           as: "calendar",
-          attributes: ["id", "year", "period"],
+          attributes: ["id", "year", "period", "type"],
         },
         {
           model: db.Class,
@@ -989,22 +996,22 @@ export const getClassSchedulesFilter = async (req, res) => {
     });
 
     const countTurns = (details) => {
-        const counts = {
-            MATUTINO: 0,
-            VESPERTINO: 0,
-            NOTURNO: 0,
-        };
-        details.forEach(detail => {
-            if (counts.hasOwnProperty(detail.turn)) {
-                counts[detail.turn]++;
-            }
-        });
-        return counts;
+      const counts = {
+        MATUTINO: 0,
+        VESPERTINO: 0,
+        NOTURNO: 0,
+      };
+      details.forEach((detail) => {
+        if (counts.hasOwnProperty(detail.turn)) {
+          counts[detail.turn]++;
+        }
+      });
+      return counts;
     };
 
     const scheduleList = classSchedules.map((schedule) => {
-      const calendarInfo = `${schedule.calendar.year}.${schedule.calendar.period}`;
-      const turnCounts = countTurns(schedule.details); 
+      const calendarInfo = `${schedule.calendar.year}.${schedule.calendar.period}.${schedule.calendar.type}`;
+      const turnCounts = countTurns(schedule.details);
 
       return {
         calendar: calendarInfo,

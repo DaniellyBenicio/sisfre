@@ -28,7 +28,7 @@ const CourseList = () => {
         setLoading(true);
         const [coursesResponse, usersResponse] = await Promise.all([
           api.get("/courses?limit=100"),
-          api.get("/users"),
+          api.get("/users?limit=100"),
         ]);
         console.log("Resposta da API /courses:", coursesResponse.data);
         console.log("Resposta da API /users:", usersResponse.data);
@@ -80,8 +80,8 @@ const CourseList = () => {
     console.log("Novo curso registrado:", newCourse);
     try {
       const [coursesResponse, usersResponse] = await Promise.all([
-        api.get("/courses"),
-        api.get("/users"),
+        api.get("/courses?limit=100"),
+        api.get("/users?limit=100"),
       ]);
       console.log(
         "Resposta da API /courses após registro:",

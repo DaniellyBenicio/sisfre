@@ -2,6 +2,7 @@ import cron from "node-cron";
 import db from "../models/index.js";
 import { autoArchiveClassSchedules } from "./autoArchiveClassSchedules.js";
 import "../tasks/holidaySeedTask.js";
+import { exec } from "child_process";
 
 //Cria o usuário administrador, se não existir
 const createAdminIfNotExists = async () => {
@@ -78,11 +79,30 @@ const initializeTasks = async () => {
   );
 };
 
+const runSeeds = () => {
+  return new Promise((resolve, reject) => {
+    exec("npx sequelize-cli db:seed:all", (error, stdout, stderr) => {
+      if (error) {
+        console.error("Erro ao rodar seeds:", stderr);
+        return reject(error);
+      }
+      console.log("Seeds executadas com sucesso!");
+      resolve(stdout);
+    });
+  });
+};
+
 //Inicializa
 const initializeApp = async () => {
   try {
     await db.sequelize.sync({ force: false, logging: false });
     console.log("Banco de dados sincronizado.");
+
+    const courseCount = await db.Course.count();
+    if (courseCount === 0) {
+      await runSeeds();
+    }
+
     await createAdminIfNotExists();
     await initializeTasks();
   } catch (error) {

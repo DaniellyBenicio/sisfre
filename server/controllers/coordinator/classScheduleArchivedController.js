@@ -105,7 +105,7 @@ export const getArchivedClassSchedules = async (req, res) => {
     };
 
     const scheduleList = classSchedules.map((schedule) => {
-      const calendarInfo = `${schedule.calendar.year}.${schedule.calendar.period}`;
+      const calendarInfo = `${schedule.calendar.year}.${schedule.calendar.period} - ${schedule.calendar.type}`;
       const turnCounts = countTurns(schedule.details);
 
       return {
@@ -271,7 +271,7 @@ export const getArchivedClassSchedulesFilter = async (req, res) => {
     };
 
     const scheduleList = classSchedules.map((schedule) => {
-      const calendarInfo = `${schedule.calendar.year}.${schedule.calendar.period}`;
+      const calendarInfo = `${schedule.calendar.year}.${schedule.calendar.period} - ${schedule.calendar.type}`;
       const turnCounts = countTurns(schedule.details);
 
       return {

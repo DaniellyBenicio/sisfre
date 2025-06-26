@@ -19,6 +19,7 @@ import HolidayPage from "../pages/admin/Holiday/HolidayPage.js";
 import ClassScheduleDetails from "../pages/classSchedule/Coodinator/ClassScheduleDetails.js";
 import ClassDetailsPage from "../pages/disciplines/Teacher/ClassTeacher/ClassDetails/ClassDetailsPage.js";
 import ClassScheduleEdit from "../pages/classSchedule/Coodinator/ClassScheduleEdit.js";
+import ClassScheduleOptions from "../pages/classSchedule/ClassScheduleOptions.js";
 
 
 const AppRoutes = () => {
@@ -170,6 +171,16 @@ const AppRoutes = () => {
         element={
           isAuthenticated && accessType === "Admin" ? (
             <CalendarPage setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
+        path="/class-schedule/options"
+        element={
+          isAuthenticated && accessType === "Coordenador" ? (
+            <ClassScheduleOptions setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
           )

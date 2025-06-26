@@ -24,7 +24,7 @@ import {
   Class,
   LibraryBooks,
   CalendarToday,
-  Schedule, // Ícone para Grade de Turmas
+  Schedule,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useMediaQuery } from "@mui/material";
@@ -54,7 +54,7 @@ const Sidebar = ({ setAuthenticated }) => {
     else if (path === "/disciplines") setSelectedItem("disciplines");
     else if (path === "/calendar-options") setSelectedItem("calendar");
     else if (path === "/classes") setSelectedItem("classes");
-    else if (path === "/class-schedule") setSelectedItem("class-schedule");
+    else if (path === "/class-schedule/options") setSelectedItem("class-schedule");
   }, [location.pathname]);
 
   const handleOpenConfirmDialog = () => setOpenConfirmDialog(true);
@@ -176,7 +176,7 @@ const Sidebar = ({ setAuthenticated }) => {
               </ListItem>
               <ListItem
                 button
-                onClick={() => handleItemClick("/class-schedule", "class-schedule")}
+                onClick={() => handleItemClick("/class-schedule/options", "class-schedule")}
                 sx={getListItemStyle(selectedItem, "class-schedule")}
               >
                 <Schedule sx={{ mr: 1 }} />

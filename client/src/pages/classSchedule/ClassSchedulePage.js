@@ -1,6 +1,5 @@
 import { Box, CssBaseline } from "@mui/material";
 import Sidebar from "../../components/SideBar";
-import MainScreen from "../../pages/MainScreen";
 import ClassScheduleList from "./Coodinator/ClassScheduleList";
 
 const ClassSchedulePage = ({ setAuthenticated }) => {

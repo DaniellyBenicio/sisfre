@@ -78,7 +78,7 @@ export default (sequelize) => {
         allowNull: false,
       },
       dayOfWeek: {
-        type: DataTypes.ENUM("Segunda", "Terça", "Quarta", "Quinta", "Sexta"),
+        type: DataTypes.ENUM("Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"),
         allowNull: false,
       },
     },

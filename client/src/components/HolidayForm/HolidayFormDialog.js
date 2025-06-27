@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogActions,
@@ -22,7 +22,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { ptBR } from "date-fns/locale";
 import { parse, format, isValid } from "date-fns";
 import api from "../../service/api";
-import CustomAlert from '../alert/CustomAlert';
+import CustomAlert from "../alert/CustomAlert";
 
 const INSTITUTIONAL_COLOR = "#307c34";
 
@@ -68,16 +68,17 @@ const HolidayFormDialog = ({
 
   const hasFormChanged = () => {
     if (!isEditMode || !initialHoliday) return true;
-    
-    // Comparação segura para o campo 'name'
+
     const nameChanged = holiday.name !== (initialHoliday.name || "");
-    
-    // Comparação segura para o campo 'date'
-    const holidayDate = holiday.date && isValid(holiday.date) ? format(new Date(holiday.date), "yyyy-MM-dd") : null;
-    const initialDate = initialHoliday.date && isValid(initialHoliday.date) ? format(new Date(initialHoliday.date), "yyyy-MM-dd") : null;
+    const holidayDate =
+      holiday.date && isValid(holiday.date)
+        ? format(new Date(holiday.date), "yyyy-MM-dd")
+        : null;
+    const initialDate =
+      initialHoliday.date && isValid(initialHoliday.date)
+        ? format(new Date(initialHoliday.date), "yyyy-MM-dd")
+        : null;
     const dateChanged = holidayDate !== initialDate;
-    
-    // Comparação segura para o campo 'type'
     const typeChanged = holiday.type !== (initialHoliday.type || "");
 
     return nameChanged || dateChanged || typeChanged;
@@ -90,14 +91,42 @@ const HolidayFormDialog = ({
   useEffect(() => {
     if (open) {
       if (holidayToEdit && isEditMode) {
+        let parsedDate = null;
+        if (holidayToEdit.date) {
+          const formats = [
+            "dd-MM-yyyy",
+            "yyyy-MM-dd",
+            "dd/MM/yyyy",
+            "MM-dd-yyyy",
+            "yyyy/MM/dd",
+            "yyyy-MM-dd'T'HH:mm:ss",
+            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+          ];
+          for (const formatStr of formats) {
+            parsedDate = parse(holidayToEdit.date, formatStr, new Date());
+            if (isValid(parsedDate)) {
+              break;
+            }
+          }
+          if (!isValid(parsedDate)) {
+            const timestamp = Date.parse(holidayToEdit.date);
+            if (!isNaN(timestamp)) {
+              parsedDate = new Date(timestamp);
+            }
+          }
+          if (!isValid(parsedDate)) {
+            setError("A data fornecida pelo servidor é inválida.");
+          }
+        } else {
+          setError("Nenhuma data fornecida pelo servidor.");
+        }
         const initialData = {
           name: holidayToEdit.name || "",
-          date: holidayToEdit.date ? parse(holidayToEdit.date, "yyyy-MM-dd", new Date()) : null,
+          date: parsedDate,
           type: holidayToEdit.type || "",
         };
         setHoliday(initialData);
         setInitialHoliday(initialData);
-        setError(null);
       } else {
         setHoliday({ name: "", date: null, type: "" });
         setInitialHoliday(null);
@@ -107,6 +136,14 @@ const HolidayFormDialog = ({
   }, [holidayToEdit, open, isEditMode]);
 
   const handleInputChange = (name, value) => {
+    if (name === "date" && value && !isValid(value)) {
+      setError("A data selecionada é inválida.");
+      return;
+    }
+    if (name === "type" && !value) {
+      setError("O tipo do feriado é obrigatório.");
+      return;
+    }
     setHoliday({ ...holiday, [name]: value });
   };
 
@@ -121,8 +158,9 @@ const HolidayFormDialog = ({
       return;
     }
 
-    // A data será sempre formatada para 'yyyy-MM-dd' antes de ser enviada para a API
-    const formattedDate = holiday.date ? format(holiday.date, "yyyy-MM-dd") : null;
+    const formattedDate = holiday.date
+      ? format(holiday.date, "yyyy-MM-dd")
+      : null;
     if (!formattedDate || isNaN(new Date(formattedDate).getTime())) {
       setError("A data fornecida é inválida.");
       setLoading(false);
@@ -132,7 +170,7 @@ const HolidayFormDialog = ({
     try {
       const payload = {
         name: holiday.name,
-        date: formattedDate, // Mantém o formato para envio à API
+        date: formattedDate,
         type: holiday.type,
       };
 
@@ -150,17 +188,18 @@ const HolidayFormDialog = ({
 
       onSubmitSuccess(updatedHoliday, isEditMode);
       setAlert({
-        message: isEditMode ? 'Feriado atualizado com sucesso!' : 'Feriado cadastrado com sucesso!',
-        type: 'success',
+        message: isEditMode
+          ? "Feriado atualizado com sucesso!"
+          : "Feriado cadastrado com sucesso!",
+        type: "success",
       });
       onClose();
     } catch (err) {
-      console.error('Erro completo:', err);
-      console.error('Resposta do erro:', err.response?.data);
-
-      let errorMessage = err.response?.data?.error || `Erro ao ${isEditMode ? 'atualizar' : 'cadastrar'} feriado.`;
+      let errorMessage =
+        err.response?.data?.error ||
+        `Erro ao ${isEditMode ? "atualizar" : "cadastrar"} feriado.`;
       if (Array.isArray(err.response?.data?.errors)) {
-        errorMessage = err.response.data.errors.join(', ');
+        errorMessage = err.response.data.errors.join(", ");
       }
 
       setError(errorMessage);
@@ -272,8 +311,7 @@ const HolidayFormDialog = ({
                 label="Data"
                 value={holiday.date}
                 onChange={(newValue) => handleInputChange("date", newValue)}
-                // Alterado de "yyyy-MM-dd" para "dd/MM/yyyy"
-                format="dd/MM/yyyy" 
+                format="dd/MM/yyyy"
                 minDate={new Date("2025-01-01")}
                 slotProps={{
                   textField: {
@@ -308,10 +346,11 @@ const HolidayFormDialog = ({
                 margin="normal"
                 sx={{
                   ...grayBorderFieldStyles,
-                  "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#000000 !important",
-                    borderWidth: "2px",
-                  },
+                  "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                    {
+                      borderColor: "#000000 !important",
+                      borderWidth: "2px",
+                    },
                   "& .MuiOutlinedInput-notchedOutline": {
                     borderColor: "#9b9b9b",
                   },
@@ -349,7 +388,9 @@ const HolidayFormDialog = ({
                     },
                   }}
                 >
-                  <MenuItem value="">Selecione um tipo</MenuItem>
+                  <MenuItem value="" disabled>
+                    Selecione um tipo
+                  </MenuItem>
                   <MenuItem value="NACIONAL">Nacional</MenuItem>
                   <MenuItem value="ESTADUAL">Estadual</MenuItem>
                   <MenuItem value="MUNICIPAL">Municipal</MenuItem>
@@ -383,16 +424,26 @@ const HolidayFormDialog = ({
                 <StyledButton
                   type="submit"
                   variant="contained"
-                  disabled={isEditMode ? !isFormFilled || !hasFormChanged() || loading : !isFormFilled || loading}
+                  disabled={
+                    isEditMode
+                      ? !isFormFilled || !hasFormChanged() || loading
+                      : !isFormFilled || loading
+                  }
                   sx={{
-                    backgroundColor: isEditMode && (!hasFormChanged() || !isFormFilled) ? "#E0E0E0" : INSTITUTIONAL_COLOR,
+                    backgroundColor:
+                      isEditMode && (!hasFormChanged() || !isFormFilled)
+                        ? "#E0E0E0"
+                        : INSTITUTIONAL_COLOR,
                     "&:hover": {
-                      backgroundColor: isEditMode && (!hasFormChanged() || !isFormFilled) ? "#E0E0E0" : "#26692b",
+                      backgroundColor:
+                        isEditMode && (!hasFormChanged() || !isFormFilled)
+                          ? "#E0E0E0"
+                          : "#26692b",
                     },
                   }}
                 >
                   {loading ? (
-                    <CircularProgress size={24} sx={{ color: '#fff' }} />
+                    <CircularProgress size={24} sx={{ color: "#fff" }} />
                   ) : (
                     <>
                       <Save sx={{ fontSize: { xs: 20, sm: 24 } }} />

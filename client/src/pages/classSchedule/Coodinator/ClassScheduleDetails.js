@@ -167,95 +167,6 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
           </Typography>
         </Box>
 
-        <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-            <School sx={{ fontSize: "31px", color: "green" }} />
-            <Typography variant="h5" color="green">
-              Turma
-            </Typography>
-          </Box>
-
-          <Divider sx={{ backgroundColor: "#C7C7C7", my: 2 }} />
-
-          {error ? (
-            <Typography variant="body1" color="error">
-              {error}
-            </Typography>
-          ) : schedule ? (
-            <Box>
-              <Typography variant="body1" sx={{ mb: 1 }}>
-                <strong>Turma:</strong> {schedule.class?.semester || "N/A"}
-              </Typography>
-              <Typography variant="body1" sx={{ mb: 1 }}>
-                <strong>Turno: </strong>{determineTurn(schedule)}
-              </Typography>
-              <Typography variant="body1" sx={{ mb: 2 }}>
-                <strong>Calendário:</strong>{" "}
-                  {schedule.calendar?.startDate
-                  ? `${new Date(schedule.calendar.startDate).getFullYear()}.${new Date(schedule.calendar.startDate).getMonth() < 6 ? '1' : '2'}`
-                  : "N/A"}              
-              </Typography>
-              
-              {schedule.details?.length > 0 ? (
-                <>
-                  <Typography variant="body1" sx={{ mb: 1 }}>
-                    <strong>Professor:</strong>{" "}
-                    {currentDetail?.professor
-                      ? `${currentDetail.professor.username} - ${currentDetail.professor.acronym || ""}`
-                      : "Sem professor"}
-                  </Typography>
-                  <Typography variant="body1" sx={{ mb: 1 }}>
-                    <strong>Disciplina:</strong>{" "}
-                    {currentDetail?.discipline
-                      ? `${currentDetail.discipline.name} - ${currentDetail.discipline.acronym || ""}`
-                      : "N/A"}
-                  </Typography>
-
-                  <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 2, mt: 2 }}>
-                    <IconButton
-                      onClick={handlePreviousDetail}
-                      disabled={currentDetailIndex === 0}
-                      sx={{
-                        color: "green",
-                        "&:hover": {
-                          backgroundColor: "transparent",
-                        },
-                      }}
-                    >
-                      <ChevronLeft />
-                    </IconButton>
-
-                    <Typography variant="body2" sx={{ minWidth: 60, textAlign: "center" }}>
-                      {currentDetailIndex + 1} de {schedule.details.length}
-                    </Typography>
-
-                    <IconButton
-                      onClick={handleNextDetail}
-                      disabled={currentDetailIndex === schedule.details.length - 1}
-                      sx={{
-                        color: "green",
-                        "&:hover": {
-                          backgroundColor: "transparent",
-                        },
-                      }}
-                    >
-                      <ChevronRight />
-                    </IconButton>
-                  </Box>
-                </>
-              ) : (
-                <Typography variant="body1" color="text.secondary">
-                  Nenhum detalhe de aula disponível.
-                </Typography>
-              )}
-            </Box>
-          ) : (
-            <Typography variant="body1" color="error">
-              Nenhum dado disponível para esta grade de turma.
-            </Typography>
-          )}
-        </Box>
-
         {/* Horários */}
         <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
@@ -314,6 +225,87 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
           ) : (
             <Typography variant="body1" color="error">
               Nenhum horário disponível para esta grade de turma.
+            </Typography>
+          )}
+        </Box>
+
+        {/* Turma */}
+        <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+            <School sx={{ fontSize: "31px", color: "green" }} />
+            <Typography variant="h5" color="green">
+              Turma
+            </Typography>
+          </Box>
+
+          <Divider sx={{ backgroundColor: "#C7C7C7", my: 2 }} />
+
+          {error ? (
+            <Typography variant="body1" color="error">
+              {error}
+            </Typography>
+          ) : schedule ? (
+            <Box>
+              <Typography variant="body1" sx={{ mb: 1 }}>
+                <strong>Turma:</strong> {schedule.class?.semester || "N/A"}
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 1 }}>
+                <strong>Turno: </strong>{determineTurn(schedule)}
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                <strong>Calendário:</strong>{" "}
+                {schedule.calendar?.startDate
+                  ? `${new Date(schedule.calendar.startDate).getFullYear()}.${new Date(schedule.calendar.startDate).getMonth() < 6 ? '1' : '2'} - ${schedule.calendar.type}`
+                  : "N/A"}
+              </Typography>
+
+              {schedule.details?.length > 0 ? (
+                <Box>
+                  <Table sx={{ minWidth: 300, border: "1px solid #E0E0E0" }}>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: "bold", color: "#000", borderBottom: "1px solid #E0E0E0", py: 1 }}>
+                          Professor
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: "bold", color: "#000", borderBottom: "1px solid #E0E0E0", py: 1 }}>
+                          Disciplina
+                        </TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {[
+                        ...new Map(
+                          schedule.details.map((detail) => [
+                            `${detail.discipline?.disciplineId}-${detail.professor?.id || "N/A"}`,
+                            detail,
+                          ])
+                        ).values(),
+                      ].map((detail, index) => (
+                        <TableRow key={index} sx={{ "&:last-child td": { borderBottom: 0 } }}>
+                          <TableCell sx={{ py: 1, color: "#333" }}>
+                            {detail.professor
+                              ? `${detail.professor.username} - ${detail.professor.acronym || ""}`
+                              : "Sem professor"}
+                          </TableCell>
+                          <TableCell sx={{ py: 1, color: "#333" }}>
+                            {detail.discipline
+                              ? `${detail.discipline.name} - ${detail.discipline.acronym || ""}`
+                              : "N/A"}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </Box>
+              ) : (
+                <Typography variant="body1" color="text.secondary">
+                  Nenhum detalhe de aula disponível.
+                </Typography>
+              )}
+            </Box>
+          ) : (
+            <Typography variant="body1" color="error">
+              Nenhum dado disponível para esta grade de turma.
             </Typography>
           )}
         </Box>

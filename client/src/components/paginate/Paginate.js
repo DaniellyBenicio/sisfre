@@ -3,7 +3,6 @@ import Pagination from "@mui/material/Pagination";
 import Stack from "@mui/material/Stack";
 import { styled } from "@mui/material/styles";
 
-// Estiliza o componente de Paginação do Material-UI
 const StyledPagination = styled(Pagination)(({ theme }) => ({
   "& .MuiPagination-ul": {
     justifyContent: "center",
@@ -39,7 +38,7 @@ export default function Paginate({ count, page, onChange }) {
   return (
     <Stack spacing={2} sx={{ mt: 2 }}>
       <StyledPagination
-        count={count} // total de páginas, não total de itens!
+        count={count}
         page={page}
         onChange={onChange}
         variant="outlined"

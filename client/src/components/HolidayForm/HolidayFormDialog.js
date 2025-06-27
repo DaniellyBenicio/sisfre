@@ -121,6 +121,7 @@ const HolidayFormDialog = ({
       return;
     }
 
+    // A data será sempre formatada para 'yyyy-MM-dd' antes de ser enviada para a API
     const formattedDate = holiday.date ? format(holiday.date, "yyyy-MM-dd") : null;
     if (!formattedDate || isNaN(new Date(formattedDate).getTime())) {
       setError("A data fornecida é inválida.");
@@ -131,7 +132,7 @@ const HolidayFormDialog = ({
     try {
       const payload = {
         name: holiday.name,
-        date: formattedDate,
+        date: formattedDate, // Mantém o formato para envio à API
         type: holiday.type,
       };
 
@@ -271,7 +272,8 @@ const HolidayFormDialog = ({
                 label="Data"
                 value={holiday.date}
                 onChange={(newValue) => handleInputChange("date", newValue)}
-                format="yyyy-MM-dd"
+                // Alterado de "yyyy-MM-dd" para "dd/MM/yyyy"
+                format="dd/MM/yyyy" 
                 minDate={new Date("2025-01-01")}
                 slotProps={{
                   textField: {

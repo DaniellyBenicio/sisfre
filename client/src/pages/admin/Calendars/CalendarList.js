@@ -7,6 +7,19 @@ import CalendarRegistrationPopup from "./CalendarRegistrationPopup";
 import CalendarUpdatePopup from "./CalendarUpdatePopup";
 import CalendarDelete from "./CalendarDelete";
 
+// Utility function to format date from YYYY-MM-DD to DD/MM/YYYY
+const formatDate = (dateString) => {
+  if (!dateString) return "";
+  try {
+    // Assuming dateString is in YYYY-MM-DD format
+    const [year, month, day] = dateString.split("-");
+    return `${day}/${month}/${year}`;
+  } catch (error) {
+    console.error("Erro ao formatar data:", dateString, error);
+    return dateString; // Return original string if parsing fails
+  }
+};
+
 const CalendarList = () => {
   const [calendars, setCalendars] = useState([]);
   const [search, setSearch] = useState("");
@@ -31,7 +44,15 @@ const CalendarList = () => {
         ? response.data.calendars
         : [];
       console.log("Dados processados (calendarData):", calendarData);
-      setCalendars(calendarData);
+
+      // Format dates before setting state
+      const formattedCalendars = calendarData.map((calendar) => ({
+        ...calendar,
+        startDate: formatDate(calendar.startDate),
+        endDate: formatDate(calendar.endDate),
+      }));
+
+      setCalendars(formattedCalendars);
     } catch (error) {
       console.error("Erro ao buscar calendários:", error);
       if (error.response) {

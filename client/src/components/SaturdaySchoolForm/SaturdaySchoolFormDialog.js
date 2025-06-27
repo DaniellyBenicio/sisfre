@@ -17,7 +17,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { ptBR } from "date-fns/locale";
-import { parse, isSaturday, startOfDay } from "date-fns";
+import { format, parseISO, isSaturday, startOfDay, isValid } from "date-fns"; // Usar parseISO é mais seguro para strings ISO
 import api from "../../service/api";
 import { StyledSelect } from "../../components/inputs/Input";
 
@@ -64,38 +64,48 @@ const SaturdaySchoolFormDialog = ({
   const [error, setError] = useState(null);
   const [loadingCalendars, setLoadingCalendars] = useState(true);
 
-  // Verifica se o formulário está preenchido (para modo de criação)
-  const isFormFilled = saturdaySchool.date && saturdaySchool.dayOfWeek && saturdaySchool.calendarId;
+  const isFormFilled =
+    saturdaySchool.date && saturdaySchool.dayOfWeek && saturdaySchool.calendarId;
 
-  // Verifica se o formulário foi alterado (para modo de edição)
   const hasFormChanged = () => {
     if (!isEditMode || !initialSaturdaySchool) return false;
+    // Converte calendarId para string para comparação consistente
+    const currentCalendarId = String(saturdaySchool.calendarId);
+    const initialCalendarId = String(initialSaturdaySchool.calendarId);
+
     return (
       saturdaySchool.date !== initialSaturdaySchool.date ||
       saturdaySchool.dayOfWeek !== initialSaturdaySchool.dayOfWeek ||
-      saturdaySchool.calendarId !== initialSaturdaySchool.calendarId
+      currentCalendarId !== initialCalendarId
     );
   };
 
-  // Busca os calendários disponíveis
   useEffect(() => {
     const fetchCalendars = async () => {
       setLoadingCalendars(true);
       try {
         const calendarResponse = await api.get("/calendar");
-        console.log("SaturdaySchoolFormDialog - Resposta da API de calendários:", calendarResponse.data);
-        if (!calendarResponse.data || !Array.isArray(calendarResponse.data.calendars)) {
-          console.error("Estrutura de dados de calendários inválida:", calendarResponse.data);
+        console.log(
+          "SaturdaySchoolFormDialog - Resposta da API de calendários:",
+          calendarResponse.data
+        );
+        if (
+          !calendarResponse.data ||
+          !Array.isArray(calendarResponse.data.calendars)
+        ) {
+          console.error(
+            "Estrutura de dados de calendários inválida:",
+            calendarResponse.data
+          );
           throw new Error("Formato de dados de calendários inválido.");
         }
         setCalendars(calendarResponse.data.calendars);
 
-        // Atualiza os tipos de calendário com novos tipos encontrados
         const newTypes = calendarResponse.data.calendars
           .map((cal) => cal.type)
-          .filter((type) => type && !calendarTypes.includes(type));
+          .filter((type) => type && !DEFAULT_CALENDAR_TYPES.includes(type));
         if (newTypes.length > 0) {
-          setCalendarTypes([...calendarTypes, ...newTypes]);
+          setCalendarTypes([...DEFAULT_CALENDAR_TYPES, ...newTypes]);
         }
       } catch (err) {
         console.error("Erro ao buscar calendários:", {
@@ -103,7 +113,9 @@ const SaturdaySchoolFormDialog = ({
           response: err.response?.data,
           status: err.response?.status,
         });
-        setError("Erro ao carregar calendários. Verifique o console para detalhes.");
+        setError(
+          "Erro ao carregar calendários. Verifique o console para detalhes."
+        );
         setCalendars([]);
       } finally {
         setLoadingCalendars(false);
@@ -115,15 +127,34 @@ const SaturdaySchoolFormDialog = ({
   // Inicializa o formulário com dados de edição ou reseta para modo de criação
   useEffect(() => {
     if (saturdaySchoolToEdit && isEditMode) {
+      const dateFromEdit = saturdaySchoolToEdit.date || "";
+      let calendarIdFromEdit = "";
+
+      // Prioriza saturdaySchoolToEdit.calendar.id se existir
+      if (saturdaySchoolToEdit.calendar && saturdaySchoolToEdit.calendar.id) {
+        calendarIdFromEdit = saturdaySchoolToEdit.calendar.id;
+      }
+      // Se não, tenta saturdaySchoolToEdit.calendarSaturdays[0].id (se for o caso da API retornar assim)
+      else if (
+        saturdaySchoolToEdit.calendarSaturdays &&
+        saturdaySchoolToEdit.calendarSaturdays.length > 0 &&
+        saturdaySchoolToEdit.calendarSaturdays[0].id
+      ) {
+        calendarIdFromEdit = saturdaySchoolToEdit.calendarSaturdays[0].id;
+      }
+
       const initialData = {
-        date: saturdaySchoolToEdit.date || "",
+        date: dateFromEdit,
         dayOfWeek: saturdaySchoolToEdit.dayOfWeek || "",
-        calendarId: saturdaySchoolToEdit.calendarSaturdays?.[0]?.id || saturdaySchoolToEdit.calendar?.id || "",
+        // Converte para número, garantindo que seja um number ou string vazia
+        calendarId: calendarIdFromEdit ? Number(calendarIdFromEdit) : "",
       };
+
       setSaturdaySchool(initialData);
-      setInitialSaturdaySchool(initialData);
+      setInitialSaturdaySchool(initialData); // Define para comparação de alterações
       setError(null);
     } else {
+      // Modo de criação: reseta o formulário
       setSaturdaySchool({
         date: "",
         dayOfWeek: "",
@@ -132,7 +163,7 @@ const SaturdaySchoolFormDialog = ({
       setInitialSaturdaySchool(null);
       setError(null);
     }
-  }, [saturdaySchoolToEdit, open, isEditMode]);
+  }, [saturdaySchoolToEdit, open, isEditMode]); // Dependências: saturdaySchoolToEdit, open, isEditMode
 
   const handleInputChange = (name, value) => {
     setSaturdaySchool({ ...saturdaySchool, [name]: value });
@@ -143,38 +174,39 @@ const SaturdaySchoolFormDialog = ({
     setError(null);
 
     // Validações do lado do cliente
-    if (!saturdaySchool.date || !saturdaySchool.dayOfWeek || !saturdaySchool.calendarId) {
+    if (
+      !saturdaySchool.date ||
+      !saturdaySchool.dayOfWeek ||
+      !saturdaySchool.calendarId
+    ) {
       setError("Os campos data, dia da semana e calendário são obrigatórios.");
       return;
     }
 
-    if (!["segunda", "terca", "quarta", "quinta", "sexta"].includes(saturdaySchool.dayOfWeek)) {
-      setError('O dia da semana deve ser "segunda", "terça", "quarta", "quinta" ou "sexta".');
+    if (
+      !["segunda", "terca", "quarta", "quinta", "sexta"].includes(
+        saturdaySchool.dayOfWeek
+      )
+    ) {
+      setError(
+        'O dia da semana deve ser "segunda", "terça", "quarta", "quinta" ou "sexta".'
+      );
       return;
     }
 
-    // Validação da data
-    const dateParts = saturdaySchool.date.split("-");
-    if (dateParts.length !== 3 || dateParts.some((part) => isNaN(Number(part)))) {
-      setError("Formato de data inválido. Use AAAA-MM-DD.");
-      return;
-    }
-
-    // Parse da data usando date-fns para garantir consistência no fuso horário local (-03:00)
-    const inputDate = startOfDay(parse(saturdaySchool.date, "yyyy-MM-dd", new Date()));
+    // Parse da data usando date-fns e validação
+    const inputDate = parseISO(saturdaySchool.date); // Use parseISO para strings AAAA-MM-DD
     console.log(
-      "Data selecionada:",
+      "Data selecionada para validação:",
       saturdaySchool.date,
-      "É sábado (date-fns):",
-      isSaturday(inputDate),
-      "Data completa (local):",
-      inputDate.toISOString(),
-      "Dia da semana (local):",
-      inputDate.getDay()
+      "Objeto Date:",
+      inputDate,
+      "É válido?",
+      isValid(inputDate)
     );
 
-    if (isNaN(inputDate.getTime())) {
-      setError("A data fornecida é inválida.");
+    if (!isValid(inputDate)) {
+      setError("A data fornecida é inválida. Use o formato AAAA-MM-DD.");
       return;
     }
 
@@ -184,19 +216,23 @@ const SaturdaySchoolFormDialog = ({
       return;
     }
 
-    const selectedCalendar = calendars.find((cal) => cal.id === Number(saturdaySchool.calendarId));
+    // Validação de intervalo do calendário
+    const selectedCalendar = calendars.find(
+      (cal) => cal.id === Number(saturdaySchool.calendarId)
+    );
     if (selectedCalendar) {
-      // Normaliza startDate e endDate para o início do dia no fuso horário local
-      const startDate = startOfDay(new Date(selectedCalendar.startDate));
-      const endDate = startOfDay(new Date(selectedCalendar.endDate));
+      const startDate = startOfDay(parseISO(selectedCalendar.startDate));
+      const endDate = startOfDay(parseISO(selectedCalendar.endDate));
+      const normalizedInputDate = startOfDay(inputDate); // Normaliza a data de entrada também
+
       console.log(
-        "Intervalo do calendário:",
-        `startDate: ${startDate.toISOString()} (${startDate.toLocaleDateString("pt-BR")})`,
-        `endDate: ${endDate.toISOString()} (${endDate.toLocaleDateString("pt-BR")})`,
-        `inputDate: ${inputDate.toISOString()} (${inputDate.toLocaleDateString("pt-BR")})`
+        "Datas para comparação:",
+        `Input: ${normalizedInputDate.toISOString()}`,
+        `Start: ${startDate.toISOString()}`,
+        `End: ${endDate.toISOString()}`
       );
 
-      if (inputDate < startDate || inputDate > endDate) {
+      if (normalizedInputDate < startDate || normalizedInputDate > endDate) {
         setError("A data do sábado letivo deve estar dentro do intervalo do calendário.");
         return;
       }
@@ -207,7 +243,7 @@ const SaturdaySchoolFormDialog = ({
 
     try {
       const payload = {
-        date: saturdaySchool.date,
+        date: saturdaySchool.date, // Envia a data no formato AAAA-MM-DD para a API
         dayOfWeek: saturdaySchool.dayOfWeek,
         calendarId: saturdaySchool.calendarId,
       };
@@ -216,26 +252,34 @@ const SaturdaySchoolFormDialog = ({
 
       let response;
       if (isEditMode) {
-        response = await api.put(`/school-saturdays/${saturdaySchoolToEdit?.id}`, payload);
+        response = await api.put(
+          `/school-saturdays/${saturdaySchoolToEdit?.id}`,
+          payload
+        );
       } else {
         response = await api.post(`/school-saturdays`, payload);
       }
 
       console.log("SaturdaySchoolFormDialog - Resposta da API:", response.data);
 
-      // Encontra o calendário selecionado para incluir os dados completos
-      const calendar = calendars.find((cal) => cal.id === Number(saturdaySchool.calendarId)) || {
-        id: saturdaySchool.calendarId,
-        year: "Desconhecido",
-        period: "",
-        type: "",
-      };
+      const calendar =
+        calendars.find((cal) => cal.id === Number(saturdaySchool.calendarId)) ||
+        {
+          id: saturdaySchool.calendarId,
+          year: "Desconhecido",
+          period: "",
+          type: "",
+          name: "", // Adicionado para consistência, se 'name' não vier na resposta da API
+        };
 
       const updatedSaturdaySchool = {
         ...response.data.schoolSaturday,
+        // Garante que o campo `calendar` tenha a estrutura esperada pelo DataTable
         calendar: {
           id: calendar.id,
-          name: `${calendar.year}.${calendar.period} - ${formatCalendarType(calendar.type)}`,
+          name: `${calendar.year}.${calendar.period} - ${formatCalendarType(
+            calendar.type
+          )}`,
         },
       };
 
@@ -244,7 +288,9 @@ const SaturdaySchoolFormDialog = ({
     } catch (err) {
       const errorMessage =
         err.response?.data?.error ||
-        `Erro ao ${isEditMode ? "atualizar" : "cadastrar"} sábado letivo: ${err.message}`;
+        `Erro ao ${isEditMode ? "atualizar" : "cadastrar"} sábado letivo: ${
+          err.message
+        }`;
       setError(
         errorMessage.includes("Já existe um sábado letivo com esta data")
           ? "Já existe um sábado letivo com esta data para o calendário informado."
@@ -262,7 +308,6 @@ const SaturdaySchoolFormDialog = ({
     }
   };
 
-  // Formata o tipo de calendário para exibição
   const formatCalendarType = (type) => {
     if (!type) return "Desconhecido";
     return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
@@ -322,14 +367,22 @@ const SaturdaySchoolFormDialog = ({
 
             <DatePicker
               label="Data"
-              value={saturdaySchool.date ? parse(saturdaySchool.date, "yyyy-MM-dd", new Date()) : null}
+              // Usar parseISO para converter a string AAAA-MM-DD do estado para um objeto Date
+              // Adicionar isValid para garantir que apenas datas válidas sejam passadas como valor
+              value={
+                saturdaySchool.date && isValid(parseISO(saturdaySchool.date))
+                  ? parseISO(saturdaySchool.date)
+                  : null
+              }
               onChange={(newValue) =>
+                // Ao mudar, converte o objeto Date de volta para string AAAA-MM-DD para o estado
                 handleInputChange(
                   "date",
-                  newValue ? newValue.toISOString().split("T")[0] : ""
+                  newValue && isValid(newValue) ? format(newValue, "yyyy-MM-dd") : "" // Use format de date-fns
                 )
               }
-              format="yyyy-MM-dd"
+              // O `format` prop foi removido para que o DatePicker use o formato da locale (ptBR) para exibição.
+              // format="yyyy-MM-dd" // Removido
               minDate={new Date()}
               shouldDisableDate={(date) => !isSaturday(date)}
               slotProps={{
@@ -459,7 +512,7 @@ const SaturdaySchoolFormDialog = ({
                   },
                 }}
               >
-                Calendário * 
+                Calendário *
               </InputLabel>
               <StyledSelect
                 name="calendarId"
@@ -494,7 +547,9 @@ const SaturdaySchoolFormDialog = ({
                 ) : (
                   calendars.map((calendar) => (
                     <MenuItem key={calendar.id} value={calendar.id}>
-                      {`${calendar.year}.${calendar.period} - ${formatCalendarType(calendar.type)}`}
+                      {`${calendar.year}.${calendar.period} - ${formatCalendarType(
+                        calendar.type
+                      )}`}
                     </MenuItem>
                   ))
                 )}
@@ -530,16 +585,12 @@ const SaturdaySchoolFormDialog = ({
                 disabled={isEditMode ? !hasFormChanged() : !isFormFilled}
                 sx={{
                   backgroundColor:
-                    isEditMode && !hasFormChanged()
-                      ? "#E0E0E0"
-                      : !isFormFilled
+                    (isEditMode && !hasFormChanged()) || !isFormFilled
                       ? "#E0E0E0"
                       : INSTITUTIONAL_COLOR,
                   "&:hover": {
                     backgroundColor:
-                      isEditMode && !hasFormChanged()
-                        ? "#E0E0E0"
-                        : !isFormFilled
+                      (isEditMode && !hasFormChanged()) || !isFormFilled
                         ? "#E0E0E0"
                         : "#26692b",
                   },

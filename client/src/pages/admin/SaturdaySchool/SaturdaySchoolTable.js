@@ -2,13 +2,26 @@ import React from "react";
 import { Stack, Typography, Box, CircularProgress } from "@mui/material";
 import DataTable from "../../../components/homeScreen/DataTable";
 import PropTypes from "prop-types";
+import { format, parseISO } from "date-fns"; 
+import { ptBR } from "date-fns/locale"; 
 
 const SaturdaySchoolTable = ({ saturdaySchools, search, onUpdate, onDelete, setAlert, loading }) => {
   const normalizeString = (str) => str || "N/A";
 
+  const formatDateForDisplay = (dateString) => {
+    if (!dateString) return "N/A";
+    try {
+      const dateObj = parseISO(dateString);
+      return format(dateObj, "dd/MM/yyyy", { locale: ptBR });
+    } catch (error) {
+      console.error("Erro ao formatar data para exibição:", dateString, error);
+      return "Data Inválida"; 
+    }
+  };
+
   const formattedSaturdaySchools = saturdaySchools.map((saturdaySchool) => ({
     id: saturdaySchool.id,
-    date: normalizeString(saturdaySchool.date),
+    date: formatDateForDisplay(saturdaySchool.date), 
     dayOfWeek: normalizeString(saturdaySchool.dayOfWeek),
     calendar: normalizeString(saturdaySchool.calendar?.name),
   }));
@@ -22,7 +35,8 @@ const SaturdaySchoolTable = ({ saturdaySchools, search, onUpdate, onDelete, setA
   const renderMobileRow = (saturdaySchool) => (
     <Stack spacing={0.5}>
       <Typography>
-        <strong>Data:</strong> {normalizeString(saturdaySchool.date)}
+        {/* A data aqui já estará formatada por `formattedSaturdaySchools` */}
+        <strong>Data:</strong> {saturdaySchool.date}
       </Typography>
       <Typography>
         <strong>Dia da Semana:</strong> {normalizeString(saturdaySchool.dayOfWeek)}
@@ -58,7 +72,7 @@ SaturdaySchoolTable.propTypes = {
   saturdaySchools: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.number.isRequired,
-      date: PropTypes.string.isRequired,
+      date: PropTypes.string.isRequired, 
       dayOfWeek: PropTypes.string.isRequired,
       calendar: PropTypes.shape({
         id: PropTypes.number,

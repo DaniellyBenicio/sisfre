@@ -19,7 +19,7 @@ const DeleteConfirmationDialog = ({
   userName,
 }) => {
   const theme = useTheme();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm")); // sm = 600px
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   return (
     <Dialog

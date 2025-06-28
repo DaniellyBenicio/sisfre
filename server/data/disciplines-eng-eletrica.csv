@@ -1,0 +1,80 @@
+Nome,codigo, cargaHoraria 
+Cálculo I,CAL1,80
+Química Geral e Experimental,QGEX,40
+Introdução à Engenharia Elétrica,INEE,40
+Álgebra Vetorial,ALVE,80
+Lógica de Programação,LOPR,80
+Metodologia do Trabalho Científico,MTC,40
+Desenho Técnico,DTEC,40
+Cálculo II,CAL2,80
+Física I,FIS1,80
+Álgebra Linear,ALGL,80
+Programação Orientada a Objetos,POO,80
+Eletrônica Digital,ELED,80
+Cálculo III,CAL3,80
+Física II,FIS2,80
+Materiais Elétricos e Magnéticos,MAEM,80
+Sistemas Microprocessados,SMIC,80
+Equações Diferenciais,EDIF,80
+Probabilidade e Estatística,PRES,80
+Cálculo Numérico,CALN,80
+Física III,FIS3,80
+Variáveis Complexas,VACO,80
+Circuitos Elétricos I,CIEL1,80
+Resistência dos Materiais,REMA,80
+Circuitos Elétricos II,CIEL2,80
+Análise de Sinais e Sistemas Lineares,ASSL,80
+Eletromagnetismo,EMAG,80
+Eletrônica I,ELET1,80
+Sistemas de Comunicações,SCOM,80
+Sistemas de Controle,SCON,80
+Conversão Eletromecânica de Energia,CEME,80
+Geração Transmissão e Distribuição de Energia Elétrica,GTDE,80
+Eletrônica II,ELET2,80
+Sistemas Elétricos I,SIS1,80
+Instalações Elétricas,INST,120
+Máquinas Elétricas I,MAEL1,120
+Eletrônica de Potência I,ELPO1,80
+Higiene e Segurança no Trabalho,HST,40
+Fontes Alternativas e Renováveis de Energia,FARE,40
+Acionamento de Máquinas Elétricas,ACME,80
+Fenômenos de Transportes,FENT,40
+Sistemas Elétricos II,SEL2,80
+Máquinas Elétricas II,MQE2,80
+Transformadores,TFMD,80
+Controle Digital,CTDG,80
+Eletrônica de Potência II,ELPO2,80
+Sistemas de Automação Industrial I,SAUI1,80
+Instrumentação Eletrônica,INSTE,80
+Eletrônica de Potência II,ELPO2,80
+Inglês Instrumental,INGI,40
+Economia,ECON,40
+Projeto Social,PRSO,40
+Gerência de Projetos,GERP,40
+Introdução ao Direito,INDI,40
+Subestações,SUBE,80
+Equipamentos Elétricos,EQPE,80
+Operação e Controle de Sistemas Elétricos de Potência,OCSEP,80
+Redes de Computadores,REDC,80
+Circuitos para Comunicações,CRPC,80
+Processamento Digital de Sinais,PDSN,80
+Inteligência Computacional,ICOM,80
+Sistemas de Automação Industrial II,SAUI2,80
+Engenharia Ambiental,ENGA,40
+Engenharia Econômica,EECO,40
+Empreendedorismo,EMP,40
+Introdução à Administração,INTA,40
+Trabalho de Conclusão de Curso,TCC,40
+Língua Brasileira dos Sinais,LIBRAS,40
+Educação Física,ED,40
+Artes,ART,40
+Proteção de Sistemas Elétricos,PSET,80
+Qualidade de Energia,QE,80
+Técnicas de Alta Tensão,TEAT,80
+Projeto de Circuitos Integrados,PRCI,80
+Sistemas Embarcados,SEM,80
+Sistemas de Aquisição de Dados,SIAD,80
+Gerência e Controle de Produção,GCPR,80
+Robótica,ROB,80
+Controle Digital,CTDG,80
+Introdução ao Direito,INDI,40

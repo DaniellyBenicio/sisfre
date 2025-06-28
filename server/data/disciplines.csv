@@ -6,6 +6,7 @@ Lógica Matemática,LOGM
 Tecnologias Web,TWB
 Metodologia do Trabalho Científico,MTC
 Introdução à Administração,INTA
+Introdução à Engenharia Elétrica,INEE
 Lógica e Linguagem de Programação,LLPR
 Arquitetura de Computadores,ARQC
 Redes de Computadores I,REDC1
@@ -57,20 +58,18 @@ Metodologia do Trabalho Científico,MTC
 Desenho Técnico,DTEC
 Física 1,FIS1
 Álgebra Linear,ALIN
-Programação Orientada a Objetos,PROO
 Eletrônica Digital,ELED
 Física 2,FIS2
 Materiais Elétricos e Magnéticos,MAEM
 Sistemas Microprocessados,SMIC
 Equações Diferenciais,EDIF
-Probabilidade e Estatística,PBET
 Cálculo Numérico,CALN
 Física 3,FIS3
 Variáveis Complexas,VACO
 Circuitos Elétricos,CIEL1
-Resistências dos Materiais,REMA
-Circuitos Elétricos 2,ENGS
-Análise de Sinais e Sistema Lineares,ASSL
+Resistência dos Materiais,REMA
+Circuitos Elétricos 2,CIEL2
+Análise de Sinais e Sistemas Lineares,ASSL
 Eletromagnetismo,EMAG
 Eletrônica 1,ELET1
 Sistemas de Comunicações,SCOM
@@ -78,7 +77,8 @@ Sistemas de Controle,SCON
 Conversão Eletromecânica de Energia,CEME
 Geração Transmissão e Distribuição de Energia Elétrica,GTDE
 Eletrônica 2,ELET2
-Sistemas Elétricos 1,SIS1
+Sistemas Elétricos I,SIS1
+Sistemas Elétricos II,SEL2
 Instalações Elétricas,INST
 Máquinas Elétricas 1,MAEL1
 Eletrônica de Potência 1,ELPO1
@@ -89,10 +89,9 @@ Fenômenos de Transportes,FENT
 Máquinas Elétricas 2,MQE2
 Transformadores,TFMD
 Controle Digital,CTDG
-Instrumentação Eletrônica,INTE
+Instrumentação Eletrônica,INSTE
 Eletrônica de Potência II,ELPO2
 Sistemas de Automação Industrial I,SAUI1
-Instrumentação de Eletrônica,INTE
 Sistema Elétrico II,SEL2
 Economia,ECON
 Projeto Social,PRSO
@@ -101,10 +100,10 @@ Subestações,SUBE
 Equipamentos Elétricos,EQPE
 Operação e Controle de Sistemas Elétricos de Potência,OCSEP
 Redes de Computadores,REDC
-Circuitos para Comunicação,CRPC
+Circuitos para Comunicações,CRPC
 Processamento Digital de Sinais,PDSN
 Sistemas de Automação Industrial II,SAUI2
-Engenharia Econômica,ENGE
+Engenharia Ambiental,ENGA
 Engenharia Econômica,EECO
 Empreendedorismo,EMPO
 Proteção de Sistemas Elétricos,PSET
@@ -134,7 +133,6 @@ Direito para Engenharia,DIR
 Materiais II,MCMII
 Processo de Fabricação I,PROCF1
 Mecanismos,MECNS
-Resistência dos Materiais,REM
 Física Experimental II,FISEXP2
 Optativa,OPT
 Termodinâmica,TERMO
@@ -180,7 +178,6 @@ Linguagem de Programação,LRPO
 Materiais para Construção Mecânica,MCM
 Eletromagnetismo,ELM
 Eletrônica Analógica,ELA
-Resistência dos Materiais,RES
 Metrologia Dimensional,MET
 Eletricidade Corrente Alternada,ELCA
 Eletrônica Digital,ELD
@@ -261,6 +258,7 @@ Cálculo Numérico,CALN
 Estágio III,EST3
 Estruturas Algébricas,EALG
 Matemática Comercial e Financeira,MATC
+Língua Brasileira dos Sinais,LIBRAS,
 Metodologia do Ensino da Matemática,MEM
 Estágio IV,EST4
 Introdução à Variável Complexa,IVC
@@ -454,7 +452,6 @@ Bombas Hidráulicas e Compressores,BHC
 Desenho Assistido por Computador,CAD
 Higiene e Segurança no Trabalho,HSTR
 Mecanismos,MCN
-Resistências dos Materiais,REM
 Robótica Industrial,ROBI
 Acionamentos Hidráulicos e Pneumáticos,ACHP
 Elementos de Máquinas,EMAQ
@@ -469,7 +466,7 @@ Controle e Planejamento de Manutenção,CPMT
 Eletrônica Básica,ELBA
 Eletromagnetismo Aplicado,ELMA
 Gerenciamento de Energia,GERE
-Instalações Elétricas Prediais,IEPR
+Instalações Elétricas Industriais,IEPR
 Automação Industrial,AUTI
 Energias Renováveis,ENRV
 Máquinas Elétricas,MAQE

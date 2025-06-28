@@ -11,22 +11,22 @@ module.exports = {
         updatedAt: new Date()
       },
       {
-        name: 'Eletrotécnica',
+        name: 'Integrado em Eletrotécnica',
         acronym: 'ELT',
         type: 'TÉCNICO INTEGRADO',
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
-        name: 'Engenharia Elétrica',
+        name: 'Bacharelado em Engenharia Elétrica',
         acronym: 'EE',
         type: 'GRADUAÇÃO',
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
-        name: 'Engenharia Mecânica',
-        acronym: 'EM',
+        name: 'Bacharelado em Engenharia Mecânica',
+        acronym: 'BEM',
         type: 'GRADUAÇÃO',
         createdAt: new Date(),
         updatedAt: new Date()
@@ -39,7 +39,7 @@ module.exports = {
         updatedAt: new Date()
       },
       {
-        name: 'Informática',
+        name: 'Integrado em Informática',
         acronym: 'INF',
         type: 'TÉCNICO INTEGRADO',
         createdAt: new Date(),
@@ -60,15 +60,15 @@ module.exports = {
         updatedAt: new Date()
       },
       {
-        name: 'Mecânica Industrial',
+        name: 'Integrado em  Mecânica Industrial',
         acronym: 'MI',
         type: 'TÉCNICO INTEGRADO',
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
-        name: 'Sistemas de Informação',
-        acronym: 'SI',
+        name: 'Bacharelado em Sistemas de Informação',
+        acronym: 'BSI',
         type: 'GRADUAÇÃO',
         createdAt: new Date(),
         updatedAt: new Date()

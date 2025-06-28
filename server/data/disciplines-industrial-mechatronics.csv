@@ -4,27 +4,27 @@ Eletricidade Corrente Contínua,ELCC,80
 Física Aplicada,FAPL,80
 Linguagem de Programação,LRPO,80
 Materiais para Construção Mecânica,MCM,80
-Álgebra Linear,ALIN,80
-Eletromagnetismo,ELM,80
+Álgebra Linear,ALGL,80
+Eletromagnetismo,EMAG,80
 Eletrônica Analógica,ELA,80
 Resistência dos Materiais,REMA,80
 Metrologia Dimensional,MET,80
 Cálculo II,CAL2,80
-Desenho Técnico,DST,80
+Desenho Técnico,DTEC,80
 Elementos de Máquinas,EMAQ,80
 Eletricidade Corrente Alternada,ELCA,80
-Eletrônica Digital,ELD,80
+Eletrônica Digital,ELED,80
 Inglês Instrumental,INGI,80
 Metodologia do Trabalho Científico,MTC
 Desenho Assistido por Computador,CAD,40
 Eletrônica Industrial,ELIN,80
-Mecanismos,MECN,80
+Mecanismos,MECNS,80
 Microcontroladores,MCT,80
 Processo de Fabricação Mecânica,PFM,40
 Sistemas de Controle,SCON,80
 Língua Brasileira dos Sinais,LIBRAS,40
 Linguagem de Programação Estruturada,LPE,80
-Higiene e Segurança no Trabalho,HSTR,40
+Higiene e Segurança do Trabalho,HST,40
 Acionamentos de Máquinas I,ACM1,40
 Comandos Eletroeletrônicos,CEE,80
 Instrumentação,INST,80
@@ -33,13 +33,13 @@ Usinagem,USIN,80
 Acionamento Hidráulico e Pneumático,ACHP,80
 Acionamentos de Máquinas II,ACM2,80
 CAM/CNC/CIM,CCC,80
-Robótica I,ROB1,80
+Robótica I,RB1,80
 Sistemas de Controle Distribuído,SCD,80
-Controle de Qualidade,CTR,40
+Controle de Qualidade,CQUA,40
 Gestão de Manutenção,GEA1,80
 Gestão Empresarial,GEMP,40
 Projeto de Conclusão de Curso,PCCM,40
-Projeto Social,PRS,40
+Projeto Social,PRSO,40
 Robótica II,ROB2,80
 Sistema de Supervisão,SSUP,80
 Inteligência Artificial,INA,80

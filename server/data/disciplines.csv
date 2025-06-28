@@ -157,6 +157,7 @@ CNC/CAM,CC
 Planejamento e Controle da Produção,PCP
 Tratamentos Térmicos e Termoquímicos,TTT
 Projeto Social,PRSO
+Projetos Sociais,PRSOS
 Projeto de Engenharia,PROENG
 Optativa,OPT
 Corrosão e Proteção Anticorrosiva,CPA
@@ -293,7 +294,6 @@ Física Experimental I,FSE1
 Metodologia do Ensino da Mecânica,MTEM
 Cálculo Diferencial e Integral IV,CDI4
 Eletricidade e Magnetismo I,ELM1
-Termodinâmica,TERM
 Metodologia do Ensino de Termodinâmica,MTET
 Currículos e Programas,CRP
 Estágio Supervisionado I,EST1
@@ -348,7 +348,7 @@ Técnicas de Manutenção,TECM
 Educação Física II,EDF2
 Biologia III,ELM1
 Artes III,ART3
-Desenho Assistido por Computador,CAD
+Desenho Auxiliado por Computador,CAD
 Filosofia II,FL2
 Geografia III,GEO3
 Inglês II,ING2
@@ -432,7 +432,6 @@ Administração de Redes com Software Livre,ADRSL
 Estágio,EST
 Laboratório de Desenvolvimento de Software,LDS
 Desenho Técnico,DTE
-Metrologia,MET
 Manutenção de Máquinas e Equipamentos,MMEQ
 Planejamento e Controle da Produção,PCP
 Máquinas Hidráulicas e Pneumáticas,MHP
@@ -450,7 +449,6 @@ Mecânica Geral,MECG
 Metrologia,METR
 Bombas Hidráulicas e Compressores,BHC
 Desenho Assistido por Computador,CAD
-Higiene e Segurança no Trabalho,HSTR
 Mecanismos,MCN
 Robótica Industrial,ROBI
 Acionamentos Hidráulicos e Pneumáticos,ACHP

@@ -17,8 +17,6 @@ import {
   ArrowBack,
   School,
   History,
-  ChevronLeft,
-  ChevronRight,
   Edit,
 } from "@mui/icons-material";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
@@ -33,7 +31,6 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
   const { schedule: initialSchedule } = location.state || {};
   const [schedule, setSchedule] = useState(initialSchedule);
   const [error, setError] = useState(null);
-  const [currentDetailIndex, setCurrentDetailIndex] = useState(0);
 
   const determineTurn = (data) => {
     let turnCounts = data.turnCounts || {
@@ -104,18 +101,6 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
       fetchSchedule();
     }
   }, [initialSchedule, classScheduleId]);
-
-  const handlePreviousDetail = () => {
-    setCurrentDetailIndex((prev) => Math.max(prev - 1, 0));
-  };
-
-  const handleNextDetail = () => {
-    setCurrentDetailIndex((prev) =>
-      Math.min(prev + 1, (schedule?.details?.length || 1) - 1)
-    );
-  };
-
-  const currentDetail = schedule?.details?.[currentDetailIndex];
 
   const daysOfWeek = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
   const timeSlots = [...new Set(
@@ -310,29 +295,31 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
           )}
         </Box>
 
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2, mr: 4 }}>
-          <Button
-            variant="contained"
-            startIcon={<Edit />}
-            onClick={() => navigate(`/class-schedule/edit/${classScheduleId}`)}
-            sx={{
-              width: "fit-content",
-              minWidth: 100,
-              padding: { xs: "8px 20px", sm: "8px 28px" },
-              backgroundColor: "#087619",
-              borderRadius: "8px",
-              textTransform: "none",
-              fontWeight: "bold",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              color: "#fff",
-              "&:hover": { backgroundColor: "#066915" },
-            }}
-          >
-            Editar
-          </Button>
-        </Box>
+        {schedule?.isActive && (
+          <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2, mr: 4 }}>
+            <Button
+              variant="contained"
+              startIcon={<Edit />}
+              onClick={() => navigate(`/class-schedule/edit/${classScheduleId}`)}
+              sx={{
+                width: "fit-content",
+                minWidth: 100,
+                padding: { xs: "8px 20px", sm: "8px 28px" },
+                backgroundColor: "#087619",
+                borderRadius: "8px",
+                textTransform: "none",
+                fontWeight: "bold",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                color: "#fff",
+                "&:hover": { backgroundColor: "#066915" },
+              }}
+            >
+              Editar
+            </Button>
+          </Box>
+        )}
       </Box>
     </Box>
   );

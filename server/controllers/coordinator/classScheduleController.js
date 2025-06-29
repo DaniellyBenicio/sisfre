@@ -15,7 +15,7 @@ export const createClassSchedule = async (req, res) => {
     ) {
       return res.status(400).json({
         message:
-          "Dados incompletos ou inválidos. Os campos (calendarId, classId, details) são obrigatórios e 'details' deve ser um array não vazio.",
+          "Dados incompletos ou inválidos. Calendário e turma são obrigatórios.",
       });
     }
 
@@ -44,14 +44,10 @@ export const createClassSchedule = async (req, res) => {
     ]);
 
     if (!calendar) {
-      return res
-        .status(404)
-        .json({ message: `Calendário com ID ${calendarId} não encontrado.` });
+      return res.status(404).json({ message: `Calendário não encontrado.` });
     }
     if (!classRecord) {
-      return res
-        .status(404)
-        .json({ message: `Turma com ID ${classId} não encontrada.` });
+      return res.status(404).json({ message: `Turma não encontrada.` });
     }
 
     const existingClassSchedule = await db.ClassSchedule.findOne({
@@ -94,13 +90,13 @@ export const createClassSchedule = async (req, res) => {
       ) {
         return res.status(400).json({
           message:
-            "Cada detalhe de horário deve ter disciplina, hora, dia da semana e turno.",
+            "Por favor, preencha todos os campos (disciplina, hora, dia da semana e turno).",
         });
       }
 
       if (!validDays.includes(detail.dayOfWeek)) {
         return res.status(400).json({
-          message: `Dia da semana inválido em um detalhe: '${
+          message: `Dia da semana: '${
             detail.dayOfWeek
           }'. Use um dos seguintes: ${validDays.join(", ")}.`,
         });
@@ -108,7 +104,7 @@ export const createClassSchedule = async (req, res) => {
 
       if (!validTurns.includes(detail.turn)) {
         return res.status(400).json({
-          message: `Turno inválido em um detalhe: '${
+          message: `Turno inválido: '${
             detail.turn
           }'. Use um dos seguintes: ${validTurns.join(", ")}.`,
         });
@@ -117,7 +113,7 @@ export const createClassSchedule = async (req, res) => {
       const slotKey = `${detail.dayOfWeek}-${detail.hourId}`;
       if (scheduleSlots.has(slotKey)) {
         return res.status(400).json({
-          message: `Apenas uma disciplina é permitida por bloco de horário (${detail.dayOfWeek} - ${detail.hourId}).`,
+          message: `Apenas uma disciplina é permitida por bloco de horário (${detail.dayOfWeek}).`,
         });
       }
       scheduleSlots.add(slotKey);
@@ -129,14 +125,12 @@ export const createClassSchedule = async (req, res) => {
       }, {});
       const hour = hourMap[detail.hourId];
       if (!hour) {
-        return res
-          .status(404)
-          .json({ message: `Horário com ID ${detail.hourId} não encontrado.` });
+        return res.status(404).json({ message: `Horário não encontrado.` });
       }
       const turnInterval = turnIntervals[detail.turn];
       if (hour.start < turnInterval.start || hour.end > turnInterval.end) {
         return res.status(400).json({
-          message: `O horário com ID ${detail.hourId} (${hour.start} - ${hour.end}) não é compatível com o turno ${detail.turn}.`,
+          message: `O horário selecioando não é compatível com o turno.`,
         });
       }
 
@@ -185,9 +179,7 @@ export const createClassSchedule = async (req, res) => {
 
     for (const id of disciplineIds) {
       if (!foundDisciplineIds.has(id)) {
-        return res
-          .status(404)
-          .json({ message: `Disciplina com ID ${id} não encontrada.` });
+        return res.status(404).json({ message: `Disciplina não encontrada.` });
       }
     }
     for (const id of hourIds) {
@@ -369,7 +361,7 @@ export const updateClassSchedule = async (req, res) => {
     ) {
       return res.status(400).json({
         message:
-          "Dados incompletos ou inválidos. Os campos (classScheduleId, details) são obrigatórios e 'details' deve ser um array não vazio.",
+          "Dados incompletos ou inválidos.",
       });
     }
 
@@ -402,7 +394,7 @@ export const updateClassSchedule = async (req, res) => {
 
     if (!classSchedule) {
       return res.status(404).json({
-        message: `Horário de aula com ID ${classScheduleId} não encontrado.`,
+        message: `Horário de aula não encontrado.`,
       });
     }
 
@@ -443,13 +435,13 @@ export const updateClassSchedule = async (req, res) => {
       ) {
         return res.status(400).json({
           message:
-            "Cada detalhe de horário deve ter 'disciplineId', 'hourId', 'dayOfWeek' e 'turn'.",
+            "A disciplina, dia da semana, turno e horário são obrigatórios.",
         });
       }
 
       if (!validDays.includes(detail.dayOfWeek)) {
         return res.status(400).json({
-          message: `Dia da semana inválido em um detalhe: '${
+          message: `Dia da semana inválido: '${
             detail.dayOfWeek
           }'. Use um dos seguintes: ${validDays.join(", ")}.`,
         });
@@ -457,7 +449,7 @@ export const updateClassSchedule = async (req, res) => {
 
       if (!validTurns.includes(detail.turn)) {
         return res.status(400).json({
-          message: `Turno inválido em um detalhe: '${
+          message: `Turno inválido: '${
             detail.turn
           }'. Use um dos seguintes: ${validTurns.join(", ")}.`,
         });
@@ -466,7 +458,7 @@ export const updateClassSchedule = async (req, res) => {
       const slotKey = `${detail.dayOfWeek}-${detail.hourId}`;
       if (scheduleSlots.has(slotKey)) {
         return res.status(400).json({
-          message: `Apenas uma disciplina é permitida por bloco de horário (${detail.dayOfWeek} - ${detail.hourId}).`,
+          message: `Apenas uma disciplina é permitida por bloco de horário (${detail.dayOfWeek}).`,
         });
       }
       scheduleSlots.add(slotKey);
@@ -480,12 +472,12 @@ export const updateClassSchedule = async (req, res) => {
       if (!hour) {
         return res
           .status(404)
-          .json({ message: `Horário com ID ${detail.hourId} não encontrado.` });
+          .json({ message: `Horário não encontrado.` });
       }
       const turnInterval = turnIntervals[detail.turn];
       if (hour.start < turnInterval.start || hour.end > turnInterval.end) {
         return res.status(400).json({
-          message: `O horário com ID ${detail.hourId} (${hour.start} - ${hour.end}) não é compatível com o turno ${detail.turn}.`,
+          message: `O horário não é compatível com o turno ${detail.turn}.`,
         });
       }
 
@@ -511,7 +503,7 @@ export const updateClassSchedule = async (req, res) => {
       for (const userId of userIds) {
         if (!professorUserIds.has(userId)) {
           return res.status(400).json({
-            message: `O usuário com ID ${userId} não tem permissão para ser professor (accessType deve ser 'PROFESSOR').`,
+            message: `O usuário não possui permissão.`,
           });
         }
       }
@@ -535,21 +527,21 @@ export const updateClassSchedule = async (req, res) => {
     for (const id of disciplineIds) {
       if (!foundDisciplineIds.has(id)) {
         return res.status(404).json({
-          message: `Disciplina com ID ${id} não encontrada.`,
+          message: `Disciplina não encontrada.`,
         });
       }
     }
     for (const id of hourIds) {
       if (!foundHourIds.has(id)) {
         return res.status(404).json({
-          message: `Horário com ID ${id} não encontrado.`,
+          message: `Horário não encontrado.`,
         });
       }
     }
     for (const id of userIds) {
       if (!foundUserIds.has(id)) {
         return res.status(404).json({
-          message: `Professor com ID ${id} não encontrado.`,
+          message: `Professor não encontrado.`,
         });
       }
     }
@@ -569,7 +561,7 @@ export const updateClassSchedule = async (req, res) => {
     for (const disciplineId of disciplineIds) {
       if (!associatedDisciplineIds.has(disciplineId)) {
         return res.status(400).json({
-          message: `A disciplina com ID ${disciplineId} não está associada ao curso com ID ${courseId}.`,
+          message: `A disciplina não está associada ao curso.`,
         });
       }
     }

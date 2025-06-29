@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
 import {
   Box, Typography, Button, FormControl, InputLabel, Select, MenuItem, Grid, Paper, CssBaseline,
-  IconButton, CircularProgress, Alert, Table, TableHead, TableRow, TableCell, TableBody,Divider
+  IconButton, CircularProgress, Alert, Table, TableHead, TableRow, TableCell, TableBody,Divider,
+  Tooltip,
 } from "@mui/material";
-import { ArrowBack, Close, Save, School, History, Delete, Add, Remove } from "@mui/icons-material";
+import { ArrowBack, Close, Save, School, History, Delete, AddCircleOutline, Remove, Check } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../../components/SideBar";
 import api from "../../../service/api";
 import { CustomAlert } from "../../../components/alert/CustomAlert";
 import DeleteConfirmationDialog from "../../../components/DeleteConfirmationDialog";
+import CustomAutocomplete from "../../../components/inputs/CustomAutocompletePage";
 
 const CustomSelect = ({ label, name, value, onChange, children, selectSx, disabled, loading, ...props }) => {
   return (
@@ -525,11 +527,13 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
             `${d.startTime} - ${d.endTime}` === timeSlot
         );
         row[day] = detail
-          ? {
-              disciplineAcronym: detail.disciplineAcronym || "",
-              professorAcronym: detail.professorAcronym || "",
-            }
-          : null;
+        ? {
+            disciplineAcronym: detail.disciplineAcronym || "",
+            professorAcronym: detail.professorAcronym || "",
+            disciplineName: detail.disciplineName || "N/A",
+            professorName: detail.professorName || "Sem professor",
+          }
+        : null;
       });
       return row;
     });
@@ -548,9 +552,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           onConfirm={handleConfirmDelete}
           userName={detailToDelete ? `${detailToDelete.day} ${detailToDelete.timeSlot}` : ""}
         />
-        <Box
-          sx={{ position: "relative", mb: 3 }}
-        >
+        <Box sx={{ position: "relative", mb: 3 }} >
           <IconButton onClick={() => navigate("/class-schedule")}
             sx={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)" }}  
           >
@@ -583,11 +585,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           <Alert severity="error" sx={{ mb: 2 }}> {errors.detail} </Alert>
         )}
         {alert && (
-          <CustomAlert
-            message={alert.message}
-            type={alert.type}
-            onClose={handleAlertClose}
-          />
+          <CustomAlert message={alert.message} type={alert.type} onClose={handleAlertClose} />
         )}
 
         <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
@@ -638,8 +636,9 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
             </Grid>
           </Grid>
         </Box>
-
-        <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
+        
+        {/* Horários */}
+        <Box component={Paper} elevation={3} sx={{ p: 5, pb: 12, m: 4, borderRadius: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, marginLeft: "5px", mb: 2 }}>
             <Box
               sx={{
@@ -658,7 +657,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               Horários
             </Typography>
           </Box>
-          <Grid container spacing={3} mt="10px" justifyContent="center">
+          <Grid container spacing={3} mt="10px">
             <Grid item xs={12} sm={6}>
               <CustomSelect
                 label="Professor"
@@ -675,19 +674,18 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               </CustomSelect>
             </Grid>
             <Grid item xs={12} sm={6}>
-              <CustomSelect
+              <CustomAutocomplete
                 label="Disciplina"
                 name="disciplineId"
-                value={formData.details[0].disciplineId}
-                onChange={(e) => handleChange(e, 0)}
+                value={disciplines.find(disc => disc.disciplineId === formData.details[0].disciplineId) || null}
+                onChange={(event, newValue) => {
+                  handleChange({ target: { name: 'disciplineId', value: newValue ? newValue.disciplineId : '' } }, 0);
+                }}
+                options={disciplines}
+                getOptionLabel={(option) => option.name}
+                isOptionEqualToValue={(option, value) => option.disciplineId === value.disciplineId}
                 selectSx={{ width: "520px" }}
-              >
-                {disciplines.map((disc) => (
-                  <MenuItem key={disc.disciplineId} value={disc.disciplineId}>
-                    {disc.name}
-                  </MenuItem>
-                ))}
-              </CustomSelect>
+              />
             </Grid>
             {formData.details.map((detail, index) => (
               <Grid container spacing={3} key={index} sx={{ mt: index === 0 ? 2 : 0, alignItems: "center" }}>
@@ -772,7 +770,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                           "&:hover": { color: "#066915" },
                         }}
                       >
-                        <Add sx={{ fontSize: 34 }} />
+                        <AddCircleOutline sx={{ fontSize: 34 }} />
                       </IconButton>
                     )}
                   </Box>
@@ -784,6 +782,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                       sx={{
                         color: "#F01424",
                         "&:hover": { color: "#D4000F" },
+                        ml: "-13px"
                       }}
                     >
                       <Remove sx={{ fontSize: 34 }} />
@@ -792,49 +791,39 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                 )}
               </Grid>
             ))}
-            <Grid item xs={12}>
-              <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2, width: "100%" }}>
-                <Button
-                  variant="contained"
-                  color="success"
-                  onClick={handleSaveDetails}
-                  sx={{
-                    width: "fit-content",
-                    minWidth: 100,
-                    padding: { xs: "8px 15px", sm: "8px 15px" },
-                    backgroundColor: "#087619",
-                    borderRadius: "8px",
-                    textTransform: "none",
-                    fontWeight: "bold",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    "&:hover": { backgroundColor: "#066915" },
-                  }}
-                >
-                  <Save sx={{ fontSize: 24 }} />
-                  Salvar
-                </Button>
-              </Box>
-            </Grid>
+            <Box sx={{ position: "absolute", bottom: 15, right: 48, }}>
+              <Button
+                variant="outlined"
+                onClick={handleSaveDetails}
+                color="success"
+                sx={{
+                  width: "fit-content",
+                  minWidth: 100,
+                  padding: { xs: "9px 15px", sm: "9px 15px" },
+                  borderRadius: "8px",
+                  textTransform: "none",
+                  fontWeight: "bold",
+                  display: "flex",
+                  alignItems: "center",
+                  color: 'green',
+                  borderWidth: 1.5,
+                  borderColor: 'green',
+                  gap: "8px",
+                  "&:hover": {
+                    borderColor: "#065412",
+                    color: "#065412",
+                  },
+                }}
+              >
+                <Check sx={{ fontSize: 24, color: "green"}} />
+                Salvar
+              </Button>
+            </Box>
           </Grid>
         </Box>
 
         <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-            <Box
-              sx={{
-                backgroundColor: "green",
-                borderRadius: "50%",
-                width: 35,
-                height: 35,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <History sx={{ color: "white", fontSize: 27 }} />
-            </Box>
             <Typography variant="h5" color="green">
               Horários Confirmados
             </Typography>
@@ -845,9 +834,26 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
             return (
               scheduleMatrix.length > 0 && (
                 <Box key={turn} sx={{ mb: 4 }}>
-                  <Typography variant="h6" sx={{ mb: 2 }}>
-                    {turn}
-                  </Typography>
+                  <Box
+                    sx={{
+                      backgroundColor: "#E8F5E9",
+                      borderRadius: "8px",
+                      padding: "8px 20px",
+                      display: "inline-block",
+                      margin: "0 auto",
+                    }}
+                  >
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        textAlign: "center",
+                        color: "#087619",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {turn}
+                    </Typography>
+                  </Box>
                   <Table>
                     <TableHead>
                       <TableRow>
@@ -865,10 +871,45 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                             <TableCell key={day}>
                               {row[day] ? (
                                 <Box sx={{ display: "flex", flexDirection: "column" }}>
-                                  <Typography variant="body2">{row[day].disciplineAcronym}</Typography>
-                                  <Typography variant="body2" color="text.secondary">
-                                    {row[day].professorAcronym}
-                                  </Typography>
+                                  <Tooltip title={row[day].disciplineName} arrow
+                                    placement="top"
+                                    enterDelay={200}
+                                    leaveDelay={200}
+                                    slotProps={{
+                                      popper: {
+                                        modifiers: [
+                                          {
+                                            name: "offset",
+                                            options: {
+                                              offset: [20, -8],
+                                            },
+                                          },
+                                        ],
+                                      },
+                                    }}
+                                  >
+                                    <Typography variant="body2">{row[day].disciplineAcronym}</Typography>
+                                  </Tooltip>
+                                  <Tooltip title={row[day].professorName} arrow
+                                    enterDelay={200}
+                                    leaveDelay={200}
+                                    slotProps={{
+                                      popper: {
+                                        modifiers: [
+                                          {
+                                            name: "offset",
+                                            options: {
+                                              offset: [-5, -15],
+                                            },
+                                          },
+                                        ],
+                                      },
+                                    }}
+                                  >
+                                    <Typography variant="body2" color="text.secondary">
+                                      {row[day].professorAcronym}
+                                    </Typography>
+                                  </Tooltip>
                                   <IconButton
                                     onClick={() => handleDeleteDetail(day, row.timeSlot)}
                                     sx={{ color: "#F01424", "&:hover": { color: "#D4000F" }, mt: 1 }}

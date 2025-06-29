@@ -1,31 +1,15 @@
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Grid,
-  Paper,
-  CssBaseline,
-  IconButton,
-  CircularProgress,
-  Alert,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Divider,
+import { Box, Typography, Button, FormControl, InputLabel, Select, MenuItem, Grid, Paper, CssBaseline,
+  IconButton, CircularProgress, Alert, Table, TableHead, TableRow, TableCell, TableBody,
+  Divider, Tooltip, TextField
 } from "@mui/material";
-import { ArrowBack, Close, Save, School, History, AddCircleOutline, RemoveCircleOutline, Delete } from "@mui/icons-material";
+import { ArrowBack, Close, Save, School, History, AddCircleOutline, Remove, Delete, Check } from "@mui/icons-material";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../../components/SideBar";
 import api from "../../../service/api";
 import { CustomAlert } from "../../../components/alert/CustomAlert";
 import DeleteConfirmationDialog from "../../../components/DeleteConfirmationDialog";
+import CustomAutocomplete from "../../../components/inputs/CustomAutocompletePage";
 
 const CustomSelect = ({ label, name, value, onChange, children, selectSx, disabled, loading, ...props }) => {
   return (
@@ -533,6 +517,42 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
     setDetailToDelete(null);
   };
 
+  const determineTurn = (details) => {
+    const turnCounts = details.reduce(
+      (counts, detail) => {
+        if (detail.turn) {
+          counts[detail.turn] = (counts[detail.turn] || 0) + 1;
+        }
+        return counts;
+      },
+      { Manhã: 0, Tarde: 0, Noite: 0 }
+    );
+
+    const { Manhã, Tarde, Noite } = turnCounts;
+    const totalLessons = Manhã + Tarde + Noite;
+
+    if (totalLessons === 0) {
+      return "N/A";
+    }
+
+    const maxLessons = Math.max(Manhã, Tarde, Noite);
+    const maxShifts = [
+      { shift: "Manhã", count: Manhã },
+      { shift: "Tarde", count: Tarde },
+      { shift: "Noite", count: Noite },
+    ].filter((s) => s.count === maxLessons);
+
+    if (maxShifts.length > 1) {
+      return "Integral";
+    }
+
+    if (maxLessons === Manhã) return "Manhã";
+    if (maxLessons === Tarde) return "Tarde";
+    if (maxLessons === Noite) return "Noite";
+
+    return "N/A";
+  };
+
   const handleSubmit = async () => {
     if (
       !formData.calendarId ||
@@ -592,7 +612,6 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
     Tarde: confirmedDetails.filter((detail) => detail.turn === "Tarde"),
     Noite: confirmedDetails.filter((detail) => detail.turn === "Noite"),
   };
-
   const daysOfWeek = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
   const getScheduleMatrix = (details) => {
@@ -632,19 +651,13 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
           onConfirm={handleConfirmDelete}
           userName={detailToDelete ? `${detailToDelete.day} ${detailToDelete.timeSlot}` : ""}
         />
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-start",
-            gap: 1,
-            mb: 3,
-          }}
-        >
-          <IconButton onClick={() => navigate("/class-schedule")}>
+        <Box sx={{ position: "relative", mb: 3 }}>
+          <IconButton onClick={() => navigate("/class-schedule")}
+            sx={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)" }}  
+          >
             <ArrowBack sx={{ color: "green", fontSize: "2.2rem" }} />
           </IconButton>
-          <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+          <Typography variant="h5" align="center" sx={{ fontWeight: "bold" }}>
             Editar Grade de Turma
           </Typography>
         </Box>
@@ -671,11 +684,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
           <Alert severity="error" sx={{ mb: 2 }}> {errors.detail} </Alert>
         )}
         {alert && (
-          <CustomAlert
-            message={alert.message}
-            type={alert.type}
-            onClose={handleAlertClose}
-          />
+          <CustomAlert message={alert.message} type={alert.type} onClose={handleAlertClose} />
         )}
 
         <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
@@ -692,7 +701,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                 name="classId"
                 value={formData.classId}
                 onChange={handleChange}
-                selectSx={{ width: "520px" }}
+                selectSx={{ width: "320px" }}
                 disabled
               >
                 {classes
@@ -714,7 +723,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                 name="calendarId"
                 value={formData.calendarId}
                 onChange={handleChange}
-                selectSx={{ width: "520px" }}
+                selectSx={{ width: "380px" }}
                 disabled
               >
                 {calendars.map((calendar) => (
@@ -724,9 +733,29 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                 ))}
               </CustomSelect>
             </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Turno Geral"
+                value={determineTurn(confirmedDetails)}
+                InputProps={{ readOnly: true }}
+                sx={{
+                  width: "320px",
+                  "& .MuiInputBase-root.Mui-disabled": {
+                    backgroundColor: "#f5f5f5",
+                    color: "#000",
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "rgba(0, 0, 0, 0.23)",
+                    },
+                  },
+                }}
+                disabled
+              />
+            </Grid>
           </Grid>
         </Box>
 
+        {/* Horários */}
         <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, marginLeft: "5px", mb: 2 }}>
             <Box
@@ -746,7 +775,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
               Horários
             </Typography>
           </Box>
-          <Grid container spacing={3} mt="10px" justifyContent="center">
+          <Grid container spacing={3} mt="10px">
             <Grid item xs={12} sm={6}>
               <CustomSelect
                 label="Professor"
@@ -763,19 +792,18 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
               </CustomSelect>
             </Grid>
             <Grid item xs={12} sm={6}>
-              <CustomSelect
+              <CustomAutocomplete
                 label="Disciplina"
                 name="disciplineId"
-                value={formData.details[0].disciplineId}
-                onChange={(e) => handleChange(e, 0)}
+                value={disciplines.find(disc => disc.disciplineId === formData.details[0].disciplineId) || null}
+                onChange={(event, newValue) => {
+                  handleChange({ target: { name: 'disciplineId', value: newValue ? newValue.disciplineId : '' } }, 0);
+                }}
+                options={disciplines}
+                getOptionLabel={(option) => option.name}
+                isOptionEqualToValue={(option, value) => option.disciplineId === value.disciplineId}
                 selectSx={{ width: "520px" }}
-              >
-                {disciplines.map((disc) => (
-                  <MenuItem key={disc.disciplineId} value={disc.disciplineId}>
-                    {disc.name}
-                  </MenuItem>
-                ))}
-              </CustomSelect>
+              />
             </Grid>
             {formData.details.map((detail, index) => (
               <Grid container spacing={3} key={index} sx={{ mt: index === 0 ? 2 : 0, alignItems: "center" }}>
@@ -825,105 +853,95 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                     ))}
                   </CustomSelect>
                 </Grid>
-                <Grid item xs={12} sm={5}>
-                  <CustomSelect
-                    label="Fim da Aula"
-                    name="selectedHourEndId"
-                    value={detail.selectedHourEndId}
-                    onChange={(e) => handleChange(e, index)}
-                    disabled={!detail.turn || !detail.selectedHourStartId}
-                    loading={hoursLoadingByDetail[index]}
-                    selectSx={{ width: "215px" }}
-                  >
-                    {(availableHoursByDetail[index] || [])
-                      .filter((hour) => {
-                        const startIndex = (availableHoursByDetail[index] || []).findIndex(
-                          (h) => h.id === detail.selectedHourStartId
-                        );
-                        const currentIndex = (availableHoursByDetail[index] || []).findIndex(
-                          (h) => h.id === hour.id
-                        );
-                        return currentIndex >= startIndex && currentIndex <= startIndex + 1;
-                      })
-                      .map((hour) => (
-                        <MenuItem key={hour.id} value={hour.id}>
-                          {hour.hourEnd}
-                        </MenuItem>
-                      ))}
-                  </CustomSelect>
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <CustomSelect
+                      label="Fim da Aula"
+                      name="selectedHourEndId"
+                      value={detail.selectedHourEndId}
+                      onChange={(e) => handleChange(e, index)}
+                      disabled={!detail.turn || !detail.selectedHourStartId}
+                      loading={hoursLoadingByDetail[index]}
+                      selectSx={{ width: "215px" }}
+                    >
+                      {(availableHoursByDetail[index] || [])
+                        .filter((hour) => {
+                          const startIndex = (availableHoursByDetail[index] || []).findIndex(
+                            (h) => h.id === detail.selectedHourStartId
+                          );
+                          const currentIndex = (availableHoursByDetail[index] || []).findIndex(
+                            (h) => h.id === hour.id
+                          );
+                          return currentIndex >= startIndex && currentIndex <= startIndex + 1;
+                        })
+                        .map((hour) => (
+                          <MenuItem key={hour.id} value={hour.id}>
+                            {hour.hourEnd}
+                          </MenuItem>
+                        ))}
+                    </CustomSelect>
+                    {index === formData.details.length - 1 && (
+                      <IconButton
+                        onClick={handleAddDetail}
+                        sx={{
+                          color: "#087619",
+                          "&:hover": { color: "#066915" },
+                        }}
+                      >
+                        <AddCircleOutline sx={{ fontSize: 34 }} />
+                      </IconButton>
+                    )}
+                  </Box>
                 </Grid>
-                {formData.details.length > 1 && (
+                {formData.details.length > 1 && index !== formData.details.length - 1 && (
                   <Grid item xs={12} sm={1}>
                     <IconButton
                       onClick={() => handleRemoveDetail(index)}
                       sx={{
                         color: "#F01424",
                         "&:hover": { color: "#D4000F" },
+                        ml: "-13px"
                       }}
                     >
-                      <RemoveCircleOutline sx={{ fontSize: 34 }} />
+                      <Remove sx={{ fontSize: 34 }} />
                     </IconButton>
                   </Grid>
                 )}
               </Grid>
             ))}
-            <Grid item xs={12}>
-              <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
-                <Button
-                  onClick={handleAddDetail}
-                  sx={{
-                    minWidth: 0,
-                    width: 40,
-                    height: 40,
-                    padding: 0,
-                    borderRadius: "50%",
-                    backgroundColor: "transparent",
-                    "&:hover": { backgroundColor: "rgba(76, 175, 80, 0.15)" },
-                  }}
-                >
-                  <AddCircleOutline sx={{ fontSize: 34, color: "green" }} />
-                </Button>
-                <Button
-                  variant="contained"
-                  color="success"
-                  onClick={handleSaveDetails}
-                  sx={{
-                    width: "fit-content",
-                    minWidth: 100,
-                    padding: { xs: "8px 20px", sm: "8px 28px" },
-                    backgroundColor: "#087619",
-                    borderRadius: "8px",
-                    textTransform: "none",
-                    fontWeight: "bold",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    "&:hover": { backgroundColor: "#066915" },
-                  }}
-                >
-                  <Save sx={{ fontSize: 24 }} />
-                  Salvar
-                </Button>
-              </Box>
-            </Grid>
+            <Box sx={{ position: "absolute", bottom: 15, right: 48, }}>
+              <Button
+                variant="outlined"
+                onClick={handleSaveDetails}
+                color="success"
+                sx={{
+                  width: "fit-content",
+                  minWidth: 100,
+                  padding: { xs: "9px 15px", sm: "9px 15px" },
+                  borderRadius: "8px",
+                  textTransform: "none",
+                  fontWeight: "bold",
+                  display: "flex",
+                  alignItems: "center",
+                  color: 'green',
+                  borderWidth: 1.5,
+                  borderColor: 'green',
+                  gap: "8px",
+                  "&:hover": {
+                    borderColor: "#065412",
+                    color: "#065412",
+                  },
+                }}
+              >
+                <Check sx={{ fontSize: 24, color: "green"}} />
+                Salvar
+              </Button>
+            </Box>
           </Grid>
         </Box>
 
         <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-            <Box
-              sx={{
-                backgroundColor: "green",
-                borderRadius: "50%",
-                width: 35,
-                height: 35,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <History sx={{ color: "white", fontSize: 27 }} />
-            </Box>
             <Typography variant="h5" color="green">
               Horários Confirmados
             </Typography>
@@ -954,10 +972,45 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                             <TableCell key={day}>
                               {row[day] ? (
                                 <Box sx={{ display: "flex", flexDirection: "column" }}>
-                                  <Typography variant="body2">{row[day].disciplineAcronym}</Typography>
-                                  <Typography variant="body2" color="text.secondary">
-                                    {row[day].professorAcronym}
-                                  </Typography>
+                                  <Tooltip title={row[day].disciplineName} arrow
+                                    placement="top"
+                                    enterDelay={200}
+                                    leaveDelay={200}
+                                    slotProps={{
+                                      popper: {
+                                        modifiers: [
+                                          {
+                                            name: "offset",
+                                            options: {
+                                              offset: [20, -8],
+                                            },
+                                          },
+                                        ],
+                                      },
+                                    }}
+                                  >
+                                    <Typography variant="body2">{row[day].disciplineAcronym}</Typography>
+                                  </Tooltip>
+                                  <Tooltip title={row[day].professorName} arrow
+                                    enterDelay={200}
+                                    leaveDelay={200}
+                                    slotProps={{
+                                      popper: {
+                                        modifiers: [
+                                          {
+                                            name: "offset",
+                                            options: {
+                                              offset: [-5, -15],
+                                            },
+                                          },
+                                        ],
+                                      },
+                                    }}
+                                  >
+                                    <Typography variant="body2" color="text.secondary">
+                                      {row[day].professorAcronym}
+                                    </Typography>
+                                  </Tooltip>
                                   <IconButton
                                     onClick={() => handleDeleteDetail(day, row.timeSlot)}
                                     sx={{ color: "#F01424", "&:hover": { color: "#D4000F" }, mt: 1 }}

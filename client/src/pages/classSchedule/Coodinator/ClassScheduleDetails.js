@@ -12,6 +12,7 @@ import {
   TableBody,
   Divider,
   Button,
+  CircularProgress,
 } from "@mui/material";
 import {
   ArrowBack,
@@ -31,6 +32,7 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
   const { schedule: initialSchedule } = location.state || {};
   const [schedule, setSchedule] = useState(initialSchedule);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(!initialSchedule);
 
   const determineTurn = (data) => {
     let turnCounts = data.turnCounts || {
@@ -81,6 +83,7 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
     if (!initialSchedule && classScheduleId) {
       const fetchSchedule = async () => {
         try {
+          setLoading(true);
           const token = localStorage.getItem("token");
           if (!token) {
             throw new Error("Usuário não autenticado.");
@@ -92,13 +95,16 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
           console.log("API Response:", response.data);
           setSchedule(response.data.schedule);
           setError(null);
-
         } catch (error) {
           console.error("Erro ao buscar horário:", error);
           setError(error.response?.data?.message || "Erro ao carregar os detalhes do horário.");
+        } finally {
+          setLoading(false);
         }
       };
       fetchSchedule();
+    } else {
+      setLoading(false);
     }
   }, [initialSchedule, classScheduleId]);
 
@@ -137,17 +143,18 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
       <Box sx={{ flexGrow: 1, p: 4, mt: 4 }}>
         <Box
           sx={{
-            display: "flex",
+            position: "relative",
             alignItems: "center",
-            justifyContent: "flex-start",
             gap: 1,
             mb: 3,
           }}
         >
-          <IconButton onClick={() => navigate("/class-schedule")}>
+          <IconButton onClick={() => navigate("/class-schedule")}
+            sx={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)" }}  
+          >
             <ArrowBack sx={{ color: "green", fontSize: "2.2rem" }} />
           </IconButton>
-          <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+          <Typography variant="h5" align="center" sx={{ fontWeight: "bold", mt: 2 }}>
             Detalhes de Grade de Turma
           </Typography>
         </Box>
@@ -175,7 +182,15 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
 
           <Divider sx={{ backgroundColor: "#C7C7C7", my: 2 }} />
 
-          {schedule?.details?.length > 0 ? (
+          {loading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+              <CircularProgress sx={{ color: "green" }} />
+            </Box>
+          ) : error && !schedule?.details?.length ? (
+            <Typography variant="body1" color="error">
+              {error}
+            </Typography>
+          ) : schedule?.details?.length > 0 ? (
             <Table>
               <TableHead>
                 <TableRow>
@@ -208,7 +223,7 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
               </TableBody>
             </Table>
           ) : (
-            <Typography variant="body1" color="error">
+            <Typography variant="body1" color="text.secondary">
               Nenhum horário disponível para esta grade de turma.
             </Typography>
           )}
@@ -225,7 +240,11 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
 
           <Divider sx={{ backgroundColor: "#C7C7C7", my: 2 }} />
 
-          {error ? (
+          {loading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+              <CircularProgress sx={{ color: "green" }} />
+            </Box>
+          ) : error && !schedule ? (
             <Typography variant="body1" color="error">
               {error}
             </Typography>
@@ -261,7 +280,7 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
                       {[
                         ...new Map(
                           schedule.details.map((detail) => [
-                            `${detail.discipline?.disciplineId}-${detail.professor?.id || "N/A"}`,
+                            `${detail.discipline?.id}-${detail.professor?.id || "N/A"}`,
                             detail,
                           ])
                         ).values(),
@@ -289,7 +308,7 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
               )}
             </Box>
           ) : (
-            <Typography variant="body1" color="error">
+            <Typography variant="body1" color="text.secondary">
               Nenhum dado disponível para esta grade de turma.
             </Typography>
           )}

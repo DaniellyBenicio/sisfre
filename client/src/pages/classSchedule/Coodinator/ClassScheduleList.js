@@ -174,14 +174,6 @@ const ClassScheduleList = () => {
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 2}}>
-          <FilterListAlt
-            sx={{
-              color: "#087619",
-              fontSize: "1.7rem",
-              alignSelf: "center",
-              mt: { xs: 0, sm: 0.5 },
-            }}
-          />
           <Box
             sx={{
               borderRadius: "8px",

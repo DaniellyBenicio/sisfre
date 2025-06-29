@@ -154,7 +154,7 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
           >
             <ArrowBack sx={{ color: "green", fontSize: "2.2rem" }} />
           </IconButton>
-          <Typography variant="h5" align="center" sx={{ fontWeight: "bold" }}>
+          <Typography variant="h5" align="center" sx={{ fontWeight: "bold", mt: 2 }}>
             Detalhes de Grade de Turma
           </Typography>
         </Box>
@@ -280,7 +280,7 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
                       {[
                         ...new Map(
                           schedule.details.map((detail) => [
-                            `${detail.discipline?.disciplineId}-${detail.professor?.id || "N/A"}`,
+                            `${detail.discipline?.id}-${detail.professor?.id || "N/A"}`,
                             detail,
                           ])
                         ).values(),

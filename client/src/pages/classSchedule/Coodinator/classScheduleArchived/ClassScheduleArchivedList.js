@@ -122,7 +122,7 @@ const ClassScheduleListArchived = ({ setAuthenticated }) => {
           variant="h5"
           align="center"
           gutterBottom
-          sx={{ fontWeight: "bold", mt: 2, mb: 3 }}
+          sx={{ fontWeight: "bold", mt: "45px", mb: 3 }}
         >
           Grades Arquivadas
         </Typography>
@@ -152,14 +152,6 @@ const ClassScheduleListArchived = ({ setAuthenticated }) => {
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <FilterListAlt
-              sx={{
-                color: "#087619",
-                fontSize: "1.7rem",
-                alignSelf: "center",
-                mt: { xs: 0, sm: 0.5 },
-              }}
-            />
             <Box
               sx={{
                 borderRadius: "8px",

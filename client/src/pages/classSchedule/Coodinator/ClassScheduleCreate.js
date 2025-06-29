@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   Box, Typography, Button, FormControl, InputLabel, Select, MenuItem, Grid, Paper, CssBaseline,
   IconButton, CircularProgress, Alert, Table, TableHead, TableRow, TableCell, TableBody,Divider,
-  Tooltip,
+  Tooltip, TextField, Autocomplete
 } from "@mui/material";
 import { ArrowBack, Close, Save, School, History, Delete, AddCircleOutline, Remove, Check } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +10,7 @@ import Sidebar from "../../../components/SideBar";
 import api from "../../../service/api";
 import { CustomAlert } from "../../../components/alert/CustomAlert";
 import DeleteConfirmationDialog from "../../../components/DeleteConfirmationDialog";
+import CustomAutocomplete from "../../../components/inputs/CustomAutocompletePage";
 
 const CustomSelect = ({ label, name, value, onChange, children, selectSx, disabled, loading, ...props }) => {
   return (
@@ -679,19 +680,18 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               </CustomSelect>
             </Grid>
             <Grid item xs={12} sm={6}>
-              <CustomSelect
+              <CustomAutocomplete
                 label="Disciplina"
                 name="disciplineId"
-                value={formData.details[0].disciplineId}
-                onChange={(e) => handleChange(e, 0)}
+                value={disciplines.find(disc => disc.disciplineId === formData.details[0].disciplineId) || null}
+                onChange={(event, newValue) => {
+                  handleChange({ target: { name: 'disciplineId', value: newValue ? newValue.disciplineId : '' } }, 0);
+                }}
+                options={disciplines}
+                getOptionLabel={(option) => option.name}
+                isOptionEqualToValue={(option, value) => option.disciplineId === value.disciplineId}
                 selectSx={{ width: "520px" }}
-              >
-                {disciplines.map((disc) => (
-                  <MenuItem key={disc.disciplineId} value={disc.disciplineId}>
-                    {disc.name}
-                  </MenuItem>
-                ))}
-              </CustomSelect>
+              />
             </Grid>
             {formData.details.map((detail, index) => (
               <Grid container spacing={3} key={index} sx={{ mt: index === 0 ? 2 : 0, alignItems: "center" }}>

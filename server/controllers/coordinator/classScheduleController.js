@@ -54,6 +54,16 @@ export const createClassSchedule = async (req, res) => {
         .json({ message: `Turma com ID ${classId} não encontrada.` });
     }
 
+    const existingClassSchedule = await db.ClassSchedule.findOne({
+      where: { classId, calendarId },
+    });
+
+    if (existingClassSchedule) {
+      return res.status(409).json({
+        message: `Já existe uma grade de horário para a turma selecionada.`,
+      });
+    }
+
     const disciplineIds = new Set();
     const userIds = new Set();
     const hourIds = new Set();

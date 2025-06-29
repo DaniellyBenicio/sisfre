@@ -5,15 +5,54 @@ import db from "../../models/index.js";
 //ver com jamires
 export const createHoliday = async (req, res) => {
   const { name, date, type = "NACIONAL" } = req.body;
+
+  //Verifica campos obrigatórios
   if (!name || !date) {
     return res.status(400).json({ error: "Nome e data são obrigatórios." });
   }
+
+  //Verifica se o nome é uma string válida
+  if (typeof name !== "string" || name.trim().length < 3) {
+    return res.status(400).json({ error: "Nome do feriado deve ter pelo menos 3 caracteres." });
+  }
+
+  //Verifica se a data é válida
+  const dateObj = new Date(date);
+  if (isNaN(dateObj.getTime())) {
+    return res.status(400).json({ error: "Data inválida." });
+  }
+
+  //Verifica se o feriado não é de ano anterior ao atual
+  const currentYear = new Date().getFullYear();
+  const holidayYear = dateObj.getFullYear();
+  if (holidayYear < currentYear) {
+    return res.status(406).json({ error: `Não é permitido cadastrar feriado para ano anterior a ${currentYear}.` });
+  }
+
+  //Verifica se o tipo é válido
+  const validTypes = ["NACIONAL", "ESTADUAL", "MUNICIPAL", "INSTITUCIONAL"];
+  if (type && !validTypes.includes(type.toUpperCase())) {
+    return res.status(400).json({ error: "Tipo de feriado inválido. Use NACIONAL, ESTADUAL, MUNICIPAL ou INSTITUCIONAL." });
+  }
+
+  //Verifica se já existe feriado na mesma data (independente do nome)
+  const sameDate = await db.Holiday.findOne({ where: { date } });
+  if (sameDate) {
+    return res.status(400).json({ error: "Já existe um feriado cadastrado nesta data." });
+  }
+
+  //Verifica se já existe feriado com o mesmo nome e data
+  const existing = await db.Holiday.findOne({ where: { name, date } });
+  if (existing) {
+    return res.status(400).json({ error: "Feriado já cadastrado para esta data." });
+  }
+
   try {
-    const existing = await db.Holiday.findOne({ where: { name, date } });
-    if (existing) {
-      return res.status(400).json({ error: "Feriado já cadastrado para esta data." });
-    }
-    const holiday = await db.Holiday.create({ name, date, type });
+    const holiday = await db.Holiday.create({
+      name: name.trim(),
+      date: dateObj.toISOString().split("T")[0],
+      type: type.toUpperCase(),
+    });
     res.status(201).json({ message: "Feriado cadastrado com sucesso.", holiday });
   } catch (error) {
     console.error(error);

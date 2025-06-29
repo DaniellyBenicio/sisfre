@@ -96,8 +96,8 @@ const CalendarFormDialog = ({
   const [error, setError] = useState(null);
   const [localCalendarTypes, setLocalCalendarTypes] = useState(calendarTypes);
   const [isYearDisabled, setIsYearDisabled] = useState(false);
+  const [isCalendarStarted, setIsCalendarStarted] = useState(false);
 
-  // Definições de isFormFilled e hasChanges
   const isFormFilled =
     calendarData.type &&
     calendarData.year &&
@@ -122,7 +122,7 @@ const CalendarFormDialog = ({
 
   useEffect(() => {
     if (open) {
-      if (isEditMode && calendarToEdit) { // Condição explícita para modo de edição
+      if (isEditMode && calendarToEdit) {
         const typeToSet =
           localCalendarTypes.includes(calendarToEdit.type) ||
           calendarToEdit.type === "OUTRO"
@@ -135,16 +135,21 @@ const CalendarFormDialog = ({
         ) {
           setLocalCalendarTypes((prevTypes) => {
             const newTypes = [...prevTypes.filter((t) => t !== "OUTRO"), calendarToEdit.type, "OUTRO"];
-            calendarTypes = newTypes; // Atualiza a variável global (se necessário)
+            calendarTypes = newTypes;
             return newTypes;
           });
         }
+
+        const formattedStartDate = formatDateForInput(calendarToEdit.startDate);
+        const calendarStartDate = createLocalDate(formattedStartDate);
+        const todayLocalMidnight = new Date();
+        todayLocalMidnight.setHours(0, 0, 0, 0);
 
         const calendarDataToSet = {
           type: typeToSet,
           year: calendarToEdit.year || "",
           period: calendarToEdit.period || "",
-          startDate: formatDateForInput(calendarToEdit.startDate),
+          startDate: formattedStartDate,
           endDate: formatDateForInput(calendarToEdit.endDate),
           customType: typeToSet === "OUTRO" ? calendarToEdit.type : "",
         };
@@ -158,14 +163,9 @@ const CalendarFormDialog = ({
         setInitialCalendarData(calendarDataToSet);
         setCustomType(typeToSet === "OUTRO" ? calendarToEdit.type : "");
         setError(null);
-
-        // Lógica para desativar o ano no modo de edição se o calendário já começou
-        const todayLocalMidnight = new Date();
-        todayLocalMidnight.setHours(0, 0, 0, 0);
-        const calendarStartDate = createLocalDate(calendarToEdit.startDate);
-        setIsYearDisabled(calendarStartDate <= todayLocalMidnight); // Definir o estado
-
-      } else { // Modo de cadastro
+        setIsYearDisabled(calendarStartDate <= todayLocalMidnight);
+        setIsCalendarStarted(calendarStartDate <= todayLocalMidnight);
+      } else {
         setCalendarData({
           type: "",
           year: "",
@@ -176,10 +176,9 @@ const CalendarFormDialog = ({
         setInitialCalendarData(null);
         setCustomType("");
         setError(null);
-        // Garantir que os tipos de calendário estejam corretos no modo de cadastro
-        // e que o campo de ano não esteja desativado.
-        setLocalCalendarTypes(calendarTypes); // Usar a lista original de tipos
-        setIsYearDisabled(false); // Resetar para o modo de cadastro (ano sempre habilitado)
+        setLocalCalendarTypes(calendarTypes);
+        setIsYearDisabled(false);
+        setIsCalendarStarted(false);
       }
     }
   }, [calendarToEdit, open, isEditMode, localCalendarTypes]);
@@ -245,49 +244,38 @@ const CalendarFormDialog = ({
       return;
     }
 
-    // --- Validação de Datas no Frontend ---
     const currentStartDate = createLocalDate(calendarData.startDate);
     const currentEndDate = createLocalDate(calendarData.endDate);
     const todayLocalMidnight = new Date();
     todayLocalMidnight.setHours(0, 0, 0, 0);
 
-    // 1. Validação geral: Data de Fim deve ser posterior à Data de Início (duração mínima de 1 dia)
     if (currentStartDate >= currentEndDate) {
       setError("A data de fim deve ser posterior à data de início.");
       return;
     }
 
-    // 2. Validação específica por modo (Cadastro vs. Edição) e por alteração da data de início
     if (isEditMode) {
       const initialStartDate = createLocalDate(initialCalendarData?.startDate);
 
       if (calendarData.startDate === initialCalendarData.startDate) {
-          // Se a data de início não mudou, não aplicamos validações de "data retroativa".
-          // Apenas seguimos em frente, permitindo a edição de outros campos.
+        // Não aplicamos validações de data retroativa se a data de início não mudou
       } else {
-          // A data de início FOI ALTERADA. Agora precisamos validar a nova data.
-          // Cenário 1: Calendário já começou (initialStartDate <= today) e está tentando retroceder a data de início
-          if (initialStartDate <= todayLocalMidnight && currentStartDate < initialStartDate) {
-              setError("Não é permitido retroceder a data de início de um calendário em andamento.");
-              return;
-          }
-          // Cenário 2: Calendário futuro (initialStartDate > today) e está tentando definir uma data passada
-          // OU tentando definir uma data anterior à initialStartDate (que ainda é futura)
-          if (initialStartDate > todayLocalMidnight && currentStartDate < initialStartDate) {
-              setError("A data de início de um calendário futuro não pode ser anterior à data original, nem passada.");
-              return;
-          }
-      }
-    } else { // Modo de Cadastro
-        // Para um NOVO calendário, a data de início SEMPRE deve ser hoje ou no futuro.
-        if (currentStartDate < todayLocalMidnight) {
-            setError("A data de início para um novo calendário não pode ser anterior à data atual.");
-            return;
+        if (initialStartDate <= todayLocalMidnight && currentStartDate < initialStartDate) {
+          setError("Não é permitido retroceder a data de início de um calendário em andamento.");
+          return;
         }
+        if (initialStartDate > todayLocalMidnight && currentStartDate < initialStartDate) {
+          setError("A data de início de um calendário futuro não pode ser anterior à data original, nem passada.");
+          return;
+        }
+      }
+    } else {
+      if (currentStartDate < todayLocalMidnight) {
+        setError("A data de início para um novo calendário não pode ser anterior à data atual.");
+        return;
+      }
     }
-    // --- Fim da Validação de Datas no Frontend ---
 
-    // Validação para garantir que as datas estejam dentro do ano selecionado
     const selectedYear = parseInt(calendarData.year);
     const startYear = currentStartDate.getFullYear();
     const endYear = currentEndDate.getFullYear();
@@ -323,7 +311,7 @@ const CalendarFormDialog = ({
             "OUTRO",
           ];
           setLocalCalendarTypes(newTypes);
-          calendarTypes = newTypes; // Atualiza a variável global (se necessário)
+          calendarTypes = newTypes;
           try {
             await api.post("/calendar-types", { type: finalType });
           } catch (typeError) {
@@ -404,6 +392,19 @@ const CalendarFormDialog = ({
                     borderColor: "#000000 !important",
                     borderWidth: "2px",
                   },
+                ...(isCalendarStarted && {
+                  "& .MuiOutlinedInput-root": {
+                    "& fieldset": {
+                      borderColor: "#757575",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "#757575",
+                    },
+                    "&.Mui-disabled fieldset": {
+                      borderColor: "#757575",
+                    },
+                  },
+                }),
               }}
             >
               <InputLabel
@@ -420,6 +421,10 @@ const CalendarFormDialog = ({
                     top: 0,
                     transform: "translate(14px, -9px) scale(0.75)",
                   },
+                  ...(isCalendarStarted && {
+                    color: "rgba(0, 0, 0, 0.38) !important",
+                    "&::after": { content: '" *"', color: "rgba(0, 0, 0, 0.38) !important" },
+                  }),
                 }}
               >
                 Tipo
@@ -432,6 +437,7 @@ const CalendarFormDialog = ({
                   onChange={handleCustomTypeChange}
                   required
                   placeholder="Digite o tipo"
+                  disabled={isCalendarStarted}
                   InputLabelProps={{
                     shrink: !!customType,
                   }}
@@ -447,6 +453,19 @@ const CalendarFormDialog = ({
                         borderColor: "#000000 !important",
                         borderWidth: "2px",
                       },
+                    ...(isCalendarStarted && {
+                      "& .MuiOutlinedInput-root": {
+                        "& fieldset": {
+                          borderColor: "#757575",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: "#757575",
+                        },
+                        "&.Mui-disabled fieldset": {
+                          borderColor: "#757575",
+                        },
+                      },
+                    }),
                   }}
                 />
               ) : (
@@ -457,6 +476,7 @@ const CalendarFormDialog = ({
                   onChange={handleTypeChange}
                   required
                   label="Tipo"
+                  disabled={isCalendarStarted}
                   MenuProps={{
                     PaperProps: {
                       sx: {
@@ -506,6 +526,19 @@ const CalendarFormDialog = ({
                       borderColor: "#000000 !important",
                       borderWidth: "2px",
                     },
+                  ...(isCalendarStarted && {
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": {
+                        borderColor: "#757575",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: "#757575",
+                      },
+                      "&.Mui-disabled fieldset": {
+                        borderColor: "#757575",
+                      },
+                    },
+                  }),
                 }}
               >
                 <InputLabel
@@ -524,7 +557,7 @@ const CalendarFormDialog = ({
                       top: 0,
                       transform: "translate(14px, -9px) scale(0.75)",
                     },
-                    ...(isYearDisabled && {
+                    ...(isCalendarStarted && {
                       color: "rgba(0, 0, 0, 0.38) !important",
                       "&::after": { content: '" *"', color: "rgba(0, 0, 0, 0.38) !important" },
                     }),
@@ -541,7 +574,7 @@ const CalendarFormDialog = ({
                   }
                   label="Ano"
                   required
-                  disabled={isYearDisabled}
+                  disabled={isYearDisabled || isCalendarStarted}
                   MenuProps={{
                     PaperProps: {
                       sx: {
@@ -587,6 +620,19 @@ const CalendarFormDialog = ({
                       borderColor: "#000000 !important",
                       borderWidth: "2px",
                     },
+                  ...(isCalendarStarted && {
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": {
+                        borderColor: "#757575",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: "#757575",
+                      },
+                      "&.Mui-disabled fieldset": {
+                        borderColor: "#757575",
+                      },
+                    },
+                  }),
                 }}
               >
                 <InputLabel
@@ -605,6 +651,10 @@ const CalendarFormDialog = ({
                       top: 0,
                       transform: "translate(14px, -9px) scale(0.75)",
                     },
+                    ...(isCalendarStarted && {
+                      color: "rgba(0, 0, 0, 0.38) !important",
+                      "&::after": { content: '" *"', color: "rgba(0, 0, 0, 0.38) !important" },
+                    }),
                   }}
                 >
                   Período
@@ -618,6 +668,7 @@ const CalendarFormDialog = ({
                   }
                   label="Período"
                   required
+                  disabled={isCalendarStarted}
                   MenuProps={{
                     PaperProps: {
                       sx: {

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   Box, Typography, Button, FormControl, InputLabel, Select, MenuItem, Grid, Paper, CssBaseline,
   IconButton, CircularProgress, Alert, Table, TableHead, TableRow, TableCell, TableBody,Divider,
-  Tooltip, TextField, Autocomplete
+  Tooltip,
 } from "@mui/material";
 import { ArrowBack, Close, Save, School, History, Delete, AddCircleOutline, Remove, Check } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -552,9 +552,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           onConfirm={handleConfirmDelete}
           userName={detailToDelete ? `${detailToDelete.day} ${detailToDelete.timeSlot}` : ""}
         />
-        <Box
-          sx={{ position: "relative", mb: 3 }}
-        >
+        <Box sx={{ position: "relative", mb: 3 }} >
           <IconButton onClick={() => navigate("/class-schedule")}
             sx={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)" }}  
           >
@@ -587,11 +585,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           <Alert severity="error" sx={{ mb: 2 }}> {errors.detail} </Alert>
         )}
         {alert && (
-          <CustomAlert
-            message={alert.message}
-            type={alert.type}
-            onClose={handleAlertClose}
-          />
+          <CustomAlert message={alert.message} type={alert.type} onClose={handleAlertClose} />
         )}
 
         <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
@@ -644,7 +638,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
         </Box>
         
         {/* Horários */}
-        <Box component={Paper} elevation={3} sx={{ p: 5, pb: 12, m: 4, borderRadius: 3, position: "relative" }}>
+        <Box component={Paper} elevation={3} sx={{ p: 5, pb: 12, m: 4, borderRadius: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, marginLeft: "5px", mb: 2 }}>
             <Box
               sx={{

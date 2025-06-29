@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, IconButton } from "@mui/material";
+import { ArrowBack } from "@mui/icons-material"; // Importação do ícone ArrowBack
+import { useNavigate } from "react-router-dom"; // Importação do useNavigate
 import SearchAndCreateBar from "../../../components/homeScreen/SearchAndCreateBar";
 import api from "../../../service/api";
 import CalendarTable from "./CalendarTable";
@@ -28,6 +30,7 @@ const CalendarList = () => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [calendarToEdit, setCalendarToEdit] = useState(null);
   const [calendarToDelete, setCalendarToDelete] = useState(null);
+  const navigate = useNavigate(); // Hook para navegação
 
   useEffect(() => {
     fetchCalendars();
@@ -118,6 +121,10 @@ const CalendarList = () => {
     handleDeleteDialogClose();
   };
 
+  const handleBackClick = () => {
+    navigate(-1); // Navega para a página anterior
+  };
+
   const filteredCalendars = Array.isArray(calendars)
     ? calendars.filter((calendarItem) => {
         const normalizedSearch = search
@@ -157,14 +164,37 @@ const CalendarList = () => {
         gap: 2,
       }}
     >
-      <Typography
-        variant="h5"
-        align="center"
-        gutterBottom
-        sx={{ mt: 2, mb: 2, fontWeight: "bold" }}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "relative",
+          mb: 2,
+        }}
       >
-        Calendário
-      </Typography>
+        <IconButton
+          onClick={handleBackClick}
+          sx={{
+            position: "absolute",
+            left: 0,
+            color: "#087619",
+            "&:hover": {
+              backgroundColor: "rgba(8, 118, 25, 0.08)",
+            },
+          }}
+        >
+          <ArrowBack />
+        </IconButton>
+        <Typography
+          variant="h5"
+          align="center"
+          gutterBottom
+          sx={{ mt: 2, mb: 2, fontWeight: "bold", color: "#087619" }}
+        >
+          Calendário
+        </Typography>
+      </Box>
       <SearchAndCreateBar
         searchValue={search}
         onSearchChange={(e) => setSearch(e.target.value)}

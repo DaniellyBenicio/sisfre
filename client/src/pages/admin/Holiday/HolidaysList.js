@@ -319,6 +319,7 @@ const HolidaysList = () => {
                 search={null}
                 setAlert={setAlert}
                 loading={loading}
+                isFiltered={!!year || !!typeFilter}
             />
 
             <HolidayFormDialog

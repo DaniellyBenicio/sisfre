@@ -26,18 +26,25 @@ const DataTable = ({
 }) => {
   const isMobile = useMediaQuery("(max-width:600px)");
   const [page, setPage] = useState(1);
-  const [rowsPerPage] = useState(5);
+  const [rowsPerPage] = useState(6);
+
+  const paginatedData = search && search.trim()
+    ? data
+    : data.slice((page - 1) * rowsPerPage, page * rowsPerPage);
 
   const handleChangePage = (newPage) => {
     setPage(newPage);
   };
 
   const visibleData = useMemo(() => {
-    if (!Array.isArray(data)) return [];
-    const startIndex = (page - 1) * rowsPerPage;
-    const endIndex = startIndex + rowsPerPage;
-    return data.slice(startIndex, endIndex);
-  }, [data, page, rowsPerPage]);
+  if (!Array.isArray(data)) return [];
+  if (search && search.trim()) {
+    return data;
+  }
+  const startIndex = (page - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  return data.slice(startIndex, endIndex);
+}, [data, page, rowsPerPage, search]);
 
   const tableHeadStyle = {
     fontWeight: "bold",

@@ -157,7 +157,7 @@ const HolidaysList = () => {
                     variant='h5'
                     align='center'
                     gutterBottom
-                    sx={{ fontWeight: 'bold', mt: 2, mb: 2, color: '#087619' }}
+                    sx={{ fontWeight: 'bold', mt: 2, mb: 2, color: '#000000' }}
                 >
                     Feriados
                 </Typography>

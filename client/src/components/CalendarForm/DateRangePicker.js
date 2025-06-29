@@ -5,15 +5,11 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { ptBR } from "date-fns/locale";
 
-// Função utilitária para criar uma data local a partir de uma string YYYY-MM-DD
-// Evita problemas de fuso horário e garante que seja o início do dia local
 export const createLocalDate = (dateString) => {
   if (!dateString) return null;
   try {
     const parts = dateString.split('-');
-    // Date(year, monthIndex, day) cria a data no fuso horário local
     const dateObject = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-    // Zera as horas para garantir comparação correta do dia
     dateObject.setHours(0, 0, 0, 0);
     return dateObject;
   } catch (error) {
@@ -33,10 +29,8 @@ const DateRangePicker = ({ calendarData, handleInputChange, isEditMode, selected
     calendarData.startDate &&
     createLocalDate(calendarData.startDate) <= todayLocalMidnight;
 
-  // NOVO: Definir minDate e maxDate com base no selectedYear
-  const yearStartDate = selectedYear ? new Date(selectedYear, 0, 1) : null; // 1º de janeiro do ano selecionado
-  const yearEndDate = selectedYear ? new Date(selectedYear, 11, 31) : null; // 31 de dezembro do ano selecionado
-
+  const yearStartDate = selectedYear ? new Date(selectedYear, 0, 1) : null; 
+  const yearEndDate = selectedYear ? new Date(selectedYear, 11, 31) : null; 
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
@@ -63,17 +57,13 @@ const DateRangePicker = ({ calendarData, handleInputChange, isEditMode, selected
             handleInputChange("startDate", formattedDate);
           }}
           disabled={isCalendarStarted}
-          // minDate para Data de Início:
-          // Se o calendário JÁ COMEÇOU, permite que a data original (passada) seja exibida, mas não para seleção.
-          // O minDate real para seleção deve ser o hoje OU o início do ano selecionado, o que for MAIOR.
           minDate={
             isCalendarStarted 
-              ? null // No modo de edição de calendário iniciado, não queremos minDate para exibição
+              ? null 
               : (yearStartDate && todayLocalMidnight && yearStartDate > todayLocalMidnight)
                 ? yearStartDate
-                : todayLocalMidnight // Se yearStartDate é antes de today, use today
+                : todayLocalMidnight 
           }
-          // NOVO: maxDate para Data de Início (fim do ano selecionado)
           maxDate={yearEndDate}
           slotProps={{
             textField: {
@@ -134,10 +124,6 @@ const DateRangePicker = ({ calendarData, handleInputChange, isEditMode, selected
             }
             handleInputChange("endDate", formattedDate);
           }}
-          // minDate para Data de Fim:
-          // Deve ser o dia seguinte à data de início (para garantir 1 dia de duração),
-          // OU o início do ano selecionado (se calendarData.startDate estiver vazio),
-          // OU o dia atual (se calendarData.startDate estiver vazio e o ano selecionado for o ano atual).
           minDate={
             calendarData.startDate
               ? new Date(createLocalDate(calendarData.startDate).getTime() + (24 * 60 * 60 * 1000)) // Dia seguinte à startDate
@@ -145,7 +131,6 @@ const DateRangePicker = ({ calendarData, handleInputChange, isEditMode, selected
                 ? yearStartDate
                 : todayLocalMidnight
           }
-          // NOVO: maxDate para Data de Fim (fim do ano selecionado)
           maxDate={yearEndDate}
           slotProps={{
             textField: {

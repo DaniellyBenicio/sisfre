@@ -190,7 +190,7 @@ const CalendarList = () => {
           variant="h5"
           align="center"
           gutterBottom
-          sx={{ mt: 2, mb: 2, fontWeight: "bold", color: "#087619" }}
+          sx={{ mt: 2, mb: 2, fontWeight: "bold", color: "#000000" }}
         >
           Calendário
         </Typography>

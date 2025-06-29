@@ -9,6 +9,15 @@ export const getProfessorClasses = async (req, res) => {
         message: "Usuário não autenticado.",
       });
     }
+    const professor = await db.User.findByPk(loggedUserId, {
+      attributes: ["id", "username", "acronym"],
+    });
+
+    if (!professor) {
+      return res.status(404).json({
+        message: "Professor não encontrado.",
+      });
+    }
 
     const schedules = await db.ClassSchedule.findAll({
       include: [
@@ -20,12 +29,12 @@ export const getProfessorClasses = async (req, res) => {
         {
           model: db.Course,
           as: "course",
-          attributes: ["id", "name"], // Nome do curso (ex: Sistemas de Informação)
+          attributes: ["id", "name", "acronym"],
         },
         {
           model: db.Calendar,
           as: "calendar",
-          attributes: ["id", "type", "year", "period"], // Info calendário (ex: Convencional, 2025.1)
+          attributes: ["id", "type", "year", "period"],
         },
         {
           model: db.ClassScheduleDetail,
@@ -54,7 +63,6 @@ export const getProfessorClasses = async (req, res) => {
       });
     }
 
-    // Monta o resultado juntando as informações
     const classList = [];
 
     schedules.forEach((schedule) => {
@@ -64,7 +72,10 @@ export const getProfessorClasses = async (req, res) => {
 
       schedule.details.forEach((detail) => {
         classList.push({
-          course: courseData ? courseData.name : null,
+          course: {
+            name: courseData ? courseData.name : null,
+            acronym: courseData ? courseData.acronym : null,
+          },
           calendar: calendarData
             ? `${calendarData.type} - ${calendarData.year}.${calendarData.period}`
             : null,
@@ -85,6 +96,11 @@ export const getProfessorClasses = async (req, res) => {
                 end: detail.hour.hourEnd,
               }
             : null,
+          professor: {
+            id: professor.id,
+            name: professor.username,
+            acronym: professor.acronym,
+          },
         });
       });
     });

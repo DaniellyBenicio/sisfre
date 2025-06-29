@@ -35,12 +35,8 @@ const CustomSelect = ({ label, name, value, onChange, children, selectSx, disabl
           "& .MuiOutlinedInput-notchedOutline": {
             borderColor: "rgba(0, 0, 0, 0.23)",
           },
-          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-            borderColor: "#000",
-          },
-          "&:hover .MuiOutlinedInput-notchedOutline": {
-            borderColor: "#000",
-          },
+          "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#000", },
+          "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#000", },
           ...selectSx,
         }}
         MenuProps={{
@@ -491,22 +487,25 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
     }
   };
 
-  const handleDeleteDetail = (day, timeSlot) => {
-    setDetailToDelete({ day, timeSlot });
+  const handleDeleteDetail = (day, timeSlot, hourId) => {
+    setDetailToDelete({ day, timeSlot, hourId });
     setDialogOpen(true);
   };
 
   const handleConfirmDelete = () => {
     if (detailToDelete) {
-      setConfirmedDetails((prev) =>
-        prev.filter(
+      const hourIds = detailToDelete.hourId ? detailToDelete.hourId.split(",").map(id => id.trim()) : [];
+      setConfirmedDetails((prev) => {
+        const newDetails = prev.filter(
           (detail) =>
             !(
-              detail.dayOfWeek.replace("-feira", "") === detailToDelete.day &&
-              `${detail.startTime} - ${detail.endTime}` === detailToDelete.timeSlot
+              detail.dayOfWeek.replace("-feira", "").trim().toLowerCase() === detailToDelete.day.trim().toLowerCase() &&
+              hourIds.includes(String(detail.hourId))
             )
-        )
-      );
+        );
+        console.log("After filtering:", newDetails);
+        return newDetails;
+      });
       setDialogOpen(false);
       setDetailToDelete(null);
     }
@@ -615,14 +614,42 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
   const daysOfWeek = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
   const getScheduleMatrix = (details) => {
-    const timeSlots = [...new Set(
-      details.map((detail) => `${detail.startTime} - ${detail.endTime}`)
+    const groupedByDayAndDiscipline = details.reduce((acc, detail) => {
+      const key = `${detail.dayOfWeek}-${detail.disciplineId}-${detail.professorId}`;
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(detail);
+      return acc;
+    }, {});
+
+    const mergedDetails = [];
+    Object.values(groupedByDayAndDiscipline).forEach((group) => {
+      group.sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+      let current = { ...group[0] };
+      for (let i = 1; i < group.length; i++) {
+        const prev = group[i - 1];
+        const curr = group[i];
+
+        if (prev.endTime === curr.startTime) {
+          current.endTime = curr.endTime;
+          current.hourId = `${current.hourId},${curr.hourId}`;
+        } else {
+          mergedDetails.push(current);
+          current = { ...curr };
+        }
+      }
+      mergedDetails.push(current);
+    });
+    const weatheredTimeSlots = [...new Set(
+      mergedDetails.map((detail) => `${detail.startTime} - ${detail.endTime}`)
     )].sort();
 
-    return timeSlots.map((timeSlot) => {
+    return weatheredTimeSlots.map((timeSlot) => {
       const row = { timeSlot };
       daysOfWeek.forEach((day) => {
-        const detail = details.find(
+        const detail = mergedDetails.find(
           (d) =>
             d.dayOfWeek.replace("-feira", "") === day &&
             `${d.startTime} - ${d.endTime}` === timeSlot
@@ -631,6 +658,9 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
           ? {
               disciplineAcronym: detail.disciplineAcronym || "",
               professorAcronym: detail.professorAcronym || "",
+              disciplineName: detail.disciplineName || "N/A",
+              professorName: detail.professorName || "Sem professor",
+              hourId: detail.hourId,
             }
           : null;
       });
@@ -756,7 +786,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
         </Box>
 
         {/* Horários */}
-        <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
+        <Box component={Paper} elevation={3} sx={{ p: 5, pb: 12, m: 4, borderRadius: 3, position: "relative" }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, marginLeft: "5px", mb: 2 }}>
             <Box
               sx={{
@@ -1012,7 +1042,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                                     </Typography>
                                   </Tooltip>
                                   <IconButton
-                                    onClick={() => handleDeleteDetail(day, row.timeSlot)}
+                                    onClick={() => handleDeleteDetail(day, row.timeSlot, row[day].hourId)}
                                     sx={{ color: "#F01424", "&:hover": { color: "#D4000F" }, mt: 1 }}
                                   >
                                     <Delete />

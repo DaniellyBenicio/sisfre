@@ -119,63 +119,59 @@ const SaturdaySchoolFormDialog = ({
   };
 
   useEffect(() => {
-    if (saturdaySchoolToEdit && isEditMode) {
-      let dateFromEdit = "";
-      if (saturdaySchoolToEdit.date) {
-        const parts = saturdaySchoolToEdit.date.split("/");
-        if (parts.length === 3) {
-          dateFromEdit = `${parts[2]}-${parts[1]}-${parts[0]}`;
-        }
-      }
-
-      let calendarIdFromEdit = "";
-      if (saturdaySchoolToEdit.calendarId) {
-        calendarIdFromEdit = saturdaySchoolToEdit.calendarId;
-      } else if (
-        saturdaySchoolToEdit.calendar &&
-        typeof saturdaySchoolToEdit.calendar === "object" &&
-        saturdaySchoolToEdit.calendar.id
-      ) {
-        calendarIdFromEdit = saturdaySchoolToEdit.calendar.id;
-      } else if (
-        saturdaySchoolToEdit.calendar &&
-        typeof saturdaySchoolToEdit.calendar === "string"
-      ) {
-        if (calendars.length > 0) {
-          const foundCalendar = calendars.find(
-            (cal) =>
-              `${cal.year}.${cal.period} - ${formatCalendarType(cal.type)}` ===
-              saturdaySchoolToEdit.calendar
-          );
-          if (foundCalendar) {
-            calendarIdFromEdit = foundCalendar.id;
-          } else {
-            console.warn(
-              "DEBUG: No matching calendar found in `calendars` list for name:",
-              saturdaySchoolToEdit.calendar
-            );
+    if (open) {
+      if (isEditMode && saturdaySchoolToEdit) {
+        let dateFromEdit = "";
+        if (saturdaySchoolToEdit.date) {
+          const parts = saturdaySchoolToEdit.date.split("/");
+          if (parts.length === 3) {
+            dateFromEdit = `${parts[2]}-${parts[1]}-${parts[0]}`; 
           }
-        } else {
-          console.log(
-            "DEBUG: Calendars list not yet loaded when trying to find calendar by name."
-          );
         }
+
+        let calendarIdFromEdit = "";
+        if (saturdaySchoolToEdit.calendarId) {
+          calendarIdFromEdit = saturdaySchoolToEdit.calendarId;
+        } else if (
+          saturdaySchoolToEdit.calendar &&
+          typeof saturdaySchoolToEdit.calendar === "object" &&
+          saturdaySchoolToEdit.calendar.id
+        ) {
+          calendarIdFromEdit = saturdaySchoolToEdit.calendar.id;
+        } else if (
+          saturdaySchoolToEdit.calendar &&
+          typeof saturdaySchoolToEdit.calendar === "string"
+        ) {
+          if (calendars.length > 0) {
+            const foundCalendar = calendars.find(
+              (cal) =>
+                `${cal.year}.${cal.period} - ${formatCalendarType(cal.type)}` ===
+                saturdaySchoolToEdit.calendar
+            );
+            calendarIdFromEdit = foundCalendar ? foundCalendar.id : "";
+          }
+        }
+
+        const initialData = {
+          date: dateFromEdit,
+          dayOfWeek: saturdaySchoolToEdit.dayOfWeek || "",
+          calendarId: calendarIdFromEdit ? Number(calendarIdFromEdit) : "",
+        };
+
+        setSaturdaySchool(initialData);
+        setInitialSaturdaySchool(initialData);
+        setError(null);
+      } else {
+        setSaturdaySchool({
+          date: "",
+          dayOfWeek: "",
+          calendarId: "",
+        });
+        setInitialSaturdaySchool(null);
+        setError(null);
       }
-
-      const initialData = {
-        date: dateFromEdit,
-        dayOfWeek: saturdaySchoolToEdit.dayOfWeek || "",
-        calendarId: calendarIdFromEdit ? Number(calendarIdFromEdit) : "",
-      };
-
-      setSaturdaySchool(initialData);
-      setInitialSaturdaySchool(initialData);
-      setError(null);
-    } else {
-      setInitialSaturdaySchool(null);
-      setError(null);
     }
-  }, [saturdaySchoolToEdit, open, isEditMode, calendars]);
+  }, [open, isEditMode, saturdaySchoolToEdit, calendars]);
 
   const handleInputChange = (name, value) => {
     setSaturdaySchool({ ...saturdaySchool, [name]: value });
@@ -297,11 +293,22 @@ const SaturdaySchoolFormDialog = ({
     }
   };
 
+  const handleClose = () => {
+    setSaturdaySchool({
+      date: "",
+      dayOfWeek: "",
+      calendarId: "",
+    });
+    setInitialSaturdaySchool(null);
+    setError(null);
+    onClose();
+  };
+
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
       <Dialog
         open={open}
-        onClose={onClose}
+        onClose={handleClose}
         fullWidth
         PaperProps={{
           sx: {
@@ -328,7 +335,7 @@ const SaturdaySchoolFormDialog = ({
         >
           {isEditMode ? "Editar Sábado Letivo" : "Cadastrar Sábado Letivo"}
           <IconButton
-            onClick={onClose}
+            onClick={handleClose}
             sx={{ position: "absolute", right: 8, top: 8 }}
           >
             <Close />
@@ -533,9 +540,9 @@ const SaturdaySchoolFormDialog = ({
                 ) : (
                   calendars.map((calendar) => (
                     <MenuItem key={calendar.id} value={calendar.id}>
-                      {`${calendar.year}.${
-                        calendar.period
-                      } - ${formatCalendarType(calendar.type)}`}
+                      {`${calendar.year}.${calendar.period} - ${formatCalendarType(
+                        calendar.type
+                      )}`}
                     </MenuItem>
                   ))
                 )}
@@ -555,7 +562,7 @@ const SaturdaySchoolFormDialog = ({
               }}
             >
               <StyledButton
-                onClick={onClose}
+                onClick={handleClose}
                 variant="contained"
                 sx={{
                   backgroundColor: "#F01424",

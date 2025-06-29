@@ -22,7 +22,6 @@ import ClassScheduleEdit from "../pages/classSchedule/Coodinator/ClassScheduleEd
 import ClassScheduleOptions from "../pages/classSchedule/ClassScheduleOptions.js";
 import ClassScheduleListArchived from "../pages/classSchedule/Coodinator/classScheduleArchived/ClassScheduleArchivedList.js";
 
-
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
     const token = localStorage.getItem("token");
@@ -70,7 +69,7 @@ const AppRoutes = () => {
     const access = localStorage.getItem("accessType");
     setAccessType(access);
     if (access === "Admin") {
-      navigate("/calendar-options");
+      navigate("/users"); // Alterado de /calendar-options para /users
     } else {
       navigate("/disciplines");
     }
@@ -276,7 +275,7 @@ const AppRoutes = () => {
             <Navigate to="/login" />
           )
         }
-      /> {/* Nova rota adicionada */}
+      />
     </Routes>
   );
 };

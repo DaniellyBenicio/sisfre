@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Box, Typography } from "@mui/material";
-import api from "../../../../service/api"; 
+import api from "../../../../service/api";
 import ClassesCardTeacher from "./ClassesCardTeacher";
 
 const ClassesTeacher = () => {
@@ -11,7 +11,7 @@ const ClassesTeacher = () => {
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const response = await api.get("/teacher-classes"); 
+        const response = await api.get("/teacher-classes");
 
         const transformedClasses = response.data.classes.reduce((acc, item) => {
           const existingClass = acc.find((cls) => cls.id === item.classId);
@@ -23,10 +23,11 @@ const ClassesTeacher = () => {
               endTime: item.hour?.end || "N/A",
             });
           } else {
+            // Aqui é onde a mudança acontece: usa 'acronym' em vez de 'split'
             acc.push({
-              id: item.classId,
-              name: `${item.semester} - ${item.course?.split(" ")[0] || "N/A"}`, // Ex: "S1 - SI"
-              course: item.course || "N/A",
+              id: item.classId, // Usa a propriedade 'acronym' para o nome da turma
+              name: `${item.semester} - ${item.course?.acronym || "N/A"}`, // Ex: "S2 - BSI"
+              course: item.course?.name || "N/A", // Mantém o nome completo do curso
               calendar: item.calendar || "N/A",
               discipline: item.discipline?.name || "N/A",
               shift: item.turn || "N/A",
@@ -65,21 +66,27 @@ const ClassesTeacher = () => {
         gap: 2,
       }}
     >
+           {" "}
       <Typography
         variant="h5"
         align="center"
         sx={{ fontWeight: "bold", mt: 0.5, mb: 0.5 }}
       >
-        Minhas Turmas
+                Minhas Turmas      {" "}
       </Typography>
-
+           {" "}
       {error ? (
         <Typography color="error" align="center">
-          {error}
+                    {error}       {" "}
         </Typography>
       ) : (
-        <ClassesCardTeacher classes={classes} loading={loading} sx={{ mt: 0.5 }} />
+        <ClassesCardTeacher
+          classes={classes}
+          loading={loading}
+          sx={{ mt: 0.5 }}
+        />
       )}
+         {" "}
     </Box>
   );
 };

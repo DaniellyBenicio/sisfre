@@ -29,7 +29,7 @@ export const getProfessorClasses = async (req, res) => {
         {
           model: db.Course,
           as: "course",
-          attributes: ["id", "name"],
+          attributes: ["id", "name", "acronym"],
         },
         {
           model: db.Calendar,
@@ -72,7 +72,10 @@ export const getProfessorClasses = async (req, res) => {
 
       schedule.details.forEach((detail) => {
         classList.push({
-          course: courseData ? courseData.name : null,
+          course: {
+            name: courseData ? courseData.name : null,
+            acronym: courseData ? courseData.acronym : null,
+          },
           calendar: calendarData
             ? `${calendarData.type} - ${calendarData.year}.${calendarData.period}`
             : null,

@@ -80,6 +80,9 @@ const CustomAutocomplete = ({
               '& .MuiAutocomplete-option:hover': {
                 backgroundColor: '#D5FFDB',
               },
+              "& .MuiMenuItem-root:hover": {
+                backgroundColor: "#D5FFDB",
+              },
               '& .MuiAutocomplete-option.Mui-focused': {
                 backgroundColor: '#D5FFDB',
                 outline: 'none',

@@ -15,7 +15,7 @@ import {
   IconButton,
   Divider,
   CircularProgress,
-} from "@mui/material"; 
+} from "@mui/material";
 import {
   Class,
   ArrowBack,
@@ -148,15 +148,25 @@ const ClassDetailsList = () => {
 
   if (!classItem) {
     return (
-      <Box sx={{ p: 3, textAlign: "center" }}>
-        <Typography variant="h6" color="error">
+      <Box sx={{ p: { xs: 1, sm: 2, md: 3 }, textAlign: "center" }}>
+        <Typography
+          variant="h6"
+          color="error"
+          sx={{ fontSize: { xs: "0.9rem", sm: "1rem", md: "1.25rem" } }}
+        >
           Nenhuma turma selecionada.
         </Typography>
         <IconButton
           onClick={handleBackClick}
-          sx={{ mt: 2, color: greenPrimary }}
+          aria-label="Voltar"
+          sx={{
+            mt: 1,
+            color: greenPrimary,
+            fontSize: { xs: "1.1rem", sm: "1.2rem", md: "1.5rem" },
+            p: { xs: 1, sm: 1.5 },
+          }}
         >
-          <ArrowBack />
+          <ArrowBack fontSize="inherit" />
         </IconButton>
       </Box>
     );
@@ -171,13 +181,13 @@ const ClassDetailsList = () => {
   return (
     <Box
       sx={{
-        p: 3,
+        p: { xs: 1, sm: 2, md: 3 },
         width: "100%",
-        maxWidth: "900px",
+        maxWidth: { xs: "100%", sm: "95%", md: "900px" },
         margin: "0 auto",
         display: "flex",
         flexDirection: "column",
-        gap: 3,
+        gap: { xs: 1, sm: 2, md: 3 },
       }}
     >
       {/* Botão de voltar e Título */}
@@ -187,11 +197,12 @@ const ClassDetailsList = () => {
           alignItems: "center",
           justifyContent: "center",
           position: "relative",
-          mb: 2,
+          mb: { xs: 1, sm: 1.5, md: 2 },
         }}
       >
         <IconButton
           onClick={handleBackClick}
+          aria-label="Voltar"
           sx={{
             position: "absolute",
             left: 0,
@@ -199,28 +210,35 @@ const ClassDetailsList = () => {
             "&:hover": {
               backgroundColor: "rgba(8, 118, 25, 0.08)",
             },
+            fontSize: { xs: "1.1rem", sm: "1.2rem", md: "1.5rem" },
+            p: { xs: 1, sm: 1.5 },
           }}
         >
-          <ArrowBack />
+          <ArrowBack fontSize="inherit" />
         </IconButton>
         <Typography
           variant="h5"
           align="center"
           gutterBottom
-          sx={{ fontWeight: "bold", color: greenPrimary, m: 0 }}
+          sx={{
+            fontWeight: "bold",
+            color: greenPrimary,
+            m: 0,
+            fontSize: { xs: "1.1rem", sm: "1.3rem", md: "1.5rem" },
+          }}
         >
           Detalhes da Turma
         </Typography>
       </Box>
 
-      {/* Seção de Horário (Agora como um Card) */}
+      {/* Seção de Horário (Card) */}
       <Card
         sx={{
           backgroundColor: "#FFFFFF",
           boxShadow: `0 6px 12px rgba(8, 118, 25, 0.1), 0 3px 6px rgba(8, 118, 25, 0.05)`,
           borderRadius: 2,
           border: `1px solid ${greyBorder}`,
-          p: 2,
+          p: { xs: 1, sm: 1.5, md: 2 },
         }}
       >
         <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
@@ -228,30 +246,60 @@ const ClassDetailsList = () => {
             sx={{
               display: "flex",
               alignItems: "center",
-              mb: 2,
-              pb: 1,
+              mb: { xs: 0.5, sm: 1, md: 2 },
+              pb: { xs: 0.5, sm: 1 },
               borderBottom: `1px solid ${greyDivider}`,
             }}
           >
-            <History sx={{ fontSize: 30, color: greenPrimary, mr: 1 }} />
+            <History
+              sx={{
+                fontSize: { xs: 20, sm: 24, md: 30 },
+                color: greenPrimary,
+                mr: 1,
+              }}
+            />
             <Typography
               variant="h6"
-              sx={{ fontWeight: "bold", color: greenPrimary }}
+              sx={{
+                fontWeight: "bold",
+                color: greenPrimary,
+                fontSize: { xs: "0.9rem", sm: "1rem", md: "1.25rem" },
+              }}
             >
               Horário
             </Typography>
           </Box>
 
           {loading ? (
-            <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                p: { xs: 1, sm: 2, md: 3 },
+              }}
+            >
               <CircularProgress sx={{ color: greenPrimary }} />
             </Box>
           ) : error ? (
-            <Typography variant="body1" color="error">
+            <Typography
+              variant="body1"
+              color="error"
+              sx={{
+                p: { xs: 1, sm: 2 },
+                fontSize: { xs: "0.8rem", sm: "0.875rem", md: "1rem" },
+              }}
+            >
               {error}
             </Typography>
           ) : !hasSchedule ? (
-            <Typography variant="body1" color="text.secondary" sx={{ p: 2 }}>
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              sx={{
+                p: { xs: 1, sm: 2 },
+                fontSize: { xs: "0.8rem", sm: "0.875rem", md: "1rem" },
+              }}
+            >
               Nenhum horário disponível para esta grade de turma.
             </Typography>
           ) : (
@@ -266,65 +314,160 @@ const ClassDetailsList = () => {
                   <Box
                     key={turno}
                     sx={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      mb: 4,
-                      gap: 2,
+                      display: { xs: "block", sm: "flex" },
+                      alignItems: { sm: "flex-start" },
+                      mb: { xs: 1.5, sm: 2, md: 4 },
+                      gap: { sm: 2 },
                     }}
                   >
-                    {/* Título do Turno na Vertical */}
+                    {/* Título do Turno */}
                     <Box
                       sx={{
                         backgroundColor: greenLight,
-                        py: 1,
-                        px: 2,
+                        py: { xs: 0.5, sm: 1 },
+                        px: { xs: 1, sm: 2 },
                         borderRadius: 1,
                         textAlign: "center",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        minHeight: "100px",
-                        alignSelf: "stretch",
+                        width: { xs: "100%", sm: "40px" },
+                        minHeight: { xs: "auto", sm: "100px" },
                         flexShrink: 0,
                       }}
                     >
                       <Typography
                         variant="h6"
                         sx={{
-                          writingMode: "vertical-rl",
-                          textOrientation: "mixed",
-                          transform: "rotate(180deg)",
+                          writingMode: {
+                            xs: "horizontal-tb",
+                            sm: "vertical-rl",
+                          },
+                          textOrientation: { sm: "mixed" },
+                          transform: { sm: "rotate(180deg)" },
                           fontWeight: "bold",
                           color: greenPrimary,
-                          letterSpacing: "2px",
+                          letterSpacing: { sm: "2px" },
+                          fontSize: { xs: "0.9rem", sm: "1rem", md: "1.1rem" },
                         }}
                       >
                         {turno}
                       </Typography>
                     </Box>
 
-                    {/* Tabela para o Turno */}
+                    {/* Mobile: Card-based layout */}
+                    <Box
+                      sx={{
+                        display: { xs: "block", sm: "none" },
+                      }}
+                    >
+                      {scheduleForTurno.map((row, index) => (
+                        <Box
+                          key={index}
+                          sx={{
+                            mb: 1,
+                            p: 1,
+                            border: `1px solid ${greyBorder}`,
+                            borderRadius: 1,
+                            backgroundColor: "#fff",
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              fontWeight: "bold",
+                              fontSize: "0.8rem",
+                              color: textColor,
+                              mb: 0.5,
+                            }}
+                          >
+                            {row.timeSlot || "N/A"}
+                          </Typography>
+                          {daysOfWeek.map(
+                            (day) =>
+                              row[day] && (
+                                <Box
+                                  key={day}
+                                  sx={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    py: 0.5,
+                                  }}
+                                >
+                                  <Typography
+                                    sx={{
+                                      fontSize: "0.75rem",
+                                      color: textColor,
+                                    }}
+                                  >
+                                    {day}:
+                                  </Typography>
+                                  <Box sx={{ textAlign: "right" }}>
+                                    <Typography
+                                      sx={{
+                                        fontSize: "0.75rem",
+                                        color: textColor,
+                                      }}
+                                    >
+                                      {row[day].disciplineAcronym}
+                                    </Typography>
+                                    <Typography
+                                      sx={{
+                                        fontSize: "0.7rem",
+                                        color: textSecondaryColor,
+                                      }}
+                                    >
+                                      {" "}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                              )
+                          )}
+                        </Box>
+                      ))}
+                    </Box>
+
+                    {/* Desktop/Tablet: Table layout */}
                     <TableContainer
                       component={Paper}
                       elevation={0}
                       sx={{
+                        display: { xs: "none", sm: "block" },
                         flex: 1,
                         border: `1px solid ${greyBorder}`,
                         borderRadius: 2,
+                        overflowX: "auto",
                       }}
                     >
                       <Table size="small">
                         <TableHead>
                           <TableRow>
                             <TableCell
-                              sx={{ fontWeight: "bold", color: textColor }}
+                              scope="col"
+                              sx={{
+                                fontWeight: "bold",
+                                color: textColor,
+                                fontSize: {
+                                  sm: "0.8rem",
+                                  md: "0.875rem",
+                                },
+                                minWidth: 80,
+                              }}
                             >
                               Horário
                             </TableCell>
                             {daysOfWeek.map((day) => (
                               <TableCell
                                 key={day}
-                                sx={{ fontWeight: "bold", color: textColor }}
+                                scope="col"
+                                sx={{
+                                  fontWeight: "bold",
+                                  color: textColor,
+                                  fontSize: {
+                                    sm: "0.8rem",
+                                    md: "0.875rem",
+                                  },
+                                  minWidth: 60,
+                                }}
                               >
                                 {day}
                               </TableCell>
@@ -341,7 +484,15 @@ const ClassDetailsList = () => {
                                 },
                               }}
                             >
-                              <TableCell sx={{ color: textColor }}>
+                              <TableCell
+                                sx={{
+                                  color: textColor,
+                                  fontSize: {
+                                    sm: "0.8rem",
+                                    md: "0.875rem",
+                                  },
+                                }}
+                              >
                                 {row.timeSlot || "N/A"}
                               </TableCell>
                               {daysOfWeek.map((day) => (
@@ -356,21 +507,37 @@ const ClassDetailsList = () => {
                                     >
                                       <Typography
                                         variant="body2"
-                                        sx={{ color: textColor }}
+                                        sx={{
+                                          color: textColor,
+                                          fontSize: {
+                                            sm: "0.8rem",
+                                            md: "0.875rem",
+                                          },
+                                        }}
                                       >
                                         {row[day].disciplineAcronym}
                                       </Typography>
                                       <Typography
                                         variant="body2"
                                         color={textSecondaryColor}
-                                      >
-                                        {row[day].professorAcronym}
-                                      </Typography>
+                                        sx={{
+                                          fontSize: {
+                                            sm: "0.8rem",
+                                            md: "0.875rem",
+                                          },
+                                        }}
+                                      ></Typography>
                                     </Box>
                                   ) : (
                                     <Typography
                                       variant="body2"
                                       color={textSecondaryColor}
+                                      sx={{
+                                        fontSize: {
+                                          sm: "0.8rem",
+                                          md: "0.875rem",
+                                        },
+                                      }}
                                     >
                                       -
                                     </Typography>
@@ -390,14 +557,14 @@ const ClassDetailsList = () => {
         </CardContent>
       </Card>
 
-      {/* Card de Legenda (Mantido em baixo) */}
+      {/* Card de Legenda */}
       <Card
         sx={{
           backgroundColor: "#FFFFFF",
           boxShadow: `0 6px 12px rgba(8, 118, 25, 0.1), 0 3px 6px rgba(8, 118, 25, 0.05)`,
           borderRadius: 2,
           border: `1px solid ${greyBorder}`,
-          p: 2,
+          p: { xs: 1, sm: 1.5, md: 2 },
         }}
       >
         <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
@@ -405,42 +572,98 @@ const ClassDetailsList = () => {
             sx={{
               display: "flex",
               alignItems: "center",
-              mb: 2,
-              pb: 1,
+              mb: { xs: 0.5, sm: 1, md: 2 },
+              pb: { xs: 0.5, sm: 1 },
               borderBottom: `1px solid ${greyDivider}`,
             }}
           >
-            <Class sx={{ fontSize: 30, color: greenPrimary, mr: 1 }} />
+            <Class
+              sx={{
+                fontSize: { xs: 20, sm: 24, md: 30 },
+                color: greenPrimary,
+                mr: 1,
+              }}
+            />
             <Typography
               variant="h6"
-              sx={{ fontWeight: "bold", color: greenPrimary }}
+              sx={{
+                fontWeight: "bold",
+                color: greenPrimary,
+                fontSize: { xs: "0.9rem", sm: "1rem", md: "1.25rem" },
+              }}
             >
               Turma
             </Typography>
           </Box>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: { xs: 0.5, sm: 0.75, md: 1 },
+            }}
+          >
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <School sx={{ fontSize: 20, color: greenPrimary }} />
-              <Typography sx={{ color: textColor }}>
+              <School
+                sx={{
+                  fontSize: { xs: 14, sm: 16, md: 20 },
+                  color: greenPrimary,
+                }}
+              />
+              <Typography
+                sx={{
+                  color: textColor,
+                  fontSize: { xs: "0.8rem", sm: "0.875rem", md: "1rem" },
+                }}
+              >
                 <strong>Curso:</strong> {classItem.course || "N/A"}
               </Typography>
             </Box>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <CalendarToday sx={{ fontSize: 20, color: greenPrimary }} />
-              <Typography sx={{ color: textColor }}>
+              <CalendarToday
+                sx={{
+                  fontSize: { xs: 14, sm: 16, md: 20 },
+                  color: greenPrimary,
+                }}
+              />
+              <Typography
+                sx={{
+                  color: textColor,
+                  fontSize: { xs: "0.8rem", sm: "0.875rem", md: "1rem" },
+                }}
+              >
                 <strong>Calendário Letivo:</strong>{" "}
                 {classItem.calendar || "N/A"}
               </Typography>
             </Box>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <MenuBook sx={{ fontSize: 20, color: greenPrimary }} />
-              <Typography sx={{ color: textColor }}>
+              <MenuBook
+                sx={{
+                  fontSize: { xs: 14, sm: 16, md: 20 },
+                  color: greenPrimary,
+                }}
+              />
+              <Typography
+                sx={{
+                  color: textColor,
+                  fontSize: { xs: "0.8rem", sm: "0.875rem", md: "1rem" },
+                }}
+              >
                 <strong>Disciplina:</strong> {fullDisciplineName}
               </Typography>
             </Box>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <AccessTime sx={{ fontSize: 20, color: greenPrimary }} />
-              <Typography sx={{ color: textColor }}>
+              <AccessTime
+                sx={{
+                  fontSize: { xs: 14, sm: 16, md: 20 },
+                  color: greenPrimary,
+                }}
+              />
+              <Typography
+                sx={{
+                  color: textColor,
+                  fontSize: { xs: "0.8rem", sm: "0.875rem", md: "1rem" },
+                }}
+              >
                 <strong>Turno:</strong> {classItem.shift || "N/A"}
               </Typography>
             </Box>

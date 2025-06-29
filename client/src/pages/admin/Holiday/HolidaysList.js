@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, FormControl, InputLabel, MenuItem, Button } from '@mui/material';
+import { Box, Typography, FormControl, InputLabel, MenuItem, Button, IconButton } from '@mui/material';
+import { ArrowBack } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import DeleteConfirmationDialog from '../../../components/DeleteConfirmationDialog';
 import api from '../../../service/api';
 import HolidayFormDialog from "../../../components/HolidayForm/HolidayFormDialog";
@@ -17,6 +19,7 @@ const HolidaysList = () => {
     const [holidayToEdit, setHolidayToEdit] = useState(null);
     const [loading, setLoading] = useState(true);
     const [alert, setAlert] = useState(null);
+    const navigate = useNavigate();
 
     const handleAlertClose = () => {
         setAlert(null);
@@ -74,7 +77,6 @@ const HolidaysList = () => {
         setOpenFormDialog(true);
     };
 
-    // Função atualizada para aceitar o ID do feriado, semelhante ao SaturdaySchoolList
     const handleDeleteClick = (holidayId) => {
         const holiday = holidays.find((h) => h.id === holidayId);
         console.log("Feriado recebido para exclusão:", holiday);
@@ -83,7 +85,6 @@ const HolidaysList = () => {
         setOpenDeleteDialog(true);
     };
 
-    // Função atualizada para manter consistência com SaturdaySchoolList
     const handleConfirmDelete = async () => {
         try {
             await api.delete(`/holidays/${holidayToDelete.id}`);
@@ -110,6 +111,10 @@ const HolidaysList = () => {
         }
     };
 
+    const handleBackClick = () => {
+        navigate(-1);
+    };
+
     const filteredHolidays = holidays;
 
     const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() + i);
@@ -126,14 +131,37 @@ const HolidaysList = () => {
                 gap: 2,
             }}
         >
-            <Typography
-                variant='h5'
-                align='center'
-                gutterBottom
-                sx={{ fontWeight: 'bold', mt: 2, mb: 2 }}
+            <Box
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    position: 'relative',
+                    mb: 2,
+                }}
             >
-                Feriados
-            </Typography>
+                <IconButton
+                    onClick={handleBackClick}
+                    sx={{
+                        position: 'absolute',
+                        left: 0,
+                        color: '#087619',
+                        '&:hover': {
+                            backgroundColor: 'rgba(8, 118, 25, 0.08)',
+                        },
+                    }}
+                >
+                    <ArrowBack />
+                </IconButton>
+                <Typography
+                    variant='h5'
+                    align='center'
+                    gutterBottom
+                    sx={{ fontWeight: 'bold', mt: 2, mb: 2, color: '#087619' }}
+                >
+                    Feriados
+                </Typography>
+            </Box>
 
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
@@ -160,7 +188,7 @@ const HolidaysList = () => {
                         }}
                     >
                         <InputLabel id="year-filter-label">Ano</InputLabel>
-                        <StyledSelect // Changed to StyledSelect
+                        <StyledSelect
                             labelId="year-filter-label"
                             value={year}
                             label="Ano"
@@ -173,7 +201,7 @@ const HolidaysList = () => {
                                     borderColor: '#000000',
                                 },
                             }}
-                            MenuProps={{ // Added MenuProps for hover and selected styles
+                            MenuProps={{
                                 PaperProps: {
                                     sx: {
                                         maxHeight: '200px',
@@ -223,7 +251,7 @@ const HolidaysList = () => {
                         }}
                     >
                         <InputLabel id="type-filter-label">Tipo</InputLabel>
-                        <StyledSelect // Changed to StyledSelect
+                        <StyledSelect
                             labelId="type-filter-label"
                             value={typeFilter}
                             label="Tipo"
@@ -236,7 +264,7 @@ const HolidaysList = () => {
                                     borderColor: '#000000',
                                 },
                             }}
-                            MenuProps={{ // Added MenuProps for hover and selected styles
+                            MenuProps={{
                                 PaperProps: {
                                     sx: {
                                         maxHeight: '200px',

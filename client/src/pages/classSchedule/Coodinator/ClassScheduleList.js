@@ -35,32 +35,35 @@ const ClassScheduleList = () => {
 
         const determineTurn = (turnCounts) => {
           const { MATUTINO, VESPERTINO, NOTURNO } = turnCounts;
-
           const totalLessons = MATUTINO + VESPERTINO + NOTURNO;
 
           if (totalLessons === 0) {
             return "N/A";
           }
-
-          const maxLessons = Math.max(MATUTINO, VESPERTINO, NOTURNO);
-
-          const maxShifts = [
+          const shifts = [
             { shift: "Manhã", count: MATUTINO },
             { shift: "Tarde", count: VESPERTINO },
             { shift: "Noite", count: NOTURNO },
-          ].filter((s) => s.count === maxLessons);
+          ];
 
-          if (maxShifts.length > 1) {
-            return "Integral";
+          const sortedShifts = shifts.sort((a, b) => b.count - a.count);
+          const maxLessons = sortedShifts[0].count;
+          const secondMaxLessons = sortedShifts[1].count;
+
+          if (totalLessons <= 4) {
+            const maxShifts = shifts.filter((s) => s.count === maxLessons);
+            if (maxShifts.length > 1) {
+              return "Integral";
+            }
+            return maxShifts[0].shift;
           }
 
-          if (maxLessons === MATUTINO) return "Manhã";
-          if (maxLessons === VESPERTINO) return "Tarde";
-          if (maxLessons === NOTURNO) return "Noite";
-
-          return "N/A";
+          const threshold = 5;
+          if (maxLessons > 0 && secondMaxLessons > 0 && maxLessons - secondMaxLessons <= threshold) {
+            return "Integral";
+          }
+          return sortedShifts[0].shift;
         };
-        console.log("Raw Schedules:", response.data.schedules);
 
         const schedules = Array.isArray(response.data.schedules)
           ? response.data.schedules
@@ -74,7 +77,6 @@ const ClassScheduleList = () => {
             }))
           : [];
 
-        console.log("Mapped Schedules:", schedules);
         setSchedules(schedules);
 
         const uniqueCalendars = [
@@ -104,12 +106,10 @@ const ClassScheduleList = () => {
   };
 
   const handleViewClick = (item) => {
-    console.log("View Clicked Item:", item);
     navigate(`/class-schedule/details/${item.id}`);
   };
 
   const handleCustomEdit = (item) => {
-    console.log("Edit Clicked Item:", item);
     navigate(`/class-schedule/edit/${item.id}`, { state: { schedule: item } });
   };
 
@@ -125,8 +125,6 @@ const ClassScheduleList = () => {
     const matchesClass = selectedClass ? item.class === selectedClass : true;
     return matchesSearch && matchesCalendar && matchesClass;
   });
-
-  console.log("Filtered Schedules:", filteredSchedules);
 
   return (
     <Box
@@ -149,12 +147,6 @@ const ClassScheduleList = () => {
         Grade de Turma
       </Typography>
 
-      {loading && (
-        <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
-          <Typography>Carregando...</Typography>
-        </Box>
-      )}
-
       {alert && (
         <CustomAlert
           message={alert.message}
@@ -173,7 +165,7 @@ const ClassScheduleList = () => {
           mb: 1,
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2}}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Box
             sx={{
               borderRadius: "8px",
@@ -344,6 +336,7 @@ const ClassScheduleList = () => {
         onUpdate={handleCustomEdit}
         search={search}
         showActions={true}
+        loading={loading}
         renderActions={(item) => (
           <>
             <IconButton

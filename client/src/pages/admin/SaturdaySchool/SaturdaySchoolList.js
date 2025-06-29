@@ -1,6 +1,7 @@
-
 import React, { useState, useEffect } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, IconButton } from "@mui/material";
+import { ArrowBack } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 import SearchAndCreateBar from "../../../components/homeScreen/SearchAndCreateBar";
 import api from "../../../service/api";
 import SaturdaySchoolTable from "./SaturdaySchoolTable";
@@ -23,6 +24,7 @@ const SaturdaySchoolList = () => {
   const [saturdaySchoolToDelete, setSaturdaySchoolToDelete] = useState(null);
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const handleAlertClose = () => {
     setAlert(null);
@@ -131,6 +133,10 @@ const SaturdaySchoolList = () => {
     }
   };
 
+  const handleBackClick = () => {
+    navigate(-1);
+  };
+
   const filteredSaturdaySchools = Array.isArray(saturdaySchools)
     ? saturdaySchools.filter((saturdaySchool) => {
         const normalizedSearch = search
@@ -177,14 +183,37 @@ const SaturdaySchoolList = () => {
         gap: 2,
       }}
     >
-      <Typography
-        variant="h5"
-        align="center"
-        gutterBottom
-        sx={{ mt: 2, mb: 2, fontWeight: "bold" }}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "relative",
+          mb: 2,
+        }}
       >
-        Sábados Letivos
-      </Typography>
+        <IconButton
+          onClick={handleBackClick}
+          sx={{
+            position: "absolute",
+            left: 0,
+            color: "#087619",
+            "&:hover": {
+              backgroundColor: "rgba(8, 118, 25, 0.08)",
+            },
+          }}
+        >
+          <ArrowBack />
+        </IconButton>
+        <Typography
+          variant="h5"
+          align="center"
+          gutterBottom
+          sx={{ mt: 2, mb: 2, fontWeight: "bold", color: "#087619" }}
+        >
+          Sábados Letivos
+        </Typography>
+      </Box>
       <SearchAndCreateBar
         searchValue={search}
         onSearchChange={(e) => setSearch(e.target.value)}

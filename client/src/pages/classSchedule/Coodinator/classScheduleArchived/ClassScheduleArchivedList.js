@@ -8,7 +8,7 @@ import {
   MenuItem,
   CssBaseline
 } from "@mui/material";
-import { FilterListAlt, Visibility } from "@mui/icons-material";
+import { FilterListAlt, ArrowBack, Visibility } from "@mui/icons-material";
 import { CustomAlert } from "../../../../components/alert/CustomAlert";
 import ClassScheduleTable from "../ClassScheduleTable";
 import { StyledSelect } from "../../../../components/inputs/Input";
@@ -118,14 +118,23 @@ const ClassScheduleListArchived = ({ setAuthenticated }) => {
           gap: 1,
         }}
       >
-        <Typography
-          variant="h5"
-          align="center"
-          gutterBottom
-          sx={{ fontWeight: "bold", mt: "45px", mb: 3 }}
+        <Box
+          sx={{
+            position: "relative",
+            alignItems: "center",
+            gap: 1,
+            mb: 3,
+          }}
         >
-          Grades Arquivadas
-        </Typography>
+          <IconButton onClick={() => navigate("/class-schedule/options")}
+            sx={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)", mt: 4 }}  
+          >
+            <ArrowBack sx={{ color: "green", fontSize: "2.2rem" }} />
+          </IconButton>
+          <Typography variant="h5" align="center" sx={{ fontWeight: "bold", mt: "47px" }}>
+            Grade de Turmas Arquivadas
+          </Typography>
+        </Box>
 
         {loading && (
           <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>

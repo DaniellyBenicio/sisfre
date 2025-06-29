@@ -36,15 +36,17 @@ const DataTable = ({
     setPage(newPage);
   };
 
+  const MAX_SEARCH_RESULTS = 6;
+
   const visibleData = useMemo(() => {
-  if (!Array.isArray(data)) return [];
-  if (search && search.trim()) {
-    return data;
-  }
-  const startIndex = (page - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
-  return data.slice(startIndex, endIndex);
-}, [data, page, rowsPerPage, search]);
+    if (!Array.isArray(data)) return [];
+    if (search && search.trim().length >= 2) {
+      return data.slice(0, MAX_SEARCH_RESULTS);
+    }
+    const startIndex = (page - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    return data.slice(startIndex, endIndex);
+  }, [data, page, rowsPerPage, search]);
 
   const tableHeadStyle = {
     fontWeight: "bold",
@@ -147,7 +149,7 @@ const DataTable = ({
             )
           )
         )}
-        {data.length > rowsPerPage && (
+        {(!search || search.trim().length < 2) && data.length > rowsPerPage && (
           <Paginate
             count={Math.ceil(
               (Array.isArray(data) ? data.length : 0) / rowsPerPage
@@ -240,7 +242,7 @@ const DataTable = ({
           </TableBody>
         </Table>
       </TableContainer>
-      {data.length > rowsPerPage && (
+      {(!search || search.trim().length < 2) && data.length > rowsPerPage && (
         <Paginate
           count={Math.ceil(
             (Array.isArray(data) ? data.length : 0) / rowsPerPage

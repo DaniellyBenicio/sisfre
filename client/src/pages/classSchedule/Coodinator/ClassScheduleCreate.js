@@ -453,7 +453,9 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
 
   const handleConfirmDelete = () => {
     if (detailToDelete) {
-      const hourIds = detailToDelete.hourId ? detailToDelete.hourId.split(",").map(id => id.trim()) : [];
+      const hourIds = typeof detailToDelete.hourId === 'string' 
+        ? detailToDelete.hourId.split(",").map(id => id.trim()) 
+        : [String(detailToDelete.hourId)];
       setConfirmedDetails((prev) => {
         const newDetails = prev.filter(
           (detail) =>
@@ -879,10 +881,8 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                   color: 'green',
                   borderWidth: 1.5,
                   borderColor: 'green',
-                  gap: "8px",
-                  "&:hover": {
-                    borderColor: "#065412",
-                    color: "#065412",
+                  gapjoner: {
+                    offset: [20, -8],
                   },
                 }}
               >

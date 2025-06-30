@@ -512,7 +512,9 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
 
   const handleConfirmDelete = () => {
     if (detailToDelete) {
-      const hourIds = detailToDelete.hourId ? detailToDelete.hourId.split(",").map(id => id.trim()) : [];
+      const hourIds = typeof detailToDelete.hourId === 'string' 
+        ? detailToDelete.hourId.split(",").map(id => id.trim()) 
+        : [String(detailToDelete.hourId)];
       setConfirmedDetails((prev) => {
         const newDetails = prev.filter(
           (detail) =>
@@ -995,10 +997,8 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                   borderWidth: 1.5,
                   borderColor: 'green',
                   gap: "8px",
-                  "&:hover": {
-                    borderColor: "#065412",
-                    color: "#065412",
-                  },
+                  "&:hover": { borderColor: "#065412", color: "#065412", },
+                  gapjoner: { offset: [20, -8], },
                 }}
               >
                 <Check sx={{ fontSize: 24, color: "green"}} />

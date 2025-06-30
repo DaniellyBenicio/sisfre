@@ -1,4 +1,5 @@
 import db from '../../models/index.js';
+import { Op } from 'sequelize';
 
 export const createClass = async (req, res) => {
   const { courseId, semester } = req.body;
@@ -8,39 +9,38 @@ export const createClass = async (req, res) => {
   }
 
   try {
-    const existing = await db.Class.findOne({
-      include: [{
-        model: db.Course,
-        as: "course",
-        where: { id: courseId }
-      }],
-      where: { semester }
+    let classInstance = await db.Class.findOne({ where: { semester } });
+
+    if (!classInstance) {
+      classInstance = await db.Class.create({ semester });
+    }
+
+    const existing = await db.CourseClass.findOne({
+      where: { courseId, classId: classInstance.id }
     });
     if (existing) {
       return res.status(400).json({ error: "Já existe uma turma com esses dados." });
     }
 
-    const newClass = await db.Class.create({ semester });
+    await db.CourseClass.create({ courseId, classId: classInstance.id });
 
-    await newClass.addCourse(courseId);
-
-    const turmaComCurso = await db.Class.findByPk(newClass.id, {
-      include: [{ model: db.Course, as: "course" }]
+    const turmaComCurso = await db.CourseClass.findOne({
+      where: { courseId, classId: classInstance.id },
+      include: [
+        { model: db.Course, as: "course" },
+        { model: db.Class, as: "class" }
+      ]
     });
-
-    const course = Array.isArray(turmaComCurso.course) && turmaComCurso.course.length > 0
-      ? turmaComCurso.course[0]
-      : null;
 
     res.status(201).json({
       message: "Turma cadastrada com sucesso.",
       class: {
-        id: turmaComCurso.id,
-        semester: turmaComCurso.semester,
-        createdAt: turmaComCurso.createdAt,
-        updatedAt: turmaComCurso.updatedAt,
-        courseId: course ? course.id : null,
-        course: course
+        id: turmaComCurso.class.id,
+        semester: turmaComCurso.class.semester,
+        createdAt: turmaComCurso.class.createdAt,
+        updatedAt: turmaComCurso.class.updatedAt,
+        courseId: turmaComCurso.course.id,
+        course: turmaComCurso.course
       }
     });
   } catch (error) {
@@ -50,7 +50,7 @@ export const createClass = async (req, res) => {
 };
 
 export const updateClass = async (req, res) => {
-  const classId = req.params.id;
+  const courseClassId = req.params.courseClassId;
   const { courseId, semester } = req.body;
 
   if (!courseId || !semester) {
@@ -58,50 +58,59 @@ export const updateClass = async (req, res) => {
   }
 
   try {
-    const turma = await db.Class.findByPk(classId, {
-      include: [{ model: db.Course, as: "course" }]
+    const courseClass = await db.CourseClass.findByPk(courseClassId, {
+      include: [{ model: db.Class, as: "class" }]
     });
-    if (!turma) {
-      return res.status(404).json({ error: "Turma não encontrada." });
+    if (!courseClass) {
+      return res.status(404).json({ error: "Vínculo não encontrado." });
     }
 
-    const duplicate = await db.Class.findOne({
-      include: [{
-        model: db.Course,
-        as: "course",
-        where: { id: courseId }
-      }],
+    // Busca (ou cria) a turma (Class) com o semestre desejado
+    let classInstance = await db.Class.findOne({ where: { semester } });
+    if (!classInstance) {
+      classInstance = await db.Class.create({ semester });
+    }
+
+    // Verifica se já existe outro vínculo com o mesmo courseId e classId (exceto o atual)
+    const existing = await db.CourseClass.findOne({
       where: {
-        semester,
-        id: { [db.Sequelize.Op.ne]: classId }
+        courseId,
+        classId: classInstance.id,
+        id: { [db.Sequelize.Op.ne]: courseClassId }
       }
     });
-    if (duplicate) {
+    if (existing) {
       return res.status(400).json({ error: "Já existe uma turma com esses dados." });
     }
 
-    turma.semester = semester;
-    await turma.save();
+    // Atualiza o vínculo
+    courseClass.classId = classInstance.id;
+    courseClass.courseId = courseId;
+    await courseClass.save();
 
-    await turma.setCourse([courseId]);
+    // Atualiza o semestre da turma (caso tenha mudado)
+    if (courseClass.class.semester !== semester) {
+      courseClass.class.semester = semester;
+      await courseClass.class.save();
+    }
 
-    const turmaComCurso = await db.Class.findByPk(classId, {
-      include: [{ model: db.Course, as: "course" }]
+    const turmaComCurso = await db.CourseClass.findByPk(courseClassId, {
+      include: [
+        { model: db.Course, as: "course" },
+        { model: db.Class, as: "class" }
+      ]
     });
-
-    const course = Array.isArray(turmaComCurso.course) && turmaComCurso.course.length > 0
-      ? turmaComCurso.course[0]
-      : null;
 
     res.status(200).json({
       message: "Turma atualizada com sucesso.",
       class: {
-        id: turmaComCurso.id,
-        semester: turmaComCurso.semester,
-        createdAt: turmaComCurso.createdAt,
-        updatedAt: turmaComCurso.updatedAt,
-        courseId: course ? course.id : null,
-        course: course
+        courseClassId: turmaComCurso.id,
+        id: turmaComCurso.class.id,
+        semester: turmaComCurso.class.semester,
+        createdAt: turmaComCurso.class.createdAt,
+        updatedAt: turmaComCurso.class.updatedAt,
+        courseId: turmaComCurso.course.id,
+        course: turmaComCurso.course
       }
     });
   } catch (error) {
@@ -134,7 +143,9 @@ export const getClasses = async (req, res) => {
     });
 
     const classes = rows.map(row => ({
-      id: row.class.id,
+      id: row.id, // <-- ESSENCIAL PARA O FRONTEND
+      courseClassId: row.id,
+      classId: row.class.id,
       semester: row.class.semester,
       createdAt: row.class.createdAt,
       updatedAt: row.class.updatedAt,
@@ -156,24 +167,29 @@ export const getClasses = async (req, res) => {
 
 export const getAllClasses = async (req, res) => {
   try {
-    const classes = await db.Class.findAll({
-      order: [["createdAt", "DESC"]],
-      include: [{ model: db.Course, as: "course" }]
+    const rows = await db.CourseClass.findAll({
+      include: [
+        { model: db.Course, as: "course" },
+        { model: db.Class, as: "class" }
+      ],
+      order: [
+        [{ model: db.Course, as: "course" }, "id", "ASC"],
+        [{ model: db.Class, as: "class" }, "semester", "ASC"]
+      ]
     });
 
-    const result = classes.map(cls => {
-      const course = Array.isArray(cls.course) && cls.course.length > 0 ? cls.course[0] : null;
-      return {
-        id: cls.id,
-        semester: cls.semester,
-        createdAt: cls.createdAt,
-        updatedAt: cls.updatedAt,
-        courseId: course ? course.id : null,
-        course: course
-      };
-    });
+    const classes = rows.map(row => ({
+      id: row.id, // <-- ESSENCIAL PARA O FRONTEND
+      courseClassId: row.id,
+      classId: row.class.id,
+      semester: row.class.semester,
+      createdAt: row.class.createdAt,
+      updatedAt: row.class.updatedAt,
+      courseId: row.course.id,
+      course: row.course
+    }));
 
-    res.json({ classes: result });
+    res.json({ classes });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Erro ao listar turmas." });
@@ -181,23 +197,26 @@ export const getAllClasses = async (req, res) => {
 };
 
 export const getClassById = async (req, res) => {
-  const classId = req.params.id;
+  const courseClassId = req.params.courseClassId;
   try {
-    const turma = await db.Class.findByPk(classId, {
-      include: [{ model: db.Course, as: "course" }]
+    const row = await db.CourseClass.findByPk(courseClassId, {
+      include: [
+        { model: db.Course, as: "course" },
+        { model: db.Class, as: "class" }
+      ]
     });
-    if (!turma) {
+    if (!row) {
       return res.status(404).json({ error: "Turma não encontrada." });
     }
-    const course = Array.isArray(turma.course) && turma.course.length > 0 ? turma.course[0] : null;
     res.json({
       class: {
-        id: turma.id,
-        semester: turma.semester,
-        createdAt: turma.createdAt,
-        updatedAt: turma.updatedAt,
-        courseId: course ? course.id : null,
-        course: course
+        id: row.class.id,
+        courseClassId: row.id,
+        semester: row.class.semester,
+        createdAt: row.class.createdAt,
+        updatedAt: row.class.updatedAt,
+        courseId: row.course.id,
+        course: row.course
       }
     });
   } catch (error) {
@@ -207,17 +226,25 @@ export const getClassById = async (req, res) => {
 };
 
 export const deleteClass = async (req, res) => {
-  const classId = req.params.id;
+  const courseClassId = req.params.courseClassId;
+
   try {
-    const turma = await db.Class.findByPk(classId);
-    if (!turma) {
-      return res.status(404).json({ error: "Turma não encontrada." });
+    const courseClass = await db.CourseClass.findByPk(courseClassId);
+    if (!courseClass) {
+      return res.status(404).json({ error: "Vínculo não encontrado." });
     }
-    await turma.setCourse([]);
-    await turma.destroy();
-    res.status(200).json({ message: "Turma excluída com sucesso." });
+
+    const classId = courseClass.classId;
+    await courseClass.destroy();
+
+    const remainingLinks = await db.CourseClass.count({ where: { classId } });
+    if (remainingLinks === 0) {
+      await db.Class.destroy({ where: { id: classId } });
+    }
+
+    res.status(200).json({ message: "Vínculo (ou turma) excluído com sucesso." });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Erro ao excluir turma." });
+    res.status(500).json({ error: "Erro ao excluir vínculo/turma." });
   }
 };

@@ -25,14 +25,12 @@ const ClassesList = () => {
     const fetchClasses = async () => {
       try {
         setLoading(true);
-        const response = await api.get('/classes?limit=1000');
-        console.log('Resposta da API /classes:', response.data);
-
+        const response = await api.get('/classes-all');
+        console.log('Resposta da API:', response.data);
         let classesArray = Array.isArray(response.data)
           ? response.data
           : response.data.classes || response.data.data || [];
-        
-        // Normaliza os dados
+
         classesArray = classesArray.map((item) => ({
           ...item,
           course: item.course || { id: item.courseId, name: 'Desconhecido' },
@@ -56,7 +54,7 @@ const ClassesList = () => {
   const handleRegisterOrUpdate = (updatedClass, isEditMode) => {
     try {
       if (isEditMode) {
-        setClasses(classes.map((c) => (c.id === updatedClass.id ? updatedClass : c)));
+        setClasses(classes.map((c) => (c.courseClassId === updatedClass.courseClassId ? updatedClass : c)));
         setAlert({
           message: `Turma ${updatedClass.course.name} atualizada com sucesso!`,
           type: 'success',
@@ -84,19 +82,18 @@ const ClassesList = () => {
     setOpenDialog(true);
   };
 
-  const handleDeleteClick = (classId) => {
-    const classItem = classes.find((c) => c.id === classId);
+  const handleDeleteClick = (courseClassId) => {
+    const classItem = classes.find((c) => c.courseClassId === courseClassId);
     console.log('Turma recebida para exclusão:', classItem);
-    console.log('ID da turma a ser excluída:', classId);
+    console.log('ID da turma a ser excluída:', courseClassId);
     setClassToDelete(classItem);
     setOpenDeleteDialog(true);
   };
 
   const handleConfirmDelete = async () => {
     try {
-      // Chama a rota DELETE /classes/:id com autenticação
-      await api.delete(`/classes/${classToDelete.id}`);
-      setClasses(classes.filter((c) => c.id !== classToDelete.id));
+      await api.delete(`/classes/${classToDelete.courseClassId}`);
+      setClasses(classes.filter((c) => c.courseClassId !== classToDelete.courseClassId));
       setAlert({
         message: `Turma ${classToDelete.course.name} excluída com sucesso!`,
         type: 'success',
@@ -107,8 +104,8 @@ const ClassesList = () => {
         error.response?.status === 401
           ? 'Você não está autorizado a excluir turmas.'
           : error.response?.status === 403
-          ? 'Apenas administradores podem excluir turmas.'
-          : error.response?.data?.error || 'Erro ao excluir turma.';
+            ? 'Apenas administradores podem excluir turmas.'
+            : error.response?.data?.error || 'Erro ao excluir turma.';
       setAlert({
         message: errorMessage,
         type: 'error',
@@ -121,14 +118,14 @@ const ClassesList = () => {
 
   const filteredClasses = Array.isArray(classes)
     ? classes.filter((classItem) => {
-        const normalizedSearch = search.trim().toLowerCase();
-        const normalizedCourse = classItem.course?.name?.toLowerCase() || '';
-        const normalizedSemester = classItem.semester?.toLowerCase() || '';
-        return (
-          normalizedCourse.includes(normalizedSearch) ||
-          normalizedSemester.includes(normalizedSearch)
-        );
-      })
+      const normalizedSearch = search.trim().toLowerCase();
+      const normalizedCourse = classItem.course?.name?.toLowerCase() || '';
+      const normalizedSemester = classItem.semester?.toLowerCase() || '';
+      return (
+        normalizedCourse.includes(normalizedSearch) ||
+        normalizedSemester.includes(normalizedSearch)
+      );
+    })
     : [];
 
   return (

@@ -14,6 +14,7 @@ const ClassesTable = ({ classes, onDelete, onUpdate, search, setAlert }) => {
     ...classItem,
     course: normalizeString(classItem.course?.name),
     semester: normalizeString(classItem.semester),
+    courseClassId: classItem.courseClassId, // garante que está presente
   }));
 
   // Define as colunas da tabela
@@ -42,6 +43,7 @@ const ClassesTable = ({ classes, onDelete, onUpdate, search, setAlert }) => {
       onUpdate={onUpdate}
       search={search}
       renderMobileRow={renderMobileRow}
+      getRowId={(row) => row.courseClassId} // <--- importante!
     />
   );
 };

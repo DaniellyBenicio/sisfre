@@ -1,18 +1,7 @@
 import React, { useEffect, useState } from "react";
-import {
-  Box,
-  Typography,
-  Paper,
-  CssBaseline,
-  IconButton,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Divider,
-  Button,
-  CircularProgress,
+import { Box, Typography, Paper, CssBaseline, IconButton, Table,
+  TableHead, TableRow, TableCell, TableBody, Divider, Button,
+  CircularProgress, TableContainer,
 } from "@mui/material";
 import {
   ArrowBack,
@@ -33,6 +22,19 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
   const [schedule, setSchedule] = useState(initialSchedule);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(!initialSchedule);
+
+  const greenLight = "#E8F5E9";
+  const greenPrimary = "#087619";
+  const greyBorder = "#C7C7C7";
+
+  const getTurnoFromTimeSlot = (timeSlot) => {
+    if (!timeSlot) return null;
+    const [startHour] = timeSlot.split('-').map(t => parseInt(t.split(':')[0]));
+    if (startHour >= 6 && startHour < 12) return "Manhã";
+    if (startHour >= 12 && startHour < 18) return "Tarde";
+    if (startHour >= 18 && startHour <= 23) return "Noite";
+    return null;
+  };
 
   const determineTurn = (data) => {
     let turnCounts = data.turnCounts || {
@@ -135,6 +137,15 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
     return row;
   });
 
+  const groupedByTurno = scheduleMatrix.reduce((acc, row) => {
+    const turno = getTurnoFromTimeSlot(row.timeSlot);
+    if (turno) {
+      if (!acc[turno]) acc[turno] = [];
+      acc[turno].push(row);
+    }
+    return acc;
+  }, { Manhã: [], Tarde: [], Noite: [] });
+
   return (
     <Box display="flex">
       <CssBaseline />
@@ -191,37 +202,99 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
               {error}
             </Typography>
           ) : schedule?.details?.length > 0 ? (
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell><strong>Horário</strong></TableCell>
-                  {daysOfWeek.map((day) => (
-                    <TableCell key={day}><strong>{day}</strong></TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {scheduleMatrix.map((row, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{row.timeSlot || "N/A"}</TableCell>
-                    {daysOfWeek.map((day) => (
-                      <TableCell key={day}>
-                        {row[day] ? (
-                          <Box sx={{ display: "flex", flexDirection: "column" }}>
-                            <Typography variant="body2">{row[day].disciplineAcronym}</Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {row[day].professorAcronym}
-                            </Typography>
-                          </Box>
-                        ) : (
-                          "-"
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            ["Manhã", "Tarde", "Noite"].map((turno) => {
+              const turnoMatrix = groupedByTurno[turno] || [];
+              return (
+                turnoMatrix.length > 0 && (
+                  <Box
+                    key={turno}
+                    sx={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      mb: 4,
+                      gap: 2,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        backgroundColor: greenLight,
+                        py: 1,
+                        px: 2,
+                        borderRadius: 1,
+                        textAlign: "center",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        minHeight: "100px",
+                        alignSelf: "stretch",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          writingMode: "vertical-rl",
+                          textOrientation: "mixed",
+                          transform: "rotate(180deg)",
+                          fontWeight: "bold",
+                          color: greenPrimary,
+                          letterSpacing: "2px",
+                        }}
+                      >
+                        {turno}
+                      </Typography>
+                    </Box>
+                    <TableContainer
+                      component={Paper}
+                      elevation={0}
+                      sx={{
+                        flex: 1,
+                        border: `1px solid ${greyBorder}`,
+                        borderRadius: 2,
+                      }}
+                    >
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell><strong>Horário</strong></TableCell>
+                            {daysOfWeek.map((day) => (
+                              <TableCell key={day}><strong>{day}</strong></TableCell>
+                            ))}
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {turnoMatrix.map((row, index) => (
+                            <TableRow key={index}
+                              sx={{
+                                "&:last-child td, &:last-child th": {
+                                  border: 0,
+                                },
+                              }}
+                            >
+                              <TableCell>{row.timeSlot || "N/A"}</TableCell>
+                              {daysOfWeek.map((day) => (
+                                <TableCell key={day}>
+                                  {row[day] ? (
+                                    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                                      <Typography variant="body2">{row[day].disciplineAcronym}</Typography>
+                                      <Typography variant="body2" color="text.secondary">
+                                        {row[day].professorAcronym}
+                                      </Typography>
+                                    </Box>
+                                  ) : (
+                                    "-"
+                                  )}
+                                </TableCell>
+                              ))}
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </Box>
+                )
+              );
+            })
           ) : (
             <Typography variant="body1" color="text.secondary">
               Nenhum horário disponível para esta grade de turma.

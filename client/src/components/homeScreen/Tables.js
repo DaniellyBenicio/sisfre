@@ -27,7 +27,7 @@ const Tables = ({
 }) => {
   const isMobile = useMediaQuery("(max-width:600px)");
   const [page, setPage] = useState(1);
-  const [rowsPerPage] = useState(5);
+  const [rowsPerPage] = useState(7);
 
   const handleChangePage = (newPage) => {
     setPage(newPage);

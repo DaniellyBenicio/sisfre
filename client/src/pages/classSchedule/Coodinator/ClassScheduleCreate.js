@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box, Typography, Button, FormControl, InputLabel, Select, MenuItem, Grid, Paper, CssBaseline,
-  IconButton, CircularProgress, Alert, Table, TableHead, TableRow, TableCell, TableBody,Divider,
-  Tooltip,
+  IconButton, CircularProgress, Alert, Table, TableHead, TableRow, TableCell, TableBody, Divider,
+  Tooltip, TableContainer
 } from "@mui/material";
 import { ArrowBack, Close, Save, School, History, Delete, AddCircleOutline, Remove, Check } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -107,10 +107,29 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailToDelete, setDetailToDelete] = useState(null);
+  const errorRef = useRef(null);
+
+  useEffect(() => {
+    if (
+      errors.message ||
+      errors.classes ||
+      errors.disciplines ||
+      errors.professors ||
+      errors.calendars ||
+      errors.hours ||
+      errors.detail
+    ) {
+      errorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [errors]);
 
   const handleAlertClose = () => {
     setAlert(null);
   };
+
+  const greenLight = "#E8F5E9";
+  const greenPrimary = "#087619";
+  const greyBorder = "#C7C7C7";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -595,30 +614,50 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           </Typography>
         </Box>
 
-        {errors.message && (
-          <Alert severity="error" sx={{ mb: 2 }}> {errors.message} </Alert>
-        )}
-        {errors.classes && (
-          <Alert severity="warning" sx={{ mb: 2 }}> {errors.classes} </Alert>
-        )}
-        {errors.disciplines && (
-          <Alert severity="warning" sx={{ mb: 2 }}> {errors.disciplines} </Alert>
-        )}
-        {errors.professors && (
-          <Alert severity="warning" sx={{ mb: 2 }}> {errors.professors} </Alert>
-        )}
-        {errors.calendars && (
-          <Alert severity="warning" sx={{ mb: 2 }}> {errors.calendars} </Alert>
-        )}
-        {errors.hours && (
-          <Alert severity="warning" sx={{ mb: 2 }}> {errors.hours} </Alert>
-        )}
-        {errors.detail && (
-          <Alert severity="error" sx={{ mb: 2 }}> {errors.detail} </Alert>
-        )}
-        {alert && (
-          <CustomAlert message={alert.message} type={alert.type} onClose={handleAlertClose} />
-        )}
+        <Box ref={errorRef} sx={{ m: 4, borderRadius: 3 }} >
+          {errors.message && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {errors.message}
+            </Alert>
+          )}
+          {errors.classes && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              {errors.classes}
+            </Alert>
+          )}
+          {errors.disciplines && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              {errors.disciplines}
+            </Alert>
+          )}
+          {errors.professors && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              {errors.professors}
+            </Alert>
+          )}
+          {errors.calendars && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              {errors.calendars}
+            </Alert>
+          )}
+          {errors.hours && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              {errors.hours}
+            </Alert>
+          )}
+          {errors.detail && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {errors.detail}
+            </Alert>
+          )}
+          {alert && (
+            <CustomAlert
+              message={alert.message}
+              type={alert.type}
+              onClose={handleAlertClose}
+            />
+          )}
+        </Box>
 
         <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, marginLeft: "5px", mb: 2 }}>
@@ -865,103 +904,126 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
             const scheduleMatrix = getScheduleMatrix(groupedDetails[turn]);
             return (
               scheduleMatrix.length > 0 && (
-                <Box key={turn} sx={{ mb: 4 }}>
+                <Box key={turn} sx={{ display: "flex", alignItems: "flex-start", mb: 4, gap: 2, }}>
                   <Box
                     sx={{
-                      backgroundColor: "#E8F5E9",
-                      borderRadius: "8px",
-                      padding: "8px 20px",
-                      display: "inline-block",
-                      margin: "0 auto",
+                      backgroundColor: greenLight,
+                      py: 1,
+                      px: 2,
+                      borderRadius: 1,
+                      textAlign: "center",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      minHeight: "100px",
+                      alignSelf: "stretch",
+                      flexShrink: 0,
                     }}
                   >
                     <Typography
                       variant="h6"
                       sx={{
-                        textAlign: "center",
-                        color: "#087619",
+                        writingMode: "vertical-rl",
+                        textOrientation: "mixed",
+                        transform: "rotate(180deg)",
                         fontWeight: "bold",
+                        color: greenPrimary,
+                        letterSpacing: "2px",
                       }}
                     >
                       {turn}
                     </Typography>
                   </Box>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell><strong>Horário</strong></TableCell>
-                        {daysOfWeek.map((day) => (
-                          <TableCell key={day}><strong>{day}</strong></TableCell>
-                        ))}
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {scheduleMatrix.map((row, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{row.timeSlot || "N/A"}</TableCell>
+                  <TableContainer
+                    component={Paper}
+                    elevation={0}
+                    sx={{
+                      flex: 1,
+                      border: `1px solid ${greyBorder}`,
+                      borderRadius: 2,
+                    }}
+                  >
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell><strong>Horário</strong></TableCell>
                           {daysOfWeek.map((day) => (
-                            <TableCell key={day}>
-                              {row[day] ? (
-                                <Box sx={{ display: "flex", flexDirection: "column" }}>
-                                  <Tooltip
-                                    title={row[day].disciplineName}
-                                    arrow
-                                    placement="top"
-                                    enterDelay={200}
-                                    leaveDelay={200}
-                                    slotProps={{
-                                      popper: {
-                                        modifiers: [
-                                          {
-                                            name: "offset",
-                                            options: {
-                                              offset: [20, -8],
-                                            },
-                                          },
-                                        ],
-                                      },
-                                    }}
-                                  >
-                                    <Typography variant="body2">{row[day].disciplineAcronym}</Typography>
-                                  </Tooltip>
-                                  <Tooltip
-                                    title={row[day].professorName}
-                                    arrow
-                                    enterDelay={200}
-                                    leaveDelay={200}
-                                    slotProps={{
-                                      popper: {
-                                        modifiers: [
-                                          {
-                                            name: "offset",
-                                            options: {
-                                              offset: [-5, -15],
-                                            },
-                                          },
-                                        ],
-                                      },
-                                    }}
-                                  >
-                                    <Typography variant="body2" color="text.secondary">
-                                      {row[day].professorAcronym}
-                                    </Typography>
-                                  </Tooltip>
-                                  <IconButton
-                                    onClick={() => handleDeleteDetail(day, row.timeSlot, row[day].hourId)}
-                                    sx={{ color: "#F01424", "&:hover": { color: "#D4000F" }, mt: 1 }}
-                                  >
-                                    <Delete />
-                                  </IconButton>
-                                </Box>
-                              ) : (
-                                "-"
-                              )}
-                            </TableCell>
+                            <TableCell key={day}><strong>{day}</strong></TableCell>
                           ))}
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHead>
+                      <TableBody>
+                        {scheduleMatrix.map((row, index) => (
+                          <TableRow key={index}
+                            sx={{
+                              "&:last-child td, &:last-child th": { border: 0, },
+                            }}
+                          >
+                            <TableCell>{row.timeSlot || "N/A"}</TableCell>
+                            {daysOfWeek.map((day) => (
+                              <TableCell key={day}>
+                                {row[day] ? (
+                                  <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", }}>
+                                    <Tooltip
+                                      title={row[day].disciplineName}
+                                      arrow
+                                      placement="top"
+                                      enterDelay={200}
+                                      leaveDelay={200}
+                                      slotProps={{
+                                        popper: {
+                                          modifiers: [
+                                            {
+                                              name: "offset",
+                                              options: {
+                                                offset: [20, -8],
+                                              },
+                                            },
+                                          ],
+                                        },
+                                      }}
+                                    >
+                                      <Typography variant="body2">{row[day].disciplineAcronym}</Typography>
+                                    </Tooltip>
+                                    <Tooltip
+                                      title={row[day].professorName}
+                                      arrow
+                                      enterDelay={200}
+                                      leaveDelay={200}
+                                      slotProps={{
+                                        popper: {
+                                          modifiers: [
+                                            {
+                                              name: "offset",
+                                              options: {
+                                                offset: [-5, -15],
+                                              },
+                                            },
+                                          ],
+                                        },
+                                      }}
+                                    >
+                                      <Typography variant="body2" color="text.secondary">
+                                        {row[day].professorAcronym}
+                                      </Typography>
+                                    </Tooltip>
+                                    <IconButton
+                                      onClick={() => handleDeleteDetail(day, row.timeSlot, row[day].hourId)}
+                                      sx={{ color: "#F01424", "&:hover": { color: "#D4000F" } }}
+                                    >
+                                      <Delete />
+                                    </IconButton>
+                                  </Box>
+                                ) : (
+                                  "-"
+                                )}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
                 </Box>
               )
             );
@@ -973,9 +1035,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           )}
         </Box>
 
-        <Box
-          display="flex"
-          mt={4}
+        <Box display="flex" mt={4}
           sx={{ justifyContent: "center", gap: 2, padding: "10px 24px", marginTop: "35px" }}
         >
           <Button

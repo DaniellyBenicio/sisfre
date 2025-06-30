@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo } from 'react';
 import {
   IconButton,
   Paper,
@@ -11,9 +11,10 @@ import {
   Stack,
   Typography,
   useMediaQuery,
-} from "@mui/material";
-import { Delete, Edit } from "@mui/icons-material";
-import Paginate from "../paginate/Paginate";
+} from '@mui/material';
+import { Delete, Edit } from '@mui/icons-material';
+import Paginate from '../paginate/Paginate';
+import PropTypes from 'prop-types';
 
 const DataTable = ({
   data,
@@ -23,52 +24,47 @@ const DataTable = ({
   search,
   renderMobileRow,
   setAlert,
+  isFiltered,
 }) => {
-  const isMobile = useMediaQuery("(max-width:600px)");
+  const isMobile = useMediaQuery('(max-width:600px)');
   const [page, setPage] = useState(1);
-  const [rowsPerPage] = useState(6);
-
-  const paginatedData = search && search.trim()
-    ? data
-    : data.slice((page - 1) * rowsPerPage, page * rowsPerPage);
-
-  const handleChangePage = (newPage) => {
-    setPage(newPage);
-  };
-
-  const MAX_SEARCH_RESULTS = 6;
+  const [rowsPerPage] = useState(7);
 
   const visibleData = useMemo(() => {
     if (!Array.isArray(data)) return [];
     if (search && search.trim().length >= 2) {
-      return data.slice(0, MAX_SEARCH_RESULTS);
+      return data.slice(0, 6);
     }
     const startIndex = (page - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
     return data.slice(startIndex, endIndex);
   }, [data, page, rowsPerPage, search]);
 
+  const handleChangePage = (newPage) => {
+    setPage(newPage);
+  };
+
   const tableHeadStyle = {
-    fontWeight: "bold",
-    backgroundColor: "#087619",
-    color: "#fff",
-    borderRight: "1px solid #fff",
-    padding: { xs: "4px", sm: "6px" },
-    height: "30px",
-    lineHeight: "30px",
+    fontWeight: 'bold',
+    backgroundColor: '#087619',
+    color: '#fff',
+    borderRight: '1px solid #fff',
+    padding: { xs: '4px', sm: '6px' },
+    height: '30px',
+    lineHeight: '30px',
   };
 
   const tableBodyCellStyle = {
-    borderRight: "1px solid #e0e0e0",
-    padding: { xs: "4px", sm: "6px" },
-    height: "30px",
-    lineHeight: "30px",
+    borderRight: '1px solid #e0e0e0',
+    padding: { xs: '4px', sm: '6px' },
+    height: '30px',
+    lineHeight: '30px',
   };
 
   if (isMobile) {
     return (
-      <Stack spacing={1} sx={{ width: "100%" }}>
-        {visibleData.length === 0 && search ? (
+      <Stack spacing={1} sx={{ width: '100%' }}>
+        {visibleData.length === 0 && (search || isFiltered) ? (
           <Paper sx={{ p: 1 }}>
             <Typography align="center">Nenhum item encontrado!</Typography>
           </Paper>
@@ -81,8 +77,8 @@ const DataTable = ({
                   <IconButton
                     onClick={() => onUpdate(item)}
                     sx={{
-                      color: "#087619",
-                      "&:hover": { color: "#065412" },
+                      color: '#087619',
+                      '&:hover': { color: '#065412' },
                     }}
                   >
                     <Edit />
@@ -93,11 +89,11 @@ const DataTable = ({
                       if (item && item.id) {
                         onDelete(item.id);
                       } else {
-                        console.error("Item ou item.id é undefined:", item);
+                        console.error('Item ou item.id é undefined:', item);
                         if (setAlert) {
                           setAlert({
-                            message: "Erro: ID da disciplina não encontrado.",
-                            type: "error",
+                            message: 'Erro: ID da disciplina não encontrado.',
+                            type: 'error',
                           });
                         }
                       }
@@ -119,8 +115,8 @@ const DataTable = ({
                     <IconButton
                       onClick={() => onUpdate(item)}
                       sx={{
-                        color: "#087619",
-                        "&:hover": { color: "#065412" },
+                        color: '#087619',
+                        '&:hover': { color: '#065412' },
                       }}
                     >
                       <Edit />
@@ -131,11 +127,11 @@ const DataTable = ({
                         if (item && item.id) {
                           onDelete(item.id);
                         } else {
-                          console.error("Item ou item.id é undefined:", item);
+                          console.error('Item ou item.id é undefined:', item);
                           if (setAlert) {
                             setAlert({
-                              message: "Erro: ID da disciplina não encontrado.",
-                              type: "error",
+                              message: 'Erro: ID da disciplina não encontrado.',
+                              type: 'error',
                             });
                           }
                         }
@@ -169,9 +165,9 @@ const DataTable = ({
       <TableContainer
         component={Paper}
         sx={{
-          width: "100%",
-          maxWidth: "1200px",
-          margin: "0 auto",
+          width: '100%',
+          maxWidth: '1200px',
+          margin: '0 auto',
         }}
       >
         <Table>
@@ -188,7 +184,7 @@ const DataTable = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {visibleData.length === 0 && search ? (
+            {visibleData.length === 0 && (search || isFiltered) ? (
               <TableRow>
                 <TableCell
                   colSpan={headers.length + 1}
@@ -213,7 +209,7 @@ const DataTable = ({
                   <TableCell align="center" sx={tableBodyCellStyle}>
                     <IconButton
                       onClick={() => onUpdate(item)}
-                      sx={{ color: "#087619", "&:hover": { color: "#065412" } }}
+                      sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
                     >
                       <Edit />
                     </IconButton>
@@ -223,11 +219,11 @@ const DataTable = ({
                         if (item && item.id) {
                           onDelete(item.id);
                         } else {
-                          console.error("Item ou item.id é undefined:", item);
+                          console.error('Item ou item.id é undefined:', item);
                           if (setAlert) {
                             setAlert({
-                              message: "Erro: ID da disciplina não encontrado.",
-                              type: "error",
+                              message: 'Erro: ID da disciplina não encontrado.',
+                              type: 'error',
                             });
                           }
                         }
@@ -255,6 +251,17 @@ const DataTable = ({
       )}
     </>
   );
+};
+
+DataTable.propTypes = {
+  data: PropTypes.array.isRequired,
+  headers: PropTypes.array.isRequired,
+  onDelete: PropTypes.func.isRequired,
+  onUpdate: PropTypes.func.isRequired,
+  search: PropTypes.string,
+  renderMobileRow: PropTypes.func,
+  setAlert: PropTypes.func,
+  isFiltered: PropTypes.bool,
 };
 
 export default DataTable;

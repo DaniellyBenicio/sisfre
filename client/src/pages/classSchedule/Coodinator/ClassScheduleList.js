@@ -8,7 +8,7 @@ import {
   InputLabel,
   MenuItem,
 } from "@mui/material";
-import { Edit, FilterListAlt, Visibility } from "@mui/icons-material";
+import { Edit, FilterListAlt, ArrowBack, Visibility } from "@mui/icons-material";
 import { CustomAlert } from "../../../components/alert/CustomAlert";
 import ClassScheduleTable from "./ClassScheduleTable";
 import { StyledSelect } from "../../../components/inputs/Input";
@@ -138,14 +138,23 @@ const ClassScheduleList = () => {
         gap: 1,
       }}
     >
-      <Typography
-        variant="h5"
-        align="center"
-        gutterBottom
-        sx={{ fontWeight: "bold", mt: 2, mb: 3 }}
+      <Box
+        sx={{
+          position: "relative",
+          alignItems: "center",
+          gap: 1,
+          mb: 3,
+        }}
       >
-        Grade de Turma
-      </Typography>
+        <IconButton onClick={() => navigate("/class-schedule/options")}
+          sx={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)", mt: 2 }}  
+        >
+          <ArrowBack sx={{ color: "green", fontSize: "2.2rem" }} />
+        </IconButton>
+        <Typography variant="h5" align="center" sx={{ fontWeight: "bold", mt: 2 }}>
+          Grade de Turmas
+        </Typography>
+      </Box>
 
       {alert && (
         <CustomAlert

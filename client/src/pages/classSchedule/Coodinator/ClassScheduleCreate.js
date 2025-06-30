@@ -370,7 +370,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           if (hourBlock.hourStart !== prevHourBlock.hourEnd) {
             setErrors((prev) => ({
               ...prev,
-              detail: "Os horários selecionados devem ser blocos consecutivos. Verifique os intervalos na seed.",
+              detail: "Os horários selecionados devem ser blocos consecutivos.",
             }));
             hasError = true;
             return;
@@ -401,16 +401,16 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
     if (!hasError) {
       const existingConfirmedDetailsSet = new Set(
         confirmedDetails.map(
-          (d) => `${d.dayOfWeek}-${d.hourId}-${d.disciplineId}`
+          (d) => `${d.dayOfWeek}-${d.startTime}-${d.endTime}`
         )
       );
 
       for (const newDetail of newDetailsToAdd) {
-        const slotKey = `${newDetail.dayOfWeek}-${newDetail.hourId}-${newDetail.disciplineId}`;
+        const slotKey = `${newDetail.dayOfWeek}-${newDetail.startTime}-${newDetail.endTime}`;
         if (existingConfirmedDetailsSet.has(slotKey)) {
           setErrors((prev) => ({
             ...prev,
-            detail: `O horário ${newDetail.dayOfWeek} ${newDetail.startTime} - ${newDetail.endTime} para a disciplina ${newDetail.disciplineName} já foi adicionado.`,
+            detail: `O horário ${newDetail.dayOfWeek} ${newDetail.startTime} - ${newDetail.endTime} já está ocupado.`,
           }));
           return;
         }

@@ -460,16 +460,16 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
     if (!hasError) {
       const existingConfirmedDetailsSet = new Set(
         confirmedDetails.map(
-          (d) => `${d.dayOfWeek}-${d.hourId}-${d.disciplineId}`
+          (d) => `${d.dayOfWeek}-${d.startTime}-${d.endTime}`
         )
       );
 
       for (const newDetail of newDetailsToAdd) {
-        const slotKey = `${newDetail.dayOfWeek}-${newDetail.hourId}-${newDetail.disciplineId}`;
+        const slotKey = `${newDetail.dayOfWeek}-${newDetail.startTime}-${newDetail.endTime}`;
         if (existingConfirmedDetailsSet.has(slotKey)) {
           setErrors((prev) => ({
             ...prev,
-            detail: `O horário ${newDetail.dayOfWeek} ${newDetail.startTime} - ${newDetail.endTime} para a disciplina ${newDetail.disciplineName} já foi adicionado.`,
+            detail: `O horário ${newDetail.dayOfWeek} ${newDetail.startTime} - ${newDetail.endTime} já está ocupado.`,
           }));
           return;
         }

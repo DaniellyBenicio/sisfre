@@ -1,18 +1,18 @@
 import React from 'react';
 import { FormControl, Autocomplete, TextField, Popper, Paper } from '@mui/material';
 
-const CustomAutocomplete = ({ 
-  label, 
-  name, 
-  value, 
-  onChange, 
-  options, 
-  getOptionLabel, 
-  selectSx, 
-  disabled, 
-  loading, 
-  isOptionEqualToValue, 
-  ...props 
+const CustomAutocomplete = ({
+  label,
+  name,
+  value,
+  onChange,
+  options,
+  getOptionLabel,
+  selectSx,
+  disabled,
+  loading,
+  isOptionEqualToValue,
+  ...props
 }) => {
   return (
     <FormControl fullWidth required sx={{ minWidth: 190, maxWidth: 600, ...props.sx }}>
@@ -64,29 +64,51 @@ const CustomAutocomplete = ({
           />
         )}
         PopperComponent={(popperProps) => (
-          <Popper {...popperProps} sx={{ width: 'auto' }}>
-            <Paper sx={{
-              maxHeight: '200px',
-              overflowY: 'auto',
-              '& .MuiAutocomplete-option': {
-                minHeight: '36px',
-                display: 'flex',
-                alignItems: 'center',
-                '&:hover': {
-                  backgroundColor: '#D5FFDB !important',
+          <Popper
+            {...popperProps}
+            sx={{
+              width: selectSx?.width || 'auto',
+              '& .MuiAutocomplete-listbox': {
+                maxHeight: '200px',
+                overflowY: 'auto',
+                padding: 0,
+                '&::-webkit-scrollbar': {
+                  width: '8px',
                 },
-                '&[aria-selected="true"]': {
-                  backgroundColor: '#D5FFDB !important',
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: '#888',
+                  borderRadius: '4px',
+                },
+                '&::-webkit-scrollbar-thumb:hover': {
+                  backgroundColor: '#555',
+                },
+              },
+            }}
+          >
+            <Paper
+              sx={{
+                margin: 0,
+                border: '1px solid rgba(0, 0, 0, 0.23)',
+                '& .MuiAutocomplete-option': {
+                  minHeight: '36px',
+                  display: 'flex',
+                  alignItems: 'center',
                   '&:hover': {
                     backgroundColor: '#D5FFDB !important',
                   },
+                  '&[aria-selected="true"]': {
+                    backgroundColor: '#D5FFDB !important',
+                    '&:hover': {
+                      backgroundColor: '#D5FFDB !important',
+                    },
+                  },
+                  '&.Mui-focused': {
+                    backgroundColor: '#D5FFDB !important',
+                    outline: 'none',
+                  },
                 },
-                '&.Mui-focused': {
-                  backgroundColor: '#D5FFDB !important',
-                  outline: 'none',
-                },
-              },
-            }}>
+              }}
+            >
               {popperProps.children}
             </Paper>
           </Popper>

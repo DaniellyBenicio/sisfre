@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import { Delete, Edit } from '@mui/icons-material';
 import Paginate from '../paginate/Paginate';
-import PropTypes from 'prop-types'; // Adicionar esta importação
+import PropTypes from 'prop-types';
 
 const DataTable = ({
   data,
@@ -28,7 +28,7 @@ const DataTable = ({
 }) => {
   const isMobile = useMediaQuery('(max-width:600px)');
   const [page, setPage] = useState(1);
-  const [rowsPerPage] = useState(6);
+  const [rowsPerPage] = useState(7);
 
   const visibleData = useMemo(() => {
     if (!Array.isArray(data)) return [];

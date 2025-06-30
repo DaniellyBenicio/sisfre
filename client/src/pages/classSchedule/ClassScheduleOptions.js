@@ -7,9 +7,11 @@ import {
 	CardActionArea,
 	CssBaseline
 } from "@mui/material";
-import { CalendarToday, Event, Celebration } from "@mui/icons-material";
+import { CalendarToday, Event, AccessTime  } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/SideBar";
+import { CalendarClock } from 'lucide-react';
+import { CalendarCheck, Archive   } from "lucide-react";
 
 const ClassScheduleOptions = ({ setAuthenticated }) => {
 	const navigate = useNavigate();
@@ -17,12 +19,12 @@ const ClassScheduleOptions = ({ setAuthenticated }) => {
 	const calendarOptions = [
 		{
 			title: "Grade de Turmas",
-			icon: <CalendarToday sx={{ fontSize: 60, color: "#087619" }} />,
+			icon: <CalendarClock  size={60} color="#087619" />,
 			path: "/class-schedule",
 		},
 		{
 			title: "Grades Arquivadas",
-			icon: <Event sx={{ fontSize: 60, color: "#087619" }} />,
+			icon: <Archive size={60} color="#087619" />,
 			path: "/class-schedule/archived",
 		}
 	];

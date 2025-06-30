@@ -147,7 +147,7 @@ const ClassScheduleList = () => {
         }}
       >
         <IconButton onClick={() => navigate("/class-schedule/options")}
-          sx={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)" }}  
+          sx={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)", mt: 2 }}  
         >
           <ArrowBack sx={{ color: "green", fontSize: "2.2rem" }} />
         </IconButton>

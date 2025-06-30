@@ -72,20 +72,19 @@ const CustomAutocomplete = ({
                 minHeight: '36px',
                 display: 'flex',
                 alignItems: 'center',
-              },
-              '& .MuiAutocomplete-option[aria-selected="true"]': {
-                backgroundColor: '#D5FFDB',
-                '&:hover': { backgroundColor: '#D5FFDB' },
-              },
-              '& .MuiAutocomplete-option:hover': {
-                backgroundColor: '#D5FFDB',
-              },
-              "& .MuiMenuItem-root:hover": {
-                backgroundColor: "#D5FFDB",
-              },
-              '& .MuiAutocomplete-option.Mui-focused': {
-                backgroundColor: '#D5FFDB',
-                outline: 'none',
+                '&:hover': {
+                  backgroundColor: '#D5FFDB !important',
+                },
+                '&[aria-selected="true"]': {
+                  backgroundColor: '#D5FFDB !important',
+                  '&:hover': {
+                    backgroundColor: '#D5FFDB !important',
+                  },
+                },
+                '&.Mui-focused': {
+                  backgroundColor: '#D5FFDB !important',
+                  outline: 'none',
+                },
               },
             }}>
               {popperProps.children}

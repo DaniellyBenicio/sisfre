@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box, Typography, Button, FormControl, InputLabel, Select, MenuItem, Grid, Paper, CssBaseline,
   IconButton, CircularProgress, Alert, Table, TableHead, TableRow, TableCell, TableBody, Divider,
@@ -107,6 +107,21 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailToDelete, setDetailToDelete] = useState(null);
+  const errorRef = useRef(null);
+
+  useEffect(() => {
+    if (
+      errors.message ||
+      errors.classes ||
+      errors.disciplines ||
+      errors.professors ||
+      errors.calendars ||
+      errors.hours ||
+      errors.detail
+    ) {
+      errorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [errors]);
 
   const handleAlertClose = () => {
     setAlert(null);
@@ -599,30 +614,50 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           </Typography>
         </Box>
 
-        {errors.message && (
-          <Alert severity="error" sx={{ mb: 2 }}> {errors.message} </Alert>
-        )}
-        {errors.classes && (
-          <Alert severity="warning" sx={{ mb: 2 }}> {errors.classes} </Alert>
-        )}
-        {errors.disciplines && (
-          <Alert severity="warning" sx={{ mb: 2 }}> {errors.disciplines} </Alert>
-        )}
-        {errors.professors && (
-          <Alert severity="warning" sx={{ mb: 2 }}> {errors.professors} </Alert>
-        )}
-        {errors.calendars && (
-          <Alert severity="warning" sx={{ mb: 2 }}> {errors.calendars} </Alert>
-        )}
-        {errors.hours && (
-          <Alert severity="warning" sx={{ mb: 2 }}> {errors.hours} </Alert>
-        )}
-        {errors.detail && (
-          <Alert severity="error" sx={{ mb: 2 }}> {errors.detail} </Alert>
-        )}
-        {alert && (
-          <CustomAlert message={alert.message} type={alert.type} onClose={handleAlertClose} />
-        )}
+        <Box ref={errorRef} sx={{ m: 4, borderRadius: 3 }} >
+          {errors.message && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {errors.message}
+            </Alert>
+          )}
+          {errors.classes && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              {errors.classes}
+            </Alert>
+          )}
+          {errors.disciplines && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              {errors.disciplines}
+            </Alert>
+          )}
+          {errors.professors && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              {errors.professors}
+            </Alert>
+          )}
+          {errors.calendars && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              {errors.calendars}
+            </Alert>
+          )}
+          {errors.hours && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              {errors.hours}
+            </Alert>
+          )}
+          {errors.detail && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {errors.detail}
+            </Alert>
+          )}
+          {alert && (
+            <CustomAlert
+              message={alert.message}
+              type={alert.type}
+              onClose={handleAlertClose}
+            />
+          )}
+        </Box>
 
         <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, marginLeft: "5px", mb: 2 }}>

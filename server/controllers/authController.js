@@ -9,6 +9,15 @@ export const login = async (req, res) => {
     return res.status(400).json({ error: "Email e senha são obrigatórios" });
   }
 
+  if (email !== email.toLowerCase()) {
+    return res
+      .status(400)
+      .json({
+        error:
+          "O email deve conter apenas letras minúsculas, conforme registrado no banco de dados",
+      });
+  }
+
   try {
     const user = await db.User.findOne({ where: { email } });
 

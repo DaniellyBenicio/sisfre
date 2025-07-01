@@ -147,7 +147,7 @@ const ClassScheduleList = () => {
         }}
       >
         <IconButton onClick={() => navigate("/class-schedule/options")}
-          sx={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)", mt: 2 }}  
+          sx={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)", mt: 2, ml: -1 }}  
         >
           <ArrowBack sx={{ color: "green", fontSize: "2.2rem" }} />
         </IconButton>
@@ -182,6 +182,7 @@ const ClassScheduleList = () => {
               display: "flex",
               flexDirection: { xs: "column", sm: "row" },
               gap: 2,
+              ml: -1,
               width: { xs: "100%", sm: "auto" },
             }}
           >

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, Stack } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import api from "../../../service/api";
 import SearchAndCreateBar from "../../../components/homeScreen/SearchAndCreateBar";
 import { CustomAlert } from "../../../components/alert/CustomAlert";

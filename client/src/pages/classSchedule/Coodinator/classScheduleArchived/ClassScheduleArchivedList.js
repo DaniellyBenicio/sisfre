@@ -8,7 +8,7 @@ import {
   MenuItem,
   CssBaseline
 } from "@mui/material";
-import { FilterListAlt, ArrowBack, Visibility } from "@mui/icons-material";
+import { ArrowBack, Visibility } from "@mui/icons-material";
 import { CustomAlert } from "../../../../components/alert/CustomAlert";
 import ClassScheduleTable from "../ClassScheduleTable";
 import { StyledSelect } from "../../../../components/inputs/Input";
@@ -47,17 +47,22 @@ const ClassScheduleListArchived = ({ setAuthenticated }) => {
 
         setSchedules(schedules);
 
-        const uniqueCalendars = [...new Set(schedules.map((item) => item.calendar))].filter((cal) => cal);
-        const uniqueClasses = [...new Set(schedules.map((item) => item.class))].filter((cls) => cls);
-
-        setCalendars(uniqueCalendars);
-        setClasses(uniqueClasses);
+        if (schedules.length === 0) {
+          console.log("Nenhuma grade arquivada encontrada.");
+        } else {
+          const uniqueCalendars = [...new Set(schedules.map((item) => item.calendar))].filter((cal) => cal);
+          const uniqueClasses = [...new Set(schedules.map((item) => item.class))].filter((cls) => cls);
+          setCalendars(uniqueCalendars);
+          setClasses(uniqueClasses);
+        }
       } catch (error) {
         console.error("API Error:", error.response || error);
-        setAlert({
-          message: error.response?.data?.message || "Erro ao carregar as grades arquivadas.",
-          type: "error",
-        });
+        if (error.response?.status !== 404 && error.response?.data?.message) {
+          setAlert({
+            message: error.response.data.message || "Erro ao carregar as grades arquivadas.",
+            type: "error",
+          });
+        }
       } finally {
         setLoading(false);
       }
@@ -127,7 +132,7 @@ const ClassScheduleListArchived = ({ setAuthenticated }) => {
           }}
         >
           <IconButton onClick={() => navigate("/class-schedule/options")}
-            sx={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)", mt: 4 }}  
+            sx={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)", mt: 4, ml: -1 }}  
           >
             <ArrowBack sx={{ color: "green", fontSize: "2.2rem" }} />
           </IconButton>
@@ -135,12 +140,6 @@ const ClassScheduleListArchived = ({ setAuthenticated }) => {
             Grade de Turmas Arquivadas
           </Typography>
         </Box>
-
-        {loading && (
-          <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
-            <Typography>Carregando...</Typography>
-          </Box>
-        )}
 
         {alert && (
           <CustomAlert
@@ -168,6 +167,7 @@ const ClassScheduleListArchived = ({ setAuthenticated }) => {
                 display: "flex",
                 flexDirection: { xs: "column", sm: "row" },
                 gap: 2,
+                ml: -1,
                 width: { xs: "100%", sm: "auto" },
               }}
             >

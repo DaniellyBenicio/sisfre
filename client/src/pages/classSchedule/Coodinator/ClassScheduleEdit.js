@@ -460,16 +460,16 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
     if (!hasError) {
       const existingConfirmedDetailsSet = new Set(
         confirmedDetails.map(
-          (d) => `${d.dayOfWeek}-${d.hourId}-${d.disciplineId}`
+          (d) => `${d.dayOfWeek}-${d.startTime}-${d.endTime}`
         )
       );
 
       for (const newDetail of newDetailsToAdd) {
-        const slotKey = `${newDetail.dayOfWeek}-${newDetail.hourId}-${newDetail.disciplineId}`;
+        const slotKey = `${newDetail.dayOfWeek}-${newDetail.startTime}-${newDetail.endTime}`;
         if (existingConfirmedDetailsSet.has(slotKey)) {
           setErrors((prev) => ({
             ...prev,
-            detail: `O horário ${newDetail.dayOfWeek} ${newDetail.startTime} - ${newDetail.endTime} para a disciplina ${newDetail.disciplineName} já foi adicionado.`,
+            detail: `O horário ${newDetail.dayOfWeek} ${newDetail.startTime} - ${newDetail.endTime} já está ocupado.`,
           }));
           return;
         }
@@ -512,7 +512,9 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
 
   const handleConfirmDelete = () => {
     if (detailToDelete) {
-      const hourIds = detailToDelete.hourId ? detailToDelete.hourId.split(",").map(id => id.trim()) : [];
+      const hourIds = typeof detailToDelete.hourId === 'string' 
+        ? detailToDelete.hourId.split(",").map(id => id.trim()) 
+        : [String(detailToDelete.hourId)];
       setConfirmedDetails((prev) => {
         const newDetails = prev.filter(
           (detail) =>
@@ -995,10 +997,8 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                   borderWidth: 1.5,
                   borderColor: 'green',
                   gap: "8px",
-                  "&:hover": {
-                    borderColor: "#065412",
-                    color: "#065412",
-                  },
+                  "&:hover": { borderColor: "#065412", color: "#065412", },
+                  gapjoner: { offset: [20, -8], },
                 }}
               >
                 <Check sx={{ fontSize: 24, color: "green"}} />

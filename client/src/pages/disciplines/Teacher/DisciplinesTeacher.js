@@ -36,7 +36,7 @@ const DisciplineTeacher = () => {
               : null;
           return {
             ...discipline,
-            workload: firstWorkload,
+            workload: firstWorkload ? `${firstWorkload}h` : "N/A",
           };
         }
       );

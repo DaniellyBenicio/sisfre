@@ -7,11 +7,9 @@ import {
 	CardActionArea,
 	CssBaseline
 } from "@mui/material";
-import { CalendarToday, Event, AccessTime  } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/SideBar";
-import { CalendarClock } from 'lucide-react';
-import { CalendarCheck, Archive   } from "lucide-react";
+import { CalendarClock, Archive } from 'lucide-react';
 
 const ClassScheduleOptions = ({ setAuthenticated }) => {
 	const navigate = useNavigate();

@@ -324,7 +324,43 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
     let hasError = false;
     const newDetailsToAdd = [];
 
+    const existingConfirmedDetailsSet = new Set(
+      confirmedDetails.map(
+        (d) => `${d.dayOfWeek}-${d.startTime}-${d.endTime}`
+      )
+    );
+
     for (const [index, currentDetail] of formData.details.entries()) {
+      const existingFormDetailsSet = new Set(
+        formData.details
+          .flatMap((detail, idx) => {
+            if (idx === index) return [];
+            if (
+              detail.dayOfWeek &&
+              detail.selectedHourStartId &&
+              detail.selectedHourEndId
+            ) {
+              const startIndex = (availableHoursByDetail[idx] || []).findIndex(
+                (h) => h.id === detail.selectedHourStartId
+              );
+              const endIndex = (availableHoursByDetail[idx] || []).findIndex(
+                (h) => h.id === detail.selectedHourEndId
+              );
+              const slots = [];
+              for (let i = startIndex; i <= endIndex; i++) {
+                const hourBlock = (availableHoursByDetail[idx] || [])[i];
+                if (hourBlock) {
+                  slots.push(
+                    `${detail.dayOfWeek}-${hourBlock.hourStart}-${hourBlock.hourEnd}`
+                  );
+                }
+              }
+              return slots;
+            }
+            return [];
+          })
+      );
+
       if (
         !currentDetail.disciplineId ||
         !currentDetail.dayOfWeek ||
@@ -376,6 +412,17 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
             return;
           }
         }
+
+        const slotKey = `${currentDetail.dayOfWeek}-${hourBlock.hourStart}-${hourBlock.hourEnd}`;
+        if (existingConfirmedDetailsSet.has(slotKey) || existingFormDetailsSet.has(slotKey)) {
+          setErrors((prev) => ({
+            ...prev,
+            detail: `O horário ${currentDetail.dayOfWeek} ${hourBlock.hourStart} - ${hourBlock.hourEnd} já está ocupado.`,
+          }));
+          hasError = true;
+          return;
+        }
+
         const discipline = disciplines.find(
           (d) => d.disciplineId === currentDetail.disciplineId
         );
@@ -399,23 +446,6 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
     }
 
     if (!hasError) {
-      const existingConfirmedDetailsSet = new Set(
-        confirmedDetails.map(
-          (d) => `${d.dayOfWeek}-${d.startTime}-${d.endTime}`
-        )
-      );
-
-      for (const newDetail of newDetailsToAdd) {
-        const slotKey = `${newDetail.dayOfWeek}-${newDetail.startTime}-${newDetail.endTime}`;
-        if (existingConfirmedDetailsSet.has(slotKey)) {
-          setErrors((prev) => ({
-            ...prev,
-            detail: `O horário ${newDetail.dayOfWeek} ${newDetail.startTime} - ${newDetail.endTime} já está ocupado.`,
-          }));
-          return;
-        }
-      }
-
       setConfirmedDetails((prev) => [...prev, ...newDetailsToAdd]);
       setFormData((prev) => ({
         ...prev,

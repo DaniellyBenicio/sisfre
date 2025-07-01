@@ -37,6 +37,17 @@ const ClassesList = () => {
           ...item,
           course: item.course || { id: item.courseId, name: 'Desconhecido' },
         }));
+        // Sort classes by course name alphabetically and then by semester in ascending order
+        classesArray.sort((a, b) => {
+          const courseNameA = a.course.name.toLowerCase();
+          const courseNameB = b.course.name.toLowerCase();
+          const semesterA = parseInt(a.semester.replace('S', '')) || 0;
+          const semesterB = parseInt(b.semester.replace('S', '')) || 0;
+          if (courseNameA !== courseNameB) {
+            return courseNameA.localeCompare(courseNameB);
+          }
+          return semesterA - semesterB;
+        });
         setClasses(classesArray);
       } catch (error) {
         console.error('Erro ao buscar turmas:', error.message, error.response?.data);
@@ -59,13 +70,31 @@ const ClassesList = () => {
   const handleRegisterOrUpdate = (updatedClass, isEditMode) => {
     try {
       if (isEditMode) {
-        setClasses(classes.map((c) => (c.courseClassId === updatedClass.courseClassId ? updatedClass : c)));
+        setClasses(classes.map((c) => (c.courseClassId === updatedClass.courseClassId ? updatedClass : c)).sort((a, b) => {
+          const courseNameA = a.course.name.toLowerCase();
+          const courseNameB = b.course.name.toLowerCase();
+          const semesterA = parseInt(a.semester.replace('S', '')) || 0;
+          const semesterB = parseInt(b.semester.replace('S', '')) || 0;
+          if (courseNameA !== courseNameB) {
+            return courseNameA.localeCompare(courseNameB);
+          }
+          return semesterA - semesterB;
+        }));
         setAlert({
           message: `Turma ${updatedClass.course.name} atualizada com sucesso!`,
           type: 'success',
         });
       } else {
-        setClasses([...classes, updatedClass]);
+        setClasses([...classes, updatedClass].sort((a, b) => {
+          const courseNameA = a.course.name.toLowerCase();
+          const courseNameB = b.course.name.toLowerCase();
+          const semesterA = parseInt(a.semester.replace('S', '')) || 0;
+          const semesterB = parseInt(b.semester.replace('S', '')) || 0;
+          if (courseNameA !== courseNameB) {
+            return courseNameA.localeCompare(courseNameB);
+          }
+          return semesterA - semesterB;
+        }));
         setAlert({
           message: `Turma ${updatedClass.course.name} cadastrada com sucesso!`,
           type: 'success',
@@ -99,7 +128,16 @@ const ClassesList = () => {
   const handleConfirmDelete = async () => {
     try {
       await api.delete(`/classes/${classToDelete.courseClassId}`);
-      setClasses(classes.filter((c) => c.courseClassId !== classToDelete.courseClassId));
+      setClasses(classes.filter((c) => c.courseClassId !== classToDelete.courseClassId).sort((a, b) => {
+        const courseNameA = a.course.name.toLowerCase();
+        const courseNameB = b.course.name.toLowerCase();
+        const semesterA = parseInt(a.semester.replace('S', '')) || 0;
+        const semesterB = parseInt(b.semester.replace('S', '')) || 0;
+        if (courseNameA !== courseNameB) {
+          return courseNameA.localeCompare(courseNameB);
+        }
+        return semesterA - semesterB;
+      }));
       setAlert({
         message: `Turma ${classToDelete.course.name} excluída com sucesso!`,
         type: 'success',

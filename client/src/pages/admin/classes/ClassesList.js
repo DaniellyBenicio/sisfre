@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Pagination } from '@mui/material';
 import DeleteConfirmationDialog from '../../../components/DeleteConfirmationDialog';
 import api from '../../../service/api';
 import SearchAndCreateBar from '../../../components/homeScreen/SearchAndCreateBar';
 import ClassFormDialog from '../../../components/classForm/ClassFormDialog';
 import ClassesTable from './ClassesTable';
 import { CustomAlert } from '../../../components/alert/CustomAlert';
+import Paginate from '../../../components/paginate/Paginate';
 
 const ClassesList = () => {
   const [classes, setClasses] = useState([]);
@@ -17,6 +18,9 @@ const ClassesList = () => {
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
 
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 7;
+
   const handleAlertClose = () => {
     setAlert(null);
   };
@@ -26,16 +30,13 @@ const ClassesList = () => {
       try {
         setLoading(true);
         const response = await api.get('/classes-all');
-        console.log('Resposta da API:', response.data);
         let classesArray = Array.isArray(response.data)
           ? response.data
           : response.data.classes || response.data.data || [];
-
         classesArray = classesArray.map((item) => ({
           ...item,
           course: item.course || { id: item.courseId, name: 'Desconhecido' },
         }));
-
         setClasses(classesArray);
       } catch (error) {
         console.error('Erro ao buscar turmas:', error.message, error.response?.data);
@@ -50,6 +51,10 @@ const ClassesList = () => {
     };
     fetchClasses();
   }, []);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
 
   const handleRegisterOrUpdate = (updatedClass, isEditMode) => {
     try {
@@ -68,6 +73,7 @@ const ClassesList = () => {
       }
       setOpenDialog(false);
       setClassToEdit(null);
+      setPage(1);
     } catch (error) {
       console.error('Erro ao atualizar lista de turmas:', error);
       setAlert({
@@ -98,6 +104,7 @@ const ClassesList = () => {
         message: `Turma ${classToDelete.course.name} excluída com sucesso!`,
         type: 'success',
       });
+      setPage(1);
     } catch (error) {
       console.error('Erro ao excluir turma:', error.message, error.response?.data);
       const errorMessage =
@@ -116,6 +123,7 @@ const ClassesList = () => {
     }
   };
 
+  // Filtro e paginação local
   const filteredClasses = Array.isArray(classes)
     ? classes.filter((classItem) => {
       const normalizedSearch = search.trim().toLowerCase();
@@ -127,6 +135,12 @@ const ClassesList = () => {
       );
     })
     : [];
+
+  const totalPages = Math.ceil(filteredClasses.length / rowsPerPage);
+  const paginatedClasses = filteredClasses.slice(
+    (page - 1) * rowsPerPage,
+    page * rowsPerPage
+  );
 
   return (
     <Box
@@ -160,7 +174,7 @@ const ClassesList = () => {
       />
 
       <ClassesTable
-        classes={filteredClasses}
+        classes={paginatedClasses}
         onDelete={handleDeleteClick}
         onUpdate={handleEditClass}
         search={search}
@@ -188,6 +202,17 @@ const ClassesList = () => {
         onConfirm={handleConfirmDelete}
         message={`Deseja realmente excluir a turma "${classToDelete?.course.name}"?`}
       />
+
+      {/* Paginação */}
+      {totalPages > 1 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+          <Paginate
+            count={totalPages}
+            page={page}
+            onChange={(_, newPage) => setPage(newPage)}
+          />
+        </Box>
+      )}
 
       {alert && (
         <CustomAlert

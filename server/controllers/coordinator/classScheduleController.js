@@ -44,10 +44,34 @@ export const createClassSchedule = async (req, res) => {
     ]);
 
     if (!calendar) {
-      return res.status(404).json({ message: `Calendário não encontrado.` });
+      return res.status(404).json({ message: "Calendário não encontrado." });
     }
+
+    const currentDate = new Date(); 
+    const startDate = new Date(calendar.startDate);
+    const endDate = new Date(calendar.endDate);
+
+    if (isNaN(startDate) || isNaN(endDate)) {
+      return res.status(400).json({
+        message: "As datas do calendário são inválidas.",
+      });
+    }
+
+    if (startDate > currentDate) {
+      return res.status(400).json({
+        message:
+          "O calendário selecionado inválido. Escolha um calendário com data de início menor ou igual à data atual.",
+      });
+    }
+    if (endDate < currentDate) {
+      return res.status(400).json({
+        message:
+          "O calendário selecionado inválido. Escolha um calendário com data de fim maior ou igual à data atual.",
+      });
+    }
+
     if (!classRecord) {
-      return res.status(404).json({ message: `Turma não encontrada.` });
+      return res.status(404).json({ message: "Turma não encontrada." });
     }
 
     const existingClassSchedule = await db.ClassSchedule.findOne({
@@ -56,7 +80,7 @@ export const createClassSchedule = async (req, res) => {
 
     if (existingClassSchedule) {
       return res.status(409).json({
-        message: `Já existe uma grade de horário para a turma selecionada.`,
+        message: "Já existe uma grade de horário para a turma selecionada.",
       });
     }
 
@@ -130,7 +154,7 @@ export const createClassSchedule = async (req, res) => {
       const turnInterval = turnIntervals[detail.turn];
       if (hour.start < turnInterval.start || hour.end > turnInterval.end) {
         return res.status(400).json({
-          message: `O horário selecioando não é compatível com o turno.`,
+          message: `O horário selecionado não é compatível com o turno.`,
         });
       }
 
@@ -297,7 +321,11 @@ export const createClassSchedule = async (req, res) => {
             as: "details",
             include: [
               { model: db.Discipline, as: "discipline" },
-              { model: db.User, as: "professor" },
+              {
+                model: db.User,
+                as: "professor",
+                attributes: { exclude: ["password"] }, 
+              },
               { model: db.Hour, as: "hour" },
             ],
           },
@@ -329,7 +357,10 @@ export const createClassSchedule = async (req, res) => {
       error.message.includes("Conflito de horário!") ||
       error.message.includes("Acesso negado") ||
       error.message.includes("Múltiplas disciplinas alocadas") ||
-      error.message.includes("professor (accessType deve ser 'Professor')")
+      error.message.includes("professor (accessType deve ser 'Professor')") ||
+      error.message.includes("O calendário selecionado ainda não começou") ||
+      error.message.includes("O calendário selecionado já terminou") ||
+      error.message.includes("As datas do calendário são inválidas")
     ) {
       const statusCode =
         error.message.includes("Conflito de horário!") ||
@@ -360,8 +391,7 @@ export const updateClassSchedule = async (req, res) => {
       details.length === 0
     ) {
       return res.status(400).json({
-        message:
-          "Dados incompletos ou inválidos.",
+        message: "Dados incompletos ou inválidos.",
       });
     }
 
@@ -470,9 +500,7 @@ export const updateClassSchedule = async (req, res) => {
       }, {});
       const hour = hourMap[detail.hourId];
       if (!hour) {
-        return res
-          .status(404)
-          .json({ message: `Horário não encontrado.` });
+        return res.status(404).json({ message: `Horário não encontrado.` });
       }
       const turnInterval = turnIntervals[detail.turn];
       if (hour.start < turnInterval.start || hour.end > turnInterval.end) {
@@ -646,8 +674,9 @@ export const updateClassSchedule = async (req, res) => {
             as: "details",
             include: [
               { model: db.Discipline, as: "discipline" },
-              { model: db.User, as: "professor" },
-              { model: db.Hour, as: "hour" },
+              { model: db.User, as: "professor",
+                attributes: {exclude: ["password"]}
+               },
             ],
           },
         ],

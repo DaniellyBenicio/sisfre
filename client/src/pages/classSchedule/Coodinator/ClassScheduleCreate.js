@@ -148,12 +148,20 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           ? usersRes.data.users.filter((user) => user.accessType === "Professor")
           : [];
         setProfessors(filteredProfessors);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
         setCalendars(
           Array.isArray(calendarsRes.data.calendars)
-            ? calendarsRes.data.calendars.map((calendar) => ({
-                ...calendar,
-                display: `${calendar.year}.${calendar.period} - ${calendar.type || "N/A"}`,
-              }))
+            ? calendarsRes.data.calendars
+                .filter((calendar) => {
+                  const endDate = new Date(calendar.endDate);
+                  return endDate > today;
+                })
+                .map((calendar) => ({
+                  ...calendar,
+                  display: `${calendar.year}.${calendar.period} - ${calendar.type || "N/A"}`,
+                }))
             : []
         );
 

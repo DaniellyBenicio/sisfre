@@ -11,71 +11,7 @@ import api from "../../../service/api";
 import { CustomAlert } from "../../../components/alert/CustomAlert";
 import DeleteConfirmationDialog from "../../../components/DeleteConfirmationDialog";
 import CustomAutocomplete from "../../../components/inputs/CustomAutocompletePage";
-
-const CustomSelect = ({ label, name, value, onChange, children, selectSx, disabled, loading, ...props }) => {
-  return (
-    <FormControl fullWidth required sx={{ minWidth: 190, maxWidth: 600, ...props.sx }}>
-      <InputLabel
-        id={`${name}-label`}
-        sx={{
-          "&.Mui-focused": { color: "#000" },
-          "&.MuiInputLabel-shrink": { color: "#000" },
-        }}
-      >
-        {label}
-      </InputLabel>
-      <Select
-        labelId={`${name}-label`}
-        name={name}
-        value={value || ""}
-        onChange={onChange}
-        label={label}
-        displayEmpty={false}
-        disabled={disabled || loading}
-        sx={{
-          "& .MuiOutlinedInput-notchedOutline": {
-            borderColor: "rgba(0, 0, 0, 0.23)",
-          },
-          "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#000", },
-          "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#000", },
-          ...selectSx,
-        }}
-        MenuProps={{
-          PaperProps: {
-            sx: {
-              maxHeight: "200px",
-              overflowY: "auto",
-              width: "auto",
-              "& .MuiMenuItem-root": {
-                minHeight: "36px",
-                display: "flex",
-                alignItems: "center",
-              },
-              "& .MuiMenuItem-root.Mui-selected": {
-                backgroundColor: "#D5FFDB",
-                "&:hover": { backgroundColor: "#D5FFDB" },
-              },
-              "& .MuiMenuItem-root:hover": {
-                backgroundColor: "#D5FFDB",
-              },
-            },
-          },
-        }}
-        {...props}
-      >
-        {loading ? (
-          <MenuItem disabled>
-            <Box display="flex" alignItems="center" justifyContent="center" width="100%">
-              <CircularProgress size={20} />
-            </Box>
-          </MenuItem>
-        ) : (
-          children
-        )}
-      </Select>
-    </FormControl>
-  );
-};
+import CustomSelect from "../../../components/inputs/CustomSelectPage";
 
 const ClassScheduleCreate = ({ setAuthenticated }) => {
   const [formData, setFormData] = useState({
@@ -108,6 +44,15 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailToDelete, setDetailToDelete] = useState(null);
   const errorRef = useRef(null);
+
+  const clearErrors = () => {
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors.detail;
+      delete newErrors.message;
+      return newErrors;
+    });
+  };
 
   useEffect(() => {
     if (
@@ -200,8 +145,8 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
   }, []);
 
   useEffect(() => {
-    const fetchHoursForDetail = async (index, turn) => {
-      if (turn) {
+    const fetchHoursForDetail = async (index, turn, dayOfWeek) => {
+      if (turn && dayOfWeek) {
         setHoursLoadingByDetail((prev) => ({ ...prev, [index]: true }));
         try {
           let backendTurn = "";
@@ -221,7 +166,39 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
 
           if (backendTurn) {
             const response = await api.get(`/hours?turn=${backendTurn}`);
-            const fetchedHours = response.data.hours || response.data;
+            let fetchedHours = response.data.hours || response.data;
+            const usedHourIds = new Set();
+
+            confirmedDetails.forEach((detail) => {
+              if (
+                detail.dayOfWeek.replace("-feira", "").toLowerCase() === dayOfWeek.replace("-feira", "").toLowerCase() &&
+                detail.turn === turn
+              ) {
+                usedHourIds.add(detail.hourId);
+              }
+            });
+
+            formData.details.forEach((detail, idx) => {
+              if (idx !== index && detail.dayOfWeek === dayOfWeek && detail.turn === turn) {
+                if (detail.selectedHourStartId && detail.selectedHourEndId) {
+                  const startIndex = (availableHoursByDetail[idx] || []).findIndex(
+                    (h) => h.id === detail.selectedHourStartId
+                  );
+                  const endIndex = (availableHoursByDetail[idx] || []).findIndex(
+                    (h) => h.id === detail.selectedHourEndId
+                  );
+                  for (let i = startIndex; i <= endIndex && i >= 0; i++) {
+                    const hourBlock = (availableHoursByDetail[idx] || [])[i];
+                    if (hourBlock) {
+                      usedHourIds.add(hourBlock.id);
+                    }
+                  }
+                }
+              }
+            });
+
+            fetchedHours = fetchedHours.filter((hour) => !usedHourIds.has(hour.id));
+
             setAvailableHoursByDetail((prev) => ({
               ...prev,
               [index]: fetchedHours,
@@ -248,12 +225,15 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
     };
 
     formData.details.forEach((detail, index) => {
-      fetchHoursForDetail(index, detail.turn);
+      fetchHoursForDetail(index, detail.turn, detail.dayOfWeek);
     });
-  }, [formData.details.map((detail) => detail.turn).join(",")]);
+  }, [formData.details.map((detail) => `${detail.turn}-${detail.dayOfWeek}`).join(",")]);
 
   const handleChange = (e, index) => {
     const { name, value } = e.target;
+    if (errors.detail || errors.message) {
+      clearErrors();
+    }
     setFormData((prevData) => {
       let newData = { ...prevData };
       if (["classId", "calendarId", "isActive"].includes(name)) {
@@ -331,6 +311,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
   const handleSaveDetails = () => {
     let hasError = false;
     const newDetailsToAdd = [];
+    clearErrors();
 
     const existingConfirmedDetailsSet = new Set(
       confirmedDetails.map(
@@ -480,7 +461,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
         newLoading[0] = false;
         return newLoading;
       });
-      setErrors((prev) => ({ ...prev, detail: null }));
+      setErrors((prev) => ({ ...prev, detail: null, message: null }));
     }
   };
 
@@ -516,6 +497,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
   };
 
   const handleSubmit = async () => {
+    clearErrors();
     if (
       !formData.calendarId ||
       !formData.classId ||
@@ -835,15 +817,21 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                     name="selectedHourStartId"
                     value={detail.selectedHourStartId}
                     onChange={(e) => handleChange(e, index)}
-                    disabled={!detail.turn}
+                    disabled={!detail.turn || !detail.dayOfWeek}
                     loading={hoursLoadingByDetail[index]}
                     selectSx={{ width: "215px" }}
                   >
-                    {(availableHoursByDetail[index] || []).map((hour) => (
-                      <MenuItem key={hour.id} value={hour.id}>
-                        {hour.hourStart}
+                    {(availableHoursByDetail[index] || []).length > 0 ? (
+                      (availableHoursByDetail[index] || []).map((hour) => (
+                        <MenuItem key={hour.id} value={hour.id}>
+                          {hour.hourStart}
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem disabled value="">
+                        {detail.turn && detail.dayOfWeek ? "Nenhum horário disponível" : "Selecione turno e dia"}
                       </MenuItem>
-                    ))}
+                    )}
                   </CustomSelect>
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -853,7 +841,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                       name="selectedHourEndId"
                       value={detail.selectedHourEndId}
                       onChange={(e) => handleChange(e, index)}
-                      disabled={!detail.turn || !detail.selectedHourStartId}
+                      disabled={!detail.turn || !detail.dayOfWeek || !detail.selectedHourStartId}
                       loading={hoursLoadingByDetail[index]}
                       selectSx={{ width: "215px" }}
                     >

@@ -90,10 +90,12 @@ const ClassScheduleList = () => {
         setClasses(uniqueClasses);
       } catch (error) {
         console.error("API Error:", error.response || error);
-        setAlert({
-          message: error.response?.data?.message || "Erro ao carregar as grades de turma.",
-          type: "error",
-        });
+        if (error.response?.status !== 404 && error.response?.data?.message) {
+          setAlert({
+            message: error.response.data.message || "Erro ao carregar as grades arquivadas.",
+            type: "error",
+          });
+        }
       } finally {
         setLoading(false);
       }

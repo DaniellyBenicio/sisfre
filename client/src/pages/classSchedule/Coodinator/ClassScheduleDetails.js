@@ -1,14 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Paper, CssBaseline, IconButton, Table,
-  TableHead, TableRow, TableCell, TableBody, Divider, Button,
-  CircularProgress, TableContainer,
-} from "@mui/material";
 import {
-  ArrowBack,
-  School,
-  History,
-  Edit,
-} from "@mui/icons-material";
+  Box,
+  Typography,
+  Paper,
+  CssBaseline,
+  IconButton,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Divider,
+  Button,
+  CircularProgress,
+  TableContainer,
+} from "@mui/material";
+import { ArrowBack, School, History, Edit } from "@mui/icons-material";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import Sidebar from "../../../components/SideBar";
 import api from "../../../service/api";
@@ -29,7 +36,9 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
 
   const getTurnoFromTimeSlot = (timeSlot) => {
     if (!timeSlot) return null;
-    const [startHour] = timeSlot.split('-').map(t => parseInt(t.split(':')[0]));
+    const [startHour] = timeSlot
+      .split("-")
+      .map((t) => parseInt(t.split(":")[0]));
     if (startHour >= 6 && startHour < 12) return "Manhã";
     if (startHour >= 12 && startHour < 18) return "Tarde";
     if (startHour >= 18 && startHour <= 23) return "Noite";
@@ -91,15 +100,21 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
             throw new Error("Usuário não autenticado.");
           }
 
-          const response = await api.get(`/class-schedules/${classScheduleId}/details`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const response = await api.get(
+            `/class-schedules/${classScheduleId}/details`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
           console.log("API Response:", response.data);
           setSchedule(response.data.schedule);
           setError(null);
         } catch (error) {
           console.error("Erro ao buscar horário:", error);
-          setError(error.response?.data?.message || "Erro ao carregar os detalhes do horário.");
+          setError(
+            error.response?.data?.message ||
+              "Erro ao carregar os detalhes do horário."
+          );
         } finally {
           setLoading(false);
         }
@@ -110,12 +125,21 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
     }
   }, [initialSchedule, classScheduleId]);
 
-  const daysOfWeek = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
-  const timeSlots = [...new Set(
-    schedule?.details?.map((detail) =>
-      `${detail.hour?.hourStart} - ${detail.hour?.hourEnd}`
-    ) || []
-  )].sort();
+  const daysOfWeek = [
+    "Segunda",
+    "Terça",
+    "Quarta",
+    "Quinta",
+    "Sexta",
+    "Sábado",
+  ];
+  const timeSlots = [
+    ...new Set(
+      schedule?.details?.map(
+        (detail) => `${detail.hour?.hourStart} - ${detail.hour?.hourEnd}`
+      ) || []
+    ),
+  ].sort();
 
   const scheduleMatrix = timeSlots.map((timeSlot) => {
     const row = { timeSlot };
@@ -128,23 +152,28 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
       row[day] = detail
         ? {
             discipline: detail.discipline?.name || "N/A",
-            disciplineAcronym: detail.discipline?.acronym || detail.discipline?.sigla || "",
+            disciplineAcronym:
+              detail.discipline?.acronym || detail.discipline?.sigla || "",
             professor: detail.professor?.username || "Sem professor",
-            professorAcronym: detail.professor?.acronym || detail.professor?.sigla || "",
+            professorAcronym:
+              detail.professor?.acronym || detail.professor?.sigla || "",
           }
         : null;
     });
     return row;
   });
 
-  const groupedByTurno = scheduleMatrix.reduce((acc, row) => {
-    const turno = getTurnoFromTimeSlot(row.timeSlot);
-    if (turno) {
-      if (!acc[turno]) acc[turno] = [];
-      acc[turno].push(row);
-    }
-    return acc;
-  }, { Manhã: [], Tarde: [], Noite: [] });
+  const groupedByTurno = scheduleMatrix.reduce(
+    (acc, row) => {
+      const turno = getTurnoFromTimeSlot(row.timeSlot);
+      if (turno) {
+        if (!acc[turno]) acc[turno] = [];
+        acc[turno].push(row);
+      }
+      return acc;
+    },
+    { Manhã: [], Tarde: [], Noite: [] }
+  );
 
   return (
     <Box display="flex">
@@ -160,18 +189,38 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
             mb: 3,
           }}
         >
-          <IconButton onClick={() => navigate("/class-schedule")}
-            sx={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)" }}  
+          <IconButton
+            onClick={() =>
+              navigate(
+                schedule?.isActive
+                  ? "/class-schedule"
+                  : "/class-schedule/archived"
+              )
+            }
+            sx={{
+              position: "absolute",
+              left: 0,
+              top: "50%",
+              transform: "translateY(-50%)",
+            }}
           >
             <ArrowBack sx={{ color: "green", fontSize: "2.2rem" }} />
           </IconButton>
-          <Typography variant="h5" align="center" sx={{ fontWeight: "bold", mt: 2 }}>
+          <Typography
+            variant="h5"
+            align="center"
+            sx={{ fontWeight: "bold", mt: 2 }}
+          >
             Detalhes de Grade de Turma
           </Typography>
         </Box>
 
         {/* Horários */}
-        <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
+        <Box
+          component={Paper}
+          elevation={3}
+          sx={{ p: 5, m: 4, borderRadius: 3 }}
+        >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
             <Box
               sx={{
@@ -256,15 +305,20 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
                       <Table size="small">
                         <TableHead>
                           <TableRow>
-                            <TableCell><strong>Horário</strong></TableCell>
+                            <TableCell>
+                              <strong>Horário</strong>
+                            </TableCell>
                             {daysOfWeek.map((day) => (
-                              <TableCell key={day}><strong>{day}</strong></TableCell>
+                              <TableCell key={day}>
+                                <strong>{day}</strong>
+                              </TableCell>
                             ))}
                           </TableRow>
                         </TableHead>
                         <TableBody>
                           {turnoMatrix.map((row, index) => (
-                            <TableRow key={index}
+                            <TableRow
+                              key={index}
                               sx={{
                                 "&:last-child td, &:last-child th": {
                                   border: 0,
@@ -275,9 +329,20 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
                               {daysOfWeek.map((day) => (
                                 <TableCell key={day}>
                                   {row[day] ? (
-                                    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-                                      <Typography variant="body2">{row[day].disciplineAcronym}</Typography>
-                                      <Typography variant="body2" color="text.secondary">
+                                    <Box
+                                      sx={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        alignItems: "flex-start",
+                                      }}
+                                    >
+                                      <Typography variant="body2">
+                                        {row[day].disciplineAcronym}
+                                      </Typography>
+                                      <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+                                      >
                                         {row[day].professorAcronym}
                                       </Typography>
                                     </Box>
@@ -303,7 +368,11 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
         </Box>
 
         {/* Turma */}
-        <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
+        <Box
+          component={Paper}
+          elevation={3}
+          sx={{ p: 5, m: 4, borderRadius: 3 }}
+        >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
             <School sx={{ fontSize: "31px", color: "green" }} />
             <Typography variant="h5" color="green">
@@ -327,12 +396,17 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
                 <strong>Turma:</strong> {schedule.class?.semester || "N/A"}
               </Typography>
               <Typography variant="body1" sx={{ mb: 1 }}>
-                <strong>Turno: </strong>{determineTurn(schedule)}
+                <strong>Turno: </strong>
+                {determineTurn(schedule)}
               </Typography>
               <Typography variant="body1" sx={{ mb: 2 }}>
                 <strong>Calendário:</strong>{" "}
                 {schedule.calendar?.startDate
-                  ? `${new Date(schedule.calendar.startDate).getFullYear()}.${new Date(schedule.calendar.startDate).getMonth() < 6 ? '1' : '2'} - ${schedule.calendar.type}`
+                  ? `${new Date(schedule.calendar.startDate).getFullYear()}.${
+                      new Date(schedule.calendar.startDate).getMonth() < 6
+                        ? "1"
+                        : "2"
+                    } - ${schedule.calendar.type}`
                   : "N/A"}
               </Typography>
 
@@ -341,10 +415,24 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
                   <Table sx={{ minWidth: 300, border: "1px solid #E0E0E0" }}>
                     <TableHead>
                       <TableRow>
-                        <TableCell sx={{ fontWeight: "bold", color: "#000", borderBottom: "1px solid #E0E0E0", py: 1 }}>
+                        <TableCell
+                          sx={{
+                            fontWeight: "bold",
+                            color: "#000",
+                            borderBottom: "1px solid #E0E0E0",
+                            py: 1,
+                          }}
+                        >
                           Professor
                         </TableCell>
-                        <TableCell sx={{ fontWeight: "bold", color: "#000", borderBottom: "1px solid #E0E0E0", py: 1 }}>
+                        <TableCell
+                          sx={{
+                            fontWeight: "bold",
+                            color: "#000",
+                            borderBottom: "1px solid #E0E0E0",
+                            py: 1,
+                          }}
+                        >
                           Disciplina
                         </TableCell>
                       </TableRow>
@@ -353,20 +441,29 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
                       {[
                         ...new Map(
                           schedule.details.map((detail) => [
-                            `${detail.discipline?.id}-${detail.professor?.id || "N/A"}`,
+                            `${detail.discipline?.id}-${
+                              detail.professor?.id || "N/A"
+                            }`,
                             detail,
                           ])
                         ).values(),
                       ].map((detail, index) => (
-                        <TableRow key={index} sx={{ "&:last-child td": { borderBottom: 0 } }}>
+                        <TableRow
+                          key={index}
+                          sx={{ "&:last-child td": { borderBottom: 0 } }}
+                        >
                           <TableCell sx={{ py: 1, color: "#333" }}>
                             {detail.professor
-                              ? `${detail.professor.username} - ${detail.professor.acronym || ""}`
+                              ? `${detail.professor.username} - ${
+                                  detail.professor.acronym || ""
+                                }`
                               : "Sem professor"}
                           </TableCell>
                           <TableCell sx={{ py: 1, color: "#333" }}>
                             {detail.discipline
-                              ? `${detail.discipline.name} - ${detail.discipline.acronym || ""}`
+                              ? `${detail.discipline.name} - ${
+                                  detail.discipline.acronym || ""
+                                }`
                               : "N/A"}
                           </TableCell>
                         </TableRow>
@@ -388,11 +485,15 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
         </Box>
 
         {schedule?.isActive && (
-          <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2, mr: 4 }}>
+          <Box
+            sx={{ display: "flex", justifyContent: "flex-end", mt: 2, mr: 4 }}
+          >
             <Button
               variant="contained"
               startIcon={<Edit />}
-              onClick={() => navigate(`/class-schedule/edit/${classScheduleId}`)}
+              onClick={() =>
+                navigate(`/class-schedule/edit/${classScheduleId}`)
+              }
               sx={{
                 width: "fit-content",
                 minWidth: 100,

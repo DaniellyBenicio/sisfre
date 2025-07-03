@@ -768,7 +768,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
             </Grid>
             <Grid item xs={12} sm={6}>
               <CustomAutocomplete
-                label="Disciplina"
+                label="Disciplina *"
                 name="disciplineId"
                 value={disciplines.find(disc => disc.disciplineId === formData.details[0].disciplineId) || null}
                 onChange={(event, newValue) => {

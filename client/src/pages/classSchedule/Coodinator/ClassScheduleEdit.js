@@ -1,8 +1,35 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Box, Typography, Button, MenuItem, Grid, Paper, CssBaseline, IconButton, Alert, Table, TableHead, 
-  TableRow, TableCell, TableBody, Divider, Tooltip, TextField, TableContainer
+import {
+  Box,
+  Typography,
+  Button,
+  MenuItem,
+  Grid,
+  Paper,
+  CssBaseline,
+  IconButton,
+  Alert,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Divider,
+  Tooltip,
+  TextField,
+  TableContainer,
 } from "@mui/material";
-import { ArrowBack, Close, Save, School, History, AddCircleOutline, Remove, Delete, Check } from "@mui/icons-material";
+import {
+  ArrowBack,
+  Close,
+  Save,
+  School,
+  History,
+  AddCircleOutline,
+  Remove,
+  Delete,
+  Check,
+} from "@mui/icons-material";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../../components/SideBar";
 import api from "../../../service/api";
@@ -53,7 +80,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
       return newErrors;
     });
   };
-  
+
   useEffect(() => {
     if (
       errors.message ||
@@ -68,7 +95,9 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
     }
   }, [errors]);
 
-  const handleAlertClose = () => { setAlert(null); };
+  const handleAlertClose = () => {
+    setAlert(null);
+  };
 
   const formatDayOfWeek = (day) => {
     if (!day) return "";
@@ -81,15 +110,25 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
       sábado: "Sábado",
     };
     const dayLower = day.toLowerCase();
-    return dayMap[dayLower] || dayLower.charAt(0).toUpperCase() + dayLower.slice(1);
+    return (
+      dayMap[dayLower] || dayLower.charAt(0).toUpperCase() + dayLower.slice(1)
+    );
   };
 
   useEffect(() => {
     const fetchData = async () => {
       setErrors({});
       try {
-        const [scheduleRes, classesRes, disciplinesRes, usersRes, calendarsRes] = await Promise.all([
-          api.get(`/class-schedules/${id}/details`).catch((err) => ({ data: { schedule: {} } })),
+        const [
+          scheduleRes,
+          classesRes,
+          disciplinesRes,
+          usersRes,
+          calendarsRes,
+        ] = await Promise.all([
+          api
+            .get(`/class-schedules/${id}/details`)
+            .catch((err) => ({ data: { schedule: {} } })),
           api.get("/classes-coordinator").catch((err) => ({ data: [] })),
           api.get("/course/discipline").catch((err) => ({ data: [] })),
           api.get("/users").catch((err) => ({ data: { users: [] } })),
@@ -133,24 +172,34 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
               startTime: detail.hour?.hourStart || "",
               endTime: detail.hour?.hourEnd || "",
               disciplineName: detail.discipline?.name || "N/A",
-              disciplineAcronym: detail.discipline?.acronym || detail.discipline?.sigla || "",
+              disciplineAcronym:
+                detail.discipline?.acronym || detail.discipline?.sigla || "",
               professorName: detail.professor?.username || "Sem professor",
-              professorAcronym: detail.professor?.acronym || detail.professor?.sigla || "",
+              professorAcronym:
+                detail.professor?.acronym || detail.professor?.sigla || "",
             }))
           : [];
         setConfirmedDetails(mappedDetails);
 
-        setClasses(Array.isArray(classesRes.data.classes) ? classesRes.data.classes : []);
-        setDisciplines(Array.isArray(disciplinesRes.data) ? disciplinesRes.data : []);
+        setClasses(
+          Array.isArray(classesRes.data.classes) ? classesRes.data.classes : []
+        );
+        setDisciplines(
+          Array.isArray(disciplinesRes.data) ? disciplinesRes.data : []
+        );
         const filteredProfessors = Array.isArray(usersRes.data.users)
-          ? usersRes.data.users.filter((user) => user.accessType === "Professor")
+          ? usersRes.data.users.filter(
+              (user) => user.accessType === "Professor"
+            )
           : [];
         setProfessors(filteredProfessors);
         setCalendars(
           Array.isArray(calendarsRes.data.calendars)
             ? calendarsRes.data.calendars.map((calendar) => ({
                 ...calendar,
-                display: `${calendar.year}.${calendar.period} - ${calendar.type || "N/A"}`,
+                display: `${calendar.year}.${calendar.period} - ${
+                  calendar.type || "N/A"
+                }`,
               }))
             : []
         );
@@ -182,7 +231,9 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
       } catch (error) {
         setErrors((prev) => ({
           ...prev,
-          message: error.response?.data?.message || "Erro ao carregar os dados. Tente novamente.",
+          message:
+            error.response?.data?.message ||
+            "Erro ao carregar os dados. Tente novamente.",
         }));
       }
     };
@@ -191,7 +242,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
 
   useEffect(() => {
     const fetchHoursForDetail = async (index, turn, dayOfWeek) => {
-      if (turn, dayOfWeek) {
+      if ((turn, dayOfWeek)) {
         setHoursLoadingByDetail((prev) => ({ ...prev, [index]: true }));
         try {
           let backendTurn = "";
@@ -220,7 +271,8 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
 
             confirmedDetails.forEach((detail) => {
               if (
-                detail.dayOfWeek.replace("-feira", "").toLowerCase() === dayOfWeek.replace("-feira", "").toLowerCase() &&
+                detail.dayOfWeek.replace("-feira", "").toLowerCase() ===
+                  dayOfWeek.replace("-feira", "").toLowerCase() &&
                 detail.turn === turn
               ) {
                 usedHourIds.add(detail.hourId);
@@ -228,14 +280,18 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
             });
 
             formData.details.forEach((detail, idx) => {
-              if (idx !== index && detail.dayOfWeek === dayOfWeek && detail.turn === turn) {
+              if (
+                idx !== index &&
+                detail.dayOfWeek === dayOfWeek &&
+                detail.turn === turn
+              ) {
                 if (detail.selectedHourStartId && detail.selectedHourEndId) {
-                  const startIndex = (availableHoursByDetail[idx] || []).findIndex(
-                    (h) => h.id === detail.selectedHourStartId
-                  );
-                  const endIndex = (availableHoursByDetail[idx] || []).findIndex(
-                    (h) => h.id === detail.selectedHourEndId
-                  );
+                  const startIndex = (
+                    availableHoursByDetail[idx] || []
+                  ).findIndex((h) => h.id === detail.selectedHourStartId);
+                  const endIndex = (
+                    availableHoursByDetail[idx] || []
+                  ).findIndex((h) => h.id === detail.selectedHourEndId);
                   for (let i = startIndex; i <= endIndex && i >= 0; i++) {
                     const hourBlock = (availableHoursByDetail[idx] || [])[i];
                     if (hourBlock) {
@@ -246,7 +302,9 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
               }
             });
 
-            fetchedHours = fetchedHours.filter((hour) => !usedHourIds.has(hour.id));
+            fetchedHours = fetchedHours.filter(
+              (hour) => !usedHourIds.has(hour.id)
+            );
 
             setAvailableHoursByDetail((prev) => ({
               ...prev,
@@ -256,7 +314,9 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
         } catch (error) {
           setErrors((prev) => ({
             ...prev,
-            hours: error.response?.data?.message || "Erro ao carregar os horários. Tente novamente.",
+            hours:
+              error.response?.data?.message ||
+              "Erro ao carregar os horários. Tente novamente.",
           }));
           setAvailableHoursByDetail((prev) => ({
             ...prev,
@@ -276,7 +336,11 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
     formData.details.forEach((detail, index) => {
       fetchHoursForDetail(index, detail.turn, detail.dayOfWeek);
     });
-  }, [formData.details.map((detail) => `${detail.turn}-${detail.dayOfWeek}`).join(",")]);
+  }, [
+    formData.details
+      .map((detail) => `${detail.turn}-${detail.dayOfWeek}`)
+      .join(","),
+  ]);
 
   const handleChange = (e, index) => {
     const { name, value } = e.target;
@@ -304,12 +368,16 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                   : name === "selectedHourStartId"
                   ? {
                       displayStartTime:
-                        (availableHoursByDetail[index] || []).find((h) => h.id === value)?.hourStart || "",
+                        (availableHoursByDetail[index] || []).find(
+                          (h) => h.id === value
+                        )?.hourStart || "",
                     }
                   : name === "selectedHourEndId"
                   ? {
                       displayEndTime:
-                        (availableHoursByDetail[index] || []).find((h) => h.id === value)?.hourEnd || "",
+                        (availableHoursByDetail[index] || []).find(
+                          (h) => h.id === value
+                        )?.hourEnd || "",
                     }
                   : {}),
               }
@@ -364,15 +432,12 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
     let hasError = false;
     const newDetailsToAdd = [];
     const existingConfirmedDetailsSet = new Set(
-      confirmedDetails.map(
-        (d) => `${d.dayOfWeek}-${d.startTime}-${d.endTime}`
-      )
+      confirmedDetails.map((d) => `${d.dayOfWeek}-${d.startTime}-${d.endTime}`)
     );
 
     for (const [index, currentDetail] of formData.details.entries()) {
       const existingFormDetailsSet = new Set(
-        formData.details
-        .flatMap((detail, idx) => {
+        formData.details.flatMap((detail, idx) => {
           if (idx === index) return [];
           if (
             detail.dayOfWeek &&
@@ -408,7 +473,8 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
       ) {
         setErrors((prev) => ({
           ...prev,
-          detail: "Disciplina, Dia da Semana, Turno, Horário de Início e Horário de Fim são obrigatórios para todos os horários.",
+          detail:
+            "Disciplina, Dia da Semana, Turno, Horário de Início e Horário de Fim são obrigatórios para todos os horários.",
         }));
         hasError = true;
         return;
@@ -431,7 +497,8 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
       if (endIndex - startIndex > 1) {
         setErrors((prev) => ({
           ...prev,
-          detail: "A aula não pode exceder dois blocos de horários consecutivos (ex: 7:20 - 9:20).",
+          detail:
+            "A aula não pode exceder dois blocos de horários consecutivos (ex: 7:20 - 9:20).",
         }));
         hasError = true;
         return;
@@ -444,14 +511,18 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
           if (hourBlock.hourStart !== prevHourBlock.hourEnd) {
             setErrors((prev) => ({
               ...prev,
-              detail: "Os horários selecionados devem ser blocos consecutivos. Verifique os intervalos na seed.",
+              detail:
+                "Os horários selecionados devem ser blocos consecutivos. Verifique os intervalos na seed.",
             }));
             hasError = true;
             return;
           }
         }
         const slotKey = `${currentDetail.dayOfWeek}-${hourBlock.hourStart}-${hourBlock.hourEnd}`;
-        if (existingConfirmedDetailsSet.has(slotKey) || existingFormDetailsSet.has(slotKey)) {
+        if (
+          existingConfirmedDetailsSet.has(slotKey) ||
+          existingFormDetailsSet.has(slotKey)
+        ) {
           setErrors((prev) => ({
             ...prev,
             detail: `O horário ${currentDetail.dayOfWeek} ${hourBlock.hourStart} - ${hourBlock.hourEnd} já está ocupado.`,
@@ -537,14 +608,16 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
   const handleConfirmDelete = () => {
     setHasUnsavedChanges(true);
     if (detailToDelete) {
-      const hourIds = typeof detailToDelete.hourId === 'string' 
-        ? detailToDelete.hourId.split(",").map(id => id.trim()) 
-        : [String(detailToDelete.hourId)];
+      const hourIds =
+        typeof detailToDelete.hourId === "string"
+          ? detailToDelete.hourId.split(",").map((id) => id.trim())
+          : [String(detailToDelete.hourId)];
       setConfirmedDetails((prev) => {
         const newDetails = prev.filter(
           (detail) =>
             !(
-              detail.dayOfWeek.replace("-feira", "").trim().toLowerCase() === detailToDelete.day.trim().toLowerCase() &&
+              detail.dayOfWeek.replace("-feira", "").trim().toLowerCase() ===
+                detailToDelete.day.trim().toLowerCase() &&
               hourIds.includes(String(detail.hourId))
             )
         );
@@ -575,7 +648,9 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
     const { Manhã, Tarde, Noite } = turnCounts;
     const totalLessons = Manhã + Tarde + Noite;
 
-    if (totalLessons === 0) { return "N/A"; }
+    if (totalLessons === 0) {
+      return "N/A";
+    }
 
     const maxLessons = Math.max(Manhã, Tarde, Noite);
     const maxShifts = [
@@ -643,7 +718,9 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
     } catch (error) {
       setErrors((prev) => ({
         ...prev,
-        message: error.response?.data?.message || "Erro ao atualizar a grade de turma. Tente novamente.",
+        message:
+          error.response?.data?.message ||
+          "Erro ao atualizar a grade de turma. Tente novamente.",
       }));
     }
   };
@@ -653,7 +730,14 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
     Tarde: confirmedDetails.filter((detail) => detail.turn === "Tarde"),
     Noite: confirmedDetails.filter((detail) => detail.turn === "Noite"),
   };
-  const daysOfWeek = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+  const daysOfWeek = [
+    "Segunda",
+    "Terça",
+    "Quarta",
+    "Quinta",
+    "Sexta",
+    "Sábado",
+  ];
 
   const getScheduleMatrix = (details) => {
     const groupedByDayAndDiscipline = details.reduce((acc, detail) => {
@@ -684,9 +768,11 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
       }
       mergedDetails.push(current);
     });
-    const weatheredTimeSlots = [...new Set(
-      mergedDetails.map((detail) => `${detail.startTime} - ${detail.endTime}`)
-    )].sort();
+    const weatheredTimeSlots = [
+      ...new Set(
+        mergedDetails.map((detail) => `${detail.startTime} - ${detail.endTime}`)
+      ),
+    ].sort();
 
     return weatheredTimeSlots.map((timeSlot) => {
       const row = { timeSlot };
@@ -721,11 +807,21 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
           title="Confirmar Exclusão"
           message="Deseja realmente excluir o horário"
           onConfirm={handleConfirmDelete}
-          userName={detailToDelete ? `${detailToDelete.day} ${detailToDelete.timeSlot}` : ""}
+          userName={
+            detailToDelete
+              ? `${detailToDelete.day} ${detailToDelete.timeSlot}`
+              : ""
+          }
         />
         <Box sx={{ position: "relative", mb: 3 }}>
-          <IconButton onClick={() => navigate("/class-schedule")}
-            sx={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)" }}  
+          <IconButton
+            onClick={() => navigate("/class-schedule")}
+            sx={{
+              position: "absolute",
+              left: 0,
+              top: "50%",
+              transform: "translateY(-50%)",
+            }}
           >
             <ArrowBack sx={{ color: "green", fontSize: "2.2rem" }} />
           </IconButton>
@@ -734,27 +830,48 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
           </Typography>
         </Box>
 
-        <Box ref={errorRef} sx={{ m: 4, borderRadius: 3 }} >
+        <Box ref={errorRef} sx={{ m: 4, borderRadius: 3 }}>
           {errors.message && (
-            <Alert severity="error" sx={{ mb: 2 }}> {errors.message} </Alert>
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {" "}
+              {errors.message}{" "}
+            </Alert>
           )}
           {errors.classes && (
-            <Alert severity="warning" sx={{ mb: 2 }}> {errors.classes} </Alert>
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              {" "}
+              {errors.classes}{" "}
+            </Alert>
           )}
           {errors.disciplines && (
-            <Alert severity="warning" sx={{ mb: 2 }}> {errors.disciplines} </Alert>
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              {" "}
+              {errors.disciplines}{" "}
+            </Alert>
           )}
           {errors.professors && (
-            <Alert severity="warning" sx={{ mb: 2 }}> {errors.professors} </Alert>
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              {" "}
+              {errors.professors}{" "}
+            </Alert>
           )}
           {errors.calendars && (
-            <Alert severity="warning" sx={{ mb: 2 }}> {errors.calendars} </Alert>
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              {" "}
+              {errors.calendars}{" "}
+            </Alert>
           )}
           {errors.hours && (
-            <Alert severity="warning" sx={{ mb: 2 }}> {errors.hours} </Alert>
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              {" "}
+              {errors.hours}{" "}
+            </Alert>
           )}
           {errors.detail && (
-            <Alert severity="error" sx={{ mb: 2 }}> {errors.detail} </Alert>
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {" "}
+              {errors.detail}{" "}
+            </Alert>
           )}
           {alert && (
             <CustomAlert
@@ -765,8 +882,20 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
           )}
         </Box>
 
-        <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, marginLeft: "5px", mb: 2 }}>
+        <Box
+          component={Paper}
+          elevation={3}
+          sx={{ p: 5, m: 4, borderRadius: 3 }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              marginLeft: "5px",
+              mb: 2,
+            }}
+          >
             <School sx={{ fontSize: "31px", color: "green" }} />
             <Typography variant="h5" color="green">
               Turma
@@ -785,7 +914,8 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                 {classes
                   .slice()
                   .sort((a, b) => {
-                    const getNumber = (s) => parseInt(s.semester.replace("S", ""), 10);
+                    const getNumber = (s) =>
+                      parseInt(s.semester.replace("S", ""), 10);
                     return getNumber(a) - getNumber(b);
                   })
                   .map((item) => (
@@ -805,7 +935,10 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                 disabled
               >
                 {calendars.map((calendar) => (
-                  <MenuItem key={calendar.id} value={calendar.id}> {calendar.display} </MenuItem>
+                  <MenuItem key={calendar.id} value={calendar.id}>
+                    {" "}
+                    {calendar.display}{" "}
+                  </MenuItem>
                 ))}
               </CustomSelect>
             </Grid>
@@ -832,8 +965,20 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
         </Box>
 
         {/* Horários */}
-        <Box component={Paper} elevation={3} sx={{ p: 5, pb: 12, m: 4, borderRadius: 3, position: "relative" }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, marginLeft: "5px", mb: 2 }}>
+        <Box
+          component={Paper}
+          elevation={3}
+          sx={{ p: 5, pb: 12, m: 4, borderRadius: 3, position: "relative" }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              marginLeft: "5px",
+              mb: 2,
+            }}
+          >
             <Box
               sx={{
                 backgroundColor: "green",
@@ -847,7 +992,10 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
             >
               <History sx={{ color: "white", fontSize: 25 }} />
             </Box>
-            <Typography variant="h5" color="green"> Horários </Typography>
+            <Typography variant="h5" color="green">
+              {" "}
+              Horários{" "}
+            </Typography>
           </Box>
           <Grid container spacing={3} mt="10px">
             <Grid item xs={12} sm={6}>
@@ -859,26 +1007,49 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                 selectSx={{ width: "520px" }}
               >
                 {professors.map((prof) => (
-                  <MenuItem key={prof.id} value={prof.id}> {prof.username} </MenuItem>
+                  <MenuItem key={prof.id} value={prof.id}>
+                    {" "}
+                    {prof.username}{" "}
+                  </MenuItem>
                 ))}
               </CustomSelect>
             </Grid>
             <Grid item xs={12} sm={6}>
               <CustomAutocomplete
-                label="Disciplina"
+                label="Disciplina *"
                 name="disciplineId"
-                value={disciplines.find(disc => disc.disciplineId === formData.details[0].disciplineId) || null}
+                value={
+                  disciplines.find(
+                    (disc) =>
+                      disc.disciplineId === formData.details[0].disciplineId
+                  ) || null
+                }
                 onChange={(event, newValue) => {
-                  handleChange({ target: { name: 'disciplineId', value: newValue ? newValue.disciplineId : '' } }, 0);
+                  handleChange(
+                    {
+                      target: {
+                        name: "disciplineId",
+                        value: newValue ? newValue.disciplineId : "",
+                      },
+                    },
+                    0
+                  );
                 }}
                 options={disciplines}
                 getOptionLabel={(option) => option.name}
-                isOptionEqualToValue={(option, value) => option.disciplineId === value.disciplineId}
+                isOptionEqualToValue={(option, value) =>
+                  option.disciplineId === value.disciplineId
+                }
                 selectSx={{ width: "520px" }}
               />
             </Grid>
             {formData.details.map((detail, index) => (
-              <Grid container spacing={3} key={index} sx={{ mt: index === 0 ? 2 : 0, alignItems: "center" }}>
+              <Grid
+                container
+                spacing={3}
+                key={index}
+                sx={{ mt: index === 0 ? 2 : 0, alignItems: "center" }}
+              >
                 <Grid item xs={12} sm={6}>
                   <CustomSelect
                     label="Dia da Semana"
@@ -938,16 +1109,24 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                     >
                       {(availableHoursByDetail[index] || [])
                         .filter((hour) => {
-                          const startIndex = (availableHoursByDetail[index] || []).findIndex(
+                          const startIndex = (
+                            availableHoursByDetail[index] || []
+                          ).findIndex(
                             (h) => h.id === detail.selectedHourStartId
                           );
-                          const currentIndex = (availableHoursByDetail[index] || []).findIndex(
-                            (h) => h.id === hour.id
+                          const currentIndex = (
+                            availableHoursByDetail[index] || []
+                          ).findIndex((h) => h.id === hour.id);
+                          return (
+                            currentIndex >= startIndex &&
+                            currentIndex <= startIndex + 1
                           );
-                          return currentIndex >= startIndex && currentIndex <= startIndex + 1;
                         })
                         .map((hour) => (
-                          <MenuItem key={hour.id} value={hour.id}> {hour.hourEnd} </MenuItem>
+                          <MenuItem key={hour.id} value={hour.id}>
+                            {" "}
+                            {hour.hourEnd}{" "}
+                          </MenuItem>
                         ))}
                     </CustomSelect>
                     {index === formData.details.length - 1 && (
@@ -963,19 +1142,24 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                     )}
                   </Box>
                 </Grid>
-                {formData.details.length > 1 && index !== formData.details.length - 1 && (
-                  <Grid item xs={12} sm={1}>
-                    <IconButton
-                      onClick={() => handleRemoveDetail(index)}
-                      sx={{ color: "#F01424", "&:hover": { color: "#D4000F" }, ml: "-13px" }}
-                    >
-                      <Remove sx={{ fontSize: 34 }} />
-                    </IconButton>
-                  </Grid>
-                )}
+                {formData.details.length > 1 &&
+                  index !== formData.details.length - 1 && (
+                    <Grid item xs={12} sm={1}>
+                      <IconButton
+                        onClick={() => handleRemoveDetail(index)}
+                        sx={{
+                          color: "#F01424",
+                          "&:hover": { color: "#D4000F" },
+                          ml: "-13px",
+                        }}
+                      >
+                        <Remove sx={{ fontSize: 34 }} />
+                      </IconButton>
+                    </Grid>
+                  )}
               </Grid>
             ))}
-            <Box sx={{ position: "absolute", bottom: 15, right: 48, }}>
+            <Box sx={{ position: "absolute", bottom: 15, right: 48 }}>
               <Button
                 variant="outlined"
                 onClick={handleSaveDetails}
@@ -989,22 +1173,26 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                   fontWeight: "bold",
                   display: "flex",
                   alignItems: "center",
-                  color: 'green',
+                  color: "green",
                   borderWidth: 1.5,
-                  borderColor: 'green',
+                  borderColor: "green",
                   gap: "8px",
-                  "&:hover": { borderColor: "#065412", color: "#065412", },
-                  gapjoner: { offset: [20, -8], },
+                  "&:hover": { borderColor: "#065412", color: "#065412" },
+                  gapjoner: { offset: [20, -8] },
                 }}
               >
-                <Check sx={{ fontSize: 24, color: "green"}} />
+                <Check sx={{ fontSize: 24, color: "green" }} />
                 Salvar
               </Button>
             </Box>
           </Grid>
         </Box>
 
-        <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
+        <Box
+          component={Paper}
+          elevation={3}
+          sx={{ p: 5, m: 4, borderRadius: 3 }}
+        >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
             <Typography variant="h5" color="green">
               Horários Confirmados
@@ -1015,7 +1203,15 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
             const scheduleMatrix = getScheduleMatrix(groupedDetails[turn]);
             return (
               scheduleMatrix.length > 0 && (
-                <Box key={turn} sx={{ display: "flex", alignItems: "flex-start", mb: 4, gap: 2, }}>
+                <Box
+                  key={turn}
+                  sx={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    mb: 4,
+                    gap: 2,
+                  }}
+                >
                   <Box
                     sx={{
                       backgroundColor: "#E8F5E9",
@@ -1031,7 +1227,8 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                       flexShrink: 0,
                     }}
                   >
-                    <Typography variant="h6" 
+                    <Typography
+                      variant="h6"
                       sx={{
                         writingMode: "vertical-rl",
                         textOrientation: "mixed",
@@ -1056,23 +1253,38 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                     <Table size="small">
                       <TableHead>
                         <TableRow>
-                          <TableCell><strong>Horário</strong></TableCell>
+                          <TableCell>
+                            <strong>Horário</strong>
+                          </TableCell>
                           {daysOfWeek.map((day) => (
-                            <TableCell key={day}><strong>{day}</strong></TableCell>
+                            <TableCell key={day}>
+                              <strong>{day}</strong>
+                            </TableCell>
                           ))}
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {scheduleMatrix.map((row, index) => (
-                          <TableRow key={index}
-                            sx={{ "&:last-child td, &:last-child th": { border: 0, }, }}
+                          <TableRow
+                            key={index}
+                            sx={{
+                              "&:last-child td, &:last-child th": { border: 0 },
+                            }}
                           >
                             <TableCell>{row.timeSlot || "N/A"}</TableCell>
                             {daysOfWeek.map((day) => (
                               <TableCell key={day}>
                                 {row[day] ? (
-                                  <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                                    <Tooltip title={row[day].disciplineName} arrow
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      flexDirection: "column",
+                                      alignItems: "center",
+                                    }}
+                                  >
+                                    <Tooltip
+                                      title={row[day].disciplineName}
+                                      arrow
                                       placement="top"
                                       enterDelay={200}
                                       leaveDelay={200}
@@ -1081,15 +1293,19 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                                           modifiers: [
                                             {
                                               name: "offset",
-                                              options: { offset: [20, -8], },
+                                              options: { offset: [20, -8] },
                                             },
                                           ],
                                         },
                                       }}
                                     >
-                                      <Typography variant="body2">{row[day].disciplineAcronym}</Typography>
+                                      <Typography variant="body2">
+                                        {row[day].disciplineAcronym}
+                                      </Typography>
                                     </Tooltip>
-                                    <Tooltip title={row[day].professorName} arrow
+                                    <Tooltip
+                                      title={row[day].professorName}
+                                      arrow
                                       enterDelay={200}
                                       leaveDelay={200}
                                       slotProps={{
@@ -1097,19 +1313,31 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                                           modifiers: [
                                             {
                                               name: "offset",
-                                              options: { offset: [-5, -15], },
+                                              options: { offset: [-5, -15] },
                                             },
                                           ],
                                         },
                                       }}
                                     >
-                                      <Typography variant="body2" color="text.secondary">
+                                      <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+                                      >
                                         {row[day].professorAcronym}
                                       </Typography>
                                     </Tooltip>
                                     <IconButton
-                                      onClick={() => handleDeleteDetail(day, row.timeSlot, row[day].hourId)}
-                                      sx={{ color: "#F01424", "&:hover": { color: "#D4000F" } }}
+                                      onClick={() =>
+                                        handleDeleteDetail(
+                                          day,
+                                          row.timeSlot,
+                                          row[day].hourId
+                                        )
+                                      }
+                                      sx={{
+                                        color: "#F01424",
+                                        "&:hover": { color: "#D4000F" },
+                                      }}
                                     >
                                       <Delete />
                                     </IconButton>
@@ -1135,8 +1363,15 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
           )}
         </Box>
 
-        <Box display="flex" mt={4}
-          sx={{ justifyContent: "center", gap: 2, padding: "10px 24px", marginTop: "35px" }}
+        <Box
+          display="flex"
+          mt={4}
+          sx={{
+            justifyContent: "center",
+            gap: 2,
+            padding: "10px 24px",
+            marginTop: "35px",
+          }}
         >
           <Button
             variant="contained"

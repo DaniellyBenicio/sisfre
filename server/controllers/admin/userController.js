@@ -76,6 +76,12 @@ export const updateUser = async (req, res) => {
       return res.status(404).json({ error: "Usuário não encontrado" });
     }
 
+    if (!user.isActive) {
+      return res.status(400).json({
+        error: "Não é possível editar um usuário inativo",
+      });
+    }
+
     // Verificar se o e-mail foi alterado e já existe outro usuário com o novo e-mail
     if (email && email !== user.email) {
       const existingUser = await db.User.findOne({ where: { email } });
@@ -187,6 +193,7 @@ export const getAllUsers = async (req, res) => {
     const users = await db.User.findAll({
       where,
       order: [["username", "ASC"]],
+      attributes: { exclude: ["password"] },
     });
 
     res.json({ users });

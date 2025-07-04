@@ -30,6 +30,11 @@ module.exports = {
         allowNull: false,
         defaultValue: "Professor",
       },
+      isActive: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,

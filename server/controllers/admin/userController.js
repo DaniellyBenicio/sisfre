@@ -43,7 +43,9 @@ export const registerUser = async (req, res) => {
       accessType,
     });
 
-    const createdUser = await db.User.findByPk(newUser.id);
+    const createdUser = await db.User.findByPk(newUser.id, {
+      attributes: { exclude: ["password"] },
+    });
 
     res.status(201).json({
       message:
@@ -60,10 +62,10 @@ export const updateUser = async (req, res) => {
   const { email, password, username, accessType } = req.body;
   const userId = req.params.id;
 
-  if (!email && !password && !username && !accessType) {
+  if (!email && !password && !username && !accessType === undefined) {
     return res.status(400).json({
       error:
-        "Pelo menos um campo (email, senha, nome e tipo de acesso) deve ser fornecido para atualização",
+        "Pelo menos um campo (email, senha, nome, tipo de acesso deve ser fornecido para atualização",
     });
   }
 
@@ -118,7 +120,7 @@ export const updateUser = async (req, res) => {
 };
 
 export const getUsers = async (req, res) => {
-  const { username, page = 1, limit = 10, order = "asc" } = req.query;
+  const { username, page = 1, limit = 10, order = "asc", isActive } = req.query;
 
   try {
     // Calculate the offset for pagination
@@ -134,6 +136,10 @@ export const getUsers = async (req, res) => {
       where.username = {
         [db.Sequelize.Op.like]: `%${username}%`, // Partial match for username
       };
+    }
+
+    if (isActive !== undefined) {
+      where.isActive = isActive === "true";
     }
 
     // Use findAndCountAll to get both paginated data and total count
@@ -161,7 +167,7 @@ export const getUsers = async (req, res) => {
 };
 
 export const getAllUsers = async (req, res) => {
-  const { username } = req.query;
+  const { username, isActive } = req.query;
 
   try {
     const where = {
@@ -172,6 +178,10 @@ export const getAllUsers = async (req, res) => {
       where.username = {
         [db.Sequelize.Op.like]: `%${username}%`,
       };
+    }
+
+    if (isActive !== undefined) {
+      where.isActive = isActive === "true";
     }
 
     const users = await db.User.findAll({
@@ -190,9 +200,9 @@ export const getUserById = async (req, res) => {
   const userId = req.params.id;
 
   try {
-    // Buscar o usuário pelo ID
-    const user = await db.User.findByPk(userId);
-
+    const user = await db.User.findByPk(userId, {
+      attributes: { exclude: ["password"] },
+    });
     // Verificar se o usuário foi encontrado
     if (!user) {
       return res.status(404).json({ error: "Usuário não encontrado" });
@@ -215,10 +225,18 @@ export const deleteUser = async (req, res) => {
       return res.status(404).json({ error: "Usuário não encontrado." });
     }
 
-    await user.destroy();
-    res.status(200).json({ message: "Usuário deletado com sucesso." });
+    user.isActive = !user.isActive;
+    await user.save();
+
+    const message = user.isActive
+      ? "Usuário ativado com sucesso."
+      : "Usuário inativado com sucesso.";
+
+    res
+      .status(200)
+      .json({ message, user: { ...user.get(), password: undefined } });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Erro ao deletar o usuário." });
+    res.status(500).json({ error: "Erro ao alterar o status do usuário." });
   }
 };

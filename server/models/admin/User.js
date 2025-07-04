@@ -8,73 +8,88 @@ const generateCode = async (username, User) => {
 
   const parts = username.trim().split(/\s+/);
   const firstName = parts[0] || "";
-  const cleanedFirstName = firstName.replace(/[^A-Za-zÀ-ÿ]/g, '').toUpperCase();
-  const allAlphaLetters = username.replace(/[^A-Za-zÀ-ÿ]/g, '').toUpperCase().split('');
+  const cleanedFirstName = firstName.replace(/[^A-Za-zÀ-ÿ]/g, "").toUpperCase();
+  const allAlphaLetters = username
+    .replace(/[^A-Za-zÀ-ÿ]/g, "")
+    .toUpperCase()
+    .split("");
   const fallbackAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
   let firstLetter = "X";
   let secondLetter = "X";
   let thirdLetterCandidate = "X";
 
-
   if (cleanedFirstName.length > 0) {
-      firstLetter = cleanedFirstName[0];
+    firstLetter = cleanedFirstName[0];
   } else if (allAlphaLetters.length > 0) {
-      firstLetter = allAlphaLetters[0]; 
+    firstLetter = allAlphaLetters[0];
   }
 
-  if (parts.length > 1) { 
-      const secondWord = parts[1];
-      const cleanedSecondWord = secondWord.replace(/[^A-Za-zÀ-ÿ]/g, '').toUpperCase();
-      secondLetter = cleanedSecondWord[0] || "X";
+  if (parts.length > 1) {
+    const secondWord = parts[1];
+    const cleanedSecondWord = secondWord
+      .replace(/[^A-Za-zÀ-ÿ]/g, "")
+      .toUpperCase();
+    secondLetter = cleanedSecondWord[0] || "X";
 
-      const lettersUsed = [firstLetter, secondLetter];
-      const availableLetters = allAlphaLetters.filter(l => !lettersUsed.includes(l));
-      
+    const lettersUsed = [firstLetter, secondLetter];
+    const availableLetters = allAlphaLetters.filter(
+      (l) => !lettersUsed.includes(l)
+    );
+
+    if (availableLetters.length > 0) {
+      thirdLetterCandidate =
+        availableLetters[Math.floor(Math.random() * availableLetters.length)];
+    } else if (allAlphaLetters.length > 0) {
+      thirdLetterCandidate =
+        allAlphaLetters[Math.floor(Math.random() * allAlphaLetters.length)];
+    } else {
+      thirdLetterCandidate =
+        fallbackAlphabet[Math.floor(Math.random() * fallbackAlphabet.length)];
+    }
+  } else {
+    if (cleanedFirstName.length >= 2) {
+      secondLetter = cleanedFirstName[1];
+    } else {
+      const availableLetters = allAlphaLetters.filter((l) => l !== firstLetter);
       if (availableLetters.length > 0) {
-          thirdLetterCandidate = availableLetters[Math.floor(Math.random() * availableLetters.length)];
+        secondLetter =
+          availableLetters[Math.floor(Math.random() * availableLetters.length)];
+      } else {
+        secondLetter = "X";
+      }
+    }
+
+    if (cleanedFirstName.length >= 3) {
+      thirdLetterCandidate = cleanedFirstName[2];
+    } else {
+      const lettersUsed = [firstLetter, secondLetter];
+      const availableLetters = allAlphaLetters.filter(
+        (l) => !lettersUsed.includes(l)
+      );
+      if (availableLetters.length > 0) {
+        thirdLetterCandidate =
+          availableLetters[Math.floor(Math.random() * availableLetters.length)];
       } else if (allAlphaLetters.length > 0) {
-          thirdLetterCandidate = allAlphaLetters[Math.floor(Math.random() * allAlphaLetters.length)]; 
+        thirdLetterCandidate =
+          allAlphaLetters[Math.floor(Math.random() * allAlphaLetters.length)];
       } else {
-          thirdLetterCandidate = fallbackAlphabet[Math.floor(Math.random() * fallbackAlphabet.length)];
+        thirdLetterCandidate =
+          fallbackAlphabet[Math.floor(Math.random() * fallbackAlphabet.length)];
       }
-
-  } else { 
-
-      if (cleanedFirstName.length >= 2) {
-          secondLetter = cleanedFirstName[1];
-      } else {
-          const availableLetters = allAlphaLetters.filter(l => l !== firstLetter);
-          if (availableLetters.length > 0) {
-              secondLetter = availableLetters[Math.floor(Math.random() * availableLetters.length)];
-          } else {
-              secondLetter = "X"; 
-          }
-      }
-
-      if (cleanedFirstName.length >= 3) {
-          thirdLetterCandidate = cleanedFirstName[2];
-      } else {
-          const lettersUsed = [firstLetter, secondLetter];
-          const availableLetters = allAlphaLetters.filter(l => !lettersUsed.includes(l));
-          if (availableLetters.length > 0) {
-              thirdLetterCandidate = availableLetters[Math.floor(Math.random() * availableLetters.length)];
-          } else if (allAlphaLetters.length > 0) { 
-              thirdLetterCandidate = allAlphaLetters[Math.floor(Math.random() * allAlphaLetters.length)];
-          } else {
-              thirdLetterCandidate = fallbackAlphabet[Math.floor(Math.random() * fallbackAlphabet.length)];
-          }
-      }
+    }
   }
 
   if (firstLetter === "X") firstLetter = fallbackAlphabet[0];
-  if (secondLetter === "X") secondLetter = fallbackAlphabet[1]; 
+  if (secondLetter === "X") secondLetter = fallbackAlphabet[1];
   if (thirdLetterCandidate === "X") thirdLetterCandidate = fallbackAlphabet[2];
 
   const baseAcronymPrefix = firstLetter + secondLetter;
   let candidateAcronym = baseAcronymPrefix + thirdLetterCandidate;
 
-  const existingUserInitial = await User.findOne({ where: { acronym: candidateAcronym } });
+  const existingUserInitial = await User.findOne({
+    where: { acronym: candidateAcronym },
+  });
   if (!existingUserInitial) {
     return candidateAcronym;
   }
@@ -83,12 +98,16 @@ const generateCode = async (username, User) => {
   for (let i = 0; i < MAX_RANDOM_ATTEMPTS; i++) {
     let randomThirdLetter;
     if (allAlphaLetters.length > 0) {
-      randomThirdLetter = allAlphaLetters[Math.floor(Math.random() * allAlphaLetters.length)];
+      randomThirdLetter =
+        allAlphaLetters[Math.floor(Math.random() * allAlphaLetters.length)];
     } else {
-      randomThirdLetter = fallbackAlphabet[Math.floor(Math.random() * fallbackAlphabet.length)];
+      randomThirdLetter =
+        fallbackAlphabet[Math.floor(Math.random() * fallbackAlphabet.length)];
     }
     candidateAcronym = baseAcronymPrefix + randomThirdLetter;
-    const existingUser = await User.findOne({ where: { acronym: candidateAcronym } });
+    const existingUser = await User.findOne({
+      where: { acronym: candidateAcronym },
+    });
     if (!existingUser) {
       return candidateAcronym;
     }
@@ -106,7 +125,9 @@ const generateCode = async (username, User) => {
       continue;
     }
 
-    const existingUser = await User.findOne({ where: { acronym: candidateAcronym } });
+    const existingUser = await User.findOne({
+      where: { acronym: candidateAcronym },
+    });
     if (!existingUser) {
       return candidateAcronym;
     }
@@ -115,7 +136,7 @@ const generateCode = async (username, User) => {
   console.error(
     `ERRO CRÍTICO: Não foi possível encontrar uma sigla única para o usuário: "${username}" após ${MAX_RANDOM_ATTEMPTS} tentativas aleatórias e ${MAX_SEQUENTIAL_ATTEMPTS} tentativas sequenciais. Retornando fallback genérico.`
   );
-  return baseAcronymPrefix + 'F'; 
+  return baseAcronymPrefix + "F";
 };
 
 export default (sequelize) => {
@@ -179,6 +200,11 @@ export default (sequelize) => {
         type: DataTypes.ENUM("Professor", "Coordenador", "Admin"),
         allowNull: false,
         defaultValue: "Professor",
+      },
+      isActive: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
       },
     },
     {

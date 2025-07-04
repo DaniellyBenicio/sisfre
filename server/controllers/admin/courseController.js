@@ -26,6 +26,11 @@ export const createCourse = async (req, res) => {
     if (!coordinator) {
       return res.status(400).json({ error: "Coordenador não encontrado." });
     }
+    if (!coordinator.isActive) {
+      return res.status(400).json({
+        error: "O coordenador deve ser um usuário ativo.",
+      });
+    }
   }
 
   const validNameRegex = /^[A-Za-zÀ-ÿ\s]*$/;
@@ -58,7 +63,7 @@ export const createCourse = async (req, res) => {
     "SEQUENCIAL",
     "PÓS-DOUTORADO",
     "PÓS-GRADUAÇÃO",
-    "CURSO LIVRE"
+    "CURSO LIVRE",
   ];
 
   if (!validTypes.includes(type)) {
@@ -236,6 +241,11 @@ export const updateCourse = async (req, res) => {
         const coordinator = await db.User.findByPk(coordinatorId);
         if (!coordinator) {
           return res.status(400).json({ error: "Coordenador não encontrado." });
+        }
+        if (!coordinator.isActive) {
+          return res.status(400).json({
+            error: "O coordenador deve ser um usuário ativo.",
+          });
         }
 
         const existingCourseWithCoordinator = await db.Course.findOne({

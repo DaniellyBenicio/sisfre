@@ -71,7 +71,9 @@ export const updateUser = async (req, res) => {
 
   try {
     // Verificar se o usuário existe
-    const user = await db.User.findByPk(userId);
+    const user = await db.User.findByPk(userId, {
+      attributes: { exclude: ["password"] },
+    });
     if (!user) {
       return res.status(404).json({ error: "Usuário não encontrado" });
     }
@@ -119,7 +121,20 @@ export const updateUser = async (req, res) => {
     // Salvar as alterações no banco de dados
     await user.save();
 
-    res.status(200).json({ message: "Usuário atualizado com sucesso", user });
+    const userResponse = {
+      id: user.id,
+      username: user.username,
+      acronym: user.acronym,
+      email: user.email,
+      accessType: user.accessType,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+
+    res
+      .status(200)
+      .json({ message: "Usuário atualizado com sucesso", user: userResponse });
   } catch (error) {
     res.status(500).json({ error: "Erro ao atualizar usuário" });
   }

@@ -31,6 +31,11 @@ export const createCourse = async (req, res) => {
         error: "O coordenador deve ser um usuário ativo.",
       });
     }
+    if (coordinator.accessType !== "Coordenador") {
+      return res.status(400).json({
+        error: "O usuário selecionado não é coordenador.",
+      });
+    }
   }
 
   const validNameRegex = /^[A-Za-zÀ-ÿ\s]*$/;
@@ -245,6 +250,11 @@ export const updateCourse = async (req, res) => {
         if (!coordinator.isActive) {
           return res.status(400).json({
             error: "O coordenador deve ser um usuário ativo.",
+          });
+        }
+        if (coordinator.accessType !== "Coordenador") {
+          return res.status(400).json({
+            error: "O usuário selecionado não é coordenador.",
           });
         }
 

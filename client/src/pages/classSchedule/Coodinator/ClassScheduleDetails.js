@@ -13,12 +13,12 @@ import {
   Divider,
   Button,
   CircularProgress,
-  TableContainer,
 } from "@mui/material";
 import { ArrowBack, School, History, Edit } from "@mui/icons-material";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import Sidebar from "../../../components/SideBar";
 import api from "../../../service/api";
+import ScheduleTable from "../../../components/scheduleTable/ScheduleTable";
 
 const ClassScheduleDetails = ({ setAuthenticated }) => {
   const navigate = useNavigate();
@@ -151,12 +151,13 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
       );
       row[day] = detail
         ? {
-            discipline: detail.discipline?.name || "N/A",
+            disciplineName: detail.discipline?.name || "N/A",
             disciplineAcronym:
               detail.discipline?.acronym || detail.discipline?.sigla || "",
-            professor: detail.professor?.username || "Sem professor",
+            professorName: detail.professor?.username || "Sem professor",
             professorAcronym:
               detail.professor?.acronym || detail.professor?.sigla || "",
+            hourId: detail.hourId || null,
           }
         : null;
     });
@@ -293,69 +294,14 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
                         {turno}
                       </Typography>
                     </Box>
-                    <TableContainer
-                      component={Paper}
-                      elevation={0}
+                    <ScheduleTable
+                      scheduleMatrix={turnoMatrix}
+                      daysOfWeek={daysOfWeek}
+                      disableTooltips={true}
                       sx={{
-                        flex: 1,
                         border: `1px solid ${greyBorder}`,
-                        borderRadius: 2,
                       }}
-                    >
-                      <Table size="small">
-                        <TableHead>
-                          <TableRow>
-                            <TableCell>
-                              <strong>Horário</strong>
-                            </TableCell>
-                            {daysOfWeek.map((day) => (
-                              <TableCell key={day}>
-                                <strong>{day}</strong>
-                              </TableCell>
-                            ))}
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {turnoMatrix.map((row, index) => (
-                            <TableRow
-                              key={index}
-                              sx={{
-                                "&:last-child td, &:last-child th": {
-                                  border: 0,
-                                },
-                              }}
-                            >
-                              <TableCell>{row.timeSlot || "N/A"}</TableCell>
-                              {daysOfWeek.map((day) => (
-                                <TableCell key={day}>
-                                  {row[day] ? (
-                                    <Box
-                                      sx={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        alignItems: "flex-start",
-                                      }}
-                                    >
-                                      <Typography variant="body2">
-                                        {row[day].disciplineAcronym}
-                                      </Typography>
-                                      <Typography
-                                        variant="body2"
-                                        color="text.secondary"
-                                      >
-                                        {row[day].professorAcronym}
-                                      </Typography>
-                                    </Box>
-                                  ) : (
-                                    "-"
-                                  )}
-                                </TableCell>
-                              ))}
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
+                    />
                   </Box>
                 )
               );

@@ -1,35 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  Box,
-  Typography,
-  Button,
-  MenuItem,
-  Grid,
-  Paper,
-  CssBaseline,
-  IconButton,
-  Alert,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Divider,
-  Tooltip,
-  TextField,
-  TableContainer,
-} from "@mui/material";
-import {
-  ArrowBack,
-  Close,
-  Save,
-  School,
-  History,
-  AddCircleOutline,
-  Remove,
-  Delete,
-  Check,
-} from "@mui/icons-material";
+import { Box, Typography, Button, MenuItem, Grid, Paper, CssBaseline, IconButton, Alert, Divider, TextField, } from "@mui/material";
+import { ArrowBack, Close, Save, School, History, AddCircleOutline, Remove, Check, } from "@mui/icons-material";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../../components/SideBar";
 import api from "../../../service/api";
@@ -37,6 +8,7 @@ import { CustomAlert } from "../../../components/alert/CustomAlert";
 import DeleteConfirmationDialog from "../../../components/DeleteConfirmationDialog";
 import CustomAutocomplete from "../../../components/inputs/CustomAutocompletePage";
 import CustomSelect from "../../../components/inputs/CustomSelectPage";
+import ScheduleTable from "../../../components/scheduleTable/ScheduleTable";
 
 const ClassScheduleEdit = ({ setAuthenticated }) => {
   const { id } = useParams();
@@ -730,14 +702,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
     Tarde: confirmedDetails.filter((detail) => detail.turn === "Tarde"),
     Noite: confirmedDetails.filter((detail) => detail.turn === "Noite"),
   };
-  const daysOfWeek = [
-    "Segunda",
-    "Terça",
-    "Quarta",
-    "Quinta",
-    "Sexta",
-    "Sábado",
-  ];
+  const daysOfWeek = [ "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", ];
 
   const getScheduleMatrix = (details) => {
     const groupedByDayAndDiscipline = details.reduce((acc, detail) => {
@@ -832,46 +797,25 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
 
         <Box ref={errorRef} sx={{ m: 4, borderRadius: 3 }}>
           {errors.message && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {" "}
-              {errors.message}{" "}
-            </Alert>
+            <Alert severity="error" sx={{ mb: 2 }}> {" "} {errors.message}{" "} </Alert>
           )}
           {errors.classes && (
-            <Alert severity="warning" sx={{ mb: 2 }}>
-              {" "}
-              {errors.classes}{" "}
-            </Alert>
+            <Alert severity="warning" sx={{ mb: 2 }}> {" "} {errors.classes}{" "} </Alert>
           )}
           {errors.disciplines && (
-            <Alert severity="warning" sx={{ mb: 2 }}>
-              {" "}
-              {errors.disciplines}{" "}
-            </Alert>
+            <Alert severity="warning" sx={{ mb: 2 }}> {" "} {errors.disciplines}{" "} </Alert>
           )}
           {errors.professors && (
-            <Alert severity="warning" sx={{ mb: 2 }}>
-              {" "}
-              {errors.professors}{" "}
-            </Alert>
+            <Alert severity="warning" sx={{ mb: 2 }}> {" "} {errors.professors}{" "} </Alert>
           )}
           {errors.calendars && (
-            <Alert severity="warning" sx={{ mb: 2 }}>
-              {" "}
-              {errors.calendars}{" "}
-            </Alert>
+            <Alert severity="warning" sx={{ mb: 2 }}> {" "} {errors.calendars}{" "} </Alert>
           )}
           {errors.hours && (
-            <Alert severity="warning" sx={{ mb: 2 }}>
-              {" "}
-              {errors.hours}{" "}
-            </Alert>
+            <Alert severity="warning" sx={{ mb: 2 }}> {" "} {errors.hours}{" "} </Alert>
           )}
           {errors.detail && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {" "}
-              {errors.detail}{" "}
-            </Alert>
+            <Alert severity="error" sx={{ mb: 2 }}> {" "} {errors.detail}{" "} </Alert>
           )}
           {alert && (
             <CustomAlert
@@ -882,11 +826,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
           )}
         </Box>
 
-        <Box
-          component={Paper}
-          elevation={3}
-          sx={{ p: 5, m: 4, borderRadius: 3 }}
-        >
+        <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }} >
           <Box
             sx={{
               display: "flex",
@@ -902,13 +842,13 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
             </Typography>
           </Box>
           <Grid container spacing={2.5} mt="10px" justifyContent="center">
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12}>
               <CustomSelect
                 label="Turma"
                 name="classId"
                 value={formData.classId}
                 onChange={handleChange}
-                selectSx={{ width: "320px" }}
+                selectSx={{ width: { xs: "600px", sm: "360px", md: "145px", lg: "320px" } }}
                 disabled
               >
                 {classes
@@ -931,7 +871,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                 name="calendarId"
                 value={formData.calendarId}
                 onChange={handleChange}
-                selectSx={{ width: "380px" }}
+                selectSx={{ width: { xs: "600px", sm: "360px", md: "300px", lg: "380px" } }}
                 disabled
               >
                 {calendars.map((calendar) => (
@@ -949,7 +889,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                 value={determineTurn(confirmedDetails)}
                 InputProps={{ readOnly: true }}
                 sx={{
-                  width: "320px",
+                  width: { xs: "600px", sm: "360px", md: "145px", lg: "320px" },
                   "& .MuiInputBase-root.Mui-disabled": {
                     backgroundColor: "#f5f5f5",
                     color: "#000",
@@ -965,11 +905,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
         </Box>
 
         {/* Horários */}
-        <Box
-          component={Paper}
-          elevation={3}
-          sx={{ p: 5, pb: 12, m: 4, borderRadius: 3, position: "relative" }}
-        >
+        <Box component={Paper} elevation={3} sx={{ p: 5, pb: 12, m: 4, borderRadius: 3, position: "relative" }} >
           <Box
             sx={{
               display: "flex",
@@ -997,14 +933,14 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
               Horários{" "}
             </Typography>
           </Box>
-          <Grid container spacing={3} mt="10px">
+          <Grid container spacing={3} mt="10px" justifyContent="center">
             <Grid item xs={12} sm={6}>
               <CustomSelect
                 label="Professor"
                 name="professorId"
                 value={formData.details[0].professorId}
                 onChange={(e) => handleChange(e, 0)}
-                selectSx={{ width: "520px" }}
+                selectSx={{ width: { xs: "600px", sm: "360px", md: "145px", lg: "520px" } }}
               >
                 {professors.map((prof) => (
                   <MenuItem key={prof.id} value={prof.id}>
@@ -1040,7 +976,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                 isOptionEqualToValue={(option, value) =>
                   option.disciplineId === value.disciplineId
                 }
-                selectSx={{ width: "520px" }}
+                selectSx={{ width: { xs: "600px", sm: "360px", md: "145px", lg: "520px" } }}
               />
             </Grid>
             {formData.details.map((detail, index) => (
@@ -1048,7 +984,8 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                 container
                 spacing={3}
                 key={index}
-                sx={{ mt: index === 0 ? 2 : 0, alignItems: "center" }}
+                sx={{ mt: index === 0 ? 1 : 0 }}
+                justifyContent="center"
               >
                 <Grid item xs={12} sm={6}>
                   <CustomSelect
@@ -1056,7 +993,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                     name="dayOfWeek"
                     value={detail.dayOfWeek}
                     onChange={(e) => handleChange(e, index)}
-                    selectSx={{ width: "248px" }}
+                    selectSx={{ width: { xs: "285px", sm: "360px", md: "145px", lg: "250px" } }}
                   >
                     <MenuItem value="Segunda-feira">Segunda-feira</MenuItem>
                     <MenuItem value="Terça-feira">Terça-feira</MenuItem>
@@ -1072,7 +1009,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                     name="turn"
                     value={detail.turn}
                     onChange={(e) => handleChange(e, index)}
-                    selectSx={{ width: "248px" }}
+                    selectSx={{ width: { xs: "285px", sm: "360px", md: "145px", lg: "250px" } }}
                   >
                     <MenuItem value="Manhã">Manhã</MenuItem>
                     <MenuItem value="Tarde">Tarde</MenuItem>
@@ -1087,7 +1024,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                     onChange={(e) => handleChange(e, index)}
                     disabled={!detail.turn}
                     loading={hoursLoadingByDetail[index]}
-                    selectSx={{ width: "215px" }}
+                    selectSx={{ width: { xs: "257px", sm: "360px", md: "145px", lg: "215px" } }}
                   >
                     {(availableHoursByDetail[index] || []).map((hour) => (
                       <MenuItem key={hour.id} value={hour.id}>
@@ -1105,7 +1042,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                       onChange={(e) => handleChange(e, index)}
                       disabled={!detail.turn || !detail.selectedHourStartId}
                       loading={hoursLoadingByDetail[index]}
-                      selectSx={{ width: "215px" }}
+                      selectSx={{ width: { xs: "250px", sm: "360px", md: "145px", lg: "215px" } }}
                     >
                       {(availableHoursByDetail[index] || [])
                         .filter((hour) => {
@@ -1160,10 +1097,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
               </Grid>
             ))}
             <Box sx={{ position: "absolute", bottom: 15, right: 48 }}>
-              <Button
-                variant="outlined"
-                onClick={handleSaveDetails}
-                color="success"
+              <Button variant="outlined" onClick={handleSaveDetails} color="success"
                 sx={{
                   width: "fit-content",
                   minWidth: 100,
@@ -1188,11 +1122,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
           </Grid>
         </Box>
 
-        <Box
-          component={Paper}
-          elevation={3}
-          sx={{ p: 5, m: 4, borderRadius: 3 }}
-        >
+        <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }} >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
             <Typography variant="h5" color="green">
               Horários Confirmados
@@ -1203,8 +1133,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
             const scheduleMatrix = getScheduleMatrix(groupedDetails[turn]);
             return (
               scheduleMatrix.length > 0 && (
-                <Box
-                  key={turn}
+                <Box key={turn}
                   sx={{
                     display: "flex",
                     alignItems: "flex-start",
@@ -1241,117 +1170,12 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                       {turn}
                     </Typography>
                   </Box>
-                  <TableContainer
-                    component={Paper}
-                    elevation={0}
-                    sx={{
-                      flex: 1,
-                      border: "1px solid #C7C7C7",
-                      borderRadius: 2,
-                    }}
-                  >
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>
-                            <strong>Horário</strong>
-                          </TableCell>
-                          {daysOfWeek.map((day) => (
-                            <TableCell key={day}>
-                              <strong>{day}</strong>
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {scheduleMatrix.map((row, index) => (
-                          <TableRow
-                            key={index}
-                            sx={{
-                              "&:last-child td, &:last-child th": { border: 0 },
-                            }}
-                          >
-                            <TableCell>{row.timeSlot || "N/A"}</TableCell>
-                            {daysOfWeek.map((day) => (
-                              <TableCell key={day}>
-                                {row[day] ? (
-                                  <Box
-                                    sx={{
-                                      display: "flex",
-                                      flexDirection: "column",
-                                      alignItems: "center",
-                                    }}
-                                  >
-                                    <Tooltip
-                                      title={row[day].disciplineName}
-                                      arrow
-                                      placement="top"
-                                      enterDelay={200}
-                                      leaveDelay={200}
-                                      slotProps={{
-                                        popper: {
-                                          modifiers: [
-                                            {
-                                              name: "offset",
-                                              options: { offset: [20, -8] },
-                                            },
-                                          ],
-                                        },
-                                      }}
-                                    >
-                                      <Typography variant="body2">
-                                        {row[day].disciplineAcronym}
-                                      </Typography>
-                                    </Tooltip>
-                                    <Tooltip
-                                      title={row[day].professorName}
-                                      arrow
-                                      enterDelay={200}
-                                      leaveDelay={200}
-                                      slotProps={{
-                                        popper: {
-                                          modifiers: [
-                                            {
-                                              name: "offset",
-                                              options: { offset: [-5, -15] },
-                                            },
-                                          ],
-                                        },
-                                      }}
-                                    >
-                                      <Typography
-                                        variant="body2"
-                                        color="text.secondary"
-                                      >
-                                        {row[day].professorAcronym}
-                                      </Typography>
-                                    </Tooltip>
-                                    <IconButton
-                                      onClick={() =>
-                                        handleDeleteDetail(
-                                          day,
-                                          row.timeSlot,
-                                          row[day].hourId
-                                        )
-                                      }
-                                      sx={{
-                                        color: "#F01424",
-                                        "&:hover": { color: "#D4000F" },
-                                      }}
-                                    >
-                                      <Delete />
-                                    </IconButton>
-                                  </Box>
-                                ) : (
-                                  "-"
-                                )}
-                              </TableCell>
-                            ))}
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
+                  <ScheduleTable
+                    scheduleMatrix={scheduleMatrix}
+                    daysOfWeek={daysOfWeek}
+                    disableTooltips={false}
+                    handleDeleteDetail={handleDeleteDetail}
+                  />
                 </Box>
               )
             );
@@ -1363,9 +1187,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
           )}
         </Box>
 
-        <Box
-          display="flex"
-          mt={4}
+        <Box display="flex" mt={4}
           sx={{
             justifyContent: "center",
             gap: 2,

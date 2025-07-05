@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  Box, Typography, Button, FormControl, InputLabel, Select, MenuItem, Grid, Paper, CssBaseline,
-  IconButton, CircularProgress, Alert, Table, TableHead, TableRow, TableCell, TableBody, Divider,
-  Tooltip, TableContainer
+  Box, Typography, Button, MenuItem, Grid, Paper, CssBaseline, IconButton, Alert, Table, TableHead, TableRow, TableCell, 
+  TableBody, Divider, Tooltip, TableContainer
 } from "@mui/material";
 import { ArrowBack, Close, Save, School, History, Delete, AddCircleOutline, Remove, Check } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -12,6 +11,7 @@ import { CustomAlert } from "../../../components/alert/CustomAlert";
 import DeleteConfirmationDialog from "../../../components/DeleteConfirmationDialog";
 import CustomAutocomplete from "../../../components/inputs/CustomAutocompletePage";
 import CustomSelect from "../../../components/inputs/CustomSelectPage";
+import ScheduleTable from "../../../components/scheduleTable/ScheduleTable";
 
 const ClassScheduleCreate = ({ setAuthenticated }) => {
   const [formData, setFormData] = useState({
@@ -960,96 +960,12 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                       {turn}
                     </Typography>
                   </Box>
-                  <TableContainer
-                    component={Paper}
-                    elevation={0}
-                    sx={{
-                      flex: 1,
-                      border: `1px solid ${greyBorder}`,
-                      borderRadius: 2,
-                    }}
-                  >
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell><strong>Horário</strong></TableCell>
-                          {daysOfWeek.map((day) => (
-                            <TableCell key={day}><strong>{day}</strong></TableCell>
-                          ))}
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {scheduleMatrix.map((row, index) => (
-                          <TableRow key={index}
-                            sx={{
-                              "&:last-child td, &:last-child th": { border: 0, },
-                            }}
-                          >
-                            <TableCell>{row.timeSlot || "N/A"}</TableCell>
-                            {daysOfWeek.map((day) => (
-                              <TableCell key={day}>
-                                {row[day] ? (
-                                  <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", }}>
-                                    <Tooltip
-                                      title={row[day].disciplineName}
-                                      arrow
-                                      placement="top"
-                                      enterDelay={200}
-                                      leaveDelay={200}
-                                      slotProps={{
-                                        popper: {
-                                          modifiers: [
-                                            {
-                                              name: "offset",
-                                              options: {
-                                                offset: [20, -8],
-                                              },
-                                            },
-                                          ],
-                                        },
-                                      }}
-                                    >
-                                      <Typography variant="body2">{row[day].disciplineAcronym}</Typography>
-                                    </Tooltip>
-                                    <Tooltip
-                                      title={row[day].professorName}
-                                      arrow
-                                      enterDelay={200}
-                                      leaveDelay={200}
-                                      slotProps={{
-                                        popper: {
-                                          modifiers: [
-                                            {
-                                              name: "offset",
-                                              options: {
-                                                offset: [-5, -15],
-                                              },
-                                            },
-                                          ],
-                                        },
-                                      }}
-                                    >
-                                      <Typography variant="body2" color="text.secondary">
-                                        {row[day].professorAcronym}
-                                      </Typography>
-                                    </Tooltip>
-                                    <IconButton
-                                      onClick={() => handleDeleteDetail(day, row.timeSlot, row[day].hourId)}
-                                      sx={{ color: "#F01424", "&:hover": { color: "#D4000F" } }}
-                                    >
-                                      <Delete />
-                                    </IconButton>
-                                  </Box>
-                                ) : (
-                                  "-"
-                                )}
-                              </TableCell>
-                            ))}
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
+                  <ScheduleTable
+                    scheduleMatrix={scheduleMatrix}
+                    daysOfWeek={daysOfWeek}
+                    disableTooltips={false}
+                    handleDeleteDetail={handleDeleteDetail}
+                  />
                 </Box>
               )
             );

@@ -67,6 +67,9 @@ const UserFormDialog = ({
     );
   };
 
+  // Check if user is active in edit mode
+  const isUserActive = isEditMode ? userToEdit?.isActive !== false : true;
+
   const formatName = (name) => {
     if (!name) return "";
     return name
@@ -150,6 +153,8 @@ const UserFormDialog = ({
           ? "Este e-mail já está cadastrado. Use um e-mail diferente."
           : errorMessage.includes("Apenas e-mails institucionais")
           ? "Use um e-mail institucional (@ifce.edu.br)."
+          : errorMessage.includes("Não é possível editar um usuário inativo")
+          ? "Não é possível editar um usuário inativo."
           : errorMessage
       );
       console.error("UserFormDialog - Erro:", err);
@@ -262,6 +267,7 @@ const UserFormDialog = ({
             value={user.username}
             onChange={handleInputChange}
             required
+            disabled={isEditMode && !isUserActive}
           />
 
           <StyledTextField
@@ -297,6 +303,7 @@ const UserFormDialog = ({
             value={user.email}
             onChange={handleInputChange}
             required
+            disabled={isEditMode && !isUserActive}
           />
 
           <FormControl
@@ -313,6 +320,7 @@ const UserFormDialog = ({
                 my: 1,
               },
             }}
+            disabled={isEditMode && !isUserActive}
           >
             <InputLabel
               id="accessType-label"
@@ -381,19 +389,19 @@ const UserFormDialog = ({
             <StyledButton
               type="submit"
               variant="contained"
-              disabled={isEditMode ? !hasFormChanged() : !isFormFilled}
+              disabled={
+                isEditMode ? !hasFormChanged() || !isUserActive : !isFormFilled
+              }
               sx={{
                 backgroundColor:
-                  isEditMode && !hasFormChanged()
-                    ? "#E0E0E0"
-                    : !isFormFilled
+                  (isEditMode && (!hasFormChanged() || !isUserActive)) ||
+                  (!isEditMode && !isFormFilled)
                     ? "#E0E0E0"
                     : INSTITUTIONAL_COLOR,
                 "&:hover": {
                   backgroundColor:
-                    isEditMode && !hasFormChanged()
-                      ? "#E0E0E0"
-                      : !isFormFilled
+                    (isEditMode && (!hasFormChanged() || !isUserActive)) ||
+                    (!isEditMode && !isFormFilled)
                       ? "#E0E0E0"
                       : "#26692b",
                 },

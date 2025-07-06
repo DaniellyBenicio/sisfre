@@ -1,13 +1,12 @@
-// ClassSchedulePage
 import React, { useState } from 'react';
-import api from "../../../service/api";
 import DeleteConfirmationDialog from "../../../components/DeleteConfirmationDialog";
 import { CustomAlert } from "../../../components/alert/CustomAlert";
+import api from "../../../service/api";
 
-const UserDelete = ({ open, onClose, userId, userName, onDeleteSuccess }) => {
+const UserArchive = ({ open, onClose, userId, userName, isActive, onArchiveSuccess }) => {
   const [alert, setAlert] = useState(null);
 
-  const handleDelete = async () => {
+  const handleArchive = async () => {
     if (!userId) {
       console.error('Erro: userId não fornecido');
       setAlert({
@@ -24,29 +23,29 @@ const UserDelete = ({ open, onClose, userId, userName, onDeleteSuccess }) => {
 
       if (response.status === 200) {
         setAlert({
-          message: 'Usuário deletado com sucesso!',
+          message: response.data.message || `Usuário ${isActive ? 'inativado' : 'ativado'} com sucesso!`,
           type: 'success',
         });
-        if (onDeleteSuccess) {
-          onDeleteSuccess(userId);
+        if (onArchiveSuccess) {
+          onArchiveSuccess(userId);
         }
         onClose();
       } else {
         console.error('Resposta inesperada da API:', response.data);
         setAlert({
-          message: 'Erro ao deletar usuário. Verifique os dados e tente novamente.',
+          message: 'Erro ao alterar o status do usuário. Verifique os dados e tente novamente.',
           type: 'error',
         });
       }
     } catch (error) {
-      console.error('Erro ao deletar usuário:', error.message);
+      console.error('Erro ao alterar o status do usuário:', error.message);
       if (error.response) {
         console.error('Status do erro:', error.response.status);
         console.error('Detalhes do erro da API:', error.response.data);
         const errorMessage = error.response.data.error || 'Erro desconhecido.';
         if (error.response.status === 403) {
           setAlert({
-            message: 'Erro: Você não tem permissão para deletar este usuário.',
+            message: 'Erro: Você não tem permissão para alterar o status deste usuário.',
             type: 'error',
           });
         } else if (error.response.status === 404) {
@@ -56,7 +55,7 @@ const UserDelete = ({ open, onClose, userId, userName, onDeleteSuccess }) => {
           });
         } else {
           setAlert({
-            message: `Erro ao deletar usuário: ${errorMessage}`,
+            message: `Erro ao alterar o status do usuário: ${errorMessage}`,
             type: 'error',
           });
         }
@@ -85,8 +84,8 @@ const UserDelete = ({ open, onClose, userId, userName, onDeleteSuccess }) => {
       <DeleteConfirmationDialog
         open={open}
         onClose={onClose}
-        message={`Deseja realmente excluir o usuário '${userName}'?`}
-        onConfirm={handleDelete}
+        message={`Deseja realmente ${isActive ? 'inativar' : 'ativar'} o usuário '${userName}'?`}
+        onConfirm={handleArchive}
         userName=""
       />
       {alert && (
@@ -100,4 +99,4 @@ const UserDelete = ({ open, onClose, userId, userName, onDeleteSuccess }) => {
   );
 };
 
-export default UserDelete;
+export default UserArchive;

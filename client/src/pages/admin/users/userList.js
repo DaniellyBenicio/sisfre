@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Box, Typography } from "@mui/material";
 import SearchAndCreateBar from "../../../components/homeScreen/SearchAndCreateBar"; 
 import UserRegistrationPopup from "./UserResgistrationPopup";
-import UserDelete from "./UserDelete";
+import UserArchive from "./UserArchive";
 import UserUpdatePopup from "./UserUpdatePopup";
 import api from "../../../service/api";
 import UsersTable from "./UsersTable";
@@ -11,10 +11,10 @@ const UserList = () => {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [openArchiveDialog, setOpenArchiveDialog] = useState(false);
   const [openUpdateDialog, setOpenUpdateDialog] = useState(false);
   const [userToEdit, setUserToEdit] = useState(null);
-  const [userToDelete, setUserToDelete] = useState(null);
+  const [userToArchive, setUserToArchive] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -91,24 +91,25 @@ const UserList = () => {
       setUserToEdit(null);
     } catch (error) {
       console.error("Erro ao buscar usuário atualizado:", error);
+      setError("Erro ao atualizar usuário. Tente novamente.");
     }
   };
 
-  const handleDelete = (userId) => {
-    console.log("UserList - Usuário para deleção:", userId);
+  const handleArchive = (userId) => {
+    console.log("UserList - Usuário para arquivamento:", userId);
     console.log("Lista de usuários atual:", users);
-    const userToDeleteFound = users.find((u) => String(u.id) === String(userId));
-    console.log("Usuário encontrado para deleção:", userToDeleteFound);
-    if (!userToDeleteFound) {
+    const userToArchiveFound = users.find((u) => String(u.id) === String(userId));
+    console.log("Usuário encontrado para arquivamento:", userToArchiveFound);
+    if (!userToArchiveFound) {
       setError(`Usuário com ID ${userId} não encontrado.`);
       return;
     }
-    setUserToDelete(userToDeleteFound);
-    setOpenDeleteDialog(true);
+    setUserToArchive(userToArchiveFound);
+    setOpenArchiveDialog(true);
   };
 
-  const handleDeleteSuccess = (userId) => {
-    console.log("UserList - Usuário deletado:", userId);
+  const handleArchiveSuccess = (userId) => {
+    console.log("UserList - Usuário arquivado:", userId);
     fetchUsers();
   };
 
@@ -145,7 +146,7 @@ const UserList = () => {
       />
       <UsersTable
         users={filteredUsers}
-        onDelete={handleDelete}
+        onArchive={handleArchive}
         onUpdate={handleEdit}
         search={search}
       />
@@ -163,16 +164,17 @@ const UserList = () => {
         user={userToEdit}
         onUpdate={handleUpdate}
       />
-      <UserDelete
-        open={openDeleteDialog}
+      <UserArchive
+        open={openArchiveDialog}
         onClose={() => {
-          setOpenDeleteDialog(false);
-          setUserToDelete(null);
+          setOpenArchiveDialog(false);
+          setUserToArchive(null);
           setError(null);
         }}
-        userId={userToDelete ? userToDelete.id : null}
-        userName={userToDelete ? userToDelete.username : ""}
-        onDeleteSuccess={handleDeleteSuccess}
+        userId={userToArchive ? userToArchive.id : null}
+        userName={userToArchive ? userToArchive.username : ""}
+        isActive={userToArchive ? userToArchive.isActive : true}
+        onArchiveSuccess={handleArchiveSuccess}
       />
     </Box>
   );

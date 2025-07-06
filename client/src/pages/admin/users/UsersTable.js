@@ -1,13 +1,14 @@
 import React from "react";
 import { Stack, Typography } from "@mui/material";
-import DataTable from "../../../components/homeScreen/DataTable"; 
+import ArchiveDataTable from "../../../components/homeScreen/ArchiveDataTable"; 
 
-const UsersTable = ({ users, onDelete, onUpdate, search }) => {
+const UsersTable = ({ users, onArchive, onUpdate, search }) => {
   const headers = [
     { key: "acronym", label: "Sigla" },
     { key: "username", label: "Nome" },
     { key: "accessType", label: "Tipo" },
     { key: "email", label: "Email" },
+    { key: "status", label: "Status" },
   ];
 
   const renderMobileRow = (user) => (
@@ -24,15 +25,21 @@ const UsersTable = ({ users, onDelete, onUpdate, search }) => {
       <Typography>
         <strong>Email:</strong> {user.email}
       </Typography>
+      <Typography>
+        <strong>Status:</strong> {user.isActive ? "Ativo" : "Inativo"}
+      </Typography>
     </Stack>
   );
 
   return (
-    <DataTable
-      data={users}
+    <ArchiveDataTable
+      data={users.map(user => ({
+        ...user,
+        status: user.isActive ? "Ativo" : "Inativo"
+      }))}
       headers={headers}
-      onDelete={onDelete}
-      onUpdate={onUpdate}
+      onArchive={onArchive}
+      onUpdate={(user) => user.isActive && onUpdate(user)} 
       search={search}
       renderMobileRow={renderMobileRow}
     />

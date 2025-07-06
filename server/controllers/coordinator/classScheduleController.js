@@ -15,7 +15,7 @@ export const createClassSchedule = async (req, res) => {
     ) {
       return res.status(400).json({
         message:
-          "Dados incompletos ou inválidos. Calendário e turma são obrigatórios.",
+          "Dados incompletos ou inválidos. Calendário, turma e detalhes são obrigatórios.",
       });
     }
 
@@ -27,6 +27,7 @@ export const createClassSchedule = async (req, res) => {
 
     const course = await db.Course.findOne({
       where: { coordinatorId: loggedUserId },
+      attributes: ["id", "name"],
     });
 
     if (!course) {
@@ -37,41 +38,84 @@ export const createClassSchedule = async (req, res) => {
     }
 
     const courseId = course.id;
+    const courseName = course.name;
 
-    const [calendar, classRecord] = await Promise.all([
-      db.Calendar.findByPk(calendarId),
-      db.Class.findByPk(classId),
+    if (!db.sequelize.models.CourseClass) {
+      throw new Error(
+        "Modelo 'CourseClass' não está definido."
+      );
+    }
+
+    const [calendar, classRecord, courseClass] = await Promise.all([
+      db.Calendar.findByPk(calendarId, {
+        attributes: ["id", "year", "period", "startDate", "endDate"],
+      }),
+      db.Class.findByPk(classId, { attributes: ["id", "semester"] }),
+      db.sequelize.models.CourseClass.findOne({
+        where: {
+          classId,
+          courseId,
+          isActive: true,
+        },
+      }),
     ]);
 
     if (!calendar) {
-      return res.status(404).json({ message: "Calendário não encontrado." });
+      return res.status(404).json({
+        message: `Calendário com ID ${calendarId} não encontrado.`,
+      });
     }
 
-    const currentDate = new Date(); 
+    if (!classRecord) {
+      return res.status(404).json({
+        message: `Turma com ID ${classId} não encontrada.`,
+      });
+    }
+
+    if (!courseClass) {
+      return res.status(400).json({
+        message: `A turma ${classRecord.semester} está arquivada ou não está associada ao curso ${courseName}.`,
+      });
+    }
+
+    const currentDate = new Date();
+
+    if (!calendar.startDate || !calendar.endDate) {
+      return res.status(400).json({
+        message: `O calendário ${calendar.year}/${calendar.period} possui datas ausentes (início: ${calendar.startDate}, fim: ${calendar.endDate}).`,
+      });
+    }
+
     const startDate = new Date(calendar.startDate);
     const endDate = new Date(calendar.endDate);
 
     if (isNaN(startDate) || isNaN(endDate)) {
       return res.status(400).json({
-        message: "As datas do calendário são inválidas.",
+        message: `As datas do calendário ${calendar.year}/${calendar.period} são inválidas (início: ${calendar.startDate}, fim: ${calendar.endDate}).`,
       });
     }
 
     if (startDate > currentDate) {
       return res.status(400).json({
-        message:
-          "O calendário selecionado inválido. Escolha um calendário com data de início menor ou igual à data atual.",
+        message: `O calendário ${calendar.year}/${
+          calendar.period
+        } é inválido. A data de início (${
+          startDate.toISOString().split("T")[0]
+        }) é posterior à data atual (${
+          currentDate.toISOString().split("T")[0]
+        }).`,
       });
     }
     if (endDate < currentDate) {
       return res.status(400).json({
-        message:
-          "O calendário selecionado inválido. Escolha um calendário com data de fim maior ou igual à data atual.",
+        message: `O calendário ${calendar.year}/${
+          calendar.period
+        } é inválido. A data de fim (${
+          endDate.toISOString().split("T")[0]
+        }) é anterior à data atual (${
+          currentDate.toISOString().split("T")[0]
+        }).`,
       });
-    }
-
-    if (!classRecord) {
-      return res.status(404).json({ message: "Turma não encontrada." });
     }
 
     const existingClassSchedule = await db.ClassSchedule.findOne({
@@ -80,7 +124,7 @@ export const createClassSchedule = async (req, res) => {
 
     if (existingClassSchedule) {
       return res.status(409).json({
-        message: "Já existe uma grade de horário para a turma selecionada.",
+        message: `Já existe uma grade de horário para a turma ${classRecord.semester} no calendário ${calendar.year}/${calendar.period}.`,
       });
     }
 
@@ -114,13 +158,13 @@ export const createClassSchedule = async (req, res) => {
       ) {
         return res.status(400).json({
           message:
-            "Por favor, preencha todos os campos (disciplina, hora, dia da semana e turno).",
+            "Por favor, preencha todos os campos (disciplina, horário, dia da semana e turno).",
         });
       }
 
       if (!validDays.includes(detail.dayOfWeek)) {
         return res.status(400).json({
-          message: `Dia da semana: '${
+          message: `Dia da semana inválido: '${
             detail.dayOfWeek
           }'. Use um dos seguintes: ${validDays.join(", ")}.`,
         });
@@ -142,19 +186,23 @@ export const createClassSchedule = async (req, res) => {
       }
       scheduleSlots.add(slotKey);
 
-      const allHours = await db.Hour.findAll();
+      const allHours = await db.Hour.findAll({
+        attributes: ["id", "hourStart", "hourEnd"],
+      });
       const hourMap = allHours.reduce((map, hour) => {
         map[hour.id] = { start: hour.hourStart, end: hour.hourEnd };
         return map;
       }, {});
       const hour = hourMap[detail.hourId];
       if (!hour) {
-        return res.status(404).json({ message: `Horário não encontrado.` });
+        return res.status(404).json({
+          message: `Horário com ID ${detail.hourId} não encontrado.`,
+        });
       }
       const turnInterval = turnIntervals[detail.turn];
       if (hour.start < turnInterval.start || hour.end > turnInterval.end) {
         return res.status(400).json({
-          message: `O horário selecionado não é compatível com o turno.`,
+          message: `O horário ${hour.hourStart} não é compatível com o turno ${detail.turn}.`,
         });
       }
 
@@ -170,17 +218,28 @@ export const createClassSchedule = async (req, res) => {
       }
     }
 
+    let professorMap = new Map();
     if (userIds.size > 0) {
       const users = await db.User.findAll({
-        where: { id: { [Op.in]: Array.from(userIds) } },
+        where: {
+          id: { [Op.in]: Array.from(userIds) },
+          accessType: "Professor",
+          isActive: true,
+        },
+        attributes: ["id", "username"],
       });
-      const professorUserIds = new Set(
-        users.filter((u) => u.accessType === "Professor").map((u) => u.id)
-      );
+
+      professorMap = new Map(users.map((u) => [u.id, u.username]));
       for (const userId of userIds) {
-        if (!professorUserIds.has(userId)) {
+        const username = professorMap.get(userId);
+        if (!username) {
+          const user = await db.User.findByPk(userId, {
+            attributes: ["username"],
+          });
           return res.status(400).json({
-            message: `O usuário não é professor.`,
+            message: `O usuário ${
+              user ? user.username : `com ID ${userId}`
+            } está inativo.`,
           });
         }
       }
@@ -190,30 +249,53 @@ export const createClassSchedule = async (req, res) => {
       await Promise.all([
         db.Discipline.findAll({
           where: { id: { [Op.in]: Array.from(disciplineIds) } },
+          attributes: ["id", "name"],
         }),
-        db.Hour.findAll({ where: { id: { [Op.in]: Array.from(hourIds) } } }),
+        db.Hour.findAll({
+          where: { id: { [Op.in]: Array.from(hourIds) } },
+          attributes: ["id", "hourStart"],
+        }),
         userIds.size > 0
-          ? db.User.findAll({ where: { id: { [Op.in]: Array.from(userIds) } } })
+          ? db.User.findAll({
+              where: {
+                id: { [Op.in]: Array.from(userIds) },
+                isActive: true,
+              },
+              attributes: ["id", "username"],
+            })
           : Promise.resolve([]),
       ]);
 
-    const foundDisciplineIds = new Set(existingDisciplines.map((d) => d.id));
-    const foundHourIds = new Set(existingHours.map((h) => h.id));
-    const foundUserIds = new Set(existingUsers.map((u) => u.id));
+    const disciplineMap = new Map(
+      existingDisciplines.map((d) => [d.id, d.name])
+    );
+    const hourMap = new Map(existingHours.map((h) => [h.id, h.hourStart]));
+    const userMap = new Map(existingUsers.map((u) => [u.id, u.username]));
 
     for (const id of disciplineIds) {
-      if (!foundDisciplineIds.has(id)) {
-        return res.status(404).json({ message: `Disciplina não encontrada.` });
+      if (!disciplineMap.has(id)) {
+        return res.status(404).json({
+          message: `Disciplina com ID ${id} não encontrada.`,
+        });
       }
     }
     for (const id of hourIds) {
-      if (!foundHourIds.has(id)) {
-        return res.status(404).json({ message: `Horário não encontrado.` });
+      if (!hourMap.has(id)) {
+        return res.status(404).json({
+          message: `Horário com ID ${id} não encontrado.`,
+        });
       }
     }
     for (const id of userIds) {
-      if (!foundUserIds.has(id)) {
-        return res.status(404).json({ message: `Professor não encontrado.` });
+      if (!userMap.has(id)) {
+        const user = await db.User.findByPk(id, {
+          attributes: ["username"],
+        });
+        return res.status(404).json({
+          message: `Professor ${
+            user ? user.username : `com ID ${id}`
+          } não encontrado.`,
+        });
       }
     }
 
@@ -232,7 +314,9 @@ export const createClassSchedule = async (req, res) => {
     for (const disciplineId of disciplineIds) {
       if (!associatedDisciplineIds.has(disciplineId)) {
         return res.status(400).json({
-          message: `A disciplina não está associada ao curso.`,
+          message: `A disciplina ${disciplineMap.get(
+            disciplineId
+          )} não está associada ao curso ${courseName}.`,
         });
       }
     }
@@ -259,6 +343,10 @@ export const createClassSchedule = async (req, res) => {
               model: db.ClassSchedule,
               as: "schedule",
               attributes: ["classId", "courseId"],
+              include: [
+                { model: db.Class, as: "class", attributes: ["semester"] },
+                { model: db.Course, as: "course", attributes: ["name"] },
+              ],
             },
           ],
           transaction: t,
@@ -267,21 +355,25 @@ export const createClassSchedule = async (req, res) => {
         if (conflictingDetails.length > 0) {
           const conflict = conflictingDetails[0];
           const errorMessage =
-            `Conflito de horário! O professor '${
+            `Conflito de horário! O professor ${
               conflict.professor ? conflict.professor.username : conflict.userId
-            }' ` +
-            `já está alocado no(a) '${conflict.dayOfWeek}' às '${
+            } ` +
+            `já está alocado na ${conflict.dayOfWeek} às ${
               conflict.hour ? conflict.hour.hourStart : conflict.hourId
-            }' ` +
-            `com a disciplina '${
+            } ` +
+            `com a disciplina ${
               conflict.discipline
                 ? conflict.discipline.name
                 : conflict.disciplineId
-            }'. ` +
-            `Para a turma ${
-              conflict.schedule ? conflict.schedule.classId : "N/A"
-            } e curso ${
-              conflict.schedule ? conflict.schedule.courseId : "N/A"
+            } ` +
+            `para a turma ${
+              conflict.schedule && conflict.schedule.class
+                ? conflict.schedule.class.semester
+                : "desconhecida"
+            } do curso ${
+              conflict.schedule && conflict.schedule.course
+                ? conflict.schedule.course.name
+                : "desconhecido"
             }.`;
           throw new Error(errorMessage);
         }
@@ -324,7 +416,7 @@ export const createClassSchedule = async (req, res) => {
               {
                 model: db.User,
                 as: "professor",
-                attributes: { exclude: ["password"] }, 
+                attributes: { exclude: ["password"] },
               },
               { model: db.Hour, as: "hour" },
             ],
@@ -338,6 +430,18 @@ export const createClassSchedule = async (req, res) => {
       classSchedule: createdScheduleWithDetails,
     });
   } catch (error) {
+    console.error("Erro ao criar horário de aula:", {
+      message: error.message,
+      stack: error.stack,
+      requestBody: req.body,
+    });
+
+    if (error.message.includes("Modelo 'CourseClass' não está definido")) {
+      return res.status(500).json({
+        message: "Erro de configuração: Modelo 'CourseClass' não encontrado.",
+        error: error.message,
+      });
+    }
     if (error.name === "SequelizeValidationError") {
       const errors = error.errors.map((err) => err.message);
       return res
@@ -357,10 +461,8 @@ export const createClassSchedule = async (req, res) => {
       error.message.includes("Conflito de horário!") ||
       error.message.includes("Acesso negado") ||
       error.message.includes("Múltiplas disciplinas alocadas") ||
-      error.message.includes("professor (accessType deve ser 'Professor')") ||
-      error.message.includes("O calendário selecionado ainda não começou") ||
-      error.message.includes("O calendário selecionado já terminou") ||
-      error.message.includes("As datas do calendário são inválidas")
+      error.message.includes("O usuário") ||
+      error.message.includes("A turma está arquivada")
     ) {
       const statusCode =
         error.message.includes("Conflito de horário!") ||
@@ -375,6 +477,7 @@ export const createClassSchedule = async (req, res) => {
     return res.status(500).json({
       message: "Erro interno do servidor ao criar o horário de aula.",
       error: error.message,
+      stack: error.stack,
     });
   }
 };
@@ -391,7 +494,8 @@ export const updateClassSchedule = async (req, res) => {
       details.length === 0
     ) {
       return res.status(400).json({
-        message: "Dados incompletos ou inválidos.",
+        message:
+          "Dados incompletos ou inválidos. ID do horário de aula e detalhes são obrigatórios.",
       });
     }
 
@@ -403,6 +507,7 @@ export const updateClassSchedule = async (req, res) => {
 
     const course = await db.Course.findOne({
       where: { coordinatorId: loggedUserId },
+      attributes: ["id", "name"],
     });
 
     if (!course) {
@@ -413,28 +518,76 @@ export const updateClassSchedule = async (req, res) => {
     }
 
     const courseId = course.id;
+    const courseName = course.name;
 
     const classSchedule = await db.ClassSchedule.findByPk(classScheduleId, {
       include: [
-        { model: db.Calendar, as: "calendar" },
-        { model: db.Class, as: "class" },
-        { model: db.Course, as: "course" },
+        {
+          model: db.Calendar,
+          as: "calendar",
+          attributes: ["id", "year", "period", "startDate", "endDate"],
+        },
+        { model: db.Class, as: "class", attributes: ["id", "semester"] },
+        { model: db.Course, as: "course", attributes: ["id", "name"] },
       ],
     });
 
     if (!classSchedule) {
       return res.status(404).json({
-        message: `Horário de aula não encontrado.`,
+        message: `Horário de aula com ID ${classScheduleId} não encontrado.`,
       });
     }
 
     if (classSchedule.courseId !== courseId) {
       return res.status(403).json({
-        message:
-          "Acesso negado: Este horário de aula não pertence ao curso coordenado pelo usuário.",
+        message: `Acesso negado: O horário de aula não pertence ao curso ${courseName} coordenado pelo usuário.`,
       });
     }
 
+    const currentDate = new Date();
+
+    console.log("Dados do calendário:", {
+      id: classSchedule.calendar.id,
+      year: classSchedule.calendar.year,
+      period: classSchedule.calendar.period,
+      startDate: classSchedule.calendar.startDate,
+      endDate: classSchedule.calendar.endDate,
+    });
+
+    if (!classSchedule.calendar.startDate || !classSchedule.calendar.endDate) {
+      return res.status(400).json({
+        message: `O calendário ${classSchedule.calendar.year}/${classSchedule.calendar.period} possui datas ausentes (início: ${classSchedule.calendar.startDate}, fim: ${classSchedule.calendar.endDate}).`,
+      });
+    }
+
+    const startDate = new Date(classSchedule.calendar.startDate);
+    const endDate = new Date(classSchedule.calendar.endDate);
+
+    if (isNaN(startDate)) {
+      return res.status(400).json({
+        message: `A data de início do calendário ${classSchedule.calendar.year}/${classSchedule.calendar.period} é inválida (valor: ${classSchedule.calendar.startDate}).`,
+      });
+    }
+    if (isNaN(endDate)) {
+      return res.status(400).json({
+        message: `A data de fim do calendário ${classSchedule.calendar.year}/${classSchedule.calendar.period} é inválida (valor: ${classSchedule.calendar.endDate}).`,
+      });
+    }
+
+    if (startDate > currentDate) {
+      return res.status(400).json({
+        message: `O calendário ${classSchedule.calendar.year}/${classSchedule.calendar.period} é inválido. A data de início (${startDate.toISOString().split('T')[0]}) é posterior à data atual (${currentDate.toISOString().split('T')[0]}).`,
+      });
+    }
+    if (endDate < currentDate) {
+      return res.status(400).json({
+        message: `O calendário ${classSchedule.calendar.year}/${classSchedule.calendar.period} é inválido. A data de fim (${endDate.toISOString().split('T')[0]}) é anterior à data atual (${currentDate.toISOString().split('T')[0]}).`,
+      });
+    }
+
+    const disciplineIds = new Set();
+    const userIds = new Set();
+    const hourIds = new Set();
     const validDays = [
       "Segunda",
       "Terça",
@@ -443,9 +596,6 @@ export const updateClassSchedule = async (req, res) => {
       "Sexta",
       "Sábado",
     ];
-    const disciplineIds = new Set();
-    const userIds = new Set();
-    const hourIds = new Set();
     const proposedTeacherScheduleSlots = [];
     const scheduleSlots = new Set();
     const validTurns = ["MATUTINO", "VESPERTINO", "NOTURNO", "INTEGRADO"];
@@ -465,7 +615,7 @@ export const updateClassSchedule = async (req, res) => {
       ) {
         return res.status(400).json({
           message:
-            "A disciplina, dia da semana, turno e horário são obrigatórios.",
+            "Por favor, preencha todos os campos (disciplina, horário, dia da semana e turno).",
         });
       }
 
@@ -493,19 +643,23 @@ export const updateClassSchedule = async (req, res) => {
       }
       scheduleSlots.add(slotKey);
 
-      const allHours = await db.Hour.findAll();
+      const allHours = await db.Hour.findAll({
+        attributes: ["id", "hourStart", "hourEnd"],
+      });
       const hourMap = allHours.reduce((map, hour) => {
         map[hour.id] = { start: hour.hourStart, end: hour.hourEnd };
         return map;
       }, {});
       const hour = hourMap[detail.hourId];
       if (!hour) {
-        return res.status(404).json({ message: `Horário não encontrado.` });
+        return res.status(404).json({
+          message: `Horário com ID ${detail.hourId} não encontrado.`,
+        });
       }
       const turnInterval = turnIntervals[detail.turn];
       if (hour.start < turnInterval.start || hour.end > turnInterval.end) {
         return res.status(400).json({
-          message: `O horário não é compatível com o turno ${detail.turn}.`,
+          message: `O horário ${hour.hourStart} não é compatível com o turno ${detail.turn}.`,
         });
       }
 
@@ -521,17 +675,28 @@ export const updateClassSchedule = async (req, res) => {
       }
     }
 
+    let professorMap = new Map();
     if (userIds.size > 0) {
       const users = await db.User.findAll({
-        where: { id: { [Op.in]: Array.from(userIds) } },
+        where: {
+          id: { [Op.in]: Array.from(userIds) },
+          accessType: "Professor",
+          isActive: true,
+        },
+        attributes: ["id", "username"],
       });
-      const professorUserIds = new Set(
-        users.filter((u) => u.accessType === "Professor").map((u) => u.id)
-      );
+
+      professorMap = new Map(users.map((u) => [u.id, u.username]));
       for (const userId of userIds) {
-        if (!professorUserIds.has(userId)) {
+        const username = professorMap.get(userId);
+        if (!username) {
+          const user = await db.User.findByPk(userId, {
+            attributes: ["username"],
+          });
           return res.status(400).json({
-            message: `O usuário não possui permissão.`,
+            message: `O usuário ${
+              user ? user.username : `com ID ${userId}`
+            } está inativo.`,
           });
         }
       }
@@ -541,35 +706,52 @@ export const updateClassSchedule = async (req, res) => {
       await Promise.all([
         db.Discipline.findAll({
           where: { id: { [Op.in]: Array.from(disciplineIds) } },
+          attributes: ["id", "name"],
         }),
-        db.Hour.findAll({ where: { id: { [Op.in]: Array.from(hourIds) } } }),
+        db.Hour.findAll({
+          where: { id: { [Op.in]: Array.from(hourIds) } },
+          attributes: ["id", "hourStart"],
+        }),
         userIds.size > 0
-          ? db.User.findAll({ where: { id: { [Op.in]: Array.from(userIds) } } })
+          ? db.User.findAll({
+              where: {
+                id: { [Op.in]: Array.from(userIds) },
+                isActive: true,
+              },
+              attributes: ["id", "username"],
+            })
           : Promise.resolve([]),
       ]);
 
-    const foundDisciplineIds = new Set(existingDisciplines.map((d) => d.id));
-    const foundHourIds = new Set(existingHours.map((h) => h.id));
-    const foundUserIds = new Set(existingUsers.map((u) => u.id));
+    const disciplineMap = new Map(
+      existingDisciplines.map((d) => [d.id, d.name])
+    );
+    const hourMap = new Map(existingHours.map((h) => [h.id, h.hourStart]));
+    const userMap = new Map(existingUsers.map((u) => [u.id, u.username]));
 
     for (const id of disciplineIds) {
-      if (!foundDisciplineIds.has(id)) {
+      if (!disciplineMap.has(id)) {
         return res.status(404).json({
-          message: `Disciplina não encontrada.`,
+          message: `Disciplina com ID ${id} não encontrada.`,
         });
       }
     }
     for (const id of hourIds) {
-      if (!foundHourIds.has(id)) {
+      if (!hourMap.has(id)) {
         return res.status(404).json({
-          message: `Horário não encontrado.`,
+          message: `Horário com ID ${id} não encontrado.`,
         });
       }
     }
     for (const id of userIds) {
-      if (!foundUserIds.has(id)) {
+      if (!userMap.has(id)) {
+        const user = await db.User.findByPk(id, {
+          attributes: ["username"],
+        });
         return res.status(404).json({
-          message: `Professor não encontrado.`,
+          message: `Professor ${
+            user ? user.username : `com ID ${id}`
+          } não encontrado.`,
         });
       }
     }
@@ -589,7 +771,9 @@ export const updateClassSchedule = async (req, res) => {
     for (const disciplineId of disciplineIds) {
       if (!associatedDisciplineIds.has(disciplineId)) {
         return res.status(400).json({
-          message: `A disciplina não está associada ao curso.`,
+          message: `A disciplina ${disciplineMap.get(
+            disciplineId
+          )} não está associada ao curso ${courseName}.`,
         });
       }
     }
@@ -617,6 +801,10 @@ export const updateClassSchedule = async (req, res) => {
               model: db.ClassSchedule,
               as: "schedule",
               attributes: ["classId", "courseId"],
+              include: [
+                { model: db.Class, as: "class", attributes: ["semester"] },
+                { model: db.Course, as: "course", attributes: ["name"] },
+              ],
             },
           ],
           transaction: t,
@@ -624,24 +812,28 @@ export const updateClassSchedule = async (req, res) => {
 
         if (conflictingDetails.length > 0) {
           const conflict = conflictingDetails[0];
-          throw new Error(
-            `Conflito de horário! O professor '${
+          const errorMessage =
+            `Conflito de horário! O professor ${
               conflict.professor ? conflict.professor.username : conflict.userId
-            }' ` +
-              `já está alocado no(a) '${conflict.dayOfWeek}' às '${
-                conflict.hour ? conflict.hour.hourStart : conflict.hourId
-              }' ` +
-              `com a disciplina '${
-                conflict.discipline
-                  ? conflict.discipline.name
-                  : conflict.disciplineId
-              }'. ` +
-              `Para a turma ${
-                conflict.schedule ? conflict.schedule.classId : "N/A"
-              } e curso ${
-                conflict.schedule ? conflict.schedule.courseId : "N/A"
-              }.`
-          );
+            } ` +
+            `já está alocado na ${conflict.dayOfWeek} às ${
+              conflict.hour ? conflict.hour.hourStart : conflict.hourId
+            } ` +
+            `com a disciplina ${
+              conflict.discipline
+                ? conflict.discipline.name
+                : conflict.disciplineId
+            } ` +
+            `para a turma ${
+              conflict.schedule && conflict.schedule.class
+                ? conflict.schedule.class.semester
+                : "desconhecida"
+            } do curso ${
+              conflict.schedule && conflict.schedule.course
+                ? conflict.schedule.course.name
+                : "desconhecido"
+            }.`;
+          throw new Error(errorMessage);
         }
       }
 
@@ -674,9 +866,12 @@ export const updateClassSchedule = async (req, res) => {
             as: "details",
             include: [
               { model: db.Discipline, as: "discipline" },
-              { model: db.User, as: "professor",
-                attributes: {exclude: ["password"]}
-               },
+              {
+                model: db.User,
+                as: "professor",
+                attributes: { exclude: ["password"] },
+              },
+              { model: db.Hour, as: "hour" },
             ],
           },
         ],
@@ -688,18 +883,28 @@ export const updateClassSchedule = async (req, res) => {
       classSchedule: updatedScheduleWithDetails,
     });
   } catch (error) {
-    console.error("Erro ao atualizar horário de aula:", error);
+    console.error("Erro ao atualizar horário de aula:", {
+      message: error.message,
+      stack: error.stack,
+      requestBody: req.body,
+    });
 
+    if (error.message.includes("Modelo 'CourseClass' não está definido")) {
+      return res.status(500).json({
+        message: "Erro de configuração: Modelo 'CourseClass' não encontrado.",
+        error: error.message,
+      });
+    }
     if (error.name === "SequelizeValidationError") {
       const errors = error.errors.map((err) => err.message);
-      return res.status(400).json({
-        message: "Erro de validação nos dados fornecidos.",
-        errors,
-      });
+      return res
+        .status(400)
+        .json({ message: "Erro de validação nos dados fornecidos.", errors });
     }
     if (error.name === "SequelizeUniqueConstraintError") {
       return res.status(409).json({
-        message: "Conflito: Dados fornecidos violam restrições únicas.",
+        message:
+          "Conflito: Um horário de aula com a mesma combinação já existe.",
         field: error.fields,
       });
     }
@@ -707,19 +912,25 @@ export const updateClassSchedule = async (req, res) => {
       error.message.includes("não encontrado") ||
       error.message.includes("inválido") ||
       error.message.includes("Conflito de horário!") ||
-      error.message.includes("Acesso negado")
+      error.message.includes("Acesso negado") ||
+      error.message.includes("Apenas uma disciplina") ||
+      error.message.includes("O usuário") ||
+      error.message.includes("A disciplina")
     ) {
-      const statusCode = error.message.includes("Conflito de horário!")
-        ? 409
-        : error.message.includes("Acesso negado")
-        ? 403
-        : 404;
+      const statusCode =
+        error.message.includes("Conflito de horário!") ||
+        error.message.includes("Apenas uma disciplina")
+          ? 409
+          : error.message.includes("Acesso negado")
+          ? 403
+          : 400;
       return res.status(statusCode).json({ message: error.message });
     }
 
     return res.status(500).json({
       message: "Erro interno do servidor ao atualizar o horário de aula.",
       error: error.message,
+      stack: error.stack,
     });
   }
 };

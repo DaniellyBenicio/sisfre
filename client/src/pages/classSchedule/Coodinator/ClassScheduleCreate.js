@@ -90,8 +90,8 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
         setClasses(Array.isArray(classesRes.data.classes) ? classesRes.data.classes : []);
         setDisciplines(Array.isArray(disciplinesRes.data) ? disciplinesRes.data : []);
         const filteredProfessors = Array.isArray(usersRes.data.users)
-          ? usersRes.data.users.filter((user) => user.accessType === "Professor")
-          : [];
+        ? usersRes.data.users.filter((user) => user.accessType === "Professor" && user.isActive === true)
+        : [];
         setProfessors(filteredProfessors);
 
         const today = new Date();
@@ -853,7 +853,13 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                           const currentIndex = (availableHoursByDetail[index] || []).findIndex(
                             (h) => h.id === hour.id
                           );
-                          return currentIndex >= startIndex && currentIndex <= startIndex + 1;
+                          if (currentIndex < startIndex) return false;
+                          if (currentIndex === startIndex) return true;
+                          if (currentIndex === startIndex + 1) {
+                            const prevHour = (availableHoursByDetail[index] || [])[currentIndex - 1];
+                            return prevHour && hour.hourStart === prevHour.hourEnd;
+                          }
+                          return false;
                         })
                         .map((hour) => (
                           <MenuItem key={hour.id} value={hour.id}>

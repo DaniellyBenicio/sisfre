@@ -160,9 +160,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
           Array.isArray(disciplinesRes.data) ? disciplinesRes.data : []
         );
         const filteredProfessors = Array.isArray(usersRes.data.users)
-          ? usersRes.data.users.filter(
-              (user) => user.accessType === "Professor"
-            )
+          ? usersRes.data.users.filter((user) => user.accessType === "Professor" && user.isActive === true)
           : [];
         setProfessors(filteredProfessors);
         setCalendars(
@@ -1046,18 +1044,19 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                     >
                       {(availableHoursByDetail[index] || [])
                         .filter((hour) => {
-                          const startIndex = (
-                            availableHoursByDetail[index] || []
-                          ).findIndex(
+                          const startIndex = ( availableHoursByDetail[index] || [] ).findIndex(
                             (h) => h.id === detail.selectedHourStartId
                           );
-                          const currentIndex = (
-                            availableHoursByDetail[index] || []
-                          ).findIndex((h) => h.id === hour.id);
-                          return (
-                            currentIndex >= startIndex &&
-                            currentIndex <= startIndex + 1
+                          const currentIndex = ( availableHoursByDetail[index] || [] ).findIndex(
+                            (h) => h.id === hour.id
                           );
+                          if (currentIndex < startIndex) return false;
+                          if (currentIndex === startIndex) return true;
+                          if (currentIndex === startIndex + 1) {
+                            const prevHour = (availableHoursByDetail[index] || [])[currentIndex - 1];
+                            return prevHour && hour.hourStart === prevHour.hourEnd;
+                          }
+                          return false;
                         })
                         .map((hour) => (
                           <MenuItem key={hour.id} value={hour.id}>

@@ -38,6 +38,11 @@ export default (sequelize, DataTypes) => {
           key: "id",
         },
       },
+      isActive: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+      },
     },
     {
       sequelize,

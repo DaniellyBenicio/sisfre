@@ -29,6 +29,7 @@ module.exports = {
         courseClasses.push({
           courseId,
           classId: classItem.id,
+          isActive: true,
           createdAt: now,
           updatedAt: now,
         });

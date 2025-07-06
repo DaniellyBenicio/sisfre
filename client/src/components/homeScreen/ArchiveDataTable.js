@@ -12,7 +12,7 @@ import {
   Typography,
   useMediaQuery,
 } from '@mui/material';
-import { Edit, Archive } from '@mui/icons-material';
+import { Edit, Lock, LockOpen } from '@mui/icons-material';
 import Paginate from '../paginate/Paginate';
 import PropTypes from 'prop-types';
 
@@ -76,7 +76,7 @@ const ArchiveDataTable = ({
                 <Stack direction="row" spacing={1} justifyContent="center">
                   <IconButton
                     onClick={() => onUpdate(item)}
-                    disabled={!item.isActive} // Disable edit button if user is inactive
+                    disabled={!item.isActive}
                     sx={{
                       color: '#087619',
                       '&:hover': { color: '#065412' },
@@ -103,7 +103,7 @@ const ArchiveDataTable = ({
                       }
                     }}
                   >
-                    <Archive />
+                    {item.isActive ? <LockOpen /> : <Lock />}
                   </IconButton>
                 </Stack>
               </Paper>
@@ -118,7 +118,7 @@ const ArchiveDataTable = ({
                   <Stack direction="row" spacing={1} justifyContent="center">
                     <IconButton
                       onClick={() => onUpdate(item)}
-                      disabled={!item.isActive} // Disable edit button if user is inactive
+                      disabled={!item.isActive}
                       sx={{
                         color: '#087619',
                         '&:hover': { color: '#065412' },
@@ -145,7 +145,7 @@ const ArchiveDataTable = ({
                         }
                       }}
                     >
-                      <Archive />
+                      {item.isActive ? <LockOpen /> : <Lock />}
                     </IconButton>
                   </Stack>
                 </Stack>
@@ -217,7 +217,7 @@ const ArchiveDataTable = ({
                   <TableCell align="center" sx={tableBodyCellStyle}>
                     <IconButton
                       onClick={() => onUpdate(item)}
-                      disabled={!item.isActive} // Disable edit button if user is inactive
+                      disabled={!item.isActive}
                       sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
                     >
                       <Edit />
@@ -238,7 +238,7 @@ const ArchiveDataTable = ({
                         }
                       }}
                     >
-                      <Archive />
+                      {item.isActive ? <LockOpen /> : <Lock />}
                     </IconButton>
                   </TableCell>
                 </TableRow>

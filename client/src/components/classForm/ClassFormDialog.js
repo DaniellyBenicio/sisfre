@@ -10,6 +10,7 @@ import {
   MenuItem,
   IconButton,
   InputLabel,
+  Typography,
 } from '@mui/material';
 import { Close, Save } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
@@ -40,8 +41,8 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
   });
   const [courses, setCourses] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
-
   const isFormFilled = classData.courseId && classData.semester;
+  const isInactive = isEditMode && classToEdit?.isActive === false;
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -117,7 +118,7 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
 
       let response;
       if (isEditMode) {
-        response = await api.put(`/classes/${classToEdit?.id}`, payload);
+        response = await api.put(`/classes/${classToEdit?.courseClassId}`, payload);
       } else {
         response = await api.post('/classes', payload);
       }
@@ -140,7 +141,7 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
         err.response?.data?.error ||
         `Erro ao ${isEditMode ? 'atualizar' : 'cadastrar'} turma: ${err.message}`;
       if (setAlert) setAlert({ type: 'error', message: errorMessage });
-      else setErrorMessage(errorMessage); // fallback local
+      else setErrorMessage(errorMessage);
     }
   };
 
@@ -165,8 +166,13 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
           </IconButton>
         </DialogTitle>
 
-        <DialogContent sx={{ px: 5, py: 2 }}> {/* Reduzido py de 0 para 2 */}
+        <DialogContent sx={{ px: 5, py: 2 }}>
           <Box component="form" onSubmit={handleSubmit}>
+            {isInactive && (
+              <Typography sx={{ color: 'error.main', mb: 2, textAlign: 'center' }}>
+                Esta turma está inativa e não pode ser editada.
+              </Typography>
+            )}
             <FormControl
               fullWidth
               margin="normal"
@@ -212,6 +218,7 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
                 onChange={handleInputChange}
                 label="Curso"
                 required
+                disabled={isInactive}
                 MenuProps={{
                   PaperProps: {
                     sx: {
@@ -292,6 +299,7 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
                 onChange={handleInputChange}
                 label="Semestre"
                 required
+                disabled={isInactive}
                 MenuProps={{
                   PaperProps: {
                     sx: {
@@ -324,7 +332,7 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
                 justifyContent: 'center',
                 gap: 2,
                 padding: '10px 24px',
-                marginTop: '15px', // Reduzido de 35px para 15px
+                marginTop: '15px',
               }}
             >
               <StyledButton
@@ -341,10 +349,10 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
               <StyledButton
                 type="submit"
                 variant="contained"
-                disabled={!isFormFilled}
+                disabled={!isFormFilled || isInactive}
                 sx={{
-                  backgroundColor: !isFormFilled ? '#E0E0E0' : INSTITUTIONAL_COLOR,
-                  '&:hover': { backgroundColor: !isFormFilled ? '#E0E0E0' : '#26692b' },
+                  backgroundColor: !isFormFilled || isInactive ? '#E0E0E0' : INSTITUTIONAL_COLOR,
+                  '&:hover': { backgroundColor: !isFormFilled || isInactive ? '#E0E0E0' : '#26692b' },
                 }}
               >
                 <Save sx={{ fontSize: 24 }} />
@@ -362,16 +370,18 @@ ClassFormDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   classToEdit: PropTypes.shape({
-    id: PropTypes.number,
+    courseClassId: PropTypes.number,
     course: PropTypes.shape({
       id: PropTypes.number,
       name: PropTypes.string,
     }),
     courseId: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     semester: PropTypes.string,
+    isActive: PropTypes.bool,
   }),
   onSubmitSuccess: PropTypes.func.isRequired,
   isEditMode: PropTypes.bool.isRequired,
+  setAlert: PropTypes.func,
 };
 
 export default ClassFormDialog;

@@ -10,12 +10,14 @@ export const deleteClass = async (req, res) => {
       return res.status(404).json({ error: "Vínculo não encontrado." });
     }
 
+    console.log(`Antes de atualizar: courseClassId=${courseClassId}, isActive=${courseClass.isActive}`);
     courseClass.isActive = !courseClass.isActive;
     await courseClass.save();
+    console.log(`Após atualizar: courseClassId=${courseClassId}, isActive=${courseClass.isActive}`);
 
     const message = courseClass.isActive 
-      ? "Turma desarquivada com sucesso." 
-      : "Turma arquivada com sucesso.";
+      ? "Turma ativada com sucesso." 
+      : "Turma inativada com sucesso.";
 
     res.status(200).json({ 
       message, 
@@ -25,8 +27,8 @@ export const deleteClass = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Erro ao arquivar/desarquivar turma." });
+    console.error(`Erro ao atualizar turma ${courseClassId}:`, error);
+    res.status(500).json({ error: "Erro ao ativar/inativar turma." });
   }
 };
 
@@ -78,9 +80,11 @@ export const getClasses = async (req, res) => {
 };
 
 export const getAllClasses = async (req, res) => {
+  const { includeInactive } = req.query;
   try {
+    const where = includeInactive === 'true' ? {} : { isActive: true };
     const rows = await db.CourseClass.findAll({
-      where: { isActive: true },
+      where,
       include: [
         { model: db.Course, as: "course" },
         { model: db.Class, as: "class" }
@@ -103,9 +107,15 @@ export const getAllClasses = async (req, res) => {
       course: row.course
     }));
 
+    console.log(`Turmas retornadas (includeInactive=${includeInactive}):`, classes.map(c => ({
+      courseClassId: c.courseClassId,
+      course: c.course.name,
+      isActive: c.isActive
+    })));
+
     res.json({ classes });
   } catch (error) {
-    console.error(error);
+    console.error('Erro ao listar turmas:', error);
     res.status(500).json({ error: "Erro ao listar turmas." });
   }
 };

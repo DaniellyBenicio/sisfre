@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Pagination } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import DeleteConfirmationDialog from '../../../components/DeleteConfirmationDialog';
 import api from '../../../service/api';
 import SearchAndCreateBar from '../../../components/homeScreen/SearchAndCreateBar';
@@ -12,12 +12,11 @@ const ClassesList = () => {
   const [classes, setClasses] = useState([]);
   const [search, setSearch] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const [classToDelete, setClassToDelete] = useState(null);
+  const [openToggleActiveDialog, setOpenToggleActiveDialog] = useState(false);
+  const [classToToggleActive, setClassToToggleActive] = useState(null);
   const [classToEdit, setClassToEdit] = useState(null);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
-
   const [page, setPage] = useState(1);
   const rowsPerPage = 7;
 
@@ -29,7 +28,7 @@ const ClassesList = () => {
     const fetchClasses = async () => {
       try {
         setLoading(true);
-        const response = await api.get('/classes-all');
+        const response = await api.get('/classes-all?includeInactive=true');
         let classesArray = Array.isArray(response.data)
           ? response.data
           : response.data.classes || response.data.data || [];
@@ -37,7 +36,11 @@ const ClassesList = () => {
           ...item,
           course: item.course || { id: item.courseId, name: 'Desconhecido' },
         }));
-        // Sort classes by course name alphabetically and then by semester in ascending order
+        console.log('Turmas recebidas da API:', classesArray.map(c => ({
+          courseClassId: c.courseClassId,
+          course: c.course.name,
+          isActive: c.isActive
+        })));
         classesArray.sort((a, b) => {
           const courseNameA = a.course.name.toLowerCase();
           const courseNameB = b.course.name.toLowerCase();
@@ -117,18 +120,23 @@ const ClassesList = () => {
     setOpenDialog(true);
   };
 
-  const handleDeleteClick = (courseClassId) => {
+  const handleToggleActiveClick = (courseClassId) => {
     const classItem = classes.find((c) => c.courseClassId === courseClassId);
-    console.log('Turma recebida para exclusão:', classItem);
-    console.log('ID da turma a ser excluída:', courseClassId);
-    setClassToDelete(classItem);
-    setOpenDeleteDialog(true);
+    console.log('Turma recebida para ativar/inativar:', classItem);
+    console.log('ID da turma a ser ativada/inativada:', courseClassId);
+    setClassToToggleActive(classItem);
+    setOpenToggleActiveDialog(true);
   };
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmToggleActive = async () => {
     try {
-      await api.delete(`/classes/${classToDelete.courseClassId}`);
-      setClasses(classes.filter((c) => c.courseClassId !== classToDelete.courseClassId).sort((a, b) => {
+      const response = await api.delete(`/classes/${classToToggleActive.courseClassId}`);
+      console.log('Resposta da API ao ativar/inativar:', response.data);
+      setClasses(classes.map((c) => 
+        c.courseClassId === classToToggleActive.courseClassId 
+          ? { ...c, isActive: response.data.class.isActive } 
+          : c
+      ).sort((a, b) => {
         const courseNameA = a.course.name.toLowerCase();
         const courseNameB = b.course.name.toLowerCase();
         const semesterA = parseInt(a.semester.replace('S', '')) || 0;
@@ -139,39 +147,38 @@ const ClassesList = () => {
         return semesterA - semesterB;
       }));
       setAlert({
-        message: `Turma ${classToDelete.course.name} excluída com sucesso!`,
+        message: response.data.message,
         type: 'success',
       });
       setPage(1);
     } catch (error) {
-      console.error('Erro ao excluir turma:', error.message, error.response?.data);
+      console.error('Erro ao ativar/inativar turma:', error.message, error.response?.data);
       const errorMessage =
         error.response?.status === 401
-          ? 'Você não está autorizado a excluir turmas.'
+          ? 'Você não está autorizado a ativar/inativar turmas.'
           : error.response?.status === 403
-            ? 'Apenas administradores podem excluir turmas.'
-            : error.response?.data?.error || 'Erro ao excluir turma.';
+            ? 'Apenas administradores podem ativar/inativar turmas.'
+            : error.response?.data?.error || 'Erro ao ativar/inativar turma.';
       setAlert({
         message: errorMessage,
         type: 'error',
       });
     } finally {
-      setOpenDeleteDialog(false);
-      setClassToDelete(null);
+      setOpenToggleActiveDialog(false);
+      setClassToToggleActive(null);
     }
   };
 
-  // Filtro e paginação local
   const filteredClasses = Array.isArray(classes)
     ? classes.filter((classItem) => {
-      const normalizedSearch = search.trim().toLowerCase();
-      const normalizedCourse = classItem.course?.name?.toLowerCase() || '';
-      const normalizedSemester = classItem.semester?.toLowerCase() || '';
-      return (
-        normalizedCourse.includes(normalizedSearch) ||
-        normalizedSemester.includes(normalizedSearch)
-      );
-    })
+        const normalizedSearch = search.trim().toLowerCase();
+        const normalizedCourse = classItem.course?.name?.toLowerCase() || '';
+        const normalizedSemester = classItem.semester?.toLowerCase() || '';
+        return (
+          normalizedCourse.includes(normalizedSearch) ||
+          normalizedSemester.includes(normalizedSearch)
+        );
+      })
     : [];
 
   const totalPages = Math.ceil(filteredClasses.length / rowsPerPage);
@@ -213,7 +220,7 @@ const ClassesList = () => {
 
       <ClassesTable
         classes={paginatedClasses}
-        onDelete={handleDeleteClick}
+        onArchive={handleToggleActiveClick}
         onUpdate={handleEditClass}
         search={search}
         setAlert={setAlert}
@@ -232,16 +239,15 @@ const ClassesList = () => {
       />
 
       <DeleteConfirmationDialog
-        open={openDeleteDialog}
+        open={openToggleActiveDialog}
         onClose={() => {
-          setOpenDeleteDialog(false);
-          setClassToDelete(null);
+          setOpenToggleActiveDialog(false);
+          setClassToToggleActive(null);
         }}
-        onConfirm={handleConfirmDelete}
-        message={`Deseja realmente excluir a turma "${classToDelete?.course.name}"?`}
+        onConfirm={handleConfirmToggleActive}
+        message={`Deseja realmente ${classToToggleActive?.isActive ? 'inativar' : 'ativar'} a turma "${classToToggleActive?.course.name}"?`}
       />
 
-      {/* Paginação */}
       {totalPages > 1 && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
           <Paginate

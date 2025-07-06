@@ -108,6 +108,8 @@ const ArchiveDataTable = ({
                 </Stack>
               </Paper>
             ) : (
+              // Fallback para mobile se renderMobileRow não for fornecido,
+              // mas este caso já deveria ter sido tratado pelo UsersTable
               <Paper key={item?.id} sx={{ p: 1 }}>
                 <Stack spacing={0.5}>
                   {headers.map((header) => (
@@ -211,7 +213,8 @@ const ArchiveDataTable = ({
                       align="center"
                       sx={tableBodyCellStyle}
                     >
-                      {item[header.key]}
+                      {/* *** AQUI ESTÁ A MUDANÇA PRINCIPAL PARA O DESKTOP *** */}
+                      {header.render ? header.render(item) : item[header.key]}
                     </TableCell>
                   ))}
                   <TableCell align="center" sx={tableBodyCellStyle}>

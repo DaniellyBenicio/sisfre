@@ -1,6 +1,6 @@
 import React from "react";
-import { Stack, Typography } from "@mui/material";
-import ArchiveDataTable from "../../../components/homeScreen/ArchiveDataTable"; 
+import { Stack, Typography, Box } from "@mui/material";
+import ArchiveDataTable from "../../../components/homeScreen/ArchiveDataTable";
 
 const UsersTable = ({ users, onArchive, onUpdate, search }) => {
   const headers = [
@@ -8,7 +8,18 @@ const UsersTable = ({ users, onArchive, onUpdate, search }) => {
     { key: "username", label: "Nome" },
     { key: "accessType", label: "Tipo" },
     { key: "email", label: "Email" },
-    { key: "status", label: "Status" },
+    {
+      key: "status",
+      label: "Status",
+      render: (user) => (
+        <Typography
+          component="span"
+          sx={{ color: user.isActive ? "inherit" : "red", fontWeight: user.isActive ? "normal" : "semi bold" }}
+        >
+          {user.isActive ? "Ativo" : "Inativo"}
+        </Typography>
+      ),
+    },
   ];
 
   const renderMobileRow = (user) => (
@@ -26,7 +37,13 @@ const UsersTable = ({ users, onArchive, onUpdate, search }) => {
         <strong>Email:</strong> {user.email}
       </Typography>
       <Typography>
-        <strong>Status:</strong> {user.isActive ? "Ativo" : "Inativo"}
+        <strong>Status:</strong>{" "}
+        <Box
+          component="span"
+          sx={{ color: user.isActive ? "inherit" : "red", fontWeight: user.isActive ? "normal" : " semi bold" }}
+        >
+          {user.isActive ? "Ativo" : "Inativo"}
+        </Box>
       </Typography>
     </Stack>
   );
@@ -35,11 +52,11 @@ const UsersTable = ({ users, onArchive, onUpdate, search }) => {
     <ArchiveDataTable
       data={users.map(user => ({
         ...user,
-        status: user.isActive ? "Ativo" : "Inativo"
+        status: user.isActive ? "Ativo" : "Inativo" 
       }))}
       headers={headers}
       onArchive={onArchive}
-      onUpdate={(user) => user.isActive && onUpdate(user)} 
+      onUpdate={(user) => user.isActive && onUpdate(user)}
       search={search}
       renderMobileRow={renderMobileRow}
     />

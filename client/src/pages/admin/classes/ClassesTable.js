@@ -1,41 +1,60 @@
-import { Stack, Typography } from '@mui/material';
+import { Stack, Typography, Box } from '@mui/material'; 
 import ArchiveDataTable from '../../../components/homeScreen/ArchiveDataTable';
 import PropTypes from 'prop-types';
 
 const ClassesTable = ({ classes, onArchive, onUpdate, search, setAlert }) => {
-  // Função para normalizar os dados, se necessário
+
   const normalizeString = (str) => {
     if (!str) return 'N/A';
     return str;
   };
 
-  // Formata os dados para exibição
   const formattedClasses = classes.map((classItem) => ({
     ...classItem,
     course: normalizeString(classItem.course?.name),
     semester: normalizeString(classItem.semester),
-    courseClassId: classItem.courseClassId, // Garante que está presente
-    status: classItem.isActive ? 'Ativo' : 'Inativo', // Adiciona status com base em isActive
+    courseClassId: classItem.courseClassId, 
+    status: classItem.isActive ? 'Ativo' : 'Inativo', 
   }));
-
-  // Define as colunas da tabela
   const headers = [
     { key: 'course', label: 'Curso' },
     { key: 'semester', label: 'Semestre' },
-    { key: 'status', label: 'Status' },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (classItem) => (
+        <Typography
+          component="span"
+          sx={{
+            color: classItem.isActive ? 'inherit' : 'red', 
+            fontWeight: classItem.isActive ? 'normal' : 'semi bold', 
+          }}
+        >
+          {classItem.isActive ? 'Ativo' : 'Inativo'}
+        </Typography>
+      ),
+    },
   ];
 
-  // Renderiza a linha para visualização em dispositivos móveis
   const renderMobileRow = (classItem) => (
     <Stack spacing={0.5}>
-      <Typography sx={{ color: classItem.isActive ? 'inherit' : '#FF0000' }}>
+      <Typography>
         <strong>Curso:</strong> {normalizeString(classItem.course)}
       </Typography>
       <Typography>
         <strong>Semestre:</strong> {normalizeString(classItem.semester)}
       </Typography>
       <Typography>
-        <strong>Status:</strong> {classItem.status}
+        <strong>Status:</strong>{" "}
+        <Box 
+          component="span"
+          sx={{
+            color: classItem.isActive ? 'inherit' : 'red', 
+            fontWeight: classItem.isActive ? 'normal' : 'semi bold', 
+          }}
+        >
+          {classItem.status}
+        </Box>
       </Typography>
     </Stack>
   );
@@ -55,7 +74,6 @@ const ClassesTable = ({ classes, onArchive, onUpdate, search, setAlert }) => {
   );
 };
 
-// Validação de props com PropTypes
 ClassesTable.propTypes = {
   classes: PropTypes.arrayOf(
     PropTypes.shape({

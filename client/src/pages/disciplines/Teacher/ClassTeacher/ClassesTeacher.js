@@ -301,6 +301,7 @@ const ClassesTeacher = () => {
                                     fontSize: "0.75rem",
                                     color: textColor,
                                   }}
+                                  title={`${row[day].disciplineName} - ${row[day].courseName}`}
                                 >
                                   {row[day].disciplineAcronym}
                                 </Typography>
@@ -393,6 +394,7 @@ const ClassesTeacher = () => {
                                       color: textColor,
                                       fontSize: { sm: "0.8rem", md: "0.875rem" },
                                     }}
+                                    title={`${row[day].disciplineName} - ${row[day].courseName}`}
                                   >
                                     {row[day].disciplineAcronym}
                                   </Typography>

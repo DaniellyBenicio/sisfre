@@ -133,24 +133,34 @@ const ClassesTeacher = () => {
   }, [schedules]);
 
   const legendData = useMemo(() => {
-    const uniqueClasses = [];
-    const seen = new Set();
+    const courseMap = new Map();
 
     schedules.forEach((slot) => {
-      const key = `${slot.discipline?.id}-${slot.course?.id}-${slot.class?.id}-${slot.calendar?.id}`;
-      if (!seen.has(key)) {
-        seen.add(key);
-        uniqueClasses.push({
-          discipline: slot.discipline?.name || "Não Informada",
-          course: slot.course?.name || "Não Informado",
-          semester: slot.class?.semester || "N/A",
-          calendar: slot.calendar?.formatted || "N/A",
-          turn: slot.schedule?.turn || "N/A",
+      const courseId = slot.course?.id || "N/A";
+      const courseName = slot.course?.name || "Não Informado";
+      const disciplineKey = `${slot.discipline?.id}-${slot.class?.id}-${slot.calendar?.id}`;
+      const disciplineInfo = {
+        acronym: slot.discipline?.acronym || "N/A",
+        name: slot.discipline?.name || "Não Informada",
+        semester: slot.class?.semester || "N/A",
+        calendar: slot.calendar?.formatted || "N/A",
+        turn: slot.schedule?.turn || "N/A",
+      };
+
+      if (!courseMap.has(courseId)) {
+        courseMap.set(courseId, {
+          courseName,
+          disciplines: new Map(),
         });
       }
+
+      courseMap.get(courseId).disciplines.set(disciplineKey, disciplineInfo);
     });
 
-    return uniqueClasses;
+    return Array.from(courseMap.values()).map(({ courseName, disciplines }) => ({
+      courseName,
+      disciplines: Array.from(disciplines.values()),
+    }));
   }, [schedules]);
 
   const daysOfWeek = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
@@ -472,10 +482,10 @@ const ClassesTeacher = () => {
                 sx={{
                   display: "flex",
                   flexDirection: "column",
-                  gap: { xs: 0.5, sm: 0.75, md: 1 },
+                  gap: { xs: 1, sm: 1.5, md: 2 },
                 }}
               >
-                {legendData.map((item, index) => (
+                {legendData.map((course, index) => (
                   <Box
                     key={index}
                     sx={{
@@ -488,7 +498,7 @@ const ClassesTeacher = () => {
                       pb: index < legendData.length - 1 ? 1 : 0,
                     }}
                   >
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
                       <School
                         sx={{
                           fontSize: { xs: 14, sm: 16, md: 20 },
@@ -498,59 +508,73 @@ const ClassesTeacher = () => {
                       <Typography
                         sx={{
                           color: textColor,
-                          fontSize: { xs: "0.8rem", sm: "0.875rem", md: "1rem" },
+                          fontWeight: "bold",
+                          fontSize: { xs: "0.85rem", sm: "0.9rem", md: "1.1rem" },
                         }}
                       >
-                        <strong>Curso:</strong> {item.course}
+                        Curso: {course.courseName}
                       </Typography>
                     </Box>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <CalendarToday
-                        sx={{
-                          fontSize: { xs: 14, sm: 16, md: 20 },
-                          color: greenPrimary,
-                        }}
-                      />
-                      <Typography
-                        sx={{
-                          color: textColor,
-                          fontSize: { xs: "0.8rem", sm: "0.875rem", md: "1rem" },
-                        }}
-                      >
-                        <strong>Calendário Letivo:</strong> {item.calendar}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <MenuBook
-                        sx={{
-                          fontSize: { xs: 14, sm: 16, md: 20 },
-                          color: greenPrimary,
-                        }}
-                      />
-                      <Typography
-                        sx={{
-                          color: textColor,
-                          fontSize: { xs: "0.8rem", sm: "0.875rem", md: "1rem" },
-                        }}
-                      >
-                        <strong>Disciplina:</strong> {item.discipline}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <AccessTime
-                        sx={{
-                          fontSize: { xs: 14, sm: 16, md: 20 },
-                          color: greenPrimary,
-                        }}
-                      />
-                      <Typography
-                        sx={{
-                          color: textColor,
-                          fontSize: { xs: "0.8rem", sm: "0.875rem", md: "1rem" },
-                        }}
-                      >
-                        <strong>Turno:</strong> {item.turn}
-                      </Typography>
+                    <Box sx={{ pl: { xs: 2, sm: 3, md: 4 } }}>
+                      {course.disciplines.map((discipline, disciplineIndex) => (
+                        <Box
+                          key={disciplineIndex}
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            mb: disciplineIndex < course.disciplines.length - 1 ? 1 : 0,
+                          }}
+                        >
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                            <MenuBook
+                              sx={{
+                                fontSize: { xs: 14, sm: 16, md: 20 },
+                                color: greenPrimary,
+                              }}
+                            />
+                            <Typography
+                              sx={{
+                                color: textColor,
+                                fontSize: { xs: "0.8rem", sm: "0.875rem", md: "1rem" },
+                              }}
+                            >
+                              <strong>Disciplina:</strong> {discipline.acronym} - {discipline.name}
+                            </Typography>
+                          </Box>
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                            <CalendarToday
+                              sx={{
+                                fontSize: { xs: 14, sm: 16, md: 20 },
+                                color: greenPrimary,
+                              }}
+                            />
+                            <Typography
+                              sx={{
+                                color: textColor,
+                                fontSize: { xs: "0.8rem", sm: "0.875rem", md: "1rem" },
+                              }}
+                            >
+                              <strong>Calendário Letivo:</strong> {discipline.calendar}
+                            </Typography>
+                          </Box>
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                            <AccessTime
+                              sx={{
+                                fontSize: { xs: 14, sm: 16, md: 20 },
+                                color: greenPrimary,
+                              }}
+                            />
+                            <Typography
+                              sx={{
+                                color: textColor,
+                                fontSize: { xs: "0.8rem", sm: "0.875rem", md: "1rem" },
+                              }}
+                            >
+                              <strong>Turno:</strong> {discipline.turn}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      ))}
                     </Box>
                   </Box>
                 ))}

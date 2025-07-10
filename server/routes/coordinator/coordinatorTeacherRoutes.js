@@ -1,11 +1,11 @@
 import express from 'express';
 import autenticarToken from '../../middlewares/authMiddleware.js';
 import { isCoordinator } from '../../middlewares/isCoordinator.js';
-import { getProfessorsByCourse, searchProfessorsByCourse } from '../../controllers/coordinator/coordinatorTeacherController.js';
+import { getCourseTeachersSchedules } from '../../controllers/coordinator/coordinatorTeacherController.js';
 
 const router = express.Router();
 
-router.get('/professors', autenticarToken, isCoordinator(), getProfessorsByCourse);
-router.get('/professors/search', autenticarToken, isCoordinator(), searchProfessorsByCourse);
+router.get('/teachers-by-course', autenticarToken, isCoordinator(), getCourseTeachersSchedules);
+
 
 export default router;

@@ -17,7 +17,6 @@ import ClassOptionsPage from "../pages/disciplines/Teacher/ClassTeacher/ClassOpt
 import ClassScheduleCreate from "../pages/classSchedule/Coodinator/ClassScheduleCreate.js";
 import HolidayPage from "../pages/admin/Holiday/HolidayPage.js";
 import ClassScheduleDetails from "../pages/classSchedule/Coodinator/ClassScheduleDetails.js";
-import ClassDetailsPage from "../pages/disciplines/Teacher/ClassTeacher/ClassDetails/ClassDetailsPage.js";
 import ClassScheduleEdit from "../pages/classSchedule/Coodinator/ClassScheduleEdit.js";
 import ClassScheduleOptions from "../pages/classSchedule/ClassScheduleOptions.js";
 import ClassScheduleListArchived from "../pages/classSchedule/Coodinator/classScheduleArchived/ClassScheduleArchivedList.js";
@@ -266,16 +265,7 @@ const AppRoutes = () => {
           )
         }
       />
-      <Route
-        path="/class-details-page/:classId"
-        element={
-          isAuthenticated ? (
-            <ClassDetailsPage setAuthenticated={handleLogout} />
-          ) : (
-            <Navigate to="/login" />
-          )
-        }
-      />
+
     </Routes>
   );
 };

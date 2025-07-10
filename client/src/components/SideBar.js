@@ -201,7 +201,7 @@ const Sidebar = ({ setAuthenticated }) => {
                 sx={getListItemStyle(selectedItem, "classes")}
               >
                 <Class sx={{ mr: 1 }} />
-                <ListItemText primary="Turmas" />
+                <ListItemText primary="Horário" />
               </ListItem>
             </>
           )}

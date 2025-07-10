@@ -41,9 +41,7 @@ export const createClassSchedule = async (req, res) => {
     const courseName = course.name;
 
     if (!db.sequelize.models.CourseClass) {
-      throw new Error(
-        "Modelo 'CourseClass' não está definido."
-      );
+      throw new Error("Modelo 'CourseClass' não está definido.");
     }
 
     const [calendar, classRecord, courseClass] = await Promise.all([
@@ -576,12 +574,24 @@ export const updateClassSchedule = async (req, res) => {
 
     if (startDate > currentDate) {
       return res.status(400).json({
-        message: `O calendário ${classSchedule.calendar.year}/${classSchedule.calendar.period} é inválido. A data de início (${startDate.toISOString().split('T')[0]}) é posterior à data atual (${currentDate.toISOString().split('T')[0]}).`,
+        message: `O calendário ${classSchedule.calendar.year}/${
+          classSchedule.calendar.period
+        } é inválido. A data de início (${
+          startDate.toISOString().split("T")[0]
+        }) é posterior à data atual (${
+          currentDate.toISOString().split("T")[0]
+        }).`,
       });
     }
     if (endDate < currentDate) {
       return res.status(400).json({
-        message: `O calendário ${classSchedule.calendar.year}/${classSchedule.calendar.period} é inválido. A data de fim (${endDate.toISOString().split('T')[0]}) é anterior à data atual (${currentDate.toISOString().split('T')[0]}).`,
+        message: `O calendário ${classSchedule.calendar.year}/${
+          classSchedule.calendar.period
+        } é inválido. A data de fim (${
+          endDate.toISOString().split("T")[0]
+        }) é anterior à data atual (${
+          currentDate.toISOString().split("T")[0]
+        }).`,
       });
     }
 
@@ -1298,6 +1308,95 @@ export const getClassSchedulesFilter = async (req, res) => {
 
     return res.status(500).json({
       message: "Erro interno do servidor ao filtrar os horários de aula.",
+      error: error.message,
+    });
+  }
+};
+
+export const getActiveClasses = async (req, res) => {
+  const loggedUserId = req.user?.id;
+
+  try {
+    if (!loggedUserId) {
+      return res.status(401).json({
+        message: "Usuário não autenticado.",
+      });
+    }
+
+    const course = await db.Course.findOne({
+      where: { coordinatorId: loggedUserId },
+      attributes: ["id", "name", "acronym"],
+    });
+
+    if (!course) {
+      return res.status(403).json({
+        message:
+          "Acesso negado: Usuário não é coordenador ou não está associado a nenhum curso.",
+      });
+    }
+
+    const classes = await db.Class.findAll({
+      attributes: ["id", "semester"],
+      include: [
+        {
+          model: db.ClassSchedule,
+          as: "schedules", 
+          where: {
+            courseId: course.id,
+            isActive: true,
+          },
+          attributes: [], 
+          required: true, 
+        },
+      ],
+      order: [["semester", "ASC"]],
+    });
+
+    if (!classes.length) {
+      return res.status(404).json({
+        message:
+          "Nenhuma turma com grade ativa encontrada para o curso do coordenador.",
+      });
+    }
+
+    const classList = classes.map((classRecord) => ({
+      id: classRecord.id,
+      semester: classRecord.semester,
+      course: {
+        id: course.id,
+        name: course.name,
+        acronym: course.acronym,
+      },
+    }));
+
+    return res.status(200).json({
+      message: "Turmas com grades ativas recuperadas com sucesso!",
+      classes: classList,
+    });
+  } catch (error) {
+    console.error("Erro ao recuperar turmas com grades ativas:", {
+      message: error.message,
+      stack: error.stack,
+    });
+
+    if (error.name === "SequelizeValidationError") {
+      const errors = error.errors.map((err) => err.message);
+      return res.status(400).json({
+        message: "Erro de validação nos dados fornecidos.",
+        errors,
+      });
+    }
+
+    if (error.name === "SequelizeEagerLoadingError") {
+      return res.status(500).json({
+        message: "Erro na configuração das associações entre modelos.",
+        error: error.message,
+      });
+    }
+
+    return res.status(500).json({
+      message:
+        "Erro interno do servidor ao recuperar as turmas com grades ativas.",
       error: error.message,
     });
   }

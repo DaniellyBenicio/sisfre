@@ -12,6 +12,7 @@ import {
   Paper,
   Card,
   CardContent,
+  Tooltip,
 } from "@mui/material";
 import {
   School,
@@ -301,15 +302,49 @@ const ClassesTeacher = () => {
                                 {day}:
                               </Typography>
                               <Box sx={{ textAlign: "right" }}>
-                                <Typography
+                                <Tooltip
+                                  title={
+                                    <Box sx={{ p: 1, textAlign: "center" }}>
+                                      <Typography
+                                        sx={{
+                                          fontSize: "0.85rem",
+                                          color: "#fff",
+                                          fontWeight: "bold",
+                                        }}
+                                      >
+                                        {row[day].disciplineName}
+                                      </Typography>
+                                      <Typography
+                                        sx={{
+                                          fontSize: "0.8rem",
+                                          color: "#fff",
+                                        }}
+                                      >
+                                        {row[day].courseName}
+                                      </Typography>
+                                    </Box>
+                                  }
+                                  placement="top"
                                   sx={{
-                                    fontSize: "0.75rem",
-                                    color: textColor,
+                                    "& .MuiTooltip-tooltip": {
+                                      backgroundColor: greenPrimary,
+                                      border: "none",
+                                      borderRadius: 2,
+                                      boxShadow: `0 4px 8px rgba(0, 0, 0, 0.2)`,
+                                      padding: 0,
+                                    },
                                   }}
-                                  title={`${row[day].disciplineName} - ${row[day].courseName}`}
                                 >
-                                  {row[day].disciplineAcronym}
-                                </Typography>
+                                  <Typography
+                                    sx={{
+                                      fontSize: "0.75rem",
+                                      color: textColor,
+                                      cursor: "default",
+                                    }}
+                                  >
+                                    {row[day].disciplineAcronym}
+                                  </Typography>
+                                </Tooltip>
                                 <Typography
                                   sx={{
                                     fontSize: "0.7rem",
@@ -393,16 +428,50 @@ const ClassesTeacher = () => {
                                     alignItems: "center",
                                   }}
                                 >
-                                  <Typography
-                                    variant="body2"
+                                  <Tooltip
+                                    title={
+                                      <Box sx={{ p: 1, textAlign: "center" }}>
+                                        <Typography
+                                          sx={{
+                                            fontSize: "0.85rem",
+                                            color: "#fff",
+                                            fontWeight: "bold",
+                                          }}
+                                        >
+                                          {row[day].disciplineName}
+                                        </Typography>
+                                        <Typography
+                                          sx={{
+                                            fontSize: "0.8rem",
+                                            color: "#fff",
+                                          }}
+                                        >
+                                          {row[day].courseName}
+                                        </Typography>
+                                      </Box>
+                                    }
+                                    placement="top"
                                     sx={{
-                                      color: textColor,
-                                      fontSize: { sm: "0.8rem", md: "0.875rem" },
+                                      "& .MuiTooltip-tooltip": {
+                                        backgroundColor: greenPrimary,
+                                        border: "none",
+                                        borderRadius: 2,
+                                        boxShadow: `0 4px 8px rgba(0, 0, 0, 0.2)`,
+                                        padding: 0,
+                                      },
                                     }}
-                                    title={`${row[day].disciplineName} - ${row[day].courseName}`}
                                   >
-                                    {row[day].disciplineAcronym}
-                                  </Typography>
+                                    <Typography
+                                      variant="body2"
+                                      sx={{
+                                        color: textColor,
+                                        fontSize: { sm: "0.8rem", md: "0.875rem" },
+                                        cursor: "default",
+                                      }}
+                                    >
+                                      {row[day].disciplineAcronym}
+                                    </Typography>
+                                  </Tooltip>
                                   <Typography
                                     variant="body2"
                                     color={textSecondaryColor}

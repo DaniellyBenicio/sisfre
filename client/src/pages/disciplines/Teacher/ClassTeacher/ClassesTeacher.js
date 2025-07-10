@@ -15,9 +15,7 @@ import {
 } from "@mui/material";
 import {
   School,
-  CalendarToday,
   MenuBook,
-  AccessTime,
 } from "@mui/icons-material";
 import api from "../../../../service/api";
 
@@ -142,9 +140,6 @@ const ClassesTeacher = () => {
       const disciplineInfo = {
         acronym: slot.discipline?.acronym || "N/A",
         name: slot.discipline?.name || "Não Informada",
-        semester: slot.class?.semester || "N/A",
-        calendar: slot.calendar?.formatted || "N/A",
-        turn: slot.schedule?.turn || "N/A",
       };
 
       if (!courseMap.has(courseId)) {
@@ -174,7 +169,7 @@ const ClassesTeacher = () => {
         margin: "0 auto",
         display: "flex",
         flexDirection: "column",
-        gap: { xs: 1, sm: 2, md: 3 },
+        gap: { xs: 1, sm: 1.5, md: 2 },
       }}
     >
       <Typography
@@ -498,7 +493,7 @@ const ClassesTeacher = () => {
                       pb: index < legendData.length - 1 ? 1 : 0,
                     }}
                   >
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
                       <School
                         sx={{
                           fontSize: { xs: 14, sm: 16, md: 20 },
@@ -516,63 +511,40 @@ const ClassesTeacher = () => {
                       </Typography>
                     </Box>
                     <Box sx={{ pl: { xs: 2, sm: 3, md: 4 } }}>
+                      <Typography
+                        sx={{
+                          color: textColor,
+                          fontWeight: "bold",
+                          fontSize: { xs: "0.8rem", sm: "0.875rem", md: "1rem" },
+                          mb: 0.5,
+                        }}
+                      >
+                        Disciplinas:
+                      </Typography>
                       {course.disciplines.map((discipline, disciplineIndex) => (
                         <Box
                           key={disciplineIndex}
                           sx={{
                             display: "flex",
-                            flexDirection: "column",
-                            mb: disciplineIndex < course.disciplines.length - 1 ? 1 : 0,
+                            alignItems: "center",
+                            gap: 1,
+                            mb: disciplineIndex < course.disciplines.length - 1 ? 0.5 : 0,
                           }}
                         >
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                            <MenuBook
-                              sx={{
-                                fontSize: { xs: 14, sm: 16, md: 20 },
-                                color: greenPrimary,
-                              }}
-                            />
-                            <Typography
-                              sx={{
-                                color: textColor,
-                                fontSize: { xs: "0.8rem", sm: "0.875rem", md: "1rem" },
-                              }}
-                            >
-                              <strong>Disciplina:</strong> {discipline.acronym} - {discipline.name}
-                            </Typography>
-                          </Box>
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                            <CalendarToday
-                              sx={{
-                                fontSize: { xs: 14, sm: 16, md: 20 },
-                                color: greenPrimary,
-                              }}
-                            />
-                            <Typography
-                              sx={{
-                                color: textColor,
-                                fontSize: { xs: "0.8rem", sm: "0.875rem", md: "1rem" },
-                              }}
-                            >
-                              <strong>Calendário Letivo:</strong> {discipline.calendar}
-                            </Typography>
-                          </Box>
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                            <AccessTime
-                              sx={{
-                                fontSize: { xs: 14, sm: 16, md: 20 },
-                                color: greenPrimary,
-                              }}
-                            />
-                            <Typography
-                              sx={{
-                                color: textColor,
-                                fontSize: { xs: "0.8rem", sm: "0.875rem", md: "1rem" },
-                              }}
-                            >
-                              <strong>Turno:</strong> {discipline.turn}
-                            </Typography>
-                          </Box>
+                          <MenuBook
+                            sx={{
+                              fontSize: { xs: 14, sm: 16, md: 20 },
+                              color: greenPrimary,
+                            }}
+                          />
+                          <Typography
+                            sx={{
+                              color: textColor,
+                              fontSize: { xs: "0.8rem", sm: "0.875rem", md: "1rem" },
+                            }}
+                          >
+                            {discipline.acronym} - {discipline.name}
+                          </Typography>
                         </Box>
                       ))}
                     </Box>

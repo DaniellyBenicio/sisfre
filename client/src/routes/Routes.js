@@ -20,6 +20,9 @@ import ClassScheduleDetails from "../pages/classSchedule/Coodinator/ClassSchedul
 import ClassScheduleEdit from "../pages/classSchedule/Coodinator/ClassScheduleEdit.js";
 import ClassScheduleOptions from "../pages/classSchedule/ClassScheduleOptions.js";
 import ClassScheduleListArchived from "../pages/classSchedule/Coodinator/classScheduleArchived/ClassScheduleArchivedList.js";
+import FrequencyPage from "../pages/coordinator/Frequency/FrequencyPage.js";
+import PrepositionPage from "../pages/coordinator/Preposition/reposition/PrepositionPage.js";
+import AntepositionPage from "../pages/coordinator/Anteposition/AntepositionPage.js"; 
 
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
@@ -68,7 +71,7 @@ const AppRoutes = () => {
     const access = localStorage.getItem("accessType");
     setAccessType(access);
     if (access === "Admin") {
-      navigate("/users"); // Alterado de /calendar-options para /users
+      navigate("/users");
     } else {
       navigate("/disciplines");
     }
@@ -236,6 +239,37 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/frequency"
+        element={
+          isAuthenticated && (accessType === "Professor" || accessType === "Coordenador") ? (
+            <FrequencyPage setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
+        path="/preposition"
+        element={
+          isAuthenticated && (accessType === "Professor" || accessType === "Coordenador") ? (
+            <PrepositionPage setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      {/* New route for AntepositionPage */}
+      <Route
+        path="/anteposition" 
+        element={
+          isAuthenticated && (accessType === "Professor" || accessType === "Coordenador") ? (
+            <AntepositionPage setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
         path="/saturday"
         element={
           isAuthenticated && accessType === "Admin" ? (
@@ -265,7 +299,6 @@ const AppRoutes = () => {
           )
         }
       />
-
     </Routes>
   );
 };

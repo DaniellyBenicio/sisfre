@@ -25,6 +25,8 @@ import {
   LibraryBooks,
   CalendarToday,
   Schedule,
+  EventAvailable,
+  EventNote,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useMediaQuery } from "@mui/material";
@@ -55,6 +57,8 @@ const Sidebar = ({ setAuthenticated }) => {
     else if (path === "/calendar-options") setSelectedItem("calendar");
     else if (path === "/classes") setSelectedItem("classes");
     else if (path === "/class-schedule/options") setSelectedItem("class-schedule");
+    else if (path === "/frequency") setSelectedItem("frequency");
+    else if (path === "/anteposition") setSelectedItem("class-anticipation"); // Alterado de "/class-anticipation" para "/anteposition"
   }, [location.pathname]);
 
   const handleOpenConfirmDialog = () => setOpenConfirmDialog(true);
@@ -176,11 +180,31 @@ const Sidebar = ({ setAuthenticated }) => {
               </ListItem>
               <ListItem
                 button
-                onClick={() => handleItemClick("/class-schedule/options", "class-schedule")}
+                onClick={() =>
+                  handleItemClick("/class-schedule/options", "class-schedule")
+                }
                 sx={getListItemStyle(selectedItem, "class-schedule")}
               >
                 <Schedule sx={{ mr: 1 }} />
                 <ListItemText primary="Grade de Turmas" />
+              </ListItem>
+              <ListItem
+                button
+                onClick={() =>
+                  handleItemClick("/anteposition", "class-anticipation") // Alterado de "/class-anticipation" para "/anteposition"
+                }
+                sx={getListItemStyle(selectedItem, "class-anticipation")}
+              >
+                <EventNote sx={{ mr: 1 }} />
+                <ListItemText primary="Anteposição de Aula" />
+              </ListItem>
+              <ListItem
+                button
+                onClick={() => handleItemClick("/frequency", "frequency")}
+                sx={getListItemStyle(selectedItem, "frequency")}
+              >
+                <EventAvailable sx={{ mr: 1 }} />
+                <ListItemText primary="Frequência" />
               </ListItem>
             </>
           )}
@@ -202,6 +226,24 @@ const Sidebar = ({ setAuthenticated }) => {
               >
                 <Class sx={{ mr: 1 }} />
                 <ListItemText primary="Horário" />
+              </ListItem>
+              <ListItem
+                button
+                onClick={() =>
+                  handleItemClick("/anteposition", "class-anticipation") // Alterado de "/class-anticipation" para "/anteposition"
+                }
+                sx={getListItemStyle(selectedItem, "class-anticipation")}
+              >
+                <EventNote sx={{ mr: 1 }} />
+                <ListItemText primary="Anteposição de Aula" />
+              </ListItem>
+              <ListItem
+                button
+                onClick={() => handleItemClick("/frequency", "frequency")}
+                sx={getListItemStyle(selectedItem, "frequency")}
+              >
+                <EventAvailable sx={{ mr: 1 }} />
+                <ListItemText primary="Frequência" />
               </ListItem>
             </>
           )}
@@ -273,8 +315,8 @@ const Sidebar = ({ setAuthenticated }) => {
               backgroundColor: "#087619",
               color: "white",
               overflowY: "auto",
-            }}
-          }
+            },
+          }}
         >
           {drawerContent}
         </Drawer>
@@ -295,9 +337,7 @@ const Sidebar = ({ setAuthenticated }) => {
           <Box display="flex" justifyContent="center" mb={2}>
             <Warning sx={{ fontSize: 55, color: "#FFA000" }} />
           </Box>
-          <Typography textAlign="center">
-            Tem certeza que deseja sair?
-          </Typography>
+          <Typography textAlign="center">Tem certeza que deseja sair?</Typography>
         </DialogContent>
         <DialogActions
           sx={{

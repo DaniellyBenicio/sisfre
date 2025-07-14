@@ -20,9 +20,10 @@ import ClassScheduleDetails from "../pages/classSchedule/Coodinator/ClassSchedul
 import ClassScheduleEdit from "../pages/classSchedule/Coodinator/ClassScheduleEdit.js";
 import ClassScheduleOptions from "../pages/classSchedule/ClassScheduleOptions.js";
 import ClassScheduleListArchived from "../pages/classSchedule/Coodinator/classScheduleArchived/ClassScheduleArchivedList.js";
-import FrequencyPage from "../pages/coordinator/Frequency/FrequencyPage.js";
-import PrepositionPage from "../pages/coordinator/Preposition/reposition/PrepositionPage.js";
-import AntepositionPage from "../pages/coordinator/Anteposition/AntepositionPage.js"; 
+import FrequencyPage from "../pages/disciplines/Teacher/Frequency/FrequencyPage.js";
+import PrepositionPage from "../pages/disciplines/Teacher/reposition/PrepositionPage.js";
+import AntepositionPage from "../pages/disciplines/Teacher/Anteposition/AntepositionPage.js";
+import TeacherManagementPage from "../pages/disciplines/Coordinator/TeacherManagement/TeacherManagementPage.js"; 
 
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
@@ -260,7 +261,7 @@ const AppRoutes = () => {
       />
       {/* New route for AntepositionPage */}
       <Route
-        path="/anteposition" 
+        path="/anteposition"
         element={
           isAuthenticated && (accessType === "Professor" || accessType === "Coordenador") ? (
             <AntepositionPage setAuthenticated={handleLogout} />
@@ -294,6 +295,17 @@ const AppRoutes = () => {
         element={
           isAuthenticated && accessType === "Admin" ? (
             <HolidayPage setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      {/* --- Nova Rota para Gestão de Docentes --- */}
+      <Route
+        path="/teachers-management" 
+        element={
+          isAuthenticated && accessType === "Coordenador" ? (
+            <TeacherManagementPage setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
           )

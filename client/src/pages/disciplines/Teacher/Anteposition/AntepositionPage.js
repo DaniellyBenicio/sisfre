@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, CssBaseline } from '@mui/material';
-import SideBar from "../../../components/SideBar"; 
+import SideBar from "../../../../components/SideBar"; 
 import ClassReplacement from './ClassAntepositionList'; 
 
 const AntepositionPage = ({ setAuthenticated }) => {

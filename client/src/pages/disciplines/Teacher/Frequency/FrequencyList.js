@@ -10,10 +10,10 @@ import {
   MenuItem, // Import MenuItem
 } from "@mui/material";
 import { QrCodeScanner } from "@mui/icons-material";
-import api from "../../../service/api"; // Assuming this is your API service
-import { CustomAlert } from "../../../components/alert/CustomAlert";
+import api from "../../../../service/api"; // Assuming this is your API service
+import { CustomAlert } from "../../../../components/alert/CustomAlert";
 import FrequenciesTable from "./FrequenciesTable";
-import { StyledSelect } from "../../../components/inputs/Input"; // Assuming StyledSelect is a custom component
+import { StyledSelect } from "../../../../components/inputs/Input"; // Assuming StyledSelect is a custom component
 
 const FrequencyList = () => {
   const [frequencies, setFrequencies] = useState([]);

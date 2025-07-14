@@ -1,6 +1,6 @@
 import React from 'react';
 import { Stack, Typography } from "@mui/material";
-import FrequencyTable from "../../../components/homeScreen/FrequencyTable"; 
+import FrequencyTable from "../../../../components/homeScreen/FrequencyTable"; 
 
 const FrequenciesTable = ({ frequencies, onUpload, search, isFiltered, setAlert }) => {
   const capitalizeOnlyFirst = (str) => {

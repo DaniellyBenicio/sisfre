@@ -27,6 +27,7 @@ import {
   Schedule,
   EventAvailable,
   EventNote,
+  Group, // <-- Adicionado Group aqui
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useMediaQuery } from "@mui/material";
@@ -59,6 +60,7 @@ const Sidebar = ({ setAuthenticated }) => {
     else if (path === "/class-schedule/options") setSelectedItem("class-schedule");
     else if (path === "/frequency") setSelectedItem("frequency");
     else if (path === "/anteposition") setSelectedItem("class-anticipation"); // Alterado de "/class-anticipation" para "/anteposition"
+    else if (path === "/teachers-management") setSelectedItem("teachers-management"); // Adicionado para "Gestão de Docentes"
   }, [location.pathname]);
 
   const handleOpenConfirmDialog = () => setOpenConfirmDialog(true);
@@ -188,23 +190,14 @@ const Sidebar = ({ setAuthenticated }) => {
                 <Schedule sx={{ mr: 1 }} />
                 <ListItemText primary="Grade de Turmas" />
               </ListItem>
+              {/* Correção da estrutura JSX para "Gestão de Docentes" */}
               <ListItem
                 button
-                onClick={() =>
-                  handleItemClick("/anteposition", "class-anticipation") // Alterado de "/class-anticipation" para "/anteposition"
-                }
-                sx={getListItemStyle(selectedItem, "class-anticipation")}
+                onClick={() => handleItemClick("/teachers-management", "teachers-management")} // Rota e item de exemplo
+                sx={getListItemStyle(selectedItem, "teachers-management")}
               >
-                <EventNote sx={{ mr: 1 }} />
-                <ListItemText primary="Anteposição de Aula" />
-              </ListItem>
-              <ListItem
-                button
-                onClick={() => handleItemClick("/frequency", "frequency")}
-                sx={getListItemStyle(selectedItem, "frequency")}
-              >
-                <EventAvailable sx={{ mr: 1 }} />
-                <ListItemText primary="Frequência" />
+                <Group sx={{ mr: 1 }} />
+                <ListItemText primary="Gestão de Docentes" />
               </ListItem>
             </>
           )}

@@ -955,21 +955,40 @@ export const getClassSchedule = async (req, res) => {
       });
     }
 
-    const course = await db.Course.findOne({
-      where: { coordinatorId: loggedUserId },
+    const user = await db.User.findByPk(loggedUserId, {
+      attributes: ["id", "accessType"],
     });
 
-    if (!course) {
-      return res.status(403).json({
-        message:
-          "Acesso negado: Usuário não é coordenador ou não está associado a nenhum curso.",
+    if (!user) {
+      return res.status(404).json({
+        message: "Usuário não encontrado.",
       });
     }
 
-    const courseId = course.id;
+    let whereClause = { isActive: true }; 
+
+    if (user.accessType === "Coordenador") {
+      const course = await db.Course.findOne({
+        where: { coordinatorId: loggedUserId },
+      });
+
+      if (!course) {
+        return res.status(403).json({
+          message:
+            "Acesso negado: Usuário não é coordenador ou não está associado a nenhum curso.",
+        });
+      }
+
+      whereClause.courseId = course.id; 
+    } else if (user.accessType !== "Admin") {
+      return res.status(403).json({
+        message:
+          "Acesso negado: Apenas administradores ou coordenadores podem visualizar os horários.",
+      });
+    }
 
     const classSchedules = await db.ClassSchedule.findAll({
-      where: { courseId, isActive: true },
+      where: whereClause, 
       include: [
         {
           model: db.Calendar,
@@ -1058,7 +1077,7 @@ export const getClassSchedule = async (req, res) => {
 
     if (!scheduleList.length) {
       return res.status(404).json({
-        message: "Nenhum horário de aula encontrado para o coordenador.",
+        message: "Nenhum horário de aula encontrado.",
       });
     }
 
@@ -1071,7 +1090,7 @@ export const getClassSchedule = async (req, res) => {
 
     if (error.name === "SequelizeValidationError") {
       const errors = error.errors.map((err) => err.message);
-      return res.status(400).json({
+      return verification(400).json({
         message: "Erro de validação nos dados fornecidos.",
         errors,
       });
@@ -1340,13 +1359,13 @@ export const getActiveClasses = async (req, res) => {
       include: [
         {
           model: db.ClassSchedule,
-          as: "schedules", 
+          as: "schedules",
           where: {
             courseId: course.id,
             isActive: true,
           },
-          attributes: [], 
-          required: true, 
+          attributes: [],
+          required: true,
         },
       ],
       order: [["semester", "ASC"]],

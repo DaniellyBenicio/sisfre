@@ -91,12 +91,7 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/" element={<Navigate to="/login" />} />
       <Route path="/login" element={<Login onLogin={handleLogin} />} />
-      <Route
-        path="/forgot-password"
-        element={
-          !isAuthenticated ? <ForgotPassword /> : <Navigate to="/MainScreen" />
-        }
-      />
+      <Route path="/forgot-password" element={ <ForgotPassword /> } />
       <Route
         path="/resetPassword/:token"
         element={
@@ -182,7 +177,7 @@ const AppRoutes = () => {
       <Route
         path="/class-schedule/options"
         element={
-          isAuthenticated && accessType === "Coordenador" ? (
+          isAuthenticated && (accessType === "Coordenador" || accessType === "Admin") ? (
             <ClassScheduleOptions setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
@@ -192,7 +187,7 @@ const AppRoutes = () => {
       <Route
         path="/class-schedule"
         element={
-          isAuthenticated && accessType === "Coordenador" ? (
+          isAuthenticated && accessType === "Coordenador"  ? (
             <ClassSchedulePage setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
@@ -222,7 +217,7 @@ const AppRoutes = () => {
       <Route
         path="/class-schedule/details/:classScheduleId"
         element={
-          isAuthenticated ? (
+          isAuthenticated && (accessType === "Coordenador" || accessType === "Admin") ? (
             <ClassScheduleDetails setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
@@ -234,6 +229,26 @@ const AppRoutes = () => {
         element={
           isAuthenticated && accessType === "Coordenador" ? (
             <ClassScheduleEdit setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
+        path="/classSchedule"
+        element={
+          isAuthenticated && accessType === "Admin"  ? (
+            <ClassSchedulePage setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
+        path="/classSchedule/archived"
+        element={
+          isAuthenticated && accessType === "Admin" ? (
+            <ClassScheduleListArchived setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
           )

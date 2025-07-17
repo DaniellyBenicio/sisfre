@@ -2,9 +2,12 @@ import { Stack, Typography } from "@mui/material";
 import Tables from "../../../components/homeScreen/Tables";
 
 const ClassScheduleTable = ({ classesSchedule, onDelete, onUpdate, search, renderActions, showActions }) => {
+	const accessType = localStorage.getItem("accessType") || "";
+
 	const headers = [
 		{ key: "calendar", label: "Calendário" },
 		{ key: "class", label: "Turma" },
+		...(accessType === "Admin" ? [{ key: "course", label: "Curso" }] : []),
 		{ key: "turn", label: "Turno" },
 	];
 
@@ -16,6 +19,11 @@ const ClassScheduleTable = ({ classesSchedule, onDelete, onUpdate, search, rende
 			<Typography>
 				<strong>Turma:</strong> {classSchedule.class}
 			</Typography>
+			{accessType === "Admin" && (
+				<Typography>
+					<strong>Curso:</strong> {classSchedule.course || "N/A"}
+				</Typography>
+			)}
 			<Typography>
 				<strong>Turno:</strong> {classSchedule.turn}
 			</Typography>
@@ -26,12 +34,12 @@ const ClassScheduleTable = ({ classesSchedule, onDelete, onUpdate, search, rende
 		<Tables
 			data={classesSchedule}
 			headers={headers}
-			onDelete={onDelete} 
+			onDelete={onDelete}
 			onUpdate={onUpdate}
 			search={search}
 			renderMobileRow={renderMobileRow}
 			renderActions={renderActions}
-      showActions={showActions} 
+			showActions={showActions}
 		/>
 	);
 };

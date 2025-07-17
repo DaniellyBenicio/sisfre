@@ -27,7 +27,7 @@ import {
   Schedule,
   EventAvailable,
   EventNote,
-  Group, // <-- Adicionado Group aqui
+  Group,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useMediaQuery } from "@mui/material";
@@ -167,6 +167,16 @@ const Sidebar = ({ setAuthenticated }) => {
                 <Class sx={{ mr: 1 }} />
                 <ListItemText primary="Turmas" />
               </ListItem>
+              <ListItem
+                button
+                onClick={() =>
+                  handleItemClick("/class-schedule/options", "class-schedule")
+                }
+                sx={getListItemStyle(selectedItem, "class-schedule")}
+              >
+                <Schedule sx={{ mr: 1 }} />
+                <ListItemText primary="Grade de Turmas" />
+              </ListItem>
             </>
           )}
 
@@ -288,8 +298,8 @@ const Sidebar = ({ setAuthenticated }) => {
                 width: 240,
                 backgroundColor: "#087619",
                 color: "white",
-                top: "64px",
-                height: "calc(100% - 64px)",
+                top: "55px",
+                height: "calc(100% - 52px)",
                 overflowY: "auto",
               },
             }}

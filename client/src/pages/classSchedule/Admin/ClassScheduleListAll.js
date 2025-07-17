@@ -35,16 +35,16 @@ const ClassScheduleListAll = ({ setAuthenticated }) => {
 				console.log("API Response:", response.data);
 
 				const determineTurn = (turnCounts) => {
-					const { MATUTINO, VESPERTINO, NOTURNO } = turnCounts;
-					const totalLessons = MATUTINO + VESPERTINO + NOTURNO;
+					const { MATUTINO, VESPERTINO, NOTURNO } = turnCounts || {};
+					const totalLessons = (MATUTINO || 0) + (VESPERTINO || 0) + (NOTURNO || 0);
 
 					if (totalLessons === 0) {
 						return "N/A";
 					}
 					const shifts = [
-						{ shift: "Manhã", count: MATUTINO },
-						{ shift: "Tarde", count: VESPERTINO },
-						{ shift: "Noite", count: NOTURNO },
+						{ shift: "Manhã", count: MATUTINO || 0 },
+						{ shift: "Tarde", count: VESPERTINO || 0 },
+						{ shift: "Noite", count: NOTURNO || 0 },
 					];
 
 					const sortedShifts = shifts.sort((a, b) => b.count - a.count);
@@ -71,11 +71,12 @@ const ClassScheduleListAll = ({ setAuthenticated }) => {
 						.filter((schedule) => schedule.isActive !== false)
 						.map((schedule) => ({
 							id: schedule.id,
-							calendar: schedule.calendar,
-							class: schedule.turma,
-							course: schedule.course,
+							calendar: schedule.calendar || "N/A",
+							class: schedule.turma || "N/A",
+							nome_curso: schedule.nome_curso || "N/A",
+        			course: schedule.sigla_curso || "N/A",
 							turn: determineTurn(schedule.turnCounts),
-							details: schedule.details,
+							details: schedule.details || {},
 						}))
 					: [];
 
@@ -83,13 +84,13 @@ const ClassScheduleListAll = ({ setAuthenticated }) => {
 
 				const uniqueCalendars = [
 					...new Set(schedules.map((item) => item.calendar)),
-				].filter((cal) => cal);
+				].filter((cal) => cal && cal !== "N/A");
 				const uniqueClasses = [
 					...new Set(schedules.map((item) => item.class)),
-				].filter((cls) => cls);
+				].filter((cls) => cls && cls !== "N/A");
 				const uniqueCourses = [
 					...new Set(schedules.map((item) => item.course)),
-				].filter((course) => course);
+				].filter((course) => course && course !== "N/A");
 
 				setCalendars(uniqueCalendars);
 				setClasses(uniqueClasses);

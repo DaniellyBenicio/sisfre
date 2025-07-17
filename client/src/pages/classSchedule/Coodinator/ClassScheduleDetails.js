@@ -29,6 +29,7 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
   const [schedule, setSchedule] = useState(initialSchedule);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(!initialSchedule);
+  const accessType = localStorage.getItem("accessType") || "";
 
   const greenLight = "#E8F5E9";
   const greenPrimary = "#087619";
@@ -107,6 +108,12 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
             }
           );
           console.log("API Response:", response.data);
+
+          const normalizedSchedule = {
+            ...response.data.schedule,
+            nome_curso: response.data.schedule.course?.name || "N/A",
+            sigla_curso: response.data.schedule.course?.acronym || "N/A",
+          };
           setSchedule(response.data.schedule);
           setError(null);
         } catch (error) {
@@ -121,6 +128,14 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
       };
       fetchSchedule();
     } else {
+      const normalizedInitialSchedule = initialSchedule
+      ? {
+          ...initialSchedule,
+          nome_curso: initialSchedule.course?.name || initialSchedule.nome_curso || "N/A",
+          sigla_curso: initialSchedule.course?.acronym || initialSchedule.sigla_curso || "N/A",
+        }
+      : null;
+      setSchedule(normalizedInitialSchedule || initialSchedule);
       setLoading(false);
     }
   }, [initialSchedule, classScheduleId]);
@@ -193,7 +208,9 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
           <IconButton
             onClick={() =>
               navigate(
-                schedule?.isActive
+                accessType === "Admin"
+                  ? "/classSchedule"
+                  : schedule?.isActive
                   ? "/class-schedule"
                   : "/class-schedule/archived"
               )
@@ -338,6 +355,14 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
             </Typography>
           ) : schedule ? (
             <Box>
+              {accessType === "Admin" && (
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  <strong>Curso:</strong>{" "}
+                  {schedule.course?.name && schedule.course?.acronym
+                    ? `${schedule.course.name} - ${schedule.course.acronym}`
+                    : schedule.course?.name || schedule.course?.acronym || "N/A"}
+                </Typography>
+              )}
               <Typography variant="body1" sx={{ mb: 1 }}>
                 <strong>Turma:</strong> {schedule.class?.semester || "N/A"}
               </Typography>
@@ -430,7 +455,7 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
           )}
         </Box>
 
-        {schedule?.isActive && (
+        {schedule?.isActive && accessType === "Coordenador" && (
           <Box
             sx={{ display: "flex", justifyContent: "flex-end", mt: 2, mr: 4 }}
           >

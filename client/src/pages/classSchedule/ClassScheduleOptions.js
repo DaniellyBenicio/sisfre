@@ -13,22 +13,26 @@ import { CalendarClock, Archive } from 'lucide-react';
 
 const ClassScheduleOptions = ({ setAuthenticated }) => {
 	const navigate = useNavigate();
+	const accessType = localStorage.getItem("accessType") || "";
 
 	const calendarOptions = [
 		{
 			title: "Grade de Turmas",
-			icon: <CalendarClock  size={60} color="#087619" />,
+			icon: <CalendarClock size={60} color="#087619" />,
 			path: "/class-schedule",
+			adminPath: "/classSchedule",
 		},
 		{
 			title: "Grades Arquivadas",
 			icon: <Archive size={60} color="#087619" />,
 			path: "/class-schedule/archived",
+			adminPath: "/classSchedule/archived",
 		}
 	];
 
-	const handleCardClick = (path) => {
-		navigate(path);
+	const handleCardClick = (option) => {
+		const targetPath = accessType === "Admin" && option.adminPath ? option.adminPath : option.path;
+		navigate(targetPath);
 	};
 
 	return (
@@ -115,7 +119,7 @@ const ClassScheduleOptions = ({ setAuthenticated }) => {
 								/>
 
 								<CardActionArea
-									onClick={() => handleCardClick(option.path)}
+									onClick={() => handleCardClick(option)}
 									sx={{
 										height: "100%",
 										width: "100%",

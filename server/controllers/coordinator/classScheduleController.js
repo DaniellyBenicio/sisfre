@@ -1106,21 +1106,25 @@ export const getClassSchedule = async (req, res) => {
 export const getClassScheduleDetails = async (req, res) => {
   const { classScheduleId } = req.params;
   const loggedUserId = req.user?.id;
+  const accessType = req.user?.accessType;
 
   try {
     if (!loggedUserId) {
       return res.status(401).json({ message: "Usuário não autenticado." });
     }
 
-    const course = await db.Course.findOne({
-      where: { coordinatorId: loggedUserId },
-    });
-    if (!course) {
-      return res.status(403).json({ message: "Acesso negado." });
+    let course = null;
+    if (accessType !== "Admin") {
+      course = await db.Course.findOne({
+        where: { coordinatorId: loggedUserId },
+      });
+      if (!course) {
+        return res.status(403).json({ message: "Acesso negado. Você não é coordenador de nenhum curso." });
+      }
     }
 
     const schedule = await db.ClassSchedule.findByPk(classScheduleId, {
-      where: { courseId: course.id },
+      where: accessType === "Admin" ? {} : { courseId: course.id },
       include: [
         {
           model: db.Calendar,
@@ -1167,6 +1171,10 @@ export const getClassScheduleDetails = async (req, res) => {
 
     if (!schedule) {
       return res.status(404).json({ message: "Horário não encontrado." });
+    }
+
+    if (accessType !== "Admin" && schedule.courseId !== course.id) {
+      return res.status(403).json({ message: "Acesso negado. Este horário não pertence ao seu curso." });
     }
 
     return res.status(200).json({

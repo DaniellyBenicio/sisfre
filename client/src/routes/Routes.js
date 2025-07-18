@@ -23,7 +23,8 @@ import ClassScheduleListArchived from "../pages/classSchedule/Coodinator/classSc
 import FrequencyPage from "../pages/disciplines/Teacher/Frequency/FrequencyPage.js";
 import PrepositionPage from "../pages/disciplines/Teacher/reposition/PrepositionPage.js";
 import AntepositionPage from "../pages/disciplines/Teacher/Anteposition/AntepositionPage.js";
-import TeacherManagementPage from "../pages/disciplines/Coordinator/TeacherManagement/TeacherManagementPage.js"; 
+import TeacherManagementPage from "../pages/Coordinator/TeacherManagement/TeacherManagementPage.js"; 
+import TeacherManagementOptions from "../pages/Coordinator/TeacherManagement/TeacherManagementOptions.js";
 
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
@@ -296,16 +297,6 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/MainScreen"
-        element={
-          isAuthenticated ? (
-            <MainScreen setAuthenticated={setAuthenticated} />
-          ) : (
-            <Navigate to="/login" />
-          )
-        }
-      />
-      <Route
         path="/holiday"
         element={
           isAuthenticated && accessType === "Admin" ? (
@@ -315,12 +306,42 @@ const AppRoutes = () => {
           )
         }
       />
-      {/* --- Nova Rota para Gestão de Docentes --- */}
+      <Route
+        path="/teachers-management/options" 
+        element={
+          isAuthenticated && accessType === "Coordenador" ? (
+            <TeacherManagementOptions setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
       <Route
         path="/teachers-management" 
         element={
           isAuthenticated && accessType === "Coordenador" ? (
             <TeacherManagementPage setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
+        path="/class-rearrange" 
+        element={
+          isAuthenticated && accessType === "Coordenador" ? (
+            <MainScreen setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+
+      <Route
+        path="/MainScreen"
+        element={
+          isAuthenticated ? (
+            <MainScreen setAuthenticated={setAuthenticated} />
           ) : (
             <Navigate to="/login" />
           )

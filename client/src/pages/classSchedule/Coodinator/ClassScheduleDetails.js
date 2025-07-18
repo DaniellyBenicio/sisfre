@@ -276,23 +276,23 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
                   <Box
                     key={turno}
                     sx={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      mb: 4,
-                      gap: 2,
+                      display: { xs: "block", sm: "flex" },
+                      alignItems: { sm: "flex-start" },
+                      mb: { xs: 1.5, sm: 2, md: 4 },
+                      gap: { sm: 2 },
                     }}
                   >
                     <Box
                       sx={{
                         backgroundColor: greenLight,
-                        py: 1,
-                        px: 2,
+                        py: { xs: 0.5, sm: 1 },
+                        px: { xs: 1, sm: 2 },
                         borderRadius: 1,
                         textAlign: "center",
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "center",
-                        minHeight: "100px",
+                        justifyContent: { xs: "100%", sm: "40px" },
+                        minHeight: { xs: "auto", sm: "100px" },
                         alignSelf: "stretch",
                         flexShrink: 0,
                       }}
@@ -300,12 +300,13 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
                       <Typography
                         variant="h6"
                         sx={{
-                          writingMode: "vertical-rl",
-                          textOrientation: "mixed",
-                          transform: "rotate(180deg)",
+                          writingMode: {xs: "horizontal-tb", sm: "vertical-rl"},
+                          textOrientation: { sm: "mixed" },
+                          transform: { sm: "rotate(180deg)" },
                           fontWeight: "bold",
                           color: greenPrimary,
-                          letterSpacing: "2px",
+                          letterSpacing: { sm: "2px" },
+                          fontSize: { xs: "0.9rem", sm: "1rem", md: "1.1rem" },
                         }}
                       >
                         {turno}

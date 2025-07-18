@@ -60,7 +60,7 @@ const Sidebar = ({ setAuthenticated }) => {
     else if (path === "/class-schedule/options") setSelectedItem("class-schedule");
     else if (path === "/frequency") setSelectedItem("frequency");
     else if (path === "/anteposition") setSelectedItem("class-anticipation"); // Alterado de "/class-anticipation" para "/anteposition"
-    else if (path === "/teachers-management") setSelectedItem("teachers-management"); // Adicionado para "Gestão de Docentes"
+    else if (path === "/teachers-management/options") setSelectedItem("teachers-management/options"); // Adicionado para "Gestão de Docentes"
   }, [location.pathname]);
 
   const handleOpenConfirmDialog = () => setOpenConfirmDialog(true);
@@ -200,11 +200,10 @@ const Sidebar = ({ setAuthenticated }) => {
                 <Schedule sx={{ mr: 1 }} />
                 <ListItemText primary="Grade de Turmas" />
               </ListItem>
-              {/* Correção da estrutura JSX para "Gestão de Docentes" */}
               <ListItem
                 button
-                onClick={() => handleItemClick("/teachers-management", "teachers-management")} // Rota e item de exemplo
-                sx={getListItemStyle(selectedItem, "teachers-management")}
+                onClick={() => handleItemClick("/teachers-management/options", "teachers-management/options")}
+                sx={getListItemStyle(selectedItem, "teachers-management/options")}
               >
                 <Group sx={{ mr: 1 }} />
                 <ListItemText primary="Gestão de Docentes" />
@@ -233,7 +232,7 @@ const Sidebar = ({ setAuthenticated }) => {
               <ListItem
                 button
                 onClick={() =>
-                  handleItemClick("/anteposition", "class-anticipation") // Alterado de "/class-anticipation" para "/anteposition"
+                  handleItemClick("/anteposition", "class-anticipation")
                 }
                 sx={getListItemStyle(selectedItem, "class-anticipation")}
               >

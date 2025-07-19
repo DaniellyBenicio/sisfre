@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
 	Box,
 	Typography,
@@ -5,25 +6,58 @@ import {
 	Card,
 	CardContent,
 	CardActionArea,
-	CssBaseline
 } from "@mui/material";
+import { Visibility, MailOutline } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "../../../components/SideBar";
-import { Folder, Group } from "@mui/icons-material";
+import Paginate from "../../../components/paginate/Paginate";
 
-const TeacherManagementOptions = ({ setAuthenticated }) => {
+const ClassRecheduleRequestOptions = ({ setAuthenticated }) => {
 	const navigate = useNavigate();
 	const accessType = localStorage.getItem("accessType") || "";
+	const [page, setPage] = useState(1);
+  const itemsPerPage = 6;
 
-	const calendarOptions = [
+	const RequestOptions = [
 		{
-			title: "Professores",
-			icon: <Group sx={{ fontSize: 60, color: "#087619" }} />,
-			path: "/teachers-management"
+			icon: MailOutline,
+			title: "Reposição",
+			teacher: "Professor: João Silva",
+			date: "Data: 17/07/2025",
 		},
 		{
-			title: "Solicitações de Reposição e Anteposição",
-			icon: <Folder sx={{ fontSize: 60, color: "#087619" }} />,
+			title: "Anteposição",
+			teacher: "Professor: Maria Oliveira",
+			date: "Data: 17/07/2025",
+			path: "/class-reschedule-request"
+		},
+		{
+			title: "Anteposição",
+			teacher: "Professor: Maria Oliveira",
+			date: "Data: 17/07/2025",
+			path: "/class-reschedule-request"
+		},
+		{
+			title: "Anteposição",
+			teacher: "Professor: Maria Oliveira",
+			date: "Data: 17/07/2025",
+			path: "/class-reschedule-request"
+		},
+		{
+			title: "Anteposição",
+			teacher: "Professor: Maria Oliveira",
+			date: "Data: 17/07/2025",
+			path: "/class-reschedule-request"
+		},
+		{
+			title: "Anteposição",
+			teacher: "Professor: Maria Oliveira",
+			date: "Data: 17/07/2025",
+			path: "/class-reschedule-request"
+		},
+		{
+			title: "Anteposição",
+			teacher: "Professor: Maria Oliveira",
+			date: "Data: 17/07/2025",
 			path: "/class-reschedule-request"
 		}
 	];
@@ -33,10 +67,18 @@ const TeacherManagementOptions = ({ setAuthenticated }) => {
 		navigate(targetPath);
 	};
 
+	const totalItems = RequestOptions.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (page - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+  const paginatedOptions = RequestOptions.slice(startIndex, endIndex);
+
+  const handlePageChange = (event, value) => {
+    setPage(value);
+  };
+
 	return (
-		<Box sx={{ display: "flex" }}>
-			<CssBaseline />
-			<Sidebar setAuthenticated={setAuthenticated} />
+		<Box sx={{ display: "flex", minWidth: "100vh" }}>
 			<Box
 				padding={3}
 				sx={{
@@ -57,7 +99,7 @@ const TeacherManagementOptions = ({ setAuthenticated }) => {
 						mt: "40px"
 					}}
 				>
-					Opções de Getão de Docentes
+					Solicitações de Anteposição e Reposição
 				</Typography>
 
 				<Grid
@@ -71,8 +113,8 @@ const TeacherManagementOptions = ({ setAuthenticated }) => {
 						flexWrap: "wrap",
 					}}
 				>
-					{calendarOptions.map((option, index) => (
-						<Grid item xs={12} sm={6} md={4} key={index}>
+					{paginatedOptions.map((option) => (
+            <Grid item xs={12} sm={6} md={4} key={option.id}>
 							<Card
 								sx={{
 									width: { xs: 300, sm: 300 },
@@ -82,7 +124,7 @@ const TeacherManagementOptions = ({ setAuthenticated }) => {
 										"0 6px 12px rgba(8, 118, 25, 0.1), 0 3px 6px rgba(8, 118, 25, 0.05)",
 									display: "flex",
 									flexDirection: "column",
-									justifyContent: "center",
+									justifyContent: "space-between",
 									alignItems: "center",
 									textAlign: "center",
 									borderRadius: 3,
@@ -123,7 +165,7 @@ const TeacherManagementOptions = ({ setAuthenticated }) => {
 										width: "100%",
 										display: "flex",
 										flexDirection: "column",
-										justifyContent: "center",
+										justifyContent: "space-between",
 										alignItems: "center",
 										p: 2,
 										zIndex: 2,
@@ -133,25 +175,15 @@ const TeacherManagementOptions = ({ setAuthenticated }) => {
 									}}
 								>
 									<CardContent
-										sx={{ padding: 0, transition: "transform 0.4s ease-in-out" }}
+										sx={{ padding: 0, transition: "transform 0.4s ease-in-out", flexGrow: 1 }}
 									>
-										<Box
-											sx={{
-												mb: 2,
-												transition: "transform 0.4s ease-in-out",
-												"&:hover": {
-													transform: "scale(1.1)",
-												},
-											}}
-										>
-											{option.icon}
-										</Box>
 										<Typography
 											variant="h6"
 											sx={{
 												fontWeight: "bold",
 												wordWrap: "break-word",
 												color: "#087619",
+												mt: 2,
 												transition:
 													"transform 0.4s ease-in-out, color 0.4s ease-in-out",
 												"&:hover": {
@@ -163,15 +195,49 @@ const TeacherManagementOptions = ({ setAuthenticated }) => {
 										>
 											{option.title}
 										</Typography>
+										<Typography
+											variant="body1"
+											sx={{
+												mt: 2,
+												color: "#333",
+											}}
+										>
+											{option.teacher}
+										</Typography>
+										<Typography
+											variant="body2"
+											sx={{
+												mt: 1,
+												color: "#555",
+											}}
+										>
+											{option.date}
+										</Typography>
 									</CardContent>
+									<Box
+										sx={{
+											mb: 2,
+											transition: "transform 0.4s ease-in-out",
+											"&:hover": {
+												transform: "scale(1.1)",
+											},
+										}}
+									>
+										<Visibility sx={{ fontSize: 40, color: "#087619" }} />
+									</Box>
 								</CardActionArea>
 							</Card>
 						</Grid>
 					))}
 				</Grid>
+				<Paginate
+          count={totalPages}
+          page={page}
+          onChange={handlePageChange}
+        />
 			</Box>
 		</Box>
 	);
 };
 
-export default TeacherManagementOptions;
+export default ClassRecheduleRequestOptions;

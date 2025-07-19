@@ -2,9 +2,9 @@ import db from "../../models/index.js";
 import { Op } from "sequelize";
 
 export const getArchivedClassSchedules = async (req, res) => {
-  try {
-    const loggedUserId = req.user?.id;
+  const loggedUserId = req.user?.id;
 
+  try {
     if (!loggedUserId) {
       return res.status(401).json({
         success: false,
@@ -12,23 +12,43 @@ export const getArchivedClassSchedules = async (req, res) => {
       });
     }
 
-    const course = await db.Course.findOne({
-      where: { coordinatorId: loggedUserId },
+    const user = await db.User.findByPk(loggedUserId, {
+      attributes: ["id", "accessType"],
     });
 
-    if (!course) {
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Usuário não encontrado.",
+      });
+    }
+
+    let whereClause = { isActive: false };
+
+    if (user.accessType === "Coordenador") {
+      const course = await db.Course.findOne({
+        where: { coordinatorId: loggedUserId },
+      });
+
+      if (!course) {
+        return res.status(403).json({
+          success: false,
+          message:
+            "Acesso negado: Usuário não é coordenador ou não está associado a nenhum curso.",
+        });
+      }
+
+      whereClause.courseId = course.id;
+    } else if (user.accessType !== "Admin") {
       return res.status(403).json({
         success: false,
         message:
-          "Acesso negado: Usuário não é coordenador ou não está associado a nenhum curso.",
+          "Acesso negado: Apenas administradores ou coordenadores podem visualizar as grades arquivadas.",
       });
     }
 
     const classSchedules = await db.ClassSchedule.findAll({
-      where: {
-        courseId: course.id,
-        isActive: false,
-      },
+      where: whereClause,
       include: [
         {
           model: db.Calendar,
@@ -85,7 +105,7 @@ export const getArchivedClassSchedules = async (req, res) => {
     if (!classSchedules.length) {
       return res.status(404).json({
         success: false,
-        message: "Nenhuma grade arquivada encontrada para o coordenador.",
+        message: "Nenhuma grade arquivada encontrada.",
       });
     }
 
@@ -136,6 +156,17 @@ export const getArchivedClassSchedules = async (req, res) => {
       schedules: scheduleList,
     });
   } catch (error) {
+    console.error("Erro ao recuperar grades arquivadas:", error);
+
+    if (error.name === "SequelizeValidationError") {
+      const errors = error.errors.map((err) => err.message);
+      return res.status(400).json({
+        success: false,
+        message: "Erro de validação nos dados fornecidos.",
+        errors,
+      });
+    }
+
     return res.status(500).json({
       success: false,
       message: "Erro interno do servidor ao recuperar grades arquivadas.",

@@ -23,7 +23,8 @@ import ClassScheduleListArchived from "../pages/classSchedule/Coodinator/classSc
 import FrequencyPage from "../pages/disciplines/Teacher/Frequency/FrequencyPage.js";
 import PrepositionPage from "../pages/disciplines/Teacher/reposition/PrepositionPage.js";
 import AntepositionPage from "../pages/disciplines/Teacher/Anteposition/AntepositionPage.js";
-import TeacherManagementPage from "../pages/Coordinator/TeacherManagement/TeacherManagementPage.js"; 
+import ClassAntepositionRegisterPage from "../pages/disciplines/Teacher/Anteposition/ClassAntepositionRegisterPage.js";
+import TeacherManagementPage from "../pages/Coordinator/TeacherManagement/TeacherManagementPage.js";
 import TeacherManagementOptions from "../pages/Coordinator/TeacherManagement/TeacherManagementOptions.js";
 import ClassRescheduleRequestPage from "../pages/Coordinator/ClassRescheduleRequest/ClassRescheduleRequestPage.js";
 
@@ -93,7 +94,7 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/" element={<Navigate to="/login" />} />
       <Route path="/login" element={<Login onLogin={handleLogin} />} />
-      <Route path="/forgot-password" element={ <ForgotPassword /> } />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route
         path="/resetPassword/:token"
         element={
@@ -129,7 +130,7 @@ const AppRoutes = () => {
             ) : accessType === "Admin" || accessType === "Coordenador" ? (
               <ClassesPage setAuthenticated={handleLogout} />
             ) : (
-              <Navigate to="/Classes" />
+              <Navigate to="/classes" />
             )
           ) : (
             <Navigate to="/login" />
@@ -189,7 +190,7 @@ const AppRoutes = () => {
       <Route
         path="/class-schedule"
         element={
-          isAuthenticated && accessType === "Coordenador"  ? (
+          isAuthenticated && accessType === "Coordenador" ? (
             <ClassSchedulePage setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
@@ -239,7 +240,7 @@ const AppRoutes = () => {
       <Route
         path="/classSchedule"
         element={
-          isAuthenticated && accessType === "Admin"  ? (
+          isAuthenticated && accessType === "Admin" ? (
             <ClassSchedulePage setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
@@ -276,12 +277,21 @@ const AppRoutes = () => {
           )
         }
       />
-      {/* New route for AntepositionPage */}
       <Route
         path="/anteposition"
         element={
           isAuthenticated && (accessType === "Professor" || accessType === "Coordenador") ? (
             <AntepositionPage setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
+        path="/anteposition/register"
+        element={
+          isAuthenticated && (accessType === "Professor" || accessType === "Coordenador") ? (
+            <ClassAntepositionRegisterPage setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
           )
@@ -308,7 +318,7 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/teachers-management/options" 
+        path="/teachers-management/options"
         element={
           isAuthenticated && accessType === "Coordenador" ? (
             <TeacherManagementOptions setAuthenticated={handleLogout} />
@@ -318,7 +328,7 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/teachers-management" 
+        path="/teachers-management"
         element={
           isAuthenticated && accessType === "Coordenador" ? (
             <TeacherManagementPage setAuthenticated={handleLogout} />
@@ -328,7 +338,7 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/class-reschedule-request" 
+        path="/class-reschedule-request"
         element={
           isAuthenticated && accessType === "Coordenador" ? (
             <ClassRescheduleRequestPage setAuthenticated={handleLogout} />
@@ -337,7 +347,6 @@ const AppRoutes = () => {
           )
         }
       />
-
       <Route
         path="/MainScreen"
         element={

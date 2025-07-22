@@ -7,7 +7,6 @@ import {
   InputLabel,
   Button,
   Stack,
-  // TextField, // TextField removido pois não será mais usado para datas personalizadas
   MenuItem,
   Pagination,
 } from '@mui/material';
@@ -71,7 +70,6 @@ const ClassAntepositionList = () => {
   const [filterTurma, setFilterTurma] = useState('all');
   const [filterDisciplina, setFilterDisciplina] = useState('all');
   const [filterPeriod, setFilterPeriod] = useState('all');
-  // customStartDate e customEndDate removidos pois não são mais usados
   const [filterStatus, setFilterStatus] = useState('all');
 
   const [openToggleActiveDialog, setOpenToggleActiveDialog] = useState(false);
@@ -118,7 +116,6 @@ const ClassAntepositionList = () => {
   }, []);
 
   useEffect(() => {
-    // customStartDate e customEndDate removidos do array de dependências
     setPage(1);
   }, [filterTurma, filterDisciplina, filterPeriod, filterStatus]);
 
@@ -298,7 +295,8 @@ const ClassAntepositionList = () => {
   );
 
   const commonFormControlSx = {
-    width: { xs: "100%", sm: "200px" },
+    // Largura ajustada para 150px em telas maiores
+    width: { xs: "100%", sm: "150px" },
     "& .MuiInputBase-root": {
       height: { xs: 40, sm: 36 },
       display: "flex",
@@ -444,7 +442,6 @@ const ClassAntepositionList = () => {
               label="Período"
               onChange={(e) => {
                 setFilterPeriod(e.target.value);
-                // Não há necessidade de limpar datas personalizadas, pois a opção foi removida
               }}
               sx={commonSelectSx}
               MenuProps={commonMenuProps}
@@ -453,11 +450,8 @@ const ClassAntepositionList = () => {
               <MenuItem value="yesterday">Dia Anterior</MenuItem>
               <MenuItem value="lastWeek">Última Semana</MenuItem>
               <MenuItem value="lastMonth">Último Mês</MenuItem>
-              {/* Opção "Intervalo Personalizado" removida */}
             </StyledSelect>
           </FormControl>
-
-          {/* Campos de Data Inicial e Data Final removidos */}
         </Stack>
 
         <Button
@@ -468,7 +462,7 @@ const ClassAntepositionList = () => {
             "&:hover": { backgroundColor: "#065412" }, // Darker green on hover
             textTransform: "none",
             flexShrink: 0,
-            width: { xs: "100%", sm: "200px" },
+            width: { xs: "100%", sm: "200px" }, // Largura do botão permanece 200px para destaque
             height: { xs: 40, sm: 36 },
             fontWeight: "bold",
             fontSize: { xs: "0.9rem", sm: "1rem" },

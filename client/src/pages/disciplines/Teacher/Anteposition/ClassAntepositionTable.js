@@ -1,10 +1,10 @@
-import { Stack, Typography, Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { Stack, Typography, Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button } from '@mui/material';
 import Paginate from '../../../../components/paginate/Paginate';
 import PropTypes from 'prop-types';
 import { useState, useMemo } from 'react';
 import { useMediaQuery } from '@mui/material';
 
-const ClassAntepositionTable = ({ antepositions, search, setAlert }) => {
+const ClassAntepositionTable = ({ antepositions, setAlert, onArchive, onUpdate, onApprove, onReject, accessType }) => {
   const normalizeString = (str) => {
     if (!str) return 'N/A';
     return str;
@@ -12,14 +12,13 @@ const ClassAntepositionTable = ({ antepositions, search, setAlert }) => {
 
   const formattedAntepositions = antepositions.map((anteposition) => ({
     ...anteposition,
-    professor: normalizeString(anteposition.professor),
     turma: normalizeString(anteposition.turma),
     disciplina: normalizeString(anteposition.disciplina),
     quantidade: normalizeString(anteposition.quantidade),
     data: normalizeString(anteposition.data),
     fileName: normalizeString(anteposition.fileName),
     observacao: normalizeString(anteposition.observacao),
-    status: anteposition.status || 'Pendente', // Status inicial como Pendente
+    status: anteposition.status || 'Pendente',
   }));
 
   const headers = [
@@ -45,21 +44,53 @@ const ClassAntepositionTable = ({ antepositions, search, setAlert }) => {
         </Typography>
       ),
     },
+    ...(accessType === 'Coordenador' ? [{
+      key: 'actions',
+      label: 'Ações',
+      render: (anteposition) => (
+        <Stack direction="row" spacing={1} justifyContent="center">
+          <Button
+            onClick={() => onUpdate(anteposition)}
+            disabled={!anteposition.isActive}
+            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
+          >
+            Editar
+          </Button>
+          <Button
+            onClick={() => onApprove(anteposition.id)}
+            disabled={anteposition.status === 'Aprovado'}
+            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
+          >
+            Aprovar
+          </Button>
+          <Button
+            onClick={() => onReject(anteposition.id)}
+            disabled={anteposition.status === 'Rejeitado'}
+            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
+          >
+            Rejeitar
+          </Button>
+          <Button
+            onClick={() => onArchive(anteposition.id)}
+            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
+          >
+            {anteposition.isActive ? 'Inativar' : 'Ativar'}
+          </Button>
+        </Stack>
+      ),
+    }] : []),
   ];
 
   const isMobile = useMediaQuery('(max-width:600px)');
   const [page, setPage] = useState(1);
-  const [rowsPerPage] = useState(7);
+  const rowsPerPage = 7;
 
   const visibleData = useMemo(() => {
     if (!Array.isArray(formattedAntepositions)) return [];
-    if (search && search.trim().length >= 2) {
-      return formattedAntepositions.slice(0, 6);
-    }
     const startIndex = (page - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
     return formattedAntepositions.slice(startIndex, endIndex);
-  }, [formattedAntepositions, page, rowsPerPage, search]);
+  }, [formattedAntepositions, page, rowsPerPage]);
 
   const handleChangePage = (newPage) => {
     setPage(newPage);
@@ -116,13 +147,44 @@ const ClassAntepositionTable = ({ antepositions, search, setAlert }) => {
           {anteposition.status}
         </Box>
       </Typography>
+      {accessType === 'Coordenador' && (
+        <Stack direction="row" spacing={1} justifyContent="center">
+          <Button
+            onClick={() => onUpdate(anteposition)}
+            disabled={!anteposition.isActive}
+            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
+          >
+            Editar
+          </Button>
+          <Button
+            onClick={() => onApprove(anteposition.id)}
+            disabled={anteposition.status === 'Aprovado'}
+            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
+          >
+            Aprovar
+          </Button>
+          <Button
+            onClick={() => onReject(anteposition.id)}
+            disabled={anteposition.status === 'Rejeitado'}
+            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
+          >
+            Rejeitar
+          </Button>
+          <Button
+            onClick={() => onArchive(anteposition.id)}
+            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
+          >
+            {anteposition.isActive ? 'Inativar' : 'Ativar'}
+          </Button>
+        </Stack>
+      )}
     </Stack>
   );
 
   if (isMobile) {
     return (
       <Stack spacing={1} sx={{ width: '100%' }}>
-        {visibleData.length === 0 && (search || search.trim().length >= 2) ? (
+        {visibleData.length === 0 ? (
           <Paper sx={{ p: 1 }}>
             <Typography align="center">Nenhum item encontrado!</Typography>
           </Paper>
@@ -133,7 +195,7 @@ const ClassAntepositionTable = ({ antepositions, search, setAlert }) => {
             </Paper>
           ))
         )}
-        {(!search || search.trim().length < 2) && formattedAntepositions.length > rowsPerPage && (
+        {formattedAntepositions.length > rowsPerPage && (
           <Paginate
             count={Math.ceil(
               (Array.isArray(formattedAntepositions) ? formattedAntepositions.length : 0) / rowsPerPage
@@ -169,7 +231,7 @@ const ClassAntepositionTable = ({ antepositions, search, setAlert }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {visibleData.length === 0 && (search || search.trim().length >= 2) ? (
+            {visibleData.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={headers.length}
@@ -197,7 +259,7 @@ const ClassAntepositionTable = ({ antepositions, search, setAlert }) => {
           </TableBody>
         </Table>
       </TableContainer>
-      {(!search || search.trim().length < 2) && formattedAntepositions.length > rowsPerPage && (
+      {formattedAntepositions.length > rowsPerPage && (
         <Paginate
           count={Math.ceil(
             (Array.isArray(formattedAntepositions) ? formattedAntepositions.length : 0) / rowsPerPage
@@ -223,10 +285,15 @@ ClassAntepositionTable.propTypes = {
       fileName: PropTypes.string.isRequired,
       observacao: PropTypes.string.isRequired,
       status: PropTypes.oneOf(['Pendente', 'Aprovado', 'Rejeitado']),
+      isActive: PropTypes.bool.isRequired,
     })
   ).isRequired,
-  search: PropTypes.string,
   setAlert: PropTypes.func,
+  onArchive: PropTypes.func,
+  onUpdate: PropTypes.func,
+  onApprove: PropTypes.func,
+  onReject: PropTypes.func,
+  accessType: PropTypes.string,
 };
 
 export default ClassAntepositionTable;

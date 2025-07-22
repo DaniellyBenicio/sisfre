@@ -1,11 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography } from '@mui/material';
+import {
+  Box,
+  Typography,
+  FormControl,
+  InputLabel,
+  Button,
+  Stack,
+  // TextField, // TextField removido pois não será mais usado para datas personalizadas
+  MenuItem,
+  Pagination,
+} from '@mui/material';
 import DeleteConfirmationDialog from '../../../../components/DeleteConfirmationDialog';
-import SearchAndCreateBar from '../../../../components/homeScreen/SearchAndCreateBar';
 import ClassAntepositionTable from './ClassAntepositionTable';
 import { CustomAlert } from '../../../../components/alert/CustomAlert';
-import Paginate from '../../../../components/paginate/Paginate';
+import { StyledSelect } from '../../../../components/inputs/Input'; // Assuming StyledSelect is a custom component
 
 // Dados fictícios para simular a API
 const mockAntepositions = [
@@ -55,16 +64,22 @@ const mockAntepositions = [
 
 const ClassAntepositionList = () => {
   const [antepositions, setAntepositions] = useState([]);
-  const [search, setSearch] = useState('');
-  const [openToggleActiveDialog, setOpenToggleActiveDialog] = useState(false);
-  const [antepositionToToggleActive, setAntepositionToToggleActive] = useState(null);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
+
+  // Filter states, now aligned with the FrequencyList structure
+  const [filterTurma, setFilterTurma] = useState('all');
+  const [filterDisciplina, setFilterDisciplina] = useState('all');
+  const [filterPeriod, setFilterPeriod] = useState('all');
+  // customStartDate e customEndDate removidos pois não são mais usados
+  const [filterStatus, setFilterStatus] = useState('all');
+
+  const [openToggleActiveDialog, setOpenToggleActiveDialog] = useState(false);
+  const [antepositionToToggleActive, setAntepositionToToggleActive] = useState(null);
   const [page, setPage] = useState(1);
   const rowsPerPage = 7;
   const navigate = useNavigate();
 
-  // Simula recuperação do accessType do localStorage
   const accessType = localStorage.getItem('accessType') || 'Professor';
 
   const handleAlertClose = () => {
@@ -72,7 +87,6 @@ const ClassAntepositionList = () => {
   };
 
   useEffect(() => {
-    // Simula a chamada à API com dados fictícios
     const fetchAntepositions = () => {
       try {
         setLoading(true);
@@ -83,22 +97,9 @@ const ClassAntepositionList = () => {
           disciplina: item.disciplina || 'Desconhecido',
           status: item.status || 'Pendente',
         }));
-        console.log('Anteposições fictícias:', antepositionsArray.map(a => ({
-          id: a.id,
-          professor: a.professor,
-          turma: a.turma,
-          disciplina: a.disciplina,
-          isActive: a.isActive,
-          status: a.status,
-        })));
         antepositionsArray.sort((a, b) => {
-          const professorA = a.professor.toLowerCase();
-          const professorB = b.professor.toLowerCase();
           const turmaA = a.turma.toLowerCase();
           const turmaB = b.turma.toLowerCase();
-          if (professorA !== professorB) {
-            return professorA.localeCompare(professorB);
-          }
           return turmaA.localeCompare(turmaB);
         });
         setAntepositions(antepositionsArray);
@@ -117,52 +118,43 @@ const ClassAntepositionList = () => {
   }, []);
 
   useEffect(() => {
+    // customStartDate e customEndDate removidos do array de dependências
     setPage(1);
-  }, [search]);
+  }, [filterTurma, filterDisciplina, filterPeriod, filterStatus]);
 
   const handleRegisterOrUpdate = (updatedAnteposition, isEditMode) => {
     try {
       if (isEditMode) {
         setAntepositions(antepositions.map((a) => (a.id === updatedAnteposition.id ? { ...updatedAnteposition, status: 'Pendente' } : a)).sort((a, b) => {
-          const professorA = a.professor.toLowerCase();
-          const professorB = b.professor.toLowerCase();
           const turmaA = a.turma.toLowerCase();
           const turmaB = b.turma.toLowerCase();
-          if (professorA !== professorB) {
-            return professorA.localeCompare(professorB);
-          }
           return turmaA.localeCompare(turmaB);
         }));
         setAlert({
-          message: `Anteposição para ${updatedAnteposition.professor} atualizada com sucesso!`,
+          message: `Anteposição para ${updatedAnteposition.turma} atualizada com sucesso!`,
           type: 'success',
         });
       } else {
         const newAnteposition = {
           ...updatedAnteposition,
-          id: antepositions.length + 1, // Simula um novo ID
-          isActive: true, // Nova anteposição é ativa por padrão
-          status: 'Pendente', // Nova anteposição começa como Pendente
+          id: antepositions.length + 1,
+          isActive: true,
+          status: 'Pendente',
           professorId: localStorage.getItem('username') || 'professor',
-          coordinatorId: 'coord1', // Simula um coordenador fixo
+          coordinatorId: 'coord1',
         };
         setAntepositions([...antepositions, newAnteposition].sort((a, b) => {
-          const professorA = a.professor.toLowerCase();
-          const professorB = b.professor.toLowerCase();
           const turmaA = a.turma.toLowerCase();
           const turmaB = b.turma.toLowerCase();
-          if (professorA !== professorB) {
-            return professorA.localeCompare(professorB);
-          }
           return turmaA.localeCompare(turmaB);
         }));
         setAlert({
-          message: `Anteposição para ${updatedAnteposition.professor} cadastrada com sucesso!`,
+          message: `Anteposição para ${updatedAnteposition.turma} cadastrada com sucesso!`,
           type: 'success',
         });
       }
       setPage(1);
-      navigate('/anteposition'); // Volta para a lista após cadastro/edição
+      navigate('/anteposition');
     } catch (error) {
       console.error('Erro ao atualizar lista de anteposições:', error);
       setAlert({
@@ -214,8 +206,6 @@ const ClassAntepositionList = () => {
 
   const handleToggleActiveClick = (antepositionId) => {
     const anteposition = antepositions.find((a) => a.id === antepositionId);
-    console.log('Anteposição recebida para ativar/inativar:', anteposition);
-    console.log('ID da anteposição a ser ativada/inativada:', antepositionId);
     setAntepositionToToggleActive(anteposition);
     setOpenToggleActiveDialog(true);
   };
@@ -227,17 +217,12 @@ const ClassAntepositionList = () => {
           ? { ...a, isActive: !a.isActive }
           : a
       ).sort((a, b) => {
-        const professorA = a.professor.toLowerCase();
-        const professorB = b.professor.toLowerCase();
         const turmaA = a.turma.toLowerCase();
         const turmaB = b.turma.toLowerCase();
-        if (professorA !== professorB) {
-          return professorA.localeCompare(professorB);
-        }
         return turmaA.localeCompare(turmaB);
       }));
       setAlert({
-        message: `Anteposição para ${antepositionToToggleActive.professor} ${antepositionToToggleActive.isActive ? 'inativada' : 'ativada'} com sucesso!`,
+        message: `Anteposição para ${antepositionToToggleActive.turma} ${antepositionToToggleActive.isActive ? 'inativada' : 'ativada'} com sucesso!`,
         type: 'success',
       });
       setPage(1);
@@ -253,27 +238,115 @@ const ClassAntepositionList = () => {
     }
   };
 
-  const filteredAntepositions = Array.isArray(antepositions)
-    ? antepositions.filter((anteposition) => {
-        const normalizedSearch = search.trim().toLowerCase();
-        const normalizedProfessor = anteposition.professor?.toLowerCase() || '';
-        const normalizedTurma = anteposition.turma?.toLowerCase() || '';
-        const normalizedDisciplina = anteposition.disciplina?.toLowerCase() || '';
-        const normalizedStatus = anteposition.status?.toLowerCase() || '';
-        return (
-          normalizedProfessor.includes(normalizedSearch) ||
-          normalizedTurma.includes(normalizedSearch) ||
-          normalizedDisciplina.includes(normalizedSearch) ||
-          normalizedStatus.includes(normalizedSearch)
-        );
-      })
-    : [];
+  // Get unique options for filters
+  const turmas = [...new Set(antepositions.map(a => a.turma))].sort();
+  const disciplinas = [...new Set(antepositions.map(a => a.disciplina))].sort();
+
+  const applyFilters = (data) => {
+    let filtered = Array.isArray(data) ? [...data] : [];
+
+    // Filter by Turma
+    if (filterTurma !== 'all') {
+      filtered = filtered.filter((ante) => ante.turma === filterTurma);
+    }
+
+    // Filter by Disciplina
+    if (filterDisciplina !== 'all') {
+      filtered = filtered.filter((ante) => ante.disciplina === filterDisciplina);
+    }
+
+    // Filter by Status
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter((ante) => ante.status === filterStatus);
+    }
+
+    // Filter by Period (Date)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    filtered = filtered.filter(ante => {
+      if (!ante.data) return false;
+      const anteDate = new Date(ante.data + 'T00:00:00');
+
+      switch (filterPeriod) {
+        case "yesterday":
+          const yesterday = new Date(today);
+          yesterday.setDate(today.getDate() - 1);
+          return anteDate.toDateString() === yesterday.toDateString();
+        case "lastWeek":
+          const lastWeek = new Date(today);
+          lastWeek.setDate(today.getDate() - 7);
+          return anteDate >= lastWeek && anteDate <= today;
+        case "lastMonth":
+          const lastMonth = new Date(today);
+          lastMonth.setMonth(today.getMonth() - 1);
+          return anteDate >= lastMonth && anteDate <= today;
+        default: // 'all'
+          return true;
+      }
+    });
+
+    return filtered;
+  };
+
+  const filteredAntepositions = applyFilters(antepositions);
 
   const totalPages = Math.ceil(filteredAntepositions.length / rowsPerPage);
   const paginatedAntepositions = filteredAntepositions.slice(
     (page - 1) * rowsPerPage,
     page * rowsPerPage
   );
+
+  const commonFormControlSx = {
+    width: { xs: "100%", sm: "200px" },
+    "& .MuiInputBase-root": {
+      height: { xs: 40, sm: 36 },
+      display: "flex",
+      alignItems: "center",
+    },
+    "& .MuiInputLabel-root": {
+      transform: "translate(14px, 7px) scale(1)",
+      "&.Mui-focused, &.MuiInputLabel-shrink": {
+        transform: "translate(14px, -6px) scale(0.75)",
+        color: "#000000",
+      },
+    },
+    "& .MuiSelect-select": {
+      display: "flex",
+      alignItems: "center",
+      height: "100% !important",
+    },
+  };
+
+  const commonSelectSx = {
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "rgba(0, 0, 0, 0.23)",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#000000",
+    },
+  };
+
+  const commonMenuProps = {
+    PaperProps: {
+      sx: {
+        maxHeight: "200px",
+        overflowY: "auto",
+        width: "auto",
+        "& .MuiMenuItem-root": {
+          "&:hover": {
+            backgroundColor: "#D5FFDB",
+          },
+          "&.Mui-selected": {
+            backgroundColor: "#E8F5E9",
+            "&:hover": {
+              backgroundColor: "#D5FFDB",
+            },
+          },
+        },
+      },
+    },
+  };
 
   return (
     <Box
@@ -296,12 +369,115 @@ const ClassAntepositionList = () => {
         Anteposições de Aula
       </Typography>
 
-      <SearchAndCreateBar
-        searchValue={search}
-        onSearchChange={(e) => setSearch(e.target.value)}
-        createButtonLabel='Cadastrar Anteposição'
-        onCreateClick={() => navigate('/anteposition/register')}
-      />
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={2}
+        justifyContent="space-between"
+        alignItems={{ xs: "stretch", sm: "center" }}
+        sx={{ mb: 2 }}
+      >
+        <Stack
+          direction={{ xs: "column", md: "row" }}
+          spacing={2}
+          alignItems={{ xs: "stretch", md: "center" }}
+        >
+          <FormControl sx={commonFormControlSx}>
+            <InputLabel id="filter-turma-label">Turma</InputLabel>
+            <StyledSelect
+              labelId="filter-turma-label"
+              id="filter-turma"
+              value={filterTurma}
+              label="Turma"
+              onChange={(e) => setFilterTurma(e.target.value)}
+              sx={commonSelectSx}
+              MenuProps={commonMenuProps}
+            >
+              <MenuItem value="all">Todas</MenuItem>
+              {turmas.map((turma) => (
+                <MenuItem key={turma} value={turma}>{turma}</MenuItem>
+              ))}
+            </StyledSelect>
+          </FormControl>
+
+          <FormControl sx={commonFormControlSx}>
+            <InputLabel id="filter-disciplina-label">Disciplina</InputLabel>
+            <StyledSelect
+              labelId="filter-disciplina-label"
+              id="filter-disciplina"
+              value={filterDisciplina}
+              label="Disciplina"
+              onChange={(e) => setFilterDisciplina(e.target.value)}
+              sx={commonSelectSx}
+              MenuProps={commonMenuProps}
+            >
+              <MenuItem value="all">Todas</MenuItem>
+              {disciplinas.map((disciplina) => (
+                <MenuItem key={disciplina} value={disciplina}>{disciplina}</MenuItem>
+              ))}
+            </StyledSelect>
+          </FormControl>
+
+          <FormControl sx={commonFormControlSx}>
+            <InputLabel id="filter-status-label">Status</InputLabel>
+            <StyledSelect
+              labelId="filter-status-label"
+              id="filter-status"
+              value={filterStatus}
+              label="Status"
+              onChange={(e) => setFilterStatus(e.target.value)}
+              sx={commonSelectSx}
+              MenuProps={commonMenuProps}
+            >
+              <MenuItem value="all">Todos</MenuItem>
+              <MenuItem value="Pendente">Pendente</MenuItem>
+              <MenuItem value="Aprovado">Aprovado</MenuItem>
+              <MenuItem value="Rejeitado">Rejeitado</MenuItem>
+            </StyledSelect>
+          </FormControl>
+
+          <FormControl sx={commonFormControlSx}>
+            <InputLabel id="filter-period-label">Período</InputLabel>
+            <StyledSelect
+              labelId="filter-period-label"
+              id="filter-period"
+              value={filterPeriod}
+              label="Período"
+              onChange={(e) => {
+                setFilterPeriod(e.target.value);
+                // Não há necessidade de limpar datas personalizadas, pois a opção foi removida
+              }}
+              sx={commonSelectSx}
+              MenuProps={commonMenuProps}
+            >
+              <MenuItem value="all">Todas</MenuItem>
+              <MenuItem value="yesterday">Dia Anterior</MenuItem>
+              <MenuItem value="lastWeek">Última Semana</MenuItem>
+              <MenuItem value="lastMonth">Último Mês</MenuItem>
+              {/* Opção "Intervalo Personalizado" removida */}
+            </StyledSelect>
+          </FormControl>
+
+          {/* Campos de Data Inicial e Data Final removidos */}
+        </Stack>
+
+        <Button
+          variant="contained"
+          onClick={() => navigate('/anteposition/register')}
+          sx={{
+            backgroundColor: "#087619", // Green color
+            "&:hover": { backgroundColor: "#065412" }, // Darker green on hover
+            textTransform: "none",
+            flexShrink: 0,
+            width: { xs: "100%", sm: "200px" },
+            height: { xs: 40, sm: 36 },
+            fontWeight: "bold",
+            fontSize: { xs: "0.9rem", sm: "1rem" },
+            whiteSpace: 'nowrap',
+          }}
+        >
+          Cadastrar Anteposição
+        </Button>
+      </Stack>
 
       <ClassAntepositionTable
         antepositions={paginatedAntepositions}
@@ -309,7 +485,6 @@ const ClassAntepositionList = () => {
         onUpdate={handleEditAnteposition}
         onApprove={accessType === 'Coordenador' ? handleApprove : undefined}
         onReject={accessType === 'Coordenador' ? handleReject : undefined}
-        search={search}
         setAlert={setAlert}
         accessType={accessType}
       />
@@ -321,15 +496,16 @@ const ClassAntepositionList = () => {
           setAntepositionToToggleActive(null);
         }}
         onConfirm={handleConfirmToggleActive}
-        message={`Deseja realmente ${antepositionToToggleActive?.isActive ? 'inativar' : 'ativar'} a anteposição para "${antepositionToToggleActive?.professor}"?`}
+        message={`Deseja realmente ${antepositionToToggleActive?.isActive ? 'inativar' : 'ativar'} a anteposição para "${antepositionToToggleActive?.turma}"?`}
       />
 
       {totalPages > 1 && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-          <Paginate
+          <Pagination
             count={totalPages}
             page={page}
             onChange={(_, newPage) => setPage(newPage)}
+            color="primary"
           />
         </Box>
       )}

@@ -57,7 +57,7 @@ const TeacherManagementOptions = ({ setAuthenticated }) => {
 						mt: "40px"
 					}}
 				>
-					Opções de Getão de Docentes
+					Opções de Gestão de Docentes
 				</Typography>
 
 				<Grid

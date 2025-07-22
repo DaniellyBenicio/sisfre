@@ -16,7 +16,8 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
-import { Search as SearchIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
+import { Search as SearchIcon, Visibility as VisibilityIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 // Importe o serviço ou API que buscará os dados dos professores
 // Exemplo: import { getTeachersData } from '../../services/api'; 
@@ -27,6 +28,7 @@ const TeacherManagementList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchTeachers = async () => {
@@ -75,12 +77,36 @@ const TeacherManagementList = () => {
     // navigate(`/teacher-details/${teacherId}`);
   };
 
+  const handleBackClick = () => {
+    navigate('/teachers-management/options');
+  };
+
   return (
-    <Box sx={{ mt: 4, width: '100%' }}>
-      <Typography variant="h5" component="h1" gutterBottom sx={{ color: '#087619', fontWeight: 'bold' }}>
+    <Box sx={{ mt: 4, width: '100%', position: 'relative' }}>
+      <IconButton
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          color: '#087619',
+        }}
+        aria-label="back"
+        onClick={handleBackClick}
+      >
+        <ArrowBackIcon sx={{ fontSize: '2.5rem' }} />
+      </IconButton>
+      <Typography 
+        variant="h5" 
+        component="h1" 
+        gutterBottom 
+        sx={{ 
+          color: '#000000', 
+          fontWeight: 'bold', 
+          textAlign: 'center' 
+        }}
+      >
         Gestão de Docentes
       </Typography>
-     
     </Box>
   );
 };

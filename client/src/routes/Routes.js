@@ -28,6 +28,7 @@ import TeacherManagementPage from "../pages/Coordinator/TeacherManagement/Teache
 import TeacherManagementOptions from "../pages/Coordinator/TeacherManagement/TeacherManagementOptions.js";
 import ClassRescheduleRequestPage from "../pages/Coordinator/ClassRescheduleRequest/ClassRescheduleRequestPage.js";
 import ClassRescheduleRequestDetails from "../pages/Coordinator/ClassRescheduleRequest/ClassRecheduleRequestDetails.js";
+import ClassRescheduleOptions from "../pages/disciplines/Teacher/Anteposition/ClassRescheduleOptions.js"; 
 
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
@@ -269,20 +270,30 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/preposition"
+        path="/class-reschedule-options"
         element={
           isAuthenticated && (accessType === "Professor" || accessType === "Coordenador") ? (
-            <PrepositionPage setAuthenticated={handleLogout} />
+            <ClassRescheduleOptions setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
           )
         }
       />
       <Route
-        path="/anteposition"
+        path="/class-anteposition"
         element={
           isAuthenticated && (accessType === "Professor" || accessType === "Coordenador") ? (
             <AntepositionPage setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
+        path="/class-reposition"
+        element={
+          isAuthenticated && (accessType === "Professor" || accessType === "Coordenador") ? (
+            <PrepositionPage setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
           )
@@ -349,7 +360,7 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/class-reschedule-request/details" 
+        path="/class-reschedule-request/details"
         element={
           isAuthenticated && accessType === "Coordenador" ? (
             <ClassRescheduleRequestDetails setAuthenticated={handleLogout} />
@@ -358,7 +369,6 @@ const AppRoutes = () => {
           )
         }
       />
-
       <Route
         path="/MainScreen"
         element={

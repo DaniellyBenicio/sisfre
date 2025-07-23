@@ -9,11 +9,13 @@ import {
   Stack,
   MenuItem,
   Pagination,
+  IconButton,
 } from '@mui/material';
+import { ArrowBack } from '@mui/icons-material';
 import DeleteConfirmationDialog from '../../../../components/DeleteConfirmationDialog';
 import ClassAntepositionTable from './ClassAntepositionTable';
 import { CustomAlert } from '../../../../components/alert/CustomAlert';
-import { StyledSelect } from '../../../../components/inputs/Input'; // Assuming StyledSelect is a custom component
+import { StyledSelect } from '../../../../components/inputs/Input';
 
 // Dados fictícios para simular a API
 const mockAntepositions = [
@@ -151,7 +153,7 @@ const ClassAntepositionList = () => {
         });
       }
       setPage(1);
-      navigate('/anteposition');
+      navigate('/class-anteposition');
     } catch (error) {
       console.error('Erro ao atualizar lista de anteposições:', error);
       setAlert({
@@ -235,6 +237,10 @@ const ClassAntepositionList = () => {
     }
   };
 
+  const handleGoBack = () => {
+    navigate('/class-reschedule-options'); // Botão de voltar para a página de opções
+  };
+
   // Get unique options for filters
   const turmas = [...new Set(antepositions.map(a => a.turma))].sort();
   const disciplinas = [...new Set(antepositions.map(a => a.disciplina))].sort();
@@ -295,7 +301,6 @@ const ClassAntepositionList = () => {
   );
 
   const commonFormControlSx = {
-    // Largura ajustada para 150px em telas maiores
     width: { xs: "100%", sm: "150px" },
     "& .MuiInputBase-root": {
       height: { xs: 40, sm: 36 },
@@ -358,14 +363,29 @@ const ClassAntepositionList = () => {
         gap: 2,
       }}
     >
-      <Typography
-        variant='h5'
-        align='center'
-        gutterBottom
-        sx={{ fontWeight: 'bold', mt: 2, mb: 2 }}
-      >
-        Anteposições de Aula
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', mb: 3 }}>
+        <IconButton
+          onClick={handleGoBack}
+          sx={{
+            position: 'absolute',
+            left: 0,
+            color: '#307c34',
+            '&:hover': {
+              backgroundColor: 'transparent',
+            },
+          }}
+        >
+          <ArrowBack sx={{ fontSize: 35 }} />
+        </IconButton>
+        <Typography
+          variant='h5'
+          align='center'
+          gutterBottom
+          sx={{ fontWeight: 'bold', flexGrow: 1 }}
+        >
+          Anteposições de Aula
+        </Typography>
+      </Box>
 
       <Stack
         direction={{ xs: "column", sm: "row" }}
@@ -458,11 +478,11 @@ const ClassAntepositionList = () => {
           variant="contained"
           onClick={() => navigate('/anteposition/register')}
           sx={{
-            backgroundColor: "#087619", // Green color
-            "&:hover": { backgroundColor: "#065412" }, // Darker green on hover
+            backgroundColor: "#087619",
+            "&:hover": { backgroundColor: "#065412" },
             textTransform: "none",
             flexShrink: 0,
-            width: { xs: "100%", sm: "200px" }, // Largura do botão permanece 200px para destaque
+            width: { xs: "100%", sm: "200px" },
             height: { xs: 40, sm: 36 },
             fontWeight: "bold",
             fontSize: { xs: "0.9rem", sm: "1rem" },

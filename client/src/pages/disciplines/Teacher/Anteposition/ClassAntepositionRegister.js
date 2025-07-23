@@ -66,7 +66,7 @@ const ClassAntepositionRegister = ({ setAlert }) => {
       // await api.post('/antepositions', newAntepositionData);
 
       setAlert({ message: "Anteposição cadastrada com sucesso!", type: "success" });
-      navigate('/anteposition'); // Volta para a lista após o sucesso
+      navigate('/class-anteposition'); // Volta para a lista após o sucesso
     } catch (error) {
       console.error("Erro ao registrar anteposição:", error);
       setAlert({
@@ -77,7 +77,7 @@ const ClassAntepositionRegister = ({ setAlert }) => {
   };
 
   const handleGoBack = () => {
-    navigate('/anteposition'); // Volta para a lista de anteposições
+    navigate('/class-anteposition'); // Alterado para voltar à página de listagem
   };
 
   return (
@@ -90,14 +90,13 @@ const ClassAntepositionRegister = ({ setAlert }) => {
           sx={{
             position: 'absolute',
             left: 0,
-            // Aumenta o tamanho do botão para que o ícone também apareça maior e adicione cor
-            color: INSTITUTIONAL_COLOR, // Usa a variável de cor institucional
+            color: INSTITUTIONAL_COLOR,
             '&:hover': {
-              backgroundColor: 'transparent', // Mantém o fundo transparente no hover se preferir
+              backgroundColor: 'transparent',
             },
           }}
         >
-          <ArrowBack sx={{ fontSize: 35 }} /> {/* Aumenta o tamanho da fonte (do ícone) */}
+          <ArrowBack sx={{ fontSize: 35 }} />
         </IconButton>
 
         {/* Título centralizado */}

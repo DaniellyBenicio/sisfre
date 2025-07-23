@@ -59,8 +59,8 @@ const Sidebar = ({ setAuthenticated }) => {
     else if (path === "/classes") setSelectedItem("classes");
     else if (path === "/class-schedule/options") setSelectedItem("class-schedule");
     else if (path === "/frequency") setSelectedItem("frequency");
-    else if (path === "/anteposition") setSelectedItem("class-anticipation"); // Alterado de "/class-anticipation" para "/anteposition"
-    else if (path === "/teachers-management/options") setSelectedItem("teachers-management/options"); // Adicionado para "Gestão de Docentes"
+    else if (path === "/class-reschedule-options") setSelectedItem("class-reschedule"); // Atualizado para novo componente
+    else if (path === "/teachers-management/options") setSelectedItem("teachers-management/options");
   }, [location.pathname]);
 
   const handleOpenConfirmDialog = () => setOpenConfirmDialog(true);
@@ -232,9 +232,9 @@ const Sidebar = ({ setAuthenticated }) => {
               <ListItem
                 button
                 onClick={() =>
-                  handleItemClick("/anteposition", "class-anticipation")
+                  handleItemClick("/class-reschedule-options", "class-reschedule")
                 }
-                sx={getListItemStyle(selectedItem, "class-anticipation")}
+                sx={getListItemStyle(selectedItem, "class-reschedule")}
               >
                 <EventNote sx={{ mr: 1 }} />
                 <ListItemText primary="Reorganização de Aulas" />

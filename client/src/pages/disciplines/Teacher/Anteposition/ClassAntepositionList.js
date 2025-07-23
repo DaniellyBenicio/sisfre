@@ -21,43 +21,43 @@ import { StyledSelect } from '../../../../components/inputs/Input';
 const mockAntepositions = [
   {
     id: 1,
-    professor: 'João Silva',
+    professor: 'Ana Costa',
     professorId: 'prof1',
     coordinatorId: 'coord1',
     turma: 'Turma A',
     disciplina: 'Matemática',
     quantidade: '2',
     data: '2025-07-20',
-    fileName: 'ficha_aula_1.pdf',
-    observacao: 'Aula remarcada devido a feriado',
+    fileName: 'ficha_anteposicao_1.pdf',
+    observacao: 'Anteposição devido a evento escolar',
     isActive: true,
     status: 'Pendente',
   },
   {
     id: 2,
-    professor: 'Maria Oliveira',
+    professor: 'Pedro Almeida',
     professorId: 'prof2',
     coordinatorId: 'coord1',
     turma: 'Turma B',
     disciplina: 'Português',
     quantidade: '1',
     data: '2025-07-22',
-    fileName: 'ficha_aula_2.pdf',
-    observacao: 'Aula antecipada para revisão',
+    fileName: 'ficha_anteposicao_2.pdf',
+    observacao: 'Anteposição para ajustar cronograma',
     isActive: false,
     status: 'Aprovado',
   },
   {
     id: 3,
-    professor: 'Carlos Souza',
+    professor: 'Lucia Mendes',
     professorId: 'prof3',
     coordinatorId: 'coord1',
     turma: 'Turma C',
     disciplina: 'História',
     quantidade: '3',
     data: '2025-07-25',
-    fileName: 'ficha_aula_3.pdf',
-    observacao: 'Aula extra para reforço',
+    fileName: 'ficha_anteposicao_3.pdf',
+    observacao: 'Anteposição para antecipar conteúdo',
     isActive: true,
     status: 'Pendente',
   },
@@ -68,7 +68,7 @@ const ClassAntepositionList = () => {
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
 
-  // Filter states, now aligned with the FrequencyList structure
+  // Filter states
   const [filterTurma, setFilterTurma] = useState('all');
   const [filterDisciplina, setFilterDisciplina] = useState('all');
   const [filterPeriod, setFilterPeriod] = useState('all');
@@ -164,7 +164,7 @@ const ClassAntepositionList = () => {
   };
 
   const handleEditAnteposition = (anteposition) => {
-    navigate(`/anteposition/edit/${anteposition.id}`);
+    navigate(`/class-anteposition/edit/${anteposition.id}`);
   };
 
   const handleApprove = (antepositionId) => {
@@ -238,7 +238,7 @@ const ClassAntepositionList = () => {
   };
 
   const handleGoBack = () => {
-    navigate('/class-reschedule-options'); // Botão de voltar para a página de opções
+    navigate('/class-reschedule-options');
   };
 
   // Get unique options for filters
@@ -250,40 +250,40 @@ const ClassAntepositionList = () => {
 
     // Filter by Turma
     if (filterTurma !== 'all') {
-      filtered = filtered.filter((ante) => ante.turma === filterTurma);
+      filtered = filtered.filter((rep) => rep.turma === filterTurma);
     }
 
     // Filter by Disciplina
     if (filterDisciplina !== 'all') {
-      filtered = filtered.filter((ante) => ante.disciplina === filterDisciplina);
+      filtered = filtered.filter((rep) => rep.disciplina === filterDisciplina);
     }
 
     // Filter by Status
     if (filterStatus !== 'all') {
-      filtered = filtered.filter((ante) => ante.status === filterStatus);
+      filtered = filtered.filter((rep) => rep.status === filterStatus);
     }
 
     // Filter by Period (Date)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    filtered = filtered.filter(ante => {
-      if (!ante.data) return false;
-      const anteDate = new Date(ante.data + 'T00:00:00');
+    filtered = filtered.filter(rep => {
+      if (!rep.data) return false;
+      const repDate = new Date(rep.data + 'T00:00:00');
 
       switch (filterPeriod) {
         case "yesterday":
           const yesterday = new Date(today);
           yesterday.setDate(today.getDate() - 1);
-          return anteDate.toDateString() === yesterday.toDateString();
+          return repDate.toDateString() === yesterday.toDateString();
         case "lastWeek":
           const lastWeek = new Date(today);
           lastWeek.setDate(today.getDate() - 7);
-          return anteDate >= lastWeek && anteDate <= today;
+          return repDate >= lastWeek && repDate <= today;
         case "lastMonth":
           const lastMonth = new Date(today);
           lastMonth.setMonth(today.getMonth() - 1);
-          return anteDate >= lastMonth && anteDate <= today;
+          return repDate >= lastMonth && repDate <= today;
         default: // 'all'
           return true;
       }
@@ -460,9 +460,7 @@ const ClassAntepositionList = () => {
               id="filter-period"
               value={filterPeriod}
               label="Período"
-              onChange={(e) => {
-                setFilterPeriod(e.target.value);
-              }}
+              onChange={(e) => setFilterPeriod(e.target.value)}
               sx={commonSelectSx}
               MenuProps={commonMenuProps}
             >
@@ -476,7 +474,7 @@ const ClassAntepositionList = () => {
 
         <Button
           variant="contained"
-          onClick={() => navigate('/anteposition/register')}
+          onClick={() => navigate('/class-anteposition/register')}
           sx={{
             backgroundColor: "#087619",
             "&:hover": { backgroundColor: "#065412" },

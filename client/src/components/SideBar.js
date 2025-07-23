@@ -237,7 +237,7 @@ const Sidebar = ({ setAuthenticated }) => {
                 sx={getListItemStyle(selectedItem, "class-anticipation")}
               >
                 <EventNote sx={{ mr: 1 }} />
-                <ListItemText primary="Anteposição de Aula" />
+                <ListItemText primary="Reorganização de Aulas" />
               </ListItem>
               <ListItem
                 button

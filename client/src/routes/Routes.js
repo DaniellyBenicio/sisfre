@@ -21,14 +21,17 @@ import ClassScheduleEdit from "../pages/classSchedule/Coodinator/ClassScheduleEd
 import ClassScheduleOptions from "../pages/classSchedule/ClassScheduleOptions.js";
 import ClassScheduleListArchived from "../pages/classSchedule/Coodinator/classScheduleArchived/ClassScheduleArchivedList.js";
 import FrequencyPage from "../pages/disciplines/Teacher/Frequency/FrequencyPage.js";
-import PrepositionPage from "../pages/disciplines/Teacher/reposition/PrepositionPage.js";
-import AntepositionPage from "../pages/disciplines/Teacher/Anteposition/AntepositionPage.js";
-import ClassAntepositionRegisterPage from "../pages/disciplines/Teacher/Anteposition/ClassAntepositionRegisterPage.js";
+import ClassAntepositionList from "../pages/disciplines/Teacher/Anteposition/ClassAntepositionList.js";
+import ClassAntepositionRegister from "../pages/disciplines/Teacher/Anteposition/ClassAntepositionRegister.js";
+import ClassReplacementList from "../pages/disciplines/Teacher/reposition/ClassReplacementList.js";
+import ClassReplacementRegister from "../pages/disciplines/Teacher/reposition/ClassReplacementRegister.js";
 import TeacherManagementPage from "../pages/Coordinator/TeacherManagement/TeacherManagementPage.js";
 import TeacherManagementOptions from "../pages/Coordinator/TeacherManagement/TeacherManagementOptions.js";
 import ClassRescheduleRequestPage from "../pages/Coordinator/ClassRescheduleRequest/ClassRescheduleRequestPage.js";
 import ClassRescheduleRequestDetails from "../pages/Coordinator/ClassRescheduleRequest/ClassRecheduleRequestDetails.js";
-import ClassRescheduleOptions from "../pages/disciplines/Teacher/Anteposition/ClassRescheduleOptions.js"; 
+import ClassRescheduleOptions from "../pages/disciplines/Teacher/Anteposition/ClassRescheduleOptions.js";
+import ReplacementPage from "../pages/disciplines/Teacher/reposition/PrepositionPage.js";
+import AntepositionPage from "../pages/disciplines/Teacher/Anteposition/AntepositionPage.js";
 
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
@@ -60,6 +63,7 @@ const AppRoutes = () => {
         console.error("Token error:", err);
         localStorage.removeItem("token");
         localStorage.removeItem("accessType");
+        localStorage.removeItem("username");
         setAuthenticated(false);
         setAccessType(null);
         alert("Erro com o token de autenticação. Faça login novamente.");
@@ -290,20 +294,30 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/class-reposition"
+        path="/class-anteposition/register"
         element={
           isAuthenticated && (accessType === "Professor" || accessType === "Coordenador") ? (
-            <PrepositionPage setAuthenticated={handleLogout} />
+            <ClassAntepositionRegister setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
           )
         }
       />
       <Route
-        path="/anteposition/register"
+        path="/class-reposition"
         element={
           isAuthenticated && (accessType === "Professor" || accessType === "Coordenador") ? (
-            <ClassAntepositionRegisterPage setAuthenticated={handleLogout} />
+            <ReplacementPage setAuthenticated={handleLogout} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
+        path="/class-reposition/register"
+        element={
+          isAuthenticated && (accessType === "Professor" || accessType === "Coordenador") ? (
+            <ClassReplacementRegister setAuthenticated={handleLogout} />
           ) : (
             <Navigate to="/login" />
           )

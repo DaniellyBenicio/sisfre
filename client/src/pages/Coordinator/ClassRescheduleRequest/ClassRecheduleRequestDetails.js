@@ -7,11 +7,14 @@ import {
   IconButton,
   Divider,
   Button,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { ArrowBack, School, Check, Close, Description, History, ErrorOutline } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../../../components/SideBar";
 import CustomAlert from "../../../components/alert/CustomAlert";
+import JustificationModal from "./JustificationModal";
 
 const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
   const navigate = useNavigate();
@@ -21,15 +24,26 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState("info");
+  const [openDialog, setOpenDialog] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const handleAlertClose = () => {
     setAlertOpen(false);
   };
 
-  const handleButtonClick = (action) => {
-    setAlertMessage(`Funcionalidade de ${action} em desenvolvimento. VAMOS QUERER?`);
+  const handleValidateClick = () => {
+    setAlertMessage("Funcionalidade de Validar em desenvolvimento. VAMOS QUERER?");
     setAlertType("info");
     setAlertOpen(true);
+  };
+
+  const handleRejectClick = () => {
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
   };
 
   const cardData = state || {
@@ -58,17 +72,19 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
             mb: 3,
           }}
         >
-          <IconButton
-            onClick={() => navigate("/class-reschedule-request")}
-            sx={{
-              position: "absolute",
-              left: 0,
-              top: "50%",
-              transform: "translateY(-50%)",
-            }}
-          >
-            <ArrowBack sx={{ color: "green", fontSize: "2.2rem" }} />
-          </IconButton>
+          {!isMobile && (
+            <IconButton
+              onClick={() => navigate("/class-reschedule-request")}
+              sx={{
+                position: "absolute",
+                left: 0,
+                top: "50%",
+                transform: "translateY(-50%)",
+              }}
+            >
+              <ArrowBack sx={{ color: "green", fontSize: "2.2rem" }} />
+            </IconButton>
+          )}
           <Typography
             variant="h5"
             align="center"
@@ -194,7 +210,7 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
             <Button
               variant="contained"
               startIcon={<Close />}
-              onClick={() => handleButtonClick("Rejeitar")}
+              onClick={handleRejectClick}
               sx={{
                 width: "fit-content",
                 minWidth: 100,
@@ -215,7 +231,7 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
             <Button
               variant="contained"
               startIcon={<Check />}
-              onClick={() => handleButtonClick("Validar")}
+              onClick={handleValidateClick}
               sx={{
                 width: "fit-content",
                 minWidth: 100,
@@ -235,6 +251,7 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
             </Button>
           </Box>
         )}
+        <JustificationModal open={openDialog} onClose={handleCloseDialog} />
         {alertOpen && (
           <CustomAlert
             message={alertMessage}

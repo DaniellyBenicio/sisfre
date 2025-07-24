@@ -6,6 +6,8 @@ import {
   Card,
   CardContent,
   CardActionArea,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { MailOutline, ArrowForward, ArrowBack } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -16,6 +18,8 @@ const ClassRecheduleRequestList = ({ setAuthenticated }) => {
   const accessType = localStorage.getItem("accessType") || "";
   const [page, setPage] = useState(1);
   const itemsPerPage = 6;
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const RequestList = [
     {
@@ -93,22 +97,24 @@ const ClassRecheduleRequestList = ({ setAuthenticated }) => {
           gap: 10,
         }}
       >
-				<Box
-					sx={{
-						position: "absolute",
-						left: 40,
-						top: 68,
-						zIndex: 10,
-            cursor: "pointer",
-            transition: "transform 0.3s",
-            "&:hover": {
-              transform: "scale(1.2)",
-            },
-					}}
-					onClick={handleBackClick}
-				>
-					<ArrowBack sx={{ fontSize: "2.2rem", color: "#087619" }} />
-				</Box>
+        {!isMobile && (
+          <Box
+            sx={{
+              position: "absolute",
+              left: 40,
+              top: 68,
+              zIndex: 10,
+              cursor: "pointer",
+              transition: "transform 0.3s",
+              "&:hover": {
+                transform: "scale(1.2)",
+              },
+            }}
+            onClick={handleBackClick}
+          >
+            <ArrowBack sx={{ fontSize: "2.2rem", color: "#087619" }} />
+          </Box>
+        )}
         <Typography
           variant="h5"
           gutterBottom

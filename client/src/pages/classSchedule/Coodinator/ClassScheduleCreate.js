@@ -72,10 +72,6 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
     setAlert(null);
   };
 
-  const greenLight = "#E8F5E9";
-  const greenPrimary = "#087619";
-  const greyBorder = "#C7C7C7";
-
   useEffect(() => {
     const fetchData = async () => {
       setErrors({});
@@ -939,7 +935,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                 <Box key={turn} sx={{ display: "flex", alignItems: "flex-start", mb: 4, gap: 2, }}>
                   <Box
                     sx={{
-                      backgroundColor: greenLight,
+                      backgroundColor: "#E8F5E9",
                       py: 1,
                       px: 2,
                       borderRadius: 1,
@@ -959,7 +955,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                         textOrientation: "mixed",
                         transform: "rotate(180deg)",
                         fontWeight: "bold",
-                        color: greenPrimary,
+                        color: "#087619",
                         letterSpacing: "2px",
                       }}
                     >

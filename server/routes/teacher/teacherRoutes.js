@@ -4,6 +4,7 @@ import { isTeacher } from '../../middlewares/isTeacher.js';
 import { getProfessorDisciplines } from '../../controllers/teacher/teacherDisciplinesController.js';
 import { getProfessorClasses } from '../../controllers/teacher/teacherClassesController.js';
 import { getTeacherSchedules } from '../../controllers/teacher/teacherSchedulesController.js'
+import isCoordinator from '../../middlewares/isCoordinator.js';
 
 const router = express.Router();
 router.get("/teacher-disciplines", autenticarToken, isTeacher(), getProfessorDisciplines);
@@ -11,6 +12,6 @@ router.get("/teacher-classes", autenticarToken, isTeacher(), getProfessorClasses
 
 
 
-router.get("/teacher-schedules", autenticarToken, isTeacher(), getTeacherSchedules);
+router.get("/teacher-schedules", autenticarToken, isTeacher(), isCoordinator(), getTeacherSchedules);
 
 export default router;

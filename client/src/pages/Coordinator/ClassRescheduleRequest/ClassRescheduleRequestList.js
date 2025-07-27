@@ -76,7 +76,7 @@ const ClassRecheduleRequestList = ({ setAuthenticated }) => {
   };
 
 	const handleBackClick = () => {
-    navigate("//teachers-management/options");
+    navigate("/teachers-management/options");
   };
 
   const handleDetailsClick = (e, option) => {

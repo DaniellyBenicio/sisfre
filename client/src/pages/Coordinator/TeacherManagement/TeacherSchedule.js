@@ -33,11 +33,9 @@ const ClassesTeacher = ({ setAuthenticated }) => {
   const greenPrimary = "#087619";
   const greenLight = "#e8f5e9";
   const greyBorder = "#e0e0e0";
-  const greyDivider = "#C7C7C7";
   const textColor = "#424242";
   const textSecondaryColor = "#757575";
 
-  // Buscar professores e seus horários
   useEffect(() => {
     const fetchTeachersByCourse = async () => {
       try {
@@ -54,7 +52,6 @@ const ClassesTeacher = ({ setAuthenticated }) => {
     fetchTeachersByCourse();
   }, []);
 
-  // Atualizar horários com base no professor selecionado
   useEffect(() => {
     if (!selectedProfessor) {
       setSchedules([]);
@@ -64,6 +61,14 @@ const ClassesTeacher = ({ setAuthenticated }) => {
       (p) => p.professor.id === parseInt(selectedProfessor)
     );
     setSchedules(selectedProfessorData?.schedules || []);
+  }, [selectedProfessor, professors]);
+
+  const selectedProfessorName = useMemo(() => {
+    if (!selectedProfessor) return "";
+    const professor = professors.find(
+      (p) => p.professor.id === parseInt(selectedProfessor)
+    );
+    return professor?.professor.name || "";
   }, [selectedProfessor, professors]);
 
   const groupedScheduleByTurno = useMemo(() => {
@@ -150,34 +155,6 @@ const ClassesTeacher = ({ setAuthenticated }) => {
     return groupedByTurno;
   }, [schedules]);
 
-  const legendData = useMemo(() => {
-    const courseMap = new Map();
-
-    schedules.forEach((slot) => {
-      const courseId = slot.course?.id || "N/A";
-      const courseName = slot.course?.name || "Não Informado";
-      const disciplineKey = `${slot.discipline?.id}-${slot.class?.id}-${slot.calendar?.id}`;
-      const disciplineInfo = {
-        acronym: slot.discipline?.acronym || "N/A",
-        name: slot.discipline?.name || "Não Informada",
-      };
-
-      if (!courseMap.has(courseId)) {
-        courseMap.set(courseId, {
-          courseName,
-          disciplines: new Map(),
-        });
-      }
-
-      courseMap.get(courseId).disciplines.set(disciplineKey, disciplineInfo);
-    });
-
-    return Array.from(courseMap.values()).map(({ courseName, disciplines }) => ({
-      courseName,
-      disciplines: Array.from(disciplines.values()),
-    }));
-  }, [schedules]);
-
   const daysOfWeek = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
   return (
@@ -206,7 +183,7 @@ const ClassesTeacher = ({ setAuthenticated }) => {
             fontSize: { xs: "1.1rem", sm: "1.3rem", md: "1.5rem" },
           }}
         >
-          Horário
+          {selectedProfessorName ? `Horário de ${selectedProfessorName}` : "Horário"}
         </Typography>
 
         {/* Seleção de Professor */}
@@ -292,9 +269,9 @@ const ClassesTeacher = ({ setAuthenticated }) => {
                       textAlign: "center",
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: "center",
-                      width: { xs: "100%", sm: "40px" },
+                      justifyContent: { xs: "100%", sm: "40px" },
                       minHeight: { xs: "auto", sm: "100px" },
+                      alignSelf: "stretch",
                       flexShrink: 0,
                     }}
                   >
@@ -478,14 +455,6 @@ const ClassesTeacher = ({ setAuthenticated }) => {
                                           >
                                             {row[day].disciplineName}
                                           </Typography>
-                                          <Typography
-                                            sx={{
-                                              fontSize: "0.8rem",
-                                              color: "#fff",
-                                            }}
-                                          >
-                                            {row[day].courseName}
-                                          </Typography>
                                         </Box>
                                       }
                                       placement="top"
@@ -517,7 +486,7 @@ const ClassesTeacher = ({ setAuthenticated }) => {
                                         fontSize: { sm: "0.7rem", md: "0.75rem" },
                                       }}
                                     >
-                                      {row[day].course} - {row[day].semester}
+                                      {row[day].semester}
                                     </Typography>
                                   </Box>
                                 ) : (

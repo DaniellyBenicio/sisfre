@@ -79,6 +79,7 @@ const Sidebar = ({ setAuthenticated }) => {
     "&:hover": {
       backgroundColor: selectedItem === itemKey ? "#4CAF50" : "#388E3C",
     },
+    cursor: "pointer",
   });
 
   const handleLogout = () => {

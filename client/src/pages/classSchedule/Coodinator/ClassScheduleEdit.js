@@ -153,9 +153,29 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
           : [];
         setConfirmedDetails(mappedDetails);
 
-        setClasses(
-          Array.isArray(classesRes.data.classes) ? classesRes.data.classes : []
-        );
+        const currentClass = scheduleData.class
+          ? {
+              id: String(scheduleData.classId),
+              semester: scheduleData.class.semester || "N/A",
+              courseName: scheduleData.class.course?.name || "N/A",
+            }
+          : null;
+
+        const classesData = Array.isArray(classesRes.data.classes)
+          ? classesRes.data.classes.map((item) => ({
+              id: String(item.id),
+              semester: item.semester || "N/A",
+              courseName: item.course?.name || "N/A",
+            }))
+          : [];
+        const combinedClasses = currentClass
+          ? [
+              currentClass,
+              ...classesData.filter((c) => c.id !== currentClass.id),
+            ]
+          : classesData;
+        setClasses(combinedClasses);
+
         setDisciplines(
           Array.isArray(disciplinesRes.data) ? disciplinesRes.data : []
         );

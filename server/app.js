@@ -18,6 +18,8 @@ import hourRoutes from "./routes/coordinator/hourRoutes.js";
 import coordinatorClassesRoutes from "./routes/coordinator/coordinatorClassesRoutes.js";
 import classScheduleArchivedRoutes from "./routes/coordinator/classScheduleArchivedRoutes.js";
 import teacherRoutes from "./routes/teacher/teacherRoutes.js";
+import classChangeRequestRoutes from "./routes/coordinator/classClassChangeRequestRoutes.js";
+import frequenyRoutes from "./routes/coordinator/frequencyRoutes.js";
 
 const app = express();
 dotenv.config();
@@ -41,6 +43,8 @@ app.use("/api", hourRoutes);
 app.use("/api", coordinatorClassesRoutes);
 app.use("/api", classScheduleArchivedRoutes);
 app.use("/api", teacherRoutes);
+app.use("/api", classChangeRequestRoutes)
+app.use("/api", frequenyRoutes);
 
 initializeApp().then(() => {
   app.listen(3000, () => console.log("API rodando na porta 3000"));

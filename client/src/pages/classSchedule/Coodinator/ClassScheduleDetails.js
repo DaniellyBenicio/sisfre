@@ -269,7 +269,7 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
               {error}
             </Typography>
           ) : schedule?.details?.length > 0 ? (
-            ["Manhã", "Tarde", "Noite"].map((turno) => {
+            ["MANHÃ", "TARDE", "NOITE"].map((turno) => {
               const turnoMatrix = groupedByTurno[turno] || [];
               return (
                 turnoMatrix.length > 0 && (

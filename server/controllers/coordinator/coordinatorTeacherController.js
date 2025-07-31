@@ -53,7 +53,7 @@ export const getCourseTeachersSchedules = async (req, res) => {
             {
               model: db.User,
               as: "professor",
-              attributes: ["id", "username", "acronym"],
+              attributes: ["id", "username", "acronym", "email"],
             },
             {
               model: db.Discipline,
@@ -125,6 +125,7 @@ export const getCourseTeachersSchedules = async (req, res) => {
                 id: detail.professor.id,
                 name: detail.professor.username,
                 acronym: detail.professor.acronym,
+                email: detail.professor.email,
               }
             : null,
         });

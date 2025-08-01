@@ -40,9 +40,9 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
     const [startHour] = timeSlot
       .split("-")
       .map((t) => parseInt(t.split(":")[0]));
-    if (startHour >= 6 && startHour < 12) return "Manhã";
-    if (startHour >= 12 && startHour < 18) return "Tarde";
-    if (startHour >= 18 && startHour <= 23) return "Noite";
+    if (startHour >= 6 && startHour < 12) return "MANHÃ";
+    if (startHour >= 12 && startHour < 18) return "TARDE";
+    if (startHour >= 18 && startHour <= 23) return "NOITE";
     return null;
   };
 
@@ -75,18 +75,18 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
     const maxLessons = Math.max(MATUTINO, VESPERTINO, NOTURNO);
 
     const maxShifts = [
-      { shift: "Manhã", count: MATUTINO },
-      { shift: "Tarde", count: VESPERTINO },
-      { shift: "Noite", count: NOTURNO },
+      { shift: "MANHÃ", count: MATUTINO },
+      { shift: "TARDE", count: VESPERTINO },
+      { shift: "NOITE", count: NOTURNO },
     ].filter((s) => s.count === maxLessons);
 
     if (maxShifts.length > 1) {
       return "Integral";
     }
 
-    if (maxLessons === MATUTINO) return "Manhã";
-    if (maxLessons === VESPERTINO) return "Tarde";
-    if (maxLessons === NOTURNO) return "Noite";
+    if (maxLessons === MATUTINO) return "MANHÃ";
+    if (maxLessons === VESPERTINO) return "TARDE";
+    if (maxLessons === NOTURNO) return "NOITE";
 
     return "N/A";
   };
@@ -188,7 +188,7 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
       }
       return acc;
     },
-    { Manhã: [], Tarde: [], Noite: [] }
+    { MANHÃ: [], TARDE: [], NOITE: [] }
   );
 
   return (

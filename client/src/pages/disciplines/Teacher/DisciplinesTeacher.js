@@ -43,7 +43,6 @@ const DisciplineTeacher = () => {
       setDisciplines(processedDisciplines);
     } catch (error) {
       console.error("Erro ao buscar disciplinas:", error);
-      setAlert({ message: "Erro ao carregar disciplinas.", type: "error" });
       setDisciplines([]);
     } finally {
       setLoading(false);

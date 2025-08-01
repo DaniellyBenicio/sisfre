@@ -12,74 +12,35 @@ import {
   IconButton,
 } from '@mui/material';
 import { ArrowBack } from '@mui/icons-material';
+import { styled } from '@mui/material/styles';
 import DeleteConfirmationDialog from '../../../../components/DeleteConfirmationDialog';
 import ClassAntepositionTable from './ClassAntepositionTable';
 import { CustomAlert } from '../../../../components/alert/CustomAlert';
 import { StyledSelect } from '../../../../components/inputs/Input';
+import api from '../../../../service/api';
 
-// Dados fictícios para simular a API
-const mockAntepositions = [
-  {
-    id: 1,
-    professor: 'Ana Costa',
-    professorId: 'prof1',
-    coordinatorId: 'coord1',
-    turma: 'Turma A',
-    disciplina: 'Matemática',
-    quantidade: '2',
-    data: '2025-07-20',
-    fileName: 'ficha_anteposicao_1.pdf',
-    observacao: 'Anteposição devido a evento escolar',
-    isActive: true,
-    status: 'Pendente',
-  },
-  {
-    id: 2,
-    professor: 'Pedro Almeida',
-    professorId: 'prof2',
-    coordinatorId: 'coord1',
-    turma: 'Turma B',
-    disciplina: 'Português',
-    quantidade: '1',
-    data: '2025-07-22',
-    fileName: 'ficha_anteposicao_2.pdf',
-    observacao: 'Anteposição para ajustar cronograma',
-    isActive: false,
-    status: 'Aprovado',
-  },
-  {
-    id: 3,
-    professor: 'Lucia Mendes',
-    professorId: 'prof3',
-    coordinatorId: 'coord1',
-    turma: 'Turma C',
-    disciplina: 'História',
-    quantidade: '3',
-    data: '2025-07-25',
-    fileName: 'ficha_anteposicao_3.pdf',
-    observacao: 'Anteposição para antecipar conteúdo',
-    isActive: true,
-    status: 'Pendente',
-  },
-];
+const INSTITUTIONAL_COLOR = "#307c34";
+
+const StyledButton = styled(Button)(() => ({
+  textTransform: 'none',
+  fontWeight: 'bold',
+  backgroundColor: INSTITUTIONAL_COLOR,
+  '&:hover': { backgroundColor: '#26692b' },
+}));
 
 const ClassAntepositionList = () => {
   const [antepositions, setAntepositions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
-
-  // Filter states
   const [filterTurma, setFilterTurma] = useState('all');
   const [filterDisciplina, setFilterDisciplina] = useState('all');
   const [filterPeriod, setFilterPeriod] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
-
   const [openToggleActiveDialog, setOpenToggleActiveDialog] = useState(false);
   const [antepositionToToggleActive, setAntepositionToToggleActive] = useState(null);
   const [page, setPage] = useState(1);
   const rowsPerPage = 7;
   const navigate = useNavigate();
-
   const accessType = localStorage.getItem('accessType') || 'Professor';
 
   const handleAlertClose = () => {
@@ -87,24 +48,29 @@ const ClassAntepositionList = () => {
   };
 
   useEffect(() => {
-    const fetchAntepositions = () => {
+    const fetchAntepositions = async () => {
       try {
         setLoading(true);
-        let antepositionsArray = mockAntepositions.map((item) => ({
-          ...item,
-          professor: item.professor || 'Desconhecido',
-          turma: item.turma || 'Desconhecido',
-          disciplina: item.disciplina || 'Desconhecido',
-          status: item.status || 'Pendente',
-        }));
-        antepositionsArray.sort((a, b) => {
-          const turmaA = a.turma.toLowerCase();
-          const turmaB = b.turma.toLowerCase();
-          return turmaA.localeCompare(turmaB);
+        const response = await api.get('/getRequest', {
+          params: { type: 'anteposicao' },
         });
+        const antepositionsArray = response.data.map((item) => ({
+          id: item.id,
+          professor: item.professor?.username || 'Desconhecido',
+          professorId: item.userId,
+          coordinatorId: item.coordinatorId || 'coord1',
+          turma: item.disciplinaclasse?.code || 'Desconhecido',
+          disciplina: item.disciplinaclasse?.name || 'Desconhecido',
+          quantidade: item.quantity.toString(),
+          data: item.date,
+          fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
+          observacao: item.observation || 'N/A',
+          isActive: true,
+          status: item.validated === true ? 'Aprovado' : item.validated === false && item.observationCoordinator ? 'Rejeitado' : 'Pendente',
+        })).sort((a, b) => a.turma.toLowerCase().localeCompare(b.turma.toLowerCase()));
         setAntepositions(antepositionsArray);
       } catch (error) {
-        console.error('Erro ao carregar anteposições fictícias:', error);
+        console.error('Erro ao carregar anteposições:', error);
         setAlert({
           message: 'Erro ao carregar anteposições.',
           type: 'error',
@@ -121,32 +87,30 @@ const ClassAntepositionList = () => {
     setPage(1);
   }, [filterTurma, filterDisciplina, filterPeriod, filterStatus]);
 
-  const handleRegisterOrUpdate = (updatedAnteposition, isEditMode) => {
+  const handleRegisterOrUpdate = async (updatedAnteposition, isEditMode) => {
     try {
       if (isEditMode) {
-        setAntepositions(antepositions.map((a) => (a.id === updatedAnteposition.id ? { ...updatedAnteposition, status: 'Pendente' } : a)).sort((a, b) => {
-          const turmaA = a.turma.toLowerCase();
-          const turmaB = b.turma.toLowerCase();
-          return turmaA.localeCompare(turmaB);
-        }));
+        await api.put(`/updateRequest/${updatedAnteposition.id}`, {
+          quantity: parseInt(updatedAnteposition.quantidade),
+          date: updatedAnteposition.data,
+          observation: updatedAnteposition.observacao,
+        });
         setAlert({
           message: `Anteposição para ${updatedAnteposition.turma} atualizada com sucesso!`,
           type: 'success',
         });
       } else {
-        const newAnteposition = {
-          ...updatedAnteposition,
-          id: antepositions.length + 1,
-          isActive: true,
-          status: 'Pendente',
-          professorId: localStorage.getItem('username') || 'professor',
-          coordinatorId: 'coord1',
-        };
-        setAntepositions([...antepositions, newAnteposition].sort((a, b) => {
-          const turmaA = a.turma.toLowerCase();
-          const turmaB = b.turma.toLowerCase();
-          return turmaA.localeCompare(turmaB);
-        }));
+        const formData = new FormData();
+        formData.append('userId', localStorage.getItem('userId'));
+        formData.append('courseClassId', updatedAnteposition.courseClassId);
+        formData.append('type', 'anteposicao');
+        formData.append('quantity', parseInt(updatedAnteposition.quantidade));
+        formData.append('date', updatedAnteposition.data);
+        formData.append('annex', updatedAnteposition.file);
+        formData.append('observation', updatedAnteposition.observacao);
+        await api.post('/createRequest', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
         setAlert({
           message: `Anteposição para ${updatedAnteposition.turma} cadastrada com sucesso!`,
           type: 'success',
@@ -154,6 +118,21 @@ const ClassAntepositionList = () => {
       }
       setPage(1);
       navigate('/class-anteposition');
+      const response = await api.get('/getRequest', { params: { type: 'anteposicao' } });
+      setAntepositions(response.data.map((item) => ({
+        id: item.id,
+        professor: item.professor?.username || 'Desconhecido',
+        professorId: item.userId,
+        coordinatorId: item.coordinatorId || 'coord1',
+        turma: item.disciplinaclasse?.code || 'Desconhecido',
+        disciplina: item.disciplinaclasse?.name || 'Desconhecido',
+        quantidade: item.quantity.toString(),
+        data: item.date,
+        fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
+        observacao: item.observation || 'N/A',
+        isActive: true,
+        status: item.validated === true ? 'Aprovado' : item.validated === false && item.observationCoordinator ? 'Rejeitado' : 'Pendente',
+      })).sort((a, b) => a.turma.toLowerCase().localeCompare(b.turma.toLowerCase())));
     } catch (error) {
       console.error('Erro ao atualizar lista de anteposições:', error);
       setAlert({
@@ -164,18 +143,31 @@ const ClassAntepositionList = () => {
   };
 
   const handleEditAnteposition = (anteposition) => {
-    navigate(`/class-anteposition/edit/${anteposition.id}`);
+    navigate(`/class-anteposition/edit/${anteposition.id}`, { state: { anteposition } });
   };
 
-  const handleApprove = (antepositionId) => {
+  const handleApprove = async (antepositionId) => {
     try {
-      setAntepositions(antepositions.map((a) =>
-        a.id === antepositionId ? { ...a, status: 'Aprovado' } : a
-      ));
+      await api.put(`/updateRequest/${antepositionId}`, { validated: true });
       setAlert({
         message: 'Anteposição aprovada com sucesso!',
         type: 'success',
       });
+      const response = await api.get('/getRequest', { params: { type: 'anteposicao' } });
+      setAntepositions(response.data.map((item) => ({
+        id: item.id,
+        professor: item.professor?.username || 'Desconhecido',
+        professorId: item.userId,
+        coordinatorId: item.coordinatorId || 'coord1',
+        turma: item.disciplinaclasse?.code || 'Desconhecido',
+        disciplina: item.disciplinaclasse?.name || 'Desconhecido',
+        quantidade: item.quantity.toString(),
+        data: item.date,
+        fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
+        observacao: item.observation || 'N/A',
+        isActive: true,
+        status: item.validated === true ? 'Aprovado' : item.validated === false && item.observationCoordinator ? 'Rejeitado' : 'Pendente',
+      })));
     } catch (error) {
       console.error('Erro ao aprovar anteposição:', error);
       setAlert({
@@ -185,15 +177,31 @@ const ClassAntepositionList = () => {
     }
   };
 
-  const handleReject = (antepositionId) => {
+  const handleReject = async (antepositionId) => {
     try {
-      setAntepositions(antepositions.map((a) =>
-        a.id === antepositionId ? { ...a, status: 'Rejeitado' } : a
-      ));
+      await api.put(`/updateRequest/${antepositionId}`, {
+        validated: false,
+        observationCoordinator: 'Rejeitado pelo coordenador',
+      });
       setAlert({
         message: 'Anteposição rejeitada com sucesso!',
         type: 'success',
       });
+      const response = await api.get('/getRequest', { params: { type: 'anteposicao' } });
+      setAntepositions(response.data.map((item) => ({
+        id: item.id,
+        professor: item.professor?.username || 'Desconhecido',
+        professorId: item.userId,
+        coordinatorId: item.coordinatorId || 'coord1',
+        turma: item.disciplinaclasse?.code || 'Desconhecido',
+        disciplina: item.disciplinaclasse?.name || 'Desconhecido',
+        quantidade: item.quantity.toString(),
+        data: item.date,
+        fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
+        observacao: item.observation || 'N/A',
+        isActive: true,
+        status: item.validated === true ? 'Aprovado' : item.validated === false && item.observationCoordinator ? 'Rejeitado' : 'Pendente',
+      })));
     } catch (error) {
       console.error('Erro ao rejeitar anteposição:', error);
       setAlert({
@@ -209,26 +217,33 @@ const ClassAntepositionList = () => {
     setOpenToggleActiveDialog(true);
   };
 
-  const handleConfirmToggleActive = () => {
+  const handleConfirmToggleActive = async () => {
     try {
-      setAntepositions(antepositions.map((a) =>
-        a.id === antepositionToToggleActive.id
-          ? { ...a, isActive: !a.isActive }
-          : a
-      ).sort((a, b) => {
-        const turmaA = a.turma.toLowerCase();
-        const turmaB = b.turma.toLowerCase();
-        return turmaA.localeCompare(turmaB);
-      }));
+      await api.delete(`/deleteRequest/${antepositionToToggleActive.id}`);
       setAlert({
-        message: `Anteposição para ${antepositionToToggleActive.turma} ${antepositionToToggleActive.isActive ? 'inativada' : 'ativada'} com sucesso!`,
+        message: `Anteposição para ${antepositionToToggleActive.turma} inativada com sucesso!`,
         type: 'success',
       });
+      const response = await api.get('/getRequest', { params: { type: 'anteposicao' } });
+      setAntepositions(response.data.map((item) => ({
+        id: item.id,
+        professor: item.professor?.username || 'Desconhecido',
+        professorId: item.userId,
+        coordinatorId: item.coordinatorId || 'coord1',
+        turma: item.disciplinaclasse?.code || 'Desconhecido',
+        disciplina: item.disciplinaclasse?.name || 'Desconhecido',
+        quantidade: item.quantity.toString(),
+        data: item.date,
+        fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
+        observacao: item.observation || 'N/A',
+        isActive: true,
+        status: item.validated === true ? 'Aprovado' : item.validated === false && item.observationCoordinator ? 'Rejeitado' : 'Pendente',
+      })));
       setPage(1);
     } catch (error) {
-      console.error('Erro ao ativar/inativar anteposição:', error);
+      console.error('Erro ao inativar anteposição:', error);
       setAlert({
-        message: 'Erro ao ativar/inativar anteposição.',
+        message: 'Erro ao inativar anteposição.',
         type: 'error',
       });
     } finally {
@@ -241,29 +256,24 @@ const ClassAntepositionList = () => {
     navigate('/class-reschedule-options');
   };
 
-  // Get unique options for filters
   const turmas = [...new Set(antepositions.map(a => a.turma))].sort();
   const disciplinas = [...new Set(antepositions.map(a => a.disciplina))].sort();
 
   const applyFilters = (data) => {
     let filtered = Array.isArray(data) ? [...data] : [];
 
-    // Filter by Turma
     if (filterTurma !== 'all') {
       filtered = filtered.filter((rep) => rep.turma === filterTurma);
     }
 
-    // Filter by Disciplina
     if (filterDisciplina !== 'all') {
       filtered = filtered.filter((rep) => rep.disciplina === filterDisciplina);
     }
 
-    // Filter by Status
     if (filterStatus !== 'all') {
       filtered = filtered.filter((rep) => rep.status === filterStatus);
     }
 
-    // Filter by Period (Date)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -284,7 +294,7 @@ const ClassAntepositionList = () => {
           const lastMonth = new Date(today);
           lastMonth.setMonth(today.getMonth() - 1);
           return repDate >= lastMonth && repDate <= today;
-        default: // 'all'
+        default:
           return true;
       }
     });
@@ -293,7 +303,6 @@ const ClassAntepositionList = () => {
   };
 
   const filteredAntepositions = applyFilters(antepositions);
-
   const totalPages = Math.ceil(filteredAntepositions.length / rowsPerPage);
   const paginatedAntepositions = filteredAntepositions.slice(
     (page - 1) * rowsPerPage,
@@ -369,7 +378,7 @@ const ClassAntepositionList = () => {
           sx={{
             position: 'absolute',
             left: 0,
-            color: '#307c34',
+            color: INSTITUTIONAL_COLOR,
             '&:hover': {
               backgroundColor: 'transparent',
             },
@@ -472,13 +481,10 @@ const ClassAntepositionList = () => {
           </FormControl>
         </Stack>
 
-        <Button
+        <StyledButton
           variant="contained"
           onClick={() => navigate('/class-anteposition/register')}
           sx={{
-            backgroundColor: "#087619",
-            "&:hover": { backgroundColor: "#065412" },
-            textTransform: "none",
             flexShrink: 0,
             width: { xs: "100%", sm: "200px" },
             height: { xs: 40, sm: 36 },
@@ -487,8 +493,8 @@ const ClassAntepositionList = () => {
             whiteSpace: 'nowrap',
           }}
         >
-          Cadastrar Anteposição
-        </Button>
+          Cadastrar anteposição
+        </StyledButton>
       </Stack>
 
       <ClassAntepositionTable

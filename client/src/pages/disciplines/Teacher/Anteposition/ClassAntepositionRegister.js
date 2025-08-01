@@ -1,105 +1,100 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Paper, Button, TextField, Stack, InputAdornment, IconButton } from '@mui/material';
+import { Box, Typography, Paper, Button, TextField, Stack, InputAdornment, IconButton, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { Close, Save, CloudUpload, ArrowBack } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
+import api from '../../../../service/api';
 
-const INSTITUTIONAL_COLOR = "#307c34"; // Definido o verde institucional
+const INSTITUTIONAL_COLOR = "#307c34";
 
 const StyledButton = styled(Button)(() => ({
-  borderRadius: "8px",
-  padding: "8px 28px",
-  textTransform: "none",
-  fontWeight: "bold",
-  fontSize: "0.875rem",
-  display: "flex",
-  alignItems: "center",
-  gap: "8px",
-  width: "fit-content",
-  minWidth: 100,
-  "@media (max-width: 600px)": {
-    fontSize: "0.7rem",
-    padding: "4px 8px",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    maxWidth: "120px",
-  },
+  textTransform: 'none',
+  fontWeight: 'bold',
 }));
 
 const ClassAntepositionRegister = ({ setAlert }) => {
-  const [professor, setProfessor] = useState('');
+  const [professor, setProfessor] = useState(localStorage.getItem('username') || '');
   const [turma, setTurma] = useState('');
   const [disciplina, setDisciplina] = useState('');
   const [quantidade, setQuantidade] = useState('');
   const [data, setData] = useState('');
   const [file, setFile] = useState(null);
   const [observacao, setObservacao] = useState('');
+  const [courseClasses, setCourseClasses] = useState([]);
+  const [courseClassId, setCourseClassId] = useState('');
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchCourseClasses = async () => {
+      try {
+        const response = await api.get('/courseClasses');
+        setCourseClasses(response.data);
+      } catch (error) {
+        setAlert({ message: 'Erro ao carregar turmas.', type: 'error' });
+      }
+    };
+    fetchCourseClasses();
+  }, [setAlert]);
 
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
     setFile(selectedFile);
   };
 
-  const handleSubmit = () => {
-    if (!professor || !turma || !disciplina || !quantidade || !data || !file) {
+  const handleCourseClassChange = (event) => {
+    const selectedId = event.target.value;
+    setCourseClassId(selectedId);
+    const selectedCourseClass = courseClasses.find((cc) => cc.id === selectedId);
+    if (selectedCourseClass) {
+      setTurma(selectedCourseClass.code || '');
+      setDisciplina(selectedCourseClass.name || '');
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!professor || !courseClassId || !quantidade || !data || !file || !observacao) {
       setAlert({ message: "Por favor, preencha todos os campos e anexe um arquivo.", type: "error" });
       return;
     }
 
-    const newAntepositionData = {
-      professor,
-      turma,
-      disciplina,
-      quantidade,
-      data,
-      fileName: file.name,
-      observacao,
-      isActive: true,
-    };
+    const formData = new FormData();
+    formData.append('userId', localStorage.getItem('userId'));
+    formData.append('courseClassId', courseClassId);
+    formData.append('type', 'anteposicao');
+    formData.append('quantity', parseInt(quantidade));
+    formData.append('date', data);
+    formData.append('annex', file);
+    formData.append('observation', observacao);
 
     try {
-      console.log("Registrando nova anteposição:", newAntepositionData);
-      // Simulação de sucesso. Em um cenário real, você faria uma chamada à API aqui.
-      // await api.post('/antepositions', newAntepositionData);
-
+      await api.post('/createRequest', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       setAlert({ message: "Anteposição cadastrada com sucesso!", type: "success" });
-      navigate('/class-anteposition'); // Volta para a lista após o sucesso
+      setTimeout(() => navigate('/class-anteposition'), 2000);
     } catch (error) {
       console.error("Erro ao registrar anteposição:", error);
       setAlert({
-        message: "Erro ao registrar anteposição. Tente novamente.",
+        message: error.response?.data?.error || "Erro ao registrar anteposição.",
         type: "error",
       });
     }
   };
 
   const handleGoBack = () => {
-    navigate('/class-anteposition'); // Alterado para voltar à página de listagem
+    navigate('/class-anteposition');
   };
 
   return (
     <Box sx={{ p: 4 }}>
-      {/* Container para o título e o botão de voltar */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', mb: 3 }}>
-        {/* Botão de voltar posicionado à esquerda */}
         <IconButton
           onClick={handleGoBack}
-          sx={{
-            position: 'absolute',
-            left: 0,
-            color: INSTITUTIONAL_COLOR,
-            '&:hover': {
-              backgroundColor: 'transparent',
-            },
-          }}
+          sx={{ position: 'absolute', left: 0, color: INSTITUTIONAL_COLOR, '&:hover': { backgroundColor: 'transparent' } }}
         >
           <ArrowBack sx={{ fontSize: 35 }} />
         </IconButton>
-
-        {/* Título centralizado */}
         <Typography variant="h5" sx={{ fontWeight: "bold", textAlign: 'center', flexGrow: 1 }}>
           Cadastrar Anteposição
         </Typography>
@@ -114,14 +109,22 @@ const ClassAntepositionRegister = ({ setAlert }) => {
               onChange={(e) => setProfessor(e.target.value)}
               fullWidth
               required
+              disabled
             />
-            <TextField
-              label="Turma"
-              value={turma}
-              onChange={(e) => setTurma(e.target.value)}
-              fullWidth
-              required
-            />
+            <FormControl fullWidth required>
+              <InputLabel id="course-class-label">Turma/Disciplina</InputLabel>
+              <Select
+                labelId="course-class-label"
+                value={courseClassId}
+                label="Turma/Disciplina"
+                onChange={handleCourseClassChange}
+              >
+                <MenuItem value="">Selecione</MenuItem>
+                {courseClasses.map((cc) => (
+                  <MenuItem key={cc.id} value={cc.id}>{`${cc.code} - ${cc.name}`}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Stack>
           <Stack direction="row" spacing={3}>
             <TextField
@@ -130,6 +133,7 @@ const ClassAntepositionRegister = ({ setAlert }) => {
               onChange={(e) => setDisciplina(e.target.value)}
               fullWidth
               required
+              disabled
             />
             <TextField
               label="Quantidade"
@@ -168,20 +172,9 @@ const ClassAntepositionRegister = ({ setAlert }) => {
             <Button
               variant="contained"
               component="label"
-              sx={{
-                backgroundColor: "#087619",
-                "&:hover": { backgroundColor: "#065412" },
-                textTransform: "none",
-                height: '56px',
-                minWidth: '56px',
-                display: 'none',
-              }}
+              sx={{ backgroundColor: "#087619", "&:hover": { backgroundColor: "#065412" }, textTransform: "none", height: '56px', minWidth: '56px', display: 'none' }}
             >
-              <input
-                type="file"
-                hidden
-                onChange={handleFileChange}
-              />
+              <input type="file" hidden onChange={handleFileChange} />
               <CloudUpload sx={{ color: '#fff' }} />
             </Button>
           </Stack>
@@ -201,10 +194,7 @@ const ClassAntepositionRegister = ({ setAlert }) => {
           <StyledButton
             onClick={handleGoBack}
             variant="contained"
-            sx={{
-              backgroundColor: "#F01424",
-              "&:hover": { backgroundColor: "#D4000F" },
-            }}
+            sx={{ backgroundColor: "#F01424", "&:hover": { backgroundColor: "#D4000F" } }}
           >
             <Close sx={{ fontSize: { xs: 20, sm: 24 } }} />
             Cancelar
@@ -212,10 +202,7 @@ const ClassAntepositionRegister = ({ setAlert }) => {
           <StyledButton
             onClick={handleSubmit}
             variant="contained"
-            sx={{
-              backgroundColor: INSTITUTIONAL_COLOR,
-              "&:hover": { backgroundColor: "#26692b" },
-            }}
+            sx={{ backgroundColor: INSTITUTIONAL_COLOR, "&:hover": { backgroundColor: "#26692b" } }}
           >
             <Save sx={{ fontSize: { xs: 20, sm: 24 } }} />
             Cadastrar

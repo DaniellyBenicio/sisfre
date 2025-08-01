@@ -10,25 +10,28 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Card,
-  CardContent,
   Tooltip,
   CssBaseline,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
+  IconButton,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
-import { School, MenuBook } from "@mui/icons-material";
+import { useLocation, useNavigate } from "react-router-dom";
+import { ArrowBack } from "@mui/icons-material";
 import api from "../../../service/api";
 import Sidebar from "../../../components/SideBar";
 
 const ClassesTeacher = ({ setAuthenticated }) => {
   const [schedules, setSchedules] = useState([]);
   const [professors, setProfessors] = useState([]);
-  const [selectedProfessor, setSelectedProfessor] = useState("");
+  const [selectedProfessorName, setSelectedProfessorName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const location = useLocation();
+  const { teacherId } = location.state || {};
+  const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const greenPrimary = "#087619";
   const greenLight = "#e8f5e9";
@@ -38,38 +41,36 @@ const ClassesTeacher = ({ setAuthenticated }) => {
 
   useEffect(() => {
     const fetchTeachersByCourse = async () => {
+      if (!teacherId) {
+        setError("Nenhum professor selecionado.");
+        return;
+      }
+
       try {
         setLoading(true);
         const response = await api.get("/teachers-by-course");
         const professorsData = response.data.professors || [];
         setProfessors(professorsData);
+
+        const selectedProfessorData = professorsData.find(
+          (p) => p.professor.id === parseInt(teacherId)
+        );
+
+        if (selectedProfessorData) {
+          setSelectedProfessorName(selectedProfessorData.professor.name);
+          setSchedules(selectedProfessorData.schedules || []);
+        } else {
+          setError("Professor não encontrado.");
+        }
+
         setLoading(false);
       } catch (err) {
-        setError(err.response?.data?.message || "Erro ao carregar professores");
+        setError(err.response?.data?.message || "Erro ao carregar dados do professor");
         setLoading(false);
       }
     };
     fetchTeachersByCourse();
-  }, []);
-
-  useEffect(() => {
-    if (!selectedProfessor) {
-      setSchedules([]);
-      return;
-    }
-    const selectedProfessorData = professors.find(
-      (p) => p.professor.id === parseInt(selectedProfessor)
-    );
-    setSchedules(selectedProfessorData?.schedules || []);
-  }, [selectedProfessor, professors]);
-
-  const selectedProfessorName = useMemo(() => {
-    if (!selectedProfessor) return "";
-    const professor = professors.find(
-      (p) => p.professor.id === parseInt(selectedProfessor)
-    );
-    return professor?.professor.name || "";
-  }, [selectedProfessor, professors]);
+  }, [teacherId]);
 
   const groupedScheduleByTurno = useMemo(() => {
     const dayMapping = {
@@ -170,41 +171,44 @@ const ClassesTeacher = ({ setAuthenticated }) => {
           display: "flex",
           flexDirection: "column",
           gap: { xs: 1, sm: 1.5, md: 2 },
+          position: "relative"
         }}
       >
-        <Typography
-          variant="h5"
-          align="center"
-          sx={{
-            fontWeight: "bold",
-            color: greenPrimary,
-            mt: 0.5,
-            mb: 0.5,
-            fontSize: { xs: "1.1rem", sm: "1.3rem", md: "1.5rem" },
-          }}
-        >
-          {selectedProfessorName ? `Horário de ${selectedProfessorName}` : "Horário"}
-        </Typography>
-
-        {/* Seleção de Professor */}
-        <FormControl sx={{ mb: 2, minWidth: 200 }}>
-          <InputLabel id="professor-select-label">Selecionar Professor</InputLabel>
-          <Select
-            labelId="professor-select-label"
-            value={selectedProfessor}
-            label="Selecionar Professor"
-            onChange={(e) => setSelectedProfessor(e.target.value)}
+        <Box sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+          width: '100%'
+        }}>
+          {!isMobile && (
+              <IconButton
+                onClick={() => navigate(-1)}
+                sx={{
+                  position: "absolute",
+                  left: 0,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  mt: 4.2,
+                }}
+              >
+                <ArrowBack sx={{ color: "green", fontSize: "2.2rem" }} />
+              </IconButton>
+            )}
+          <Typography
+            variant="h5"
+            align="center"
+            sx={{
+              fontWeight: "bold",
+              color: greenPrimary,
+              mt: { xs: 8, sm: 8 },
+              mb: 0.5,
+              fontSize: { xs: "1.1rem", sm: "1.3rem", md: "1.5rem" },
+            }}
           >
-            <MenuItem value="">
-              <em>Selecione um professor</em>
-            </MenuItem>
-            {professors.map((p) => (
-              <MenuItem key={p.professor.id} value={p.professor.id}>
-                {p.professor.name} ({p.professor.acronym})
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+            {selectedProfessorName ? `Horário de ${selectedProfessorName}` : "Horário"}
+          </Typography>
+        </Box>
 
         {loading ? (
           <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
@@ -217,18 +221,6 @@ const ClassesTeacher = ({ setAuthenticated }) => {
             sx={{ fontSize: { xs: "0.9rem", sm: "1rem", md: "1.25rem" } }}
           >
             {error}
-          </Typography>
-        ) : !selectedProfessor ? (
-          <Typography
-            variant="body1"
-            sx={{
-              mt: 2,
-              textAlign: "center",
-              color: textSecondaryColor,
-              fontSize: { xs: "0.9rem", sm: "1rem", md: "1.25rem" },
-            }}
-          >
-            Selecione um professor para visualizar os horários.
           </Typography>
         ) : schedules.length === 0 ? (
           <Typography
@@ -258,6 +250,7 @@ const ClassesTeacher = ({ setAuthenticated }) => {
                     alignItems: { sm: "flex-start" },
                     mb: { xs: 1.5, sm: 2, md: 4 },
                     gap: { sm: 2 },
+                    mt: 4,
                   }}
                 >
                   <Box

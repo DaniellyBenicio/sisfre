@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  Box, Typography, Button, MenuItem, Grid, Paper, CssBaseline, IconButton, Alert, Table, TableHead, TableRow, TableCell, 
-  TableBody, Divider, Tooltip, TableContainer
-} from "@mui/material";
+  Box, Typography, Button, MenuItem, Paper, CssBaseline, IconButton, Alert, Divider, Stack } from "@mui/material";
 import { ArrowBack, Close, Save, School, History, Delete, AddCircleOutline, Remove, Check } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../../components/SideBar";
@@ -676,28 +674,27 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
             />
           )}
         </Box>
-
-        <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, marginLeft: "5px", mb: 2 }}>
-            <School sx={{ fontSize: "31px", color: "green" }} />
-            <Typography variant="h5" color="green">
-              Turma
-            </Typography>
-          </Box>
-          <Grid container spacing={2.5} mt="10px">
-            <Grid item xs={12} sm={6}>
+        <Paper elevation={3} sx={{ p: 5, mt: 2, m: 4, borderRadius: 3 }}>
+          <Stack spacing={3}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+              <School sx={{ fontSize: '31px', color: 'green' }} />
+              <Typography variant="h5" color="green">
+                Turma
+              </Typography>
+            </Box>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
               <CustomSelect
                 label="Turma"
                 name="classId"
                 value={formData.classId}
                 onChange={handleChange}
                 disabled={confirmedDetails.length > 0}
-                selectSx={{ width: "520px" }}
+                selectSx={{ width: '100%' }}
               >
                 {classes
                   .slice()
                   .sort((a, b) => {
-                    const getNumber = (s) => parseInt(s.semester.replace("S", ""), 10);
+                    const getNumber = (s) => parseInt(s.semester.replace('S', ''), 10);
                     return getNumber(a) - getNumber(b);
                   })
                   .map((item) => (
@@ -706,15 +703,13 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                     </MenuItem>
                   ))}
               </CustomSelect>
-            </Grid>
-            <Grid item xs={12} sm={6}>
               <CustomSelect
                 label="Calendário"
                 name="calendarId"
                 value={formData.calendarId}
                 onChange={handleChange}
                 disabled={confirmedDetails.length > 0}
-                selectSx={{ width: "520px" }}
+                selectSx={{ width: '100%' }}
               >
                 {calendars.map((calendar) => (
                   <MenuItem key={calendar.id} value={calendar.id}>
@@ -722,38 +717,38 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                   </MenuItem>
                 ))}
               </CustomSelect>
-            </Grid>
-          </Grid>
-        </Box>
+            </Stack>
+          </Stack>
+        </Paper>
         
         {/* Horários */}
-        <Box component={Paper} elevation={3} sx={{ p: 5, pb: 12, m: 4, borderRadius: 3, position: "relative" }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, marginLeft: "5px", mb: 2 }}>
-            <Box
-              sx={{
-                backgroundColor: "green",
-                borderRadius: "50%",
-                width: 33,
-                height: 33,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <History sx={{ color: "white", fontSize: 25 }} />
+        <Paper elevation={3} sx={{ p: 5, mt: 2, position: 'relative', m: 4, borderRadius: 3 }}>
+          <Stack spacing={3}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+              <Box
+                sx={{
+                  backgroundColor: 'green',
+                  borderRadius: '50%',
+                  width: 33,
+                  height: 33,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <History sx={{ color: 'white', fontSize: 25 }} />
+              </Box>
+              <Typography variant="h5" color="green">
+                Horários
+              </Typography>
             </Box>
-            <Typography variant="h5" color="green">
-              Horários
-            </Typography>
-          </Box>
-          <Grid container spacing={3} mt="10px">
-            <Grid item xs={12} sm={6}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
               <CustomSelect
                 label="Professor"
                 name="professorId"
                 value={formData.details[0].professorId}
                 onChange={(e) => handleChange(e, 0)}
-                selectSx={{ width: "520px" }}
+                selectSx={{ width: '100%' }}
               >
                 {professors.map((prof) => (
                   <MenuItem key={prof.id} value={prof.id}>
@@ -761,30 +756,31 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                   </MenuItem>
                 ))}
               </CustomSelect>
-            </Grid>
-            <Grid item xs={12} sm={6}>
               <CustomAutocomplete
                 label="Disciplina *"
                 name="disciplineId"
-                value={disciplines.find(disc => disc.disciplineId === formData.details[0].disciplineId) || null}
+                value={disciplines.find((disc) => disc.disciplineId === formData.details[0].disciplineId) || null}
                 onChange={(event, newValue) => {
-                  handleChange({ target: { name: 'disciplineId', value: newValue ? newValue.disciplineId : '' } }, 0);
+                  handleChange(
+                    { target: { name: 'disciplineId', value: newValue ? newValue.disciplineId : '' } },
+                    0
+                  );
                 }}
                 options={disciplines}
                 getOptionLabel={(option) => option.name}
                 isOptionEqualToValue={(option, value) => option.disciplineId === value.disciplineId}
-                selectSx={{ width: "520px" }}
+                selectSx={{ width: '100%' }}
               />
-            </Grid>
+            </Stack>
             {formData.details.map((detail, index) => (
-              <Grid container spacing={3} key={index} sx={{ mt: index === 0 ? 2 : 0, alignItems: "center" }}>
-                <Grid item xs={12} sm={6}>
+              <Stack key={index} spacing={3} sx={{ mt: index === 0 ? 2 : 0 }}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} alignItems={{ xs: 'stretch', sm: 'center' }}>
                   <CustomSelect
                     label="Dia da Semana"
                     name="dayOfWeek"
                     value={detail.dayOfWeek}
                     onChange={(e) => handleChange(e, index)}
-                    selectSx={{ width: "248px" }}
+                    selectSx={{ width: '100%' }}
                   >
                     <MenuItem value="Segunda-feira">Segunda-feira</MenuItem>
                     <MenuItem value="Terça-feira">Terça-feira</MenuItem>
@@ -793,21 +789,18 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                     <MenuItem value="Sexta-feira">Sexta-feira</MenuItem>
                     <MenuItem value="Sábado">Sábado</MenuItem>
                   </CustomSelect>
-                </Grid>
-                <Grid item xs={12} sm={6}>
                   <CustomSelect
                     label="Turno"
                     name="turn"
                     value={detail.turn}
                     onChange={(e) => handleChange(e, index)}
-                    selectSx={{ width: "248px" }}
+                    selectSx={{ width: '100%' }}
                   >
                     <MenuItem value="Manhã">Manhã</MenuItem>
                     <MenuItem value="Tarde">Tarde</MenuItem>
                     <MenuItem value="Noite">Noite</MenuItem>
                   </CustomSelect>
-                </Grid>
-                <Grid item xs={12} sm={6}>
+                  
                   <CustomSelect
                     label="Início da Aula"
                     name="selectedHourStartId"
@@ -815,7 +808,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                     onChange={(e) => handleChange(e, index)}
                     disabled={!detail.turn || !detail.dayOfWeek}
                     loading={hoursLoadingByDetail[index]}
-                    selectSx={{ width: "215px" }}
+                    selectSx={{ width: '100%' }}
                   >
                     {(availableHoursByDetail[index] || []).length > 0 ? (
                       (availableHoursByDetail[index] || []).map((hour) => (
@@ -825,13 +818,11 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                       ))
                     ) : (
                       <MenuItem disabled value="">
-                        {detail.turn && detail.dayOfWeek ? "Nenhum horário disponível" : "Selecione turno e dia"}
+                        {detail.turn && detail.dayOfWeek ? 'Nenhum horário disponível' : 'Selecione turno e dia'}
                       </MenuItem>
                     )}
                   </CustomSelect>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
                     <CustomSelect
                       label="Fim da Aula"
                       name="selectedHourEndId"
@@ -839,7 +830,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                       onChange={(e) => handleChange(e, index)}
                       disabled={!detail.turn || !detail.dayOfWeek || !detail.selectedHourStartId}
                       loading={hoursLoadingByDetail[index]}
-                      selectSx={{ width: "215px" }}
+                      selectSx={{ width: '100%' }}
                     >
                       {(availableHoursByDetail[index] || [])
                         .filter((hour) => {
@@ -867,59 +858,54 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                       <IconButton
                         onClick={handleAddDetail}
                         sx={{
-                          color: "#087619",
-                          "&:hover": { color: "#066915" },
+                          color: '#087619',
+                          '&:hover': { color: '#066915' },
                         }}
                       >
                         <AddCircleOutline sx={{ fontSize: 34 }} />
                       </IconButton>
                     )}
+                    {formData.details.length > 1 && index !== formData.details.length - 1 && (
+                      <IconButton
+                        onClick={() => handleRemoveDetail(index)}
+                        sx={{
+                          color: '#F01424',
+                          '&:hover': { color: '#D4000F' },
+                        }}
+                      >
+                        <Remove sx={{ fontSize: 34 }} />
+                      </IconButton>
+                    )}
                   </Box>
-                </Grid>
-                {formData.details.length > 1 && index !== formData.details.length - 1 && (
-                  <Grid item xs={12} sm={1}>
-                    <IconButton
-                      onClick={() => handleRemoveDetail(index)}
-                      sx={{
-                        color: "#F01424",
-                        "&:hover": { color: "#D4000F" },
-                        ml: "-13px"
-                      }}
-                    >
-                      <Remove sx={{ fontSize: 34 }} />
-                    </IconButton>
-                  </Grid>
-                )}
-              </Grid>
+                </Stack>
+              </Stack>
             ))}
-            <Box sx={{ position: "absolute", bottom: 15, right: 48, }}>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
               <Button
                 variant="outlined"
                 onClick={handleSaveDetails}
                 color="success"
                 sx={{
-                  width: "fit-content",
+                  width: 'fit-content',
                   minWidth: 100,
-                  padding: { xs: "9px 15px", sm: "9px 15px" },
-                  borderRadius: "8px",
-                  textTransform: "none",
-                  fontWeight: "bold",
-                  display: "flex",
-                  alignItems: "center",
+                  padding: { xs: '9px 15px', sm: '9px 15px' },
+                  borderRadius: '8px',
+                  textTransform: 'none',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
                   color: 'green',
                   borderWidth: 1.5,
                   borderColor: 'green',
-                  gapjoner: {
-                    offset: [20, -8],
-                  },
+                  gap: 1,
                 }}
               >
-                <Check sx={{ fontSize: 24, color: "green"}} />
+                <Check sx={{ fontSize: 24, color: 'green' }} />
                 Salvar
               </Button>
             </Box>
-          </Grid>
-        </Box>
+          </Stack>
+        </Paper>
 
         <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Box, Typography, Button, MenuItem, Grid, Paper, CssBaseline, IconButton, Alert, Divider, TextField, } from "@mui/material";
+import { Box, Typography, Button, MenuItem, Grid, Paper, CssBaseline, IconButton, Alert, Divider, TextField, Stack, } from "@mui/material";
 import { ArrowBack, Close, Save, School, History, AddCircleOutline, Remove, Check, } from "@mui/icons-material";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../../components/SideBar";
@@ -844,29 +844,21 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
           )}
         </Box>
 
-        <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }} >
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              marginLeft: "5px",
-              mb: 2,
-            }}
-          >
-            <School sx={{ fontSize: "31px", color: "green" }} />
-            <Typography variant="h5" color="green">
-              Turma
-            </Typography>
-          </Box>
-          <Grid container spacing={2.5} mt="10px" justifyContent="center">
-            <Grid item xs={12}>
+        <Paper elevation={3} sx={{ p: 5, mt: 2, m: 4, borderRadius: 3 }}>
+          <Stack spacing={3}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+              <School sx={{ fontSize: '31px', color: 'green' }} />
+              <Typography variant="h5" color="green">
+                Turma
+              </Typography>
+            </Box>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
               <CustomSelect
                 label="Turma"
                 name="classId"
                 value={formData.classId}
                 onChange={handleChange}
-                selectSx={{ width: { xs: "600px", sm: "360px", md: "145px", lg: "320px" } }}
+                selectSx={{ width: "100%" }}
                 disabled
               >
                 {classes
@@ -882,14 +874,12 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                     </MenuItem>
                   ))}
               </CustomSelect>
-            </Grid>
-            <Grid item xs={12} sm={6}>
               <CustomSelect
                 label="Calendário"
                 name="calendarId"
                 value={formData.calendarId}
                 onChange={handleChange}
-                selectSx={{ width: { xs: "600px", sm: "360px", md: "300px", lg: "380px" } }}
+                selectSx={{ width: "100%" }}
                 disabled
               >
                 {calendars.map((calendar) => (
@@ -899,15 +889,13 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                   </MenuItem>
                 ))}
               </CustomSelect>
-            </Grid>
-            <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 label="Turno Geral"
                 value={determineTurn(confirmedDetails)}
                 InputProps={{ readOnly: true }}
                 sx={{
-                  width: { xs: "600px", sm: "360px", md: "145px", lg: "320px" },
+                  width: "100%",
                   "& .MuiInputBase-root.Mui-disabled": {
                     backgroundColor: "#f5f5f5",
                     color: "#000",
@@ -918,41 +906,33 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                 }}
                 disabled
               />
-            </Grid>
-          </Grid>
-        </Box>
+            </Stack>
+          </Stack>
+        </Paper>
 
         {/* Horários */}
-        <Box component={Paper} elevation={3} sx={{ p: 5, pb: 12, m: 4, borderRadius: 3, position: "relative" }} >
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              marginLeft: "5px",
-              mb: 2,
-            }}
-          >
-            <Box
-              sx={{
-                backgroundColor: "green",
-                borderRadius: "50%",
-                width: 33,
-                height: 33,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <History sx={{ color: "white", fontSize: 25 }} />
+        <Paper elevation={3} sx={{ p: 5, mt: 2, position: 'relative', m: 4, borderRadius: 3 }}>
+          <Stack spacing={3}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+              <Box
+                sx={{
+                  backgroundColor: 'green',
+                  borderRadius: '50%',
+                  width: 33,
+                  height: 33,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <History sx={{ color: 'white', fontSize: 25 }} />
+              </Box>
+              <Typography variant="h5" color="green">
+                {" "}
+                Horários{" "}
+              </Typography>
             </Box>
-            <Typography variant="h5" color="green">
-              {" "}
-              Horários{" "}
-            </Typography>
-          </Box>
-          <Grid container spacing={3} mt="10px" justifyContent="center">
-            <Grid item xs={12} sm={6}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
               <CustomSelect
                 label="Professor"
                 name="professorId"
@@ -967,8 +947,6 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                   </MenuItem>
                 ))}
               </CustomSelect>
-            </Grid>
-            <Grid item xs={12} sm={6}>
               <CustomAutocomplete
                 label="Disciplina *"
                 name="disciplineId"
@@ -996,22 +974,16 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                 }
                 selectSx={{ width: { xs: "600px", sm: "360px", md: "145px", lg: "520px" } }}
               />
-            </Grid>
+            </Stack>
             {formData.details.map((detail, index) => (
-              <Grid
-                container
-                spacing={3}
-                key={index}
-                sx={{ mt: index === 0 ? 1 : 0 }}
-                justifyContent="center"
-              >
-                <Grid item xs={12} sm={6}>
+              <Stack key={index} spacing={3} sx={{ mt: index === 0 ? 2 : 0 }}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} alignItems={{ xs: 'stretch', sm: 'center' }}>
                   <CustomSelect
                     label="Dia da Semana"
                     name="dayOfWeek"
                     value={detail.dayOfWeek}
                     onChange={(e) => handleChange(e, index)}
-                    selectSx={{ width: { xs: "285px", sm: "360px", md: "145px", lg: "250px" } }}
+                    selectSx={{ width: "100%" }}
                   >
                     <MenuItem value="Segunda-feira">Segunda-feira</MenuItem>
                     <MenuItem value="Terça-feira">Terça-feira</MenuItem>
@@ -1020,21 +992,19 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                     <MenuItem value="Sexta-feira">Sexta-feira</MenuItem>
                     <MenuItem value="Sábado">Sábado</MenuItem>
                   </CustomSelect>
-                </Grid>
-                <Grid item xs={12} sm={6}>
+
                   <CustomSelect
                     label="Turno"
                     name="turn"
                     value={detail.turn}
                     onChange={(e) => handleChange(e, index)}
-                    selectSx={{ width: { xs: "285px", sm: "360px", md: "145px", lg: "250px" } }}
+                    selectSx={{ width: "100%" }}
                   >
                     <MenuItem value="Manhã">Manhã</MenuItem>
                     <MenuItem value="Tarde">Tarde</MenuItem>
                     <MenuItem value="Noite">Noite</MenuItem>
                   </CustomSelect>
-                </Grid>
-                <Grid item xs={12} sm={6}>
+
                   <CustomSelect
                     label="Início da Aula"
                     name="selectedHourStartId"
@@ -1042,7 +1012,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                     onChange={(e) => handleChange(e, index)}
                     disabled={!detail.turn}
                     loading={hoursLoadingByDetail[index]}
-                    selectSx={{ width: { xs: "257px", sm: "360px", md: "145px", lg: "215px" } }}
+                    selectSx={{ width: "100%" }}
                   >
                     {(availableHoursByDetail[index] || []).map((hour) => (
                       <MenuItem key={hour.id} value={hour.id}>
@@ -1050,8 +1020,6 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                       </MenuItem>
                     ))}
                   </CustomSelect>
-                </Grid>
-                <Grid item xs={12} sm={6}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <CustomSelect
                       label="Fim da Aula"
@@ -1060,7 +1028,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                       onChange={(e) => handleChange(e, index)}
                       disabled={!detail.turn || !detail.selectedHourStartId}
                       loading={hoursLoadingByDetail[index]}
-                      selectSx={{ width: { xs: "250px", sm: "360px", md: "145px", lg: "215px" } }}
+                      selectSx={{ width: "100%" }}
                     >
                       {(availableHoursByDetail[index] || [])
                         .filter((hour) => {
@@ -1096,50 +1064,48 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                         <AddCircleOutline sx={{ fontSize: 34 }} />
                       </IconButton>
                     )}
-                  </Box>
-                </Grid>
-                {formData.details.length > 1 &&
-                  index !== formData.details.length - 1 && (
-                    <Grid item xs={12} sm={1}>
-                      <IconButton
-                        onClick={() => handleRemoveDetail(index)}
-                        sx={{
-                          color: "#F01424",
-                          "&:hover": { color: "#D4000F" },
-                          ml: "-13px",
-                        }}
-                      >
-                        <Remove sx={{ fontSize: 34 }} />
-                      </IconButton>
-                    </Grid>
-                  )}
-              </Grid>
-            ))}
-            <Box sx={{ position: "absolute", bottom: 15, right: 48 }}>
-              <Button variant="outlined" onClick={handleSaveDetails} color="success"
-                sx={{
-                  width: "fit-content",
-                  minWidth: 100,
-                  padding: { xs: "9px 15px", sm: "9px 15px" },
-                  borderRadius: "8px",
-                  textTransform: "none",
-                  fontWeight: "bold",
-                  display: "flex",
-                  alignItems: "center",
-                  color: "green",
-                  borderWidth: 1.5,
-                  borderColor: "green",
-                  gap: "8px",
-                  "&:hover": { borderColor: "#065412", color: "#065412" },
-                  gapjoner: { offset: [20, -8] },
-                }}
-              >
-                <Check sx={{ fontSize: 24, color: "green" }} />
-                Salvar
-              </Button>
-            </Box>
-          </Grid>
-        </Box>
+                    {formData.details.length > 1 &&
+                      index !== formData.details.length - 1 && (
+                        <IconButton
+                          onClick={() => handleRemoveDetail(index)}
+                          sx={{
+                            color: "#F01424",
+                            "&:hover": { color: "#D4000F" },
+                            ml: "-13px",
+                          }}
+                        >
+                          <Remove sx={{ fontSize: 34 }} />
+                        </IconButton>
+                      )}
+                    </Box>
+                  </Stack>
+                </Stack>
+              ))}
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
+                <Button variant="outlined" onClick={handleSaveDetails} color="success"
+                  sx={{
+                    width: "fit-content",
+                    minWidth: 100,
+                    padding: { xs: "9px 15px", sm: "9px 15px" },
+                    borderRadius: "8px",
+                    textTransform: "none",
+                    fontWeight: "bold",
+                    display: "flex",
+                    alignItems: "center",
+                    color: "green",
+                    borderWidth: 1.5,
+                    borderColor: "green",
+                    gap: "8px",
+                    "&:hover": { borderColor: "#065412", color: "#065412" },
+                    gapjoner: { offset: [20, -8] },
+                  }}
+                >
+                  <Check sx={{ fontSize: 24, color: "green" }} />
+                  Salvar
+                </Button>
+              </Box>
+            </Stack>
+          </Paper>
 
         <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }} >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>

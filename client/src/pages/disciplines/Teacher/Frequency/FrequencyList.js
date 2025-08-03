@@ -40,7 +40,15 @@ const FrequencyList = () => {
   const fetchFrequencies = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/frequency");
+      // Simulação da chamada da API
+      const response = {
+        data: [
+          { id: "1", date: "2025-08-01", disciplinaclasse: { name: "Matemática" }, time: "08:00", status: "Presença" },
+          { id: "2", date: "2025-08-02", disciplinaclasse: { name: "Física" }, time: "09:30", status: "Falta" },
+          { id: "3", date: "2025-08-03", disciplinaclasse: { name: "Química" }, time: "11:00", status: "Presença" },
+        ]
+      };
+      // const response = await api.get("/frequency");
       const data = response.data;
 
       const formattedDataForDisplay = data.map((freq) => ({
@@ -324,9 +332,12 @@ const FrequencyList = () => {
             textTransform: "none",
             fontWeight: "bold",
             fontSize: { xs: "0.9rem", sm: "1rem" },
+            // Garante que a cor do texto seja a padrão para abas não selecionadas
+            color: 'rgba(0, 0, 0, 0.6)',
           },
+          // Este é o seletor que muda a cor do texto da aba quando ela é selecionada
           "& .Mui-selected": {
-            color: "#087619",
+            color: "#087619", // Cor verde
           },
           "& .MuiTabs-indicator": {
             backgroundColor: "#087619",

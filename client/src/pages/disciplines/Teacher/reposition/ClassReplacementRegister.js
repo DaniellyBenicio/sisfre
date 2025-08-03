@@ -13,10 +13,10 @@ import {
   InputLabel,
   MenuItem,
   CssBaseline,
+  Select,
 } from '@mui/material';
 import { ArrowBack, CloudUpload, Close, Save } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
-import { StyledSelect } from '../../../../components/inputs/Input';
 import { CustomAlert } from '../../../../components/alert/CustomAlert';
 import SideBar from '../../../../components/SideBar';
 import api from '../../../../service/api';
@@ -51,7 +51,6 @@ const ClassReplacementRegister = () => {
 
   const [professorId, setProfessorId] = useState('');
   const [courseClassId, setCourseClassId] = useState('');
-  const [turma, setTurma] = useState('');
   const [disciplina, setDisciplina] = useState('');
   const [quantidade, setQuantidade] = useState('');
   const [data, setData] = useState('');
@@ -87,11 +86,10 @@ const ClassReplacementRegister = () => {
     if (frequencyItem) {
       setProfessorId(frequencyItem.professorId || '');
       setCourseClassId(frequencyItem.courseClassId || '');
-      setTurma(frequencyItem.turma || '');
-      setDisciplina(frequencyItem.disciplina || '');
-      setQuantidade(frequencyItem.quantidade || '');
-      setData(frequencyItem.data || '');
-      setObservacao(frequencyItem.observacao || '');
+      setDisciplina(frequencyItem.discipline || '');
+      setQuantidade(frequencyItem.quantity || '');
+      setData(frequencyItem.date || '');
+      setObservacao(frequencyItem.observation || '');
     }
   }, [frequencyItem]);
 
@@ -100,10 +98,8 @@ const ClassReplacementRegister = () => {
     setCourseClassId(selectedId);
     const selectedCourseClass = courseClasses.find((cc) => cc.id === selectedId);
     if (selectedCourseClass) {
-      setTurma(selectedCourseClass.name || '');
       setDisciplina(selectedCourseClass.discipline || '');
     } else {
-      setTurma('');
       setDisciplina('');
     }
   };
@@ -194,18 +190,20 @@ const ClassReplacementRegister = () => {
   }
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       <CssBaseline />
       <SideBar setAuthenticated={setAuthenticated || (() => {})} />
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
+          p: 4,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 3,
+          overflowY: 'hidden',
+          backgroundColor: '#f5f5f5',
+          py: { xs: 2, md: 4 },
         }}
       >
         <Box
@@ -217,6 +215,7 @@ const ClassReplacementRegister = () => {
             justifyContent: 'center',
             position: 'relative',
             mb: 3,
+            mt: 2,
           }}
         >
           <IconButton
@@ -225,22 +224,24 @@ const ClassReplacementRegister = () => {
               position: 'absolute',
               left: 0,
               color: INSTITUTIONAL_COLOR,
+              top: '50%',
+              transform: 'translateY(-50%)',
               '&:hover': { backgroundColor: 'transparent' },
             }}
           >
             <ArrowBack sx={{ fontSize: 35 }} />
           </IconButton>
-          <Typography variant="h5" sx={{ fontWeight: 'bold', flexGrow: 1, textAlign: 'center' }}>
+          <Typography variant="h5" sx={{ fontWeight: 'bold', textAlign: 'center', flexGrow: 1 }}>
             Cadastrar Reposição
           </Typography>
         </Box>
 
-        <Paper elevation={3} sx={{ p: 4, minHeight: '400px', width: '100%', maxWidth: '1000px' }}>
+        <Paper elevation={3} sx={{ p: 4, mt: 2, width: '100%', maxWidth: '1000px' }}>
           <Stack spacing={3}>
             <Stack direction="row" spacing={3}>
               <FormControl fullWidth required>
                 <InputLabel id="professor-label">Professor</InputLabel>
-                <StyledSelect
+                <Select
                   labelId="professor-label"
                   value={professorId}
                   label="Professor"
@@ -251,11 +252,11 @@ const ClassReplacementRegister = () => {
                       {prof.username}
                     </MenuItem>
                   ))}
-                </StyledSelect>
+                </Select>
               </FormControl>
               <FormControl fullWidth required>
                 <InputLabel id="turma-label">Turma</InputLabel>
-                <StyledSelect
+                <Select
                   labelId="turma-label"
                   value={courseClassId}
                   label="Turma"
@@ -267,7 +268,7 @@ const ClassReplacementRegister = () => {
                       {`${cc.name} (${cc.discipline})`}
                     </MenuItem>
                   ))}
-                </StyledSelect>
+                </Select>
               </FormControl>
             </Stack>
             <Stack direction="row" spacing={3}>
@@ -311,26 +312,12 @@ const ClassReplacementRegister = () => {
                 sx={{ width: '100%', maxWidth: 'calc(50% - 12px)' }}
                 onClick={() => document.querySelector('input[type="file"]').click()}
               />
-              <Button
-                variant="contained"
-                component="label"
-                sx={{
-                  backgroundColor: '#087619',
-                  '&:hover': { backgroundColor: '#065412' },
-                  textTransform: 'none',
-                  height: '56px',
-                  minWidth: '56px',
-                  display: 'none',
-                }}
-              >
-                <input
-                  type="file"
-                  hidden
-                  onChange={handleFileChange}
-                  accept=".pdf"
-                />
-                <CloudUpload sx={{ color: '#fff' }} />
-              </Button>
+              <input
+                type="file"
+                hidden
+                onChange={handleFileChange}
+                accept=".pdf"
+              />
             </Stack>
             <TextField
               label="Observação"
@@ -343,39 +330,38 @@ const ClassReplacementRegister = () => {
           </Stack>
         </Paper>
 
-        <Stack
-          direction="row"
-          spacing={2}
-          justifyContent="center"
+        <Box
           sx={{
-            padding: '10px 24px',
-            marginTop: '10px',
-            '@media (max-width: 600px)': { padding: '8px 12px', gap: '8px' },
+            display: 'flex',
+            justifyContent: 'center',
+            p: 3,
           }}
         >
-          <StyledButton
-            onClick={handleGoBack}
-            variant="contained"
-            sx={{
-              backgroundColor: '#F01424',
-              '&:hover': { backgroundColor: '#D4000F' },
-            }}
-          >
-            <Close sx={{ fontSize: { xs: 20, sm: 24 } }} />
-            Cancelar
-          </StyledButton>
-          <StyledButton
-            onClick={handleSubmitReplacement}
-            variant="contained"
-            sx={{
-              backgroundColor: INSTITUTIONAL_COLOR,
-              '&:hover': { backgroundColor: '#26692b' },
-            }}
-          >
-            <Save sx={{ fontSize: { xs: 20, sm: 24 } }} />
-            Cadastrar
-          </StyledButton>
-        </Stack>
+          <Stack direction="row" spacing={2}>
+            <StyledButton
+              onClick={handleGoBack}
+              variant="contained"
+              sx={{
+                backgroundColor: '#F01424',
+                '&:hover': { backgroundColor: '#D4000F' },
+              }}
+            >
+              <Close sx={{ fontSize: { xs: 20, sm: 24 } }} />
+              Cancelar
+            </StyledButton>
+            <StyledButton
+              onClick={handleSubmitReplacement}
+              variant="contained"
+              sx={{
+                backgroundColor: INSTITUTIONAL_COLOR,
+                '&:hover': { backgroundColor: '#26692b' },
+              }}
+            >
+              <Save sx={{ fontSize: { xs: 20, sm: 24 } }} />
+              Cadastrar
+            </StyledButton>
+          </Stack>
+        </Box>
 
         {alert && (
           <CustomAlert

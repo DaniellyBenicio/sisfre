@@ -405,13 +405,7 @@ const FrequencyList = () => {
             mb: 2,
           }}
         >
-          <Typography
-            variant="h6"
-            gutterBottom
-            sx={{ fontWeight: "bold", mb: 2 }}
-          >
-            Frequências
-          </Typography>
+          
           <Stack
             direction={{ xs: "column", sm: "row" }}
             spacing={2}
@@ -518,9 +512,7 @@ const FrequencyList = () => {
           />
 
           {loading && <Typography align="center">Carregando frequências...</Typography>}
-          {!loading && filteredFrequencies.length === 0 && (
-            <Typography align="center">Nenhum item encontrado</Typography>
-          )}
+          
         </Box>
       )}
 

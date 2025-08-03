@@ -1,8 +1,9 @@
-import { Stack, Typography, Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button } from '@mui/material';
+import { Stack, Typography, Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, IconButton, } from '@mui/material';
 import Paginate from '../../../../components/paginate/Paginate';
 import PropTypes from 'prop-types';
 import { useState, useMemo } from 'react';
 import { useMediaQuery } from '@mui/material';
+import Visibility from '@mui/icons-material/Visibility';
 
 const ClassAntepositionTable = ({ antepositions, setAlert, onArchive, onUpdate, onApprove, onReject, accessType }) => {
   const normalizeString = (str) => {
@@ -21,7 +22,7 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onArchive, onUpdate, 
     status: anteposition.status || 'Pendente',
   }));
 
-  const headers = [
+  const headers = accessType === 'Professor' ? [
     { key: 'turma', label: 'Turma' },
     { key: 'disciplina', label: 'Disciplina' },
     { key: 'quantidade', label: 'Quantidade' },
@@ -43,43 +44,27 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onArchive, onUpdate, 
           {anteposition.status}
         </Typography>
       ),
-    },
-    ...(accessType === 'Coordenador' ? [{
+    }
+  ] : [
+    { key: 'turma', label: 'Turma' },
+    { key: 'disciplina', label: 'Disciplina' },
+    { key: 'fileName', label: 'Arquivo' },
+    { key: 'tipo', label: 'Tipo' },
+    {
       key: 'actions',
-      label: 'Ações',
+      label: 'Ação',
       render: (anteposition) => (
         <Stack direction="row" spacing={1} justifyContent="center">
-          <Button
+          <IconButton
             onClick={() => onUpdate(anteposition)}
-            disabled={!anteposition.isActive}
             sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
           >
-            Editar
-          </Button>
-          <Button
-            onClick={() => onApprove(anteposition.id)}
-            disabled={anteposition.status === 'Aprovado'}
-            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
-          >
-            Aprovar
-          </Button>
-          <Button
-            onClick={() => onReject(anteposition.id)}
-            disabled={anteposition.status === 'Rejeitado'}
-            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
-          >
-            Rejeitar
-          </Button>
-          <Button
-            onClick={() => onArchive(anteposition.id)}
-            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
-          >
-            {anteposition.isActive ? 'Inativar' : 'Ativar'}
-          </Button>
+            <Visibility />
+          </IconButton>
         </Stack>
       ),
-    }] : []),
-  ];
+    },
+  ]
 
   const isMobile = useMediaQuery('(max-width:600px)');
   const [page, setPage] = useState(1);

@@ -35,6 +35,7 @@ import ClassRescheduleOptions from "../pages/disciplines/Teacher/Anteposition/Cl
 import ReplacementPage from "../pages/disciplines/Teacher/reposition/PrepositionPage.js";
 import AntepositionPage from "../pages/disciplines/Teacher/Anteposition/AntepositionPage.js";
 import TeacherSchedule from "../pages/Coordinator/TeacherManagement/TeacherSchedule.js";
+import TeacherClassReschedules from "../pages/Coordinator/TeacherManagement/TeacherClassReschedules.js";
 
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
@@ -402,6 +403,16 @@ const AppRoutes = () => {
           element={
             isAuthenticated && accessType === "Coordenador" ? (
               <TeacherSchedule setAuthenticated={handleLogout} />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+        <Route
+          path="/class-reschedules"
+          element={
+            isAuthenticated && accessType === "Coordenador" ? (
+              <TeacherClassReschedules setAuthenticated={handleLogout} />
             ) : (
               <Navigate to="/login" />
             )

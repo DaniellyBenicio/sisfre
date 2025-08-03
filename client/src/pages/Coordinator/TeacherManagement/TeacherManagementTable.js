@@ -1,9 +1,10 @@
 import { Stack, Typography, IconButton } from "@mui/material";
-import { Visibility, AccessTime } from '@mui/icons-material';
+import { Description, AccessTime } from '@mui/icons-material';
 import Tables from "../../../components/homeScreen/Tables";
+import { useNavigate } from "react-router-dom";
 
 const TeacherManagementTable = ({ teachers, onView, onUpdate, search, showActions, loading }) => {
-  const accessType = localStorage.getItem("accessType") || "";
+  const navigate = useNavigate();
 
   const headers = [
     { key: "acronym", label: "Sigla" },
@@ -36,6 +37,12 @@ const TeacherManagementTable = ({ teachers, onView, onUpdate, search, showAction
         sx={{ color: "#087619", "&:hover": { color: "#065412" } }}
       >
         <AccessTime />
+      </IconButton>
+      <IconButton
+        onClick={() => navigate("/class-reschedules")}
+        sx={{ color: "#666666", "&:hover": { color: "#535252" } }}
+      >
+        <Description />
       </IconButton>
     </>
   );

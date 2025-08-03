@@ -396,16 +396,7 @@ const FrequencyList = () => {
       )}
 
       {tabValue === 2 && (
-        <Box
-          sx={{
-            p: 2,
-            border: "1px solid rgba(0, 0, 0, 0.12)",
-            borderRadius: "4px",
-            backgroundColor: "#fff",
-            mb: 2,
-          }}
-        >
-          
+        <Box>
           <Stack
             direction={{ xs: "column", sm: "row" }}
             spacing={2}

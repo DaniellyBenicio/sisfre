@@ -51,6 +51,8 @@ const ClassReplacementRegister = () => {
 
   const [professorId, setProfessorId] = useState('');
   const [courseClassId, setCourseClassId] = useState('');
+  const [turma, setTurma] = useState('');
+  const [disciplina, setDisciplina] = useState('');
   const [quantidade, setQuantidade] = useState('');
   const [data, setData] = useState('');
   const [file, setFile] = useState(null);
@@ -85,11 +87,26 @@ const ClassReplacementRegister = () => {
     if (frequencyItem) {
       setProfessorId(frequencyItem.professorId || '');
       setCourseClassId(frequencyItem.courseClassId || '');
+      setTurma(frequencyItem.turma || '');
+      setDisciplina(frequencyItem.disciplina || '');
       setQuantidade(frequencyItem.quantidade || '');
       setData(frequencyItem.data || '');
       setObservacao(frequencyItem.observacao || '');
     }
   }, [frequencyItem]);
+
+  const handleCourseClassChange = (event) => {
+    const selectedId = event.target.value;
+    setCourseClassId(selectedId);
+    const selectedCourseClass = courseClasses.find((cc) => cc.id === selectedId);
+    if (selectedCourseClass) {
+      setTurma(selectedCourseClass.name || '');
+      setDisciplina(selectedCourseClass.discipline || '');
+    } else {
+      setTurma('');
+      setDisciplina('');
+    }
+  };
 
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
@@ -171,7 +188,7 @@ const ClassReplacementRegister = () => {
   if (loading) {
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Typography variant='h6'>Carregando...</Typography>
+        <Typography variant="h6">Carregando...</Typography>
       </Box>
     );
   }
@@ -242,17 +259,25 @@ const ClassReplacementRegister = () => {
                   labelId="turma-label"
                   value={courseClassId}
                   label="Turma"
-                  onChange={(e) => setCourseClassId(e.target.value)}
+                  onChange={handleCourseClassChange}
                 >
-                  {courseClasses.map((cls) => (
-                    <MenuItem key={cls.id} value={cls.id}>
-                      {cls.name} ({cls.discipline})
+                  <MenuItem value="">Selecione</MenuItem>
+                  {courseClasses.map((cc) => (
+                    <MenuItem key={cc.id} value={cc.id}>
+                      {`${cc.name} (${cc.discipline})`}
                     </MenuItem>
                   ))}
                 </StyledSelect>
               </FormControl>
             </Stack>
             <Stack direction="row" spacing={3}>
+              <TextField
+                label="Disciplina"
+                value={disciplina}
+                fullWidth
+                required
+                disabled
+              />
               <TextField
                 label="Quantidade"
                 type="number"
@@ -261,6 +286,8 @@ const ClassReplacementRegister = () => {
                 fullWidth
                 required
               />
+            </Stack>
+            <Stack direction="row" spacing={3}>
               <TextField
                 label="Data"
                 type="date"
@@ -270,8 +297,6 @@ const ClassReplacementRegister = () => {
                 sx={{ width: '100%', maxWidth: 'calc(50% - 12px)' }}
                 required
               />
-            </Stack>
-            <Stack direction="row" spacing={3}>
               <TextField
                 label="Anexar Ficha"
                 value={file ? file.name : ''}

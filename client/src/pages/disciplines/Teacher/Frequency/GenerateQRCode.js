@@ -160,12 +160,12 @@ const GenerateQRCode = ({ setAlert }) => {
     <Box
       sx={{
         p: 3,
-        border: "1px solid rgba(0, 0, 0, 0.12)",
+        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
         borderRadius: "4px",
-        bgcolor: "#fff",
         textAlign: "center",
-        maxWidth: "600px",
-        mx: "auto",
+        width: "100%",
+        mx: 0,
+        px: { xs: 2, sm: 4 },
         minHeight: qrImage ? "300px" : "200px",
       }}
     >
@@ -173,7 +173,7 @@ const GenerateQRCode = ({ setAlert }) => {
         variant="h6"
         sx={{ fontWeight: "bold", mb: 4 }}
       >
-        Gerar QR Code
+        Gerar Código de Presença
       </Typography>
       {loading && (
         <Typography align="center" sx={{ mb: 2 }}>

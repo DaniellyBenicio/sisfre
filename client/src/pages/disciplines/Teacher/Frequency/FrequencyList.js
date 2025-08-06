@@ -267,6 +267,7 @@ const FrequencyList = () => {
         <Tab label="Escanear QR Code" />
         <Tab label="Frequências" />
       </Tabs>
+      <Box sx={{ height: "2px", boxShadow: "0 1px 3px rgba(0, 0, 0, 0.2)", width: "100%", mb: 2 }} /> {/* Linha com relevo sem cor verde */}
 
       {tabValue === 0 && <GenerateQRCode setAlert={setAlert} />}
 

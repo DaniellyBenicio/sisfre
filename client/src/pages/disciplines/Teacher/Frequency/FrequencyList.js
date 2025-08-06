@@ -29,6 +29,7 @@ const FrequencyList = () => {
   const [filterPeriod, setFilterPeriod] = useState("all");
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
+  const [tokenInput, setTokenInput] = useState("");
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -61,6 +62,12 @@ const FrequencyList = () => {
     },
     dateInput: {
       minWidth: 150,
+      "& .MuiInputBase-root": { height: { xs: 40, sm: 36 } },
+      "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(0, 0, 0, 0.23)" },
+      "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#000000" },
+    },
+    tokenInput: {
+      width: { xs: "100%", sm: "300px" },
       "& .MuiInputBase-root": { height: { xs: 40, sm: 36 } },
       "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(0, 0, 0, 0.23)" },
       "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#000000" },
@@ -143,13 +150,18 @@ const FrequencyList = () => {
   const handleScanQRCode = async (data) => {
     if (!data) return;
     try {
-      const token = JSON.parse(data).token;
-      const position = await navigator.geolocation.getCurrentPositionAsync();
+      const parsedData = JSON.parse(data);
+      const token = parsedData.token;
+      if (!token) throw new Error("Token inválido no QR Code.");
+      const position = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject);
+      });
       const { latitude, longitude } = position.coords;
-      const userId = "1"; // Replace with authenticated user ID
+      const userId = "1"; // Substitua pelo ID do usuário autenticado
       const response = await api.post("/frequency/scan", { token, userId, latitude, longitude });
       setAlert({ message: response.data.message, type: "success" });
       setShowQrScanner(false);
+      setTokenInput("");
       fetchFrequencies();
     } catch (error) {
       console.error("Erro ao escanear QR Code:", error);
@@ -158,7 +170,16 @@ const FrequencyList = () => {
         type: "error",
       });
       setShowQrScanner(false);
+      setTokenInput("");
     }
+  };
+
+  const handleTokenSubmit = () => {
+    if (!tokenInput) {
+      setAlert({ message: "Por favor, insira um token.", type: "error" });
+      return;
+    }
+    handleScanQRCode(JSON.stringify({ token: tokenInput }));
   };
 
   const handleScanError = (error) => {
@@ -219,6 +240,7 @@ const FrequencyList = () => {
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
     if (showQrScanner && newValue !== 1) stopQrScanner();
+    setTokenInput("");
   };
 
   const filteredFrequencies = applyFilters(frequencies);
@@ -248,38 +270,72 @@ const FrequencyList = () => {
       {tabValue === 0 && <GenerateQRCode setAlert={setAlert} />}
 
       {tabValue === 1 && (
-        <Box sx={{ p: 2, border: "1px solid rgba(0, 0, 0, 0.12)", borderRadius: "4px", bgcolor: "#fff", mb: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
-            Escanear QR Code
-          </Typography>
-          {showQrScanner ? (
-            <Box sx={{ textAlign: "center" }}>
-              <video ref={videoRef} style={{ width: "100%", maxWidth: "300px", mx: "auto" }} />
-              <canvas ref={canvasRef} style={{ display: "none" }} />
-              <Button variant="outlined" onClick={stopQrScanner} sx={{ mt: 1 }}>
-                Cancelar
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <Box sx={{ p: 2, border: "1px solid rgba(0, 0, 0, 0.12)", borderRadius: "4px", bgcolor: "#fff" }}>
+            <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
+              Escanear QR Code
+            </Typography>
+            {showQrScanner ? (
+              <Box sx={{ textAlign: "center" }}>
+                <video ref={videoRef} style={{ width: "100%", maxWidth: "300px", mx: "auto" }} />
+                <canvas ref={canvasRef} style={{ display: "none" }} />
+                <Button variant="outlined" onClick={stopQrScanner} sx={{ mt: 1 }}>
+                  Cancelar
+                </Button>
+              </Box>
+            ) : (
+              <Button
+                variant="contained"
+                startIcon={<QrCodeScanner />}
+                onClick={startQrScanner}
+                sx={{
+                  bgcolor: "#087619",
+                  "&:hover": { bgcolor: "#065412" },
+                  textTransform: "none",
+                  width: { xs: "100%", sm: "200px" },
+                  height: { xs: 40, sm: 36 },
+                  fontWeight: "bold",
+                  fontSize: { xs: "0.9rem", sm: "1rem" },
+                  mx: "auto",
+                  display: "block",
+                }}
+              >
+                Iniciar Scanner
               </Button>
+            )}
+          </Box>
+
+          <Box sx={{ p: 2, border: "1px solid rgba(0, 0, 0, 0.12)", borderRadius: "4px", bgcolor: "#fff" }}>
+            <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
+              Inserir Token
+            </Typography>
+            <Box sx={{ textAlign: "center" }}>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={1} justifyContent="center" alignItems="center">
+                <TextField
+                  label="Token"
+                  value={tokenInput}
+                  onChange={(e) => setTokenInput(e.target.value)}
+                  sx={commonStyles.tokenInput}
+                  placeholder="Cole o token aqui"
+                />
+                <Button
+                  variant="contained"
+                  onClick={handleTokenSubmit}
+                  sx={{
+                    bgcolor: "#087619",
+                    "&:hover": { bgcolor: "#065412" },
+                    textTransform: "none",
+                    width: { xs: "100%", sm: "150px" },
+                    height: { xs: 40, sm: 36 },
+                    fontWeight: "bold",
+                    fontSize: { xs: "0.9rem", sm: "1rem" },
+                  }}
+                >
+                  Enviar Token
+                </Button>
+              </Stack>
             </Box>
-          ) : (
-            <Button
-              variant="contained"
-              startIcon={<QrCodeScanner />}
-              onClick={startQrScanner}
-              sx={{
-                bgcolor: "#087619",
-                "&:hover": { bgcolor: "#065412" },
-                textTransform: "none",
-                width: { xs: "100%", sm: "200px" },
-                height: { xs: 40, sm: 36 },
-                fontWeight: "bold",
-                fontSize: { xs: "0.9rem", sm: "1rem" },
-                mx: "auto",
-                display: "block",
-              }}
-            >
-              Iniciar Scanner
-            </Button>
-          )}
+          </Box>
         </Box>
       )}
 

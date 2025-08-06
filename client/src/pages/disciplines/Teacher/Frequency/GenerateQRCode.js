@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -6,9 +6,10 @@ import {
   InputLabel,
   Button,
   Stack,
-  Select,
+  IconButton,
   MenuItem,
 } from "@mui/material";
+import { ContentCopy } from "@mui/icons-material";
 import api from "../../../../service/api";
 import { CustomAlert } from "../../../../components/alert/CustomAlert";
 import { StyledSelect } from "../../../../components/inputs/Input";
@@ -17,27 +18,44 @@ const GenerateQRCode = ({ setAlert }) => {
   const [courseClassId, setCourseClassId] = useState("");
   const [qrImage, setQrImage] = useState(null);
   const [token, setToken] = useState(null);
-  const [courseClasses, setCourseClasses] = useState([]); // Lista de turmas (simulada ou obtida do back-end)
+  const [courseClasses, setCourseClasses] = useState([
+    { id: 1, name: "Turma Fictícia 2025 - Matemática" },
+  ]);
+  const [loading, setLoading] = useState(false);
 
-  // Simulando lista de turmas (substituir por chamada ao back-end, se disponível)
+  /*
   const fetchCourseClasses = async () => {
     try {
-      // Exemplo: chamar uma rota GET /course-classes para obter turmas
-      // const response = await api.get("/course-classes");
-      // setCourseClasses(response.data);
-      // Simulação de turmas para exemplo
-      setCourseClasses([
-        { id: 1, name: "SI - S2" },
-        { id: 2, name: "ENG - S4" },
-      ]);
+      setLoading(true);
+      const response = await api.get("/course-classes");
+      console.log("Resposta do endpoint /course-classes:", response.data);
+      if (Array.isArray(response.data)) {
+        setCourseClasses(response.data);
+        if (response.data.length === 0) {
+          setAlert({
+            message: "Nenhuma turma disponível. Verifique o backend.",
+            type: "warning",
+          });
+        }
+      } else {
+        throw new Error("Formato de resposta inválido para turmas.");
+      }
     } catch (error) {
-      console.error("Erro ao buscar turmas:", error);
+      console.error("Erro ao buscar turmas:", error.response?.data || error.message);
       setAlert({
-        message: "Erro ao carregar turmas.",
+        message: error.response?.data?.error || "Erro ao carregar turmas. Verifique o console para mais detalhes.",
         type: "error",
       });
+      setCourseClasses([]);
+    } finally {
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchCourseClasses();
+  }, []);
+  */
 
   const handleGenerateQRCode = async () => {
     if (!courseClassId) {
@@ -49,7 +67,9 @@ const GenerateQRCode = ({ setAlert }) => {
     }
 
     try {
+      setLoading(true);
       const response = await api.post("/frequency/qrcode", { courseClassId });
+      console.log("Resposta do endpoint /frequency/qrcode:", response.data);
       setQrImage(response.data.qrImage);
       setToken(response.data.token);
       setAlert({
@@ -57,18 +77,32 @@ const GenerateQRCode = ({ setAlert }) => {
         type: "success",
       });
     } catch (error) {
-      console.error("Erro ao gerar QR Code:", error);
+      console.error("Erro ao gerar QR Code:", error.response?.data || error.message);
       setAlert({
         message: error.response?.data?.error || "Erro ao gerar QR Code.",
         type: "error",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Carregar turmas na inicialização
-  React.useEffect(() => {
-    fetchCourseClasses();
-  }, []);
+  const handleCopyToken = () => {
+    if (token) {
+      navigator.clipboard.writeText(token).then(() => {
+        setAlert({
+          message: "Token copiado com sucesso!",
+          type: "success",
+        });
+      }).catch((err) => {
+        console.error("Erro ao copiar token:", err);
+        setAlert({
+          message: "Erro ao copiar o token. Verifique as permissões.",
+          type: "error",
+        });
+      });
+    }
+  };
 
   const commonFormControlSx = {
     width: { xs: "100%", sm: "200px" },
@@ -83,11 +117,6 @@ const GenerateQRCode = ({ setAlert }) => {
         transform: "translate(14px, -6px) scale(0.75)",
         color: "#000000",
       },
-    },
-    "& .MuiSelect-select": {
-      display: "flex",
-      alignItems: "center",
-      height: "100% !important",
     },
   };
 
@@ -138,6 +167,16 @@ const GenerateQRCode = ({ setAlert }) => {
       >
         Gerar QR Code
       </Typography>
+      {loading && (
+        <Typography align="center" sx={{ mb: 2 }}>
+          Carregando turmas...
+        </Typography>
+      )}
+      {!loading && courseClasses.length === 0 && (
+        <Typography align="center" sx={{ mb: 2, color: "error.main" }}>
+          Nenhuma turma encontrada.
+        </Typography>
+      )}
       <Stack
         direction={{ xs: "column", sm: "row" }}
         spacing={2}
@@ -153,6 +192,7 @@ const GenerateQRCode = ({ setAlert }) => {
             onChange={(e) => setCourseClassId(e.target.value)}
             sx={commonSelectSx}
             MenuProps={commonMenuProps}
+            disabled={loading || courseClasses.length === 0}
           >
             <MenuItem value="">Selecione uma turma</MenuItem>
             {courseClasses.map((course) => (
@@ -165,6 +205,7 @@ const GenerateQRCode = ({ setAlert }) => {
         <Button
           variant="contained"
           onClick={handleGenerateQRCode}
+          disabled={loading || courseClasses.length === 0}
           sx={{
             backgroundColor: "#087619",
             "&:hover": { backgroundColor: "#065412" },
@@ -188,9 +229,14 @@ const GenerateQRCode = ({ setAlert }) => {
             alt="QR Code"
             style={{ maxWidth: "200px", marginBottom: "10px" }}
           />
-          <Typography variant="body2">
-            <strong>Token:</strong> {token}
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}>
+            <Typography variant="body2">
+              <strong>Token:</strong> {token}
+            </Typography>
+            <IconButton onClick={handleCopyToken} title="Copiar Token">
+              <ContentCopy />
+            </IconButton>
+          </Box>
         </Box>
       )}
     </Box>

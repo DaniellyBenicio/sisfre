@@ -270,13 +270,13 @@ const FrequencyList = () => {
       {tabValue === 0 && <GenerateQRCode setAlert={setAlert} />}
 
       {tabValue === 1 && (
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <Box sx={{ p: 2, border: "1px solid rgba(0, 0, 0, 0.12)", borderRadius: "4px", bgcolor: "#fff" }}>
+        <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2 }}>
+          <Box sx={{ p: 2, border: "1px solid rgba(0, 0, 0, 0.12)", borderRadius: "4px", bgcolor: "#fff", flex: 1, textAlign: "center" }}>
             <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
               Escanear QR Code
             </Typography>
             {showQrScanner ? (
-              <Box sx={{ textAlign: "center" }}>
+              <Box>
                 <video ref={videoRef} style={{ width: "100%", maxWidth: "300px", mx: "auto" }} />
                 <canvas ref={canvasRef} style={{ display: "none" }} />
                 <Button variant="outlined" onClick={stopQrScanner} sx={{ mt: 1 }}>
@@ -305,36 +305,34 @@ const FrequencyList = () => {
             )}
           </Box>
 
-          <Box sx={{ p: 2, border: "1px solid rgba(0, 0, 0, 0.12)", borderRadius: "4px", bgcolor: "#fff" }}>
+          <Box sx={{ p: 2, border: "1px solid rgba(0, 0, 0, 0.12)", borderRadius: "4px", bgcolor: "#fff", flex: 1, textAlign: "center" }}>
             <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
               Inserir Token
             </Typography>
-            <Box sx={{ textAlign: "center" }}>
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={1} justifyContent="center" alignItems="center">
-                <TextField
-                  label="Token"
-                  value={tokenInput}
-                  onChange={(e) => setTokenInput(e.target.value)}
-                  sx={commonStyles.tokenInput}
-                  placeholder="Cole o token aqui"
-                />
-                <Button
-                  variant="contained"
-                  onClick={handleTokenSubmit}
-                  sx={{
-                    bgcolor: "#087619",
-                    "&:hover": { bgcolor: "#065412" },
-                    textTransform: "none",
-                    width: { xs: "100%", sm: "150px" },
-                    height: { xs: 40, sm: 36 },
-                    fontWeight: "bold",
-                    fontSize: { xs: "0.9rem", sm: "1rem" },
-                  }}
-                >
-                  Enviar Token
-                </Button>
-              </Stack>
-            </Box>
+            <Stack direction="column" spacing={1} alignItems="center">
+              <TextField
+                label="Token"
+                value={tokenInput}
+                onChange={(e) => setTokenInput(e.target.value)}
+                sx={commonStyles.tokenInput}
+                placeholder="Cole o token aqui"
+              />
+              <Button
+                variant="contained"
+                onClick={handleTokenSubmit}
+                sx={{
+                  bgcolor: "#087619",
+                  "&:hover": { bgcolor: "#065412" },
+                  textTransform: "none",
+                  width: { xs: "100%", sm: "150px" },
+                  height: { xs: 40, sm: 36 },
+                  fontWeight: "bold",
+                  fontSize: { xs: "0.9rem", sm: "1rem" },
+                }}
+              >
+                Enviar Token
+              </Button>
+            </Stack>
           </Box>
         </Box>
       )}

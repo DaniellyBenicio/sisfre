@@ -258,7 +258,7 @@ const FrequencyList = () => {
         sx={{
           mb: 2,
           "& .MuiTab-root": { textTransform: "none", fontWeight: "bold", fontSize: { xs: "0.9rem", sm: "1rem" }, color: "rgba(0, 0, 0, 0.6)" },
-          "& .Mui-selected": { color: "#087619" },
+          "& .Mui-selected": { color: "#087619 !important" }, // Força a cor verde nas abas selecionadas
           "& .MuiTabs-indicator": { backgroundColor: "#087619" },
         }}
       >

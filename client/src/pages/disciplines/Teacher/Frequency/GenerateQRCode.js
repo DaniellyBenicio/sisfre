@@ -9,7 +9,7 @@ import {
   IconButton,
   MenuItem,
 } from "@mui/material";
-import { ContentCopy } from "@mui/icons-material";
+import { ContentCopy, Close } from "@mui/icons-material";
 import api from "../../../../service/api";
 import { CustomAlert } from "../../../../components/alert/CustomAlert";
 import { StyledSelect } from "../../../../components/inputs/Input";
@@ -104,8 +104,14 @@ const GenerateQRCode = ({ setAlert }) => {
     }
   };
 
+  const handleCancel = () => {
+    setCourseClassId("");
+    setQrImage(null);
+    setToken(null);
+  };
+
   const commonFormControlSx = {
-    width: { xs: "100%", sm: "200px" },
+    width: { xs: "100%", sm: "250px" },
     "& .MuiInputBase-root": {
       height: { xs: 40, sm: 36 },
       display: "flex",
@@ -153,17 +159,19 @@ const GenerateQRCode = ({ setAlert }) => {
   return (
     <Box
       sx={{
-        p: 2,
+        p: 3,
         border: "1px solid rgba(0, 0, 0, 0.12)",
         borderRadius: "4px",
-        backgroundColor: "#fff",
-        mb: 2,
+        bgcolor: "#fff",
+        textAlign: "center",
+        maxWidth: "600px",
+        mx: "auto",
+        minHeight: qrImage ? "300px" : "200px",
       }}
     >
       <Typography
         variant="h6"
-        gutterBottom
-        sx={{ fontWeight: "bold", mb: 2 }}
+        sx={{ fontWeight: "bold", mb: 4 }}
       >
         Gerar QR Code
       </Typography>
@@ -179,8 +187,10 @@ const GenerateQRCode = ({ setAlert }) => {
       )}
       <Stack
         direction={{ xs: "column", sm: "row" }}
-        spacing={2}
-        alignItems={{ xs: "stretch", sm: "center" }}
+        spacing={3}
+        alignItems="center"
+        justifyContent="center"
+        sx={{ mb: 4 }}
       >
         <FormControl sx={commonFormControlSx}>
           <InputLabel id="course-class-label">Turma</InputLabel>
@@ -207,8 +217,8 @@ const GenerateQRCode = ({ setAlert }) => {
           onClick={handleGenerateQRCode}
           disabled={loading || courseClasses.length === 0}
           sx={{
-            backgroundColor: "#087619",
-            "&:hover": { backgroundColor: "#065412" },
+            bgcolor: "#087619",
+            "&:hover": { bgcolor: "#065412" },
             textTransform: "none",
             width: { xs: "100%", sm: "200px" },
             height: { xs: 40, sm: 36 },
@@ -220,21 +230,52 @@ const GenerateQRCode = ({ setAlert }) => {
         </Button>
       </Stack>
       {qrImage && (
-        <Box sx={{ mt: 2, textAlign: "center" }}>
+        <Box sx={{ mt: 4 }}>
           <Typography variant="subtitle1" gutterBottom>
             QR Code Gerado:
           </Typography>
           <img
             src={qrImage}
             alt="QR Code"
-            style={{ maxWidth: "200px", marginBottom: "10px" }}
+            style={{ maxWidth: "250px", marginBottom: "20px", display: "block", marginLeft: "auto", marginRight: "auto" }}
           />
-          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>
             <Typography variant="body2">
               <strong>Token:</strong> {token}
             </Typography>
             <IconButton onClick={handleCopyToken} title="Copiar Token">
               <ContentCopy />
+            </IconButton>
+          </Box>
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+            <IconButton
+              onClick={handleCancel}
+              sx={{
+                borderRadius: "8px",
+                padding: "8px 28px",
+                textTransform: "none",
+                fontWeight: "bold",
+                fontSize: "0.875rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                width: "fit-content",
+                minWidth: 100,
+                backgroundColor: "#F01424",
+                color: "#fff",
+                "&:hover": { backgroundColor: "#D4000F" },
+                "@media (max-width: 600px)": {
+                  fontSize: "0.7rem",
+                  padding: "4px 8px",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  maxWidth: "120px",
+                },
+              }}
+            >
+              <Close sx={{ fontSize: { xs: 20, sm: 24 } }} />
+              Cancelar
             </IconButton>
           </Box>
         </Box>

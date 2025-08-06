@@ -10,8 +10,9 @@ import {
   MenuItem,
   Tabs,
   Tab,
+  IconButton,
 } from "@mui/material";
-import { QrCodeScanner } from "@mui/icons-material";
+import { QrCodeScanner, Close } from "@mui/icons-material";
 import jsQR from "jsqr";
 import api from "../../../../service/api";
 import { CustomAlert } from "../../../../components/alert/CustomAlert";
@@ -258,7 +259,7 @@ const FrequencyList = () => {
         sx={{
           mb: 2,
           "& .MuiTab-root": { textTransform: "none", fontWeight: "bold", fontSize: { xs: "0.9rem", sm: "1rem" }, color: "rgba(0, 0, 0, 0.6)" },
-          "& .Mui-selected": { color: "#087619 !important" }, // Força a cor verde nas abas selecionadas
+          "& .Mui-selected": { color: "#087619 !important" },
           "& .MuiTabs-indicator": { backgroundColor: "#087619" },
         }}
       >
@@ -276,12 +277,38 @@ const FrequencyList = () => {
               Escanear QR Code
             </Typography>
             {showQrScanner ? (
-              <Box>
+              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
                 <video ref={videoRef} style={{ width: "100%", maxWidth: "300px", mx: "auto" }} />
                 <canvas ref={canvasRef} style={{ display: "none" }} />
-                <Button variant="outlined" onClick={stopQrScanner} sx={{ mt: 1 }}>
+                <IconButton
+                  onClick={stopQrScanner}
+                  sx={{
+                    borderRadius: "8px",
+                    padding: "8px 28px",
+                    textTransform: "none",
+                    fontWeight: "bold",
+                    fontSize: "0.875rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    width: "fit-content",
+                    minWidth: 100,
+                    backgroundColor: "#F01424",
+                    color: "#fff",
+                    "&:hover": { backgroundColor: "#D4000F" },
+                    "@media (max-width: 600px)": {
+                      fontSize: "0.7rem",
+                      padding: "4px 8px",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      maxWidth: "120px",
+                    },
+                  }}
+                >
+                  <Close sx={{ fontSize: { xs: 20, sm: 24 } }} />
                   Cancelar
-                </Button>
+                </IconButton>
               </Box>
             ) : (
               <Button

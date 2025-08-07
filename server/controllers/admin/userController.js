@@ -9,7 +9,6 @@ export const registerUser = async (req, res) => {
       error: "Email, nome e tipo de acesso são obrigatórios",
     });
   }
-  //adicionado o email do aluno para testar recebimento de link
   if (
     !email.endsWith("@ifce.edu.br") &&
     !email.endsWith("@aluno.ifce.edu.br")
@@ -70,7 +69,6 @@ export const updateUser = async (req, res) => {
   }
 
   try {
-    // Verificar se o usuário existe
     const user = await db.User.findByPk(userId, {
       attributes: { exclude: ["password"] },
     });
@@ -84,26 +82,31 @@ export const updateUser = async (req, res) => {
       });
     }
 
-    // Verificar se o e-mail foi alterado e já existe outro usuário com o novo e-mail
     if (email && email !== user.email) {
-      const existingUser = await db.User.findOne({ where: { email } });
+      if (
+        !email.endsWith("@ifce.edu.br") &&
+        !email.endsWith("@aluno.ifce.edu.br")
+      ) {
+        return res.status(400).json({
+          error:
+            "Apenas e-mails institucionais (@ifce.edu.br ou @aluno.ifce.edu.br) são permitidos",
+        });
+      }
 
+      const existingUser = await db.User.findOne({ where: { email } });
       if (existingUser) {
         return res
           .status(400)
           .json({ error: "E-mail já cadastrado. Tente outro." });
       }
-      // Atualizar o e-mail
       user.email = email;
     }
 
-    // Se a senha foi fornecida, criptografá-la
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);
       user.password = hashedPassword;
     }
 
-    // Atualizar o username, se fornecido
     if (username) {
       user.username = username;
     }
@@ -118,7 +121,6 @@ export const updateUser = async (req, res) => {
       });
     }
 
-    // Salvar as alterações no banco de dados
     await user.save();
 
     const userResponse = {
@@ -144,18 +146,15 @@ export const getUsers = async (req, res) => {
   const { username, page = 1, limit = 10, order = "asc", isActive } = req.query;
 
   try {
-    // Calculate the offset for pagination
     const offset = (page - 1) * limit;
 
-    // Set up the 'where' clause to exclude admins and optionally filter by username
     const where = {
-      accessType: { [db.Sequelize.Op.ne]: "admin" }, // Exclude users of type 'admin'
+      accessType: { [db.Sequelize.Op.ne]: "admin" },
     };
 
     if (username) {
-      // Add the username filter to the 'where' clause if 'username' is provided
       where.username = {
-        [db.Sequelize.Op.like]: `%${username}%`, // Partial match for username
+        [db.Sequelize.Op.like]: `%${username}%`,
       };
     }
 
@@ -163,18 +162,16 @@ export const getUsers = async (req, res) => {
       where.isActive = isActive === "true";
     }
 
-    // Use findAndCountAll to get both paginated data and total count
     const { rows, count } = await db.User.findAndCountAll({
       where,
       limit: parseInt(limit),
       offset,
       order: [["username", order === "asc" ? "ASC" : "DESC"]],
       attributes: {
-        exclude: ["password"], // Exclui o campo 'password' da resposta
+        exclude: ["password"],
       },
     });
 
-    // Return the paginated data along with the total count
     res.json({
       users: rows,
       total: count,
@@ -182,7 +179,7 @@ export const getUsers = async (req, res) => {
       totalPages: Math.ceil(count / limit),
     });
   } catch (error) {
-    console.error("Erro ao listar usuários:", error.message); // Log mais detalhado
+    console.error("Erro ao listar usuários:", error.message);
     res.status(500).json({ error: "Erro ao listar usuários" });
   }
 };
@@ -225,12 +222,10 @@ export const getUserById = async (req, res) => {
     const user = await db.User.findByPk(userId, {
       attributes: { exclude: ["password"] },
     });
-    // Verificar se o usuário foi encontrado
     if (!user) {
       return res.status(404).json({ error: "Usuário não encontrado" });
     }
 
-    // Retornar o usuário encontrado
     res.json({ user });
   } catch (error) {
     res.status(500).json({ error: "Erro ao buscar usuário" });
@@ -241,10 +236,66 @@ export const deleteUser = async (req, res) => {
   const userId = req.params.id;
 
   try {
-    const user = await db.User.findByPk(userId);
+    const user = await db.User.findByPk(userId, {
+      include: [
+        {
+          model: db.ClassScheduleDetail,
+          as: "scheduleDetails",
+          include: {
+            model: db.ClassSchedule,
+            as: "schedule",
+            include: {
+              model: db.Class,
+              as: "class",
+              include: {
+                model: db.Course,
+                as: "course",
+                through: {
+                  attributes: ["isActive"],
+                  where: { isActive: true },
+                },
+              },
+            },
+          },
+        },
+      ],
+    });
 
     if (!user) {
       return res.status(404).json({ error: "Usuário não encontrado." });
+    }
+
+    const accessType = user.accessType;
+
+    if (user.isActive) {
+      if (accessType === "Coordenador") {
+        const cursoCoordenado = await db.Course.findOne({
+          where: { coordinatorId: user.id },
+        });
+
+        if (cursoCoordenado) {
+          return res.status(400).json({
+            error:
+              "Não é possível inativar: o coordenador está vinculado a um curso.",
+          });
+        }
+      }
+
+      if (accessType === "Professor") {
+        const temTurmaAtiva = user.scheduleDetails.some((detail) => {
+          return (
+            detail.schedule?.class?.course &&
+            detail.schedule.class.course.length > 0
+          );
+        });
+
+        if (temTurmaAtiva) {
+          return res.status(400).json({
+            error:
+              "Não é possível inativar: o professor possui aulas em turmas ativas.",
+          });
+        }
+      }
     }
 
     user.isActive = !user.isActive;
@@ -254,11 +305,12 @@ export const deleteUser = async (req, res) => {
       ? "Usuário ativado com sucesso."
       : "Usuário inativado com sucesso.";
 
-    res
-      .status(200)
-      .json({ message, user: { ...user.get(), password: undefined } });
+    res.status(200).json({
+      message,
+      user: { ...user.get(), password: undefined },
+    });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Erro ao alterar o status do usuário." });
+    res.status(500).json({ error: "Erro interno do servidor." });
   }
 };

@@ -314,3 +314,38 @@ export const deleteUser = async (req, res) => {
     res.status(500).json({ error: "Erro interno do servidor." });
   }
 };
+
+
+export const getCoordinators = async (req, res) => {
+  try {
+    const { courseId } = req.query; 
+    const where = {
+      accessType: "Coordenador",
+      isActive: true,
+    };
+
+    const coordinators = await db.User.findAll({
+      where,
+      attributes: ["id", "username", "email"],
+      order: [["username", "ASC"]],
+    });
+
+    const courses = await db.Course.findAll({
+      where: courseId ? { id: { [db.Sequelize.Op.ne]: courseId } } : {}, 
+      attributes: ["coordinatorId"],
+    });
+
+    const assignedCoordinatorIds = courses
+      .filter((course) => course.coordinatorId)
+      .map((course) => course.coordinatorId);
+
+    const availableCoordinators = coordinators.filter(
+      (coordinator) => !assignedCoordinatorIds.includes(coordinator.id)
+    );
+
+    res.json({ users: availableCoordinators });
+  } catch (error) {
+    console.error("Erro ao listar coordenadores:", error.message);
+    res.status(500).json({ error: "Erro ao listar coordenadores" });
+  }
+};

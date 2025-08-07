@@ -69,9 +69,34 @@ const FrequencyList = () => {
     },
     tokenInput: {
       width: { xs: "100%", sm: "300px" },
-      "& .MuiInputBase-root": { height: { xs: 40, sm: 36 } },
-      "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(0, 0, 0, 0.23)" },
-      "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#000000" },
+      "& .MuiInputBase-root": {
+        height: { xs: 56, sm: 56 },
+      },
+      "& .MuiOutlinedInput-notchedOutline": {
+        borderColor: "rgba(0, 0, 0, 0.23)",
+        borderWidth: "1px",
+      },
+      "&:hover .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#000000",
+        borderWidth: "1px",
+      },
+      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#000000",
+        borderWidth: "1px",
+      },
+      "& .MuiInputLabel-root": {
+        top: "50%",
+        transform: "translate(14px, -50%)",
+        fontSize: "1rem",
+        "@media (max-width: 600px)": {
+          fontSize: "0.875rem",
+        },
+        "&.Mui-focused, &.MuiInputLabel-shrink": {
+          top: 0,
+          transform: "translate(14px, -9px) scale(0.75)",
+          color: "#000000",
+        },
+      },
     },
   };
 
@@ -158,7 +183,7 @@ const FrequencyList = () => {
         navigator.geolocation.getCurrentPosition(resolve, reject);
       });
       const { latitude, longitude } = position.coords;
-      const userId = "1"; // Substitua pelo ID do usuário autenticado
+      const userId = "1";
       const response = await api.post("/frequency/scan", { token, userId, latitude, longitude });
       setAlert({ message: response.data.message, type: "success" });
       setShowQrScanner(false);
@@ -257,7 +282,7 @@ const FrequencyList = () => {
         onChange={handleTabChange}
         centered
         sx={{
-          mb: 2,
+          mb: 1,
           "& .MuiTab-root": { textTransform: "none", fontWeight: "bold", fontSize: { xs: "0.9rem", sm: "1rem" }, color: "rgba(0, 0, 0, 0.6)" },
           "& .Mui-selected": { color: "#087619 !important" },
           "& .MuiTabs-indicator": { backgroundColor: "#087619" },
@@ -267,13 +292,15 @@ const FrequencyList = () => {
         <Tab label="Escanear QR Code" />
         <Tab label="Frequências" />
       </Tabs>
-      <Box sx={{ height: "2px", boxShadow: "0 1px 3px rgba(0, 0, 0, 0.2)", width: "100%", mb: 2 }} /> {/* Linha com relevo sem cor verde */}
+      <Box sx={{ height: "2px", boxShadow: "0 1px 3px rgba(0, 0, 0, 0.2)", width: "100%", mb: 2 }} />
+
+      {alert && <CustomAlert message={alert.message} type={alert.type} onClose={() => setAlert(null)} />}
 
       {tabValue === 0 && <GenerateQRCode setAlert={setAlert} />}
 
       {tabValue === 1 && (
         <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2 }}>
-          <Box sx={{ p: 2, border: "1px solid rgba(0, 0, 0, 0.12)", borderRadius: "4px", bgcolor: "#fff", flex: 1, textAlign: "center" }}>
+          <Box sx={{ p: 2, boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", borderRadius: "4px", textAlign: "center", flex: 1 }}>
             <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
               Escanear QR Code
             </Typography>
@@ -333,7 +360,7 @@ const FrequencyList = () => {
             )}
           </Box>
 
-          <Box sx={{ p: 2, border: "1px solid rgba(0, 0, 0, 0.12)", borderRadius: "4px", bgcolor: "#fff", flex: 1, textAlign: "center" }}>
+          <Box sx={{ p: 2, boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", borderRadius: "4px", textAlign: "center", flex: 1 }}>
             <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
               Inserir Token
             </Typography>
@@ -431,8 +458,6 @@ const FrequencyList = () => {
           {loading && <Typography align="center">Carregando frequências...</Typography>}
         </Box>
       )}
-
-      {alert && <CustomAlert message={alert.message} type={alert.type} onClose={() => setAlert(null)} />}
     </Box>
   );
 };

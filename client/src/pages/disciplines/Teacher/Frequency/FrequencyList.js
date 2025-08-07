@@ -12,13 +12,38 @@ import {
   Tab,
   IconButton,
 } from "@mui/material";
-import { QrCodeScanner, Close } from "@mui/icons-material";
+import { QrCodeScanner, Close, Save } from "@mui/icons-material"; // Updated import to include only necessary icons
 import jsQR from "jsqr";
 import api from "../../../../service/api";
 import { CustomAlert } from "../../../../components/alert/CustomAlert";
 import FrequenciesTable from "./FrequenciesTable";
 import GenerateQRCode from "./GenerateQRCode";
 import { StyledSelect } from "../../../../components/inputs/Input";
+import { styled } from "@mui/material/styles";
+
+// Define the institutional color from UserFormDialog
+const INSTITUTIONAL_COLOR = "#307c34";
+
+// Estilo do botão usando a função `styled` do Material-UI
+const StyledButton = styled(Button)(() => ({
+  borderRadius: "8px",
+  padding: "8px 28px",
+  textTransform: "none",
+  fontWeight: "bold",
+  fontSize: "0.875rem",
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+  width: "120px", // Fixed width to ensure both buttons are the same size horizontally
+  "@media (max-width: 600px)": {
+    fontSize: "0.7rem",
+    padding: "4px 8px",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    maxWidth: "100px",
+  },
+}));
 
 const FrequencyList = () => {
   const [frequencies, setFrequencies] = useState([]);
@@ -88,14 +113,15 @@ const FrequencyList = () => {
         top: "50%",
         transform: "translate(14px, -50%)",
         fontSize: "1rem",
+        color: "rgba(0, 0, 0, 0.6)",
         "@media (max-width: 600px)": {
           fontSize: "0.875rem",
         },
-        "&.Mui-focused, &.MuiInputLabel-shrink": {
-          top: 0,
-          transform: "translate(14px, -9px) scale(0.75)",
-          color: "#000000",
-        },
+      },
+      "& .MuiInputLabel-shrink": {
+        top: 0,
+        transform: "translate(14px, -9px) scale(0.75)",
+        color: "#000000",
       },
     },
   };
@@ -269,6 +295,11 @@ const FrequencyList = () => {
     setTokenInput("");
   };
 
+  const handleCancelToken = () => {
+    setTokenInput("");
+    setAlert(null);
+  };
+
   const filteredFrequencies = applyFilters(frequencies);
 
   return (
@@ -308,35 +339,17 @@ const FrequencyList = () => {
               <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
                 <video ref={videoRef} style={{ width: "100%", maxWidth: "300px", mx: "auto" }} />
                 <canvas ref={canvasRef} style={{ display: "none" }} />
-                <IconButton
+                <StyledButton
                   onClick={stopQrScanner}
+                  variant="contained"
                   sx={{
-                    borderRadius: "8px",
-                    padding: "8px 28px",
-                    textTransform: "none",
-                    fontWeight: "bold",
-                    fontSize: "0.875rem",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    width: "fit-content",
-                    minWidth: 100,
                     backgroundColor: "#F01424",
-                    color: "#fff",
                     "&:hover": { backgroundColor: "#D4000F" },
-                    "@media (max-width: 600px)": {
-                      fontSize: "0.7rem",
-                      padding: "4px 8px",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      maxWidth: "120px",
-                    },
                   }}
                 >
                   <Close sx={{ fontSize: { xs: 20, sm: 24 } }} />
                   Cancelar
-                </IconButton>
+                </StyledButton>
               </Box>
             ) : (
               <Button
@@ -372,21 +385,36 @@ const FrequencyList = () => {
                 sx={commonStyles.tokenInput}
                 placeholder="Cole o token aqui"
               />
-              <Button
-                variant="contained"
-                onClick={handleTokenSubmit}
-                sx={{
-                  bgcolor: "#087619",
-                  "&:hover": { bgcolor: "#065412" },
-                  textTransform: "none",
-                  width: { xs: "100%", sm: "150px" },
-                  height: { xs: 40, sm: 36 },
-                  fontWeight: "bold",
-                  fontSize: { xs: "0.9rem", sm: "1rem" },
-                }}
-              >
-                Enviar Token
-              </Button>
+              <Stack direction="row" spacing={1} sx={{ mt: 1, justifyContent: "center" }}>
+                <StyledButton
+                  onClick={handleCancelToken}
+                  variant="contained"
+                  disabled={!tokenInput} // Disabled when tokenInput is empty
+                  sx={{
+                    backgroundColor: !tokenInput ? "#E0E0E0" : "#F01424",
+                    "&:hover": {
+                      backgroundColor: !tokenInput ? "#E0E0E0" : "#D4000F",
+                    },
+                  }}
+                >
+                  <Close sx={{ fontSize: { xs: 20, sm: 24 } }} />
+                  Cancelar
+                </StyledButton>
+                <StyledButton
+                  onClick={handleTokenSubmit}
+                  variant="contained"
+                  disabled={!tokenInput} // Disabled when tokenInput is empty
+                  sx={{
+                    backgroundColor: !tokenInput ? "#E0E0E0" : INSTITUTIONAL_COLOR,
+                    "&:hover": {
+                      backgroundColor: !tokenInput ? "#E0E0E0" : "#26692b",
+                    },
+                  }}
+                >
+                  <Save sx={{ fontSize: { xs: 20, sm: 24 } }} />
+                  Enviar
+                </StyledButton>
+              </Stack>
             </Stack>
           </Box>
         </Box>

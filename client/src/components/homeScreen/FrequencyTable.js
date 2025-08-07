@@ -12,7 +12,7 @@ import {
   Typography,
   useMediaQuery,
 } from '@mui/material';
-import { Edit } from '@mui/icons-material';
+import { Note } from '@mui/icons-material';
 import Paginate from '../paginate/Paginate';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
@@ -99,7 +99,7 @@ const FrequencyTable = ({
                       },
                     }}
                   >
-                    <Edit />
+                    <Note />
                   </IconButton>
                 </Stack>
               </Paper>
@@ -129,7 +129,7 @@ const FrequencyTable = ({
                         },
                       }}
                     >
-                      <Edit />
+                      <Note />
                     </IconButton>
                   </Stack>
                 </Stack>
@@ -210,7 +210,7 @@ const FrequencyTable = ({
                         },
                       }}
                     >
-                      <Edit />
+                      <Note />
                     </IconButton>
                   </TableCell>
                 </TableRow>

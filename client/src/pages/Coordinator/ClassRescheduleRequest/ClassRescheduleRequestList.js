@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -12,70 +12,70 @@ import {
 import { MailOutline, ArrowForward, ArrowBack } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import Paginate from "../../../components/paginate/Paginate";
+import api from "../../../service/api";
 
 const ClassRecheduleRequestList = ({ setAuthenticated }) => {
   const navigate = useNavigate();
   const accessType = localStorage.getItem("accessType") || "";
   const [page, setPage] = useState(1);
+  const [requests, setRequests] = useState([]);
   const itemsPerPage = 6;
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const RequestList = [
-    {
-      id: 1,
-      title: "Reposição",
-      teacher: "João Silva",
-      date: "17/07/2025",
-      discipline: "PRINTII",
-      class: "S7",
-      shift: "Manhã",
-      time: "08:00 - 10:00",
-      weekday: "Segunda-feira",
-      observations: "Aula remarcada devido a feriado.",
-    },
-    {
-      id: 2,
-      title: "Anteposição",
-      teacher: "Maria Oliveira",
-      date: "17/07/2025",
-      discipline: "BDI",
-      class: "S4",
-      shift: "Tarde",
-      time: "13:00 - 15:00",
-      weekday: "Terça-feira",
-      observations: "",
-    },
-    {
-      id: 3,
-      title: "Anteposição",
-      teacher: "Maria Oliveira",
-      date: "17/07/2025",
-      discipline: "LDS",
-      class: "S7",
-      shift: "Tarde",
-      time: "13:00 - 15:00",
-      weekday: "Sexta-feira",
-      observations: "",
-    },  
-  ];
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        const response = await api.get("/request");
+        setRequests(response.data.requests);
+      } catch (error) {
+        console.error("Erro ao buscar solicitações:", error);
+      }
+    };
+    fetchRequests();
+  }, []);
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "N/A";
+    return date.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      timeZone: "UTC",
+    });
+  };
+
+  const formattedRequests = requests.map((request) => ({
+    id: request.id,
+    title: request.type === "reposicao" ? "Reposição" : "Anteposição",
+    teacher: request.professor?.username || "Desconhecido",
+    date: formatDate(request.createdAt),
+    discipline: request.disciplinaclasse?.disciplineName || "N/A",
+    class: request.disciplinaclasse?.classCode || "N/A",
+    shift: request.disciplinaclasse?.shift || "N/A",
+    time: request.disciplinaclasse?.time || "N/A",
+    weekday: request.disciplinaclasse?.weekday || "N/A",
+    observations: request.observation || "",
+  }));
 
   const handleCardClick = (option) => {
     const targetPath = accessType === "Admin" && option.adminPath ? option.adminPath : option.path;
     navigate(targetPath);
   };
 
-  const totalItems = RequestList.length;
+  const totalItems = formattedRequests.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (page - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
-  const paginatedList = RequestList.slice(startIndex, endIndex);
+  const paginatedList = formattedRequests.slice(startIndex, endIndex);
 
   const handlePageChange = (event, value) => {
     setPage(value);
   };
 
-	const handleBackClick = () => {
+  const handleBackClick = () => {
     navigate("/teachers-management/options");
   };
 

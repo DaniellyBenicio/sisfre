@@ -12,7 +12,7 @@ import {
   Tab,
   IconButton,
 } from "@mui/material";
-import { QrCodeScanner, Close, Save } from "@mui/icons-material"; // Updated import to include only necessary icons
+import { QrCodeScanner, Close, Save } from "@mui/icons-material";
 import jsQR from "jsqr";
 import api from "../../../../service/api";
 import { CustomAlert } from "../../../../components/alert/CustomAlert";
@@ -21,10 +21,10 @@ import GenerateQRCode from "./GenerateQRCode";
 import { StyledSelect } from "../../../../components/inputs/Input";
 import { styled } from "@mui/material/styles";
 
-// Define the institutional color from UserFormDialog
+// Define the institutional color
 const INSTITUTIONAL_COLOR = "#307c34";
 
-// Estilo do botão usando a função `styled` do Material-UI
+// Styled button
 const StyledButton = styled(Button)(() => ({
   borderRadius: "8px",
   padding: "8px 28px",
@@ -34,7 +34,7 @@ const StyledButton = styled(Button)(() => ({
   display: "flex",
   alignItems: "center",
   gap: "8px",
-  width: "120px", // Fixed width to ensure both buttons are the same size horizontally
+  width: "120px",
   "@media (max-width: 600px)": {
     fontSize: "0.7rem",
     padding: "4px 8px",
@@ -58,6 +58,34 @@ const FrequencyList = () => {
   const [tokenInput, setTokenInput] = useState("");
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+
+  // Mock data with at least one absence to enable the Edit icon
+  const mockFrequencies = [
+    {
+      id: 1,
+      date: "2025-08-01",
+      displayDate: "01/08/2025",
+      class: "Turma A",
+      time: "08:00",
+      status: "Falta",
+    },
+    {
+      id: 2,
+      date: "2025-08-02",
+      displayDate: "02/08/2025",
+      class: "Turma B",
+      time: "09:00",
+      status: "Presença",
+    },
+    {
+      id: 3,
+      date: "2025-08-03",
+      displayDate: "03/08/2025",
+      class: "Turma C",
+      time: "10:00",
+      status: "Falta",
+    },
+  ];
 
   const commonStyles = {
     formControl: {
@@ -129,16 +157,18 @@ const FrequencyList = () => {
   const fetchFrequencies = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/frequency");
-      const formattedData = response.data.map((freq) => ({
-        id: freq.id,
-        date: freq.date,
-        displayDate: freq.date ? new Date(freq.date + "T00:00:00").toLocaleDateString("pt-BR") : "N/A",
-        class: freq.disciplinaclasse?.name || "N/A",
-        time: freq.time || "N/A",
-        status: freq.status || "Presença",
-      }));
-      setFrequencies(formattedData);
+      // Commented out API call to use mock data
+      // const response = await api.get("/frequency");
+      // const formattedData = response.data.map((freq) => ({
+      //   id: freq.id,
+      //   date: freq.date,
+      //   displayDate: freq.date ? new Date(freq.date + "T00:00:00").toLocaleDateString("pt-BR") : "N/A",
+      //   class: freq.disciplinaclasse?.name || "N/A",
+      //   time: freq.time || "N/A",
+      //   status: freq.status || "Presença",
+      // }));
+      // setFrequencies(formattedData);
+      setFrequencies(mockFrequencies); // Use mock data
     } catch (error) {
       console.error("Erro ao buscar frequências:", error);
       setAlert({ message: "Erro ao carregar as frequências.", type: "error" });
@@ -389,7 +419,7 @@ const FrequencyList = () => {
                 <StyledButton
                   onClick={handleCancelToken}
                   variant="contained"
-                  disabled={!tokenInput} // Disabled when tokenInput is empty
+                  disabled={!tokenInput}
                   sx={{
                     backgroundColor: !tokenInput ? "#E0E0E0" : "#F01424",
                     "&:hover": {
@@ -403,7 +433,7 @@ const FrequencyList = () => {
                 <StyledButton
                   onClick={handleTokenSubmit}
                   variant="contained"
-                  disabled={!tokenInput} // Disabled when tokenInput is empty
+                  disabled={!tokenInput}
                   sx={{
                     backgroundColor: !tokenInput ? "#E0E0E0" : INSTITUTIONAL_COLOR,
                     "&:hover": {
@@ -478,7 +508,6 @@ const FrequencyList = () => {
           </Stack>
           <FrequenciesTable
             frequencies={filteredFrequencies}
-            onUpload={handleUploadFrequency}
             search=""
             isFiltered={filterStatus !== "all" || filterPeriod !== "all" || (filterPeriod === "custom" && (customStartDate || customEndDate))}
             setAlert={setAlert}

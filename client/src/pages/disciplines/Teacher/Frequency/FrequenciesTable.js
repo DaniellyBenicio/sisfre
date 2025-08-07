@@ -2,7 +2,7 @@ import React from 'react';
 import { Stack, Typography } from "@mui/material";
 import FrequencyTable from "../../../../components/homeScreen/FrequencyTable"; 
 
-const FrequenciesTable = ({ frequencies, onUpload, search, isFiltered, setAlert }) => {
+const FrequenciesTable = ({ frequencies, search, isFiltered, setAlert }) => {
   const capitalizeOnlyFirst = (str) => {
     if (!str) return "";
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
@@ -39,7 +39,6 @@ const FrequenciesTable = ({ frequencies, onUpload, search, isFiltered, setAlert 
     <FrequencyTable
       data={formattedFrequencies}
       headers={headers}
-      onUpload={onUpload}
       search={search}
       renderMobileRow={renderMobileRow}
       isFiltered={isFiltered}

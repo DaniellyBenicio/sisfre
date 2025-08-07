@@ -36,6 +36,7 @@ import ReplacementPage from "../pages/disciplines/Teacher/reposition/Preposition
 import AntepositionPage from "../pages/disciplines/Teacher/Anteposition/AntepositionPage.js";
 import TeacherSchedule from "../pages/Coordinator/TeacherManagement/TeacherSchedule.js";
 import TeacherClassReschedules from "../pages/Coordinator/TeacherManagement/TeacherClassReschedules.js";
+import JustificationForm from "../pages/disciplines/Teacher/Frequency/JustificationForm.js";
 
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
@@ -289,6 +290,16 @@ const AppRoutes = () => {
           }
         />
         <Route
+          path="/justify"
+          element={
+            isAuthenticated && (accessType === "Professor" || accessType === "Coordenador") ? (
+              <JustificationForm setAuthenticated={handleLogout} />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+        <Route
           path="/class-reschedule-options"
           element={
             isAuthenticated && (accessType === "Professor" || accessType === "Coordenador") ? (
@@ -418,7 +429,6 @@ const AppRoutes = () => {
             )
           }
         />
-
         <Route
           path="/MainScreen"
           element={

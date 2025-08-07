@@ -12,7 +12,7 @@ import {
   Typography,
   useMediaQuery,
 } from '@mui/material';
-import { CloudUpload } from '@mui/icons-material';
+import { Edit } from '@mui/icons-material';
 import Paginate from '../paginate/Paginate';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
@@ -67,11 +67,11 @@ const FrequencyTable = ({
 
   const showNoItemsFound = safeData.length === 0 || (visibleData.length === 0 && (search || isFiltered));
 
-  const handleUpload = (item) => {
+  const handleJustify = (item) => {
     if (item.status === 'Falta') {
-      navigate('/preposition', { state: { frequencyItem: item } });
+      navigate('/justify', { state: { frequencyItem: item } });
     } else {
-      setAlert({ message: 'Upload only available for "Falta" status.', type: 'warning' });
+      setAlert({ message: 'Justificativa disponível apenas para status "Falta".', type: 'warning' });
     }
   };
 
@@ -89,7 +89,7 @@ const FrequencyTable = ({
                 {renderMobileRow(item)}
                 <Stack direction="row" spacing={1} justifyContent="center">
                   <IconButton
-                    onClick={() => handleUpload(item)}
+                    onClick={() => handleJustify(item)}
                     disabled={item.status !== 'Falta'}
                     sx={{
                       color: item.status !== 'Falta' ? 'rgba(0, 0, 0, 0.26)' : '#087619',
@@ -99,7 +99,7 @@ const FrequencyTable = ({
                       },
                     }}
                   >
-                    <CloudUpload />
+                    <Edit />
                   </IconButton>
                 </Stack>
               </Paper>
@@ -119,7 +119,7 @@ const FrequencyTable = ({
                   ))}
                   <Stack direction="row" spacing={1} justifyContent="center">
                     <IconButton
-                      onClick={() => handleUpload(item)}
+                      onClick={() => handleJustify(item)}
                       disabled={item.status !== 'Falta'}
                       sx={{
                         color: item.status !== 'Falta' ? 'rgba(0, 0, 0, 0.26)' : '#087619',
@@ -129,7 +129,7 @@ const FrequencyTable = ({
                         },
                       }}
                     >
-                      <CloudUpload />
+                      <Edit />
                     </IconButton>
                   </Stack>
                 </Stack>
@@ -192,7 +192,7 @@ const FrequencyTable = ({
                       sx={{
                         ...tableBodyCellStyle,
                         color: (header.key === 'status' && item[header.key] === 'Falta') ? 'red' : 'inherit',
-                        fontWeight: (header.key === 'status' && item[header.key] === 'Falta') ? 'semi bold' : 'normal',
+                        fontWeight: (header.key === 'status' && item[header.key] === 'Falta') ? 'bold' : 'normal',
                       }}
                     >
                       {item[header.key]}
@@ -200,7 +200,7 @@ const FrequencyTable = ({
                   ))}
                   <TableCell align="center" sx={tableBodyCellStyle}>
                     <IconButton
-                      onClick={() => handleUpload(item)}
+                      onClick={() => handleJustify(item)}
                       disabled={item.status !== 'Falta'}
                       sx={{
                         color: item.status !== 'Falta' ? 'rgba(0, 0, 0, 0.26)' : '#087619',
@@ -210,7 +210,7 @@ const FrequencyTable = ({
                         },
                       }}
                     >
-                      <CloudUpload />
+                      <Edit />
                     </IconButton>
                   </TableCell>
                 </TableRow>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  Box, Typography, Button, MenuItem, Paper, CssBaseline, IconButton, Alert, Divider, Stack } from "@mui/material";
+  Box, Typography, Button, MenuItem, Paper, useMediaQuery, useTheme, CssBaseline, IconButton, Alert, Divider, Stack } from "@mui/material";
 import { ArrowBack, Close, Save, School, History, Delete, AddCircleOutline, Remove, Check } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../../components/SideBar";
@@ -42,6 +42,8 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailToDelete, setDetailToDelete] = useState(null);
   const errorRef = useRef(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const clearErrors = () => {
     setErrors((prev) => {
@@ -619,12 +621,20 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
           onConfirm={handleConfirmDelete}
           userName={detailToDelete ? `${detailToDelete.day} ${detailToDelete.timeSlot}` : ""}
         />
-        <Box sx={{ position: "relative", mb: 3 }} >
-          <IconButton onClick={() => navigate("/class-schedule")}
-            sx={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)" }}  
-          >
-            <ArrowBack sx={{ color: "green", fontSize: "2.2rem" }} />
-          </IconButton>
+        <Box sx={{ position: "relative", mb: 3, mt: 4 }} >
+          {!isMobile && (
+            <IconButton
+              onClick={() => navigate("/class-reschedule-request")}
+              sx={{
+                position: "absolute",
+                left: 0,
+                top: "50%",
+                transform: "translateY(-50%)",
+              }}
+            >
+              <ArrowBack sx={{ color: "green", fontSize: "2.2rem" }} />
+            </IconButton>
+          )}
           <Typography variant="h5" align="center" sx={{ fontWeight: "bold" }}>
             Cadastrar Grade de Turma
           </Typography>

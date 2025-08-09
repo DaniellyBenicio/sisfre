@@ -389,7 +389,7 @@ const ClassAntepositionList = ({ setAuthenticated }) => {
 						gutterBottom
 						sx={{ fontWeight: 'bold', flexGrow: 1, mt: 8 }}
 					>
-						Anteposições de Aula
+						Anteposições e Reposições de Aula
 					</Typography>
 				</Box>
 
@@ -442,12 +442,12 @@ const ClassAntepositionList = ({ setAuthenticated }) => {
 						</FormControl>
 
 						<FormControl sx={commonFormControlSx}>
-							<InputLabel id="filter-status-label">Status</InputLabel>
+							<InputLabel id="filter-status-label">Calendário</InputLabel>
 							<StyledSelect
 								labelId="filter-status-label"
 								id="filter-status"
 								value={filterStatus}
-								label="Status"
+								label="Calendário"
 								onChange={(e) => setFilterStatus(e.target.value)}
 								sx={commonSelectSx}
 								MenuProps={commonMenuProps}
@@ -460,12 +460,12 @@ const ClassAntepositionList = ({ setAuthenticated }) => {
 						</FormControl>
 
 						<FormControl sx={commonFormControlSx}>
-							<InputLabel id="filter-period-label">Período</InputLabel>
+							<InputLabel id="filter-period-label">Tipo</InputLabel>
 							<StyledSelect
 								labelId="filter-period-label"
 								id="filter-period"
 								value={filterPeriod}
-								label="Período"
+								label="Tipo"
 								onChange={(e) => setFilterPeriod(e.target.value)}
 								sx={commonSelectSx}
 								MenuProps={commonMenuProps}

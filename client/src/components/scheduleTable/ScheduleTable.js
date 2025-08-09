@@ -26,6 +26,7 @@ const ScheduleTable = ({ scheduleMatrix, daysOfWeek, handleDeleteDetail, sx, dis
         sx={{
           border: '1px solid #C7C7C7',
           borderRadius: 2,
+          width: '100%',
           ...sx,
         }}
       >

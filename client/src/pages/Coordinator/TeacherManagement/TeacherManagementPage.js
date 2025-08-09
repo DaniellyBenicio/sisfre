@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, CssBaseline } from '@mui/material';
 import SideBar from "../../../components/SideBar";
 import TeacherManagementList from './TeacherManagementList'; 
+
 const TeacherManagementPage = ({ setAuthenticated }) => {
   return (
     <Box sx={{ display: 'flex' }}>

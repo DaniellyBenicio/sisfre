@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Box, Typography, Button, MenuItem, Grid, Paper, CssBaseline, IconButton, Alert, Divider, TextField, Stack, } from "@mui/material";
+import { Box, Typography, Button, MenuItem, useMediaQuery, useTheme, Paper, CssBaseline, IconButton, Alert, Divider, TextField, Stack, } from "@mui/material";
 import { ArrowBack, Close, Save, School, History, AddCircleOutline, Remove, Check, } from "@mui/icons-material";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../../components/SideBar";
@@ -43,6 +43,8 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
   const [detailToDelete, setDetailToDelete] = useState(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const errorRef = useRef(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const clearErrors = () => {
     setErrors((prev) => {
@@ -796,18 +798,20 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
               : ""
           }
         />
-        <Box sx={{ position: "relative", mb: 3 }}>
-          <IconButton
-            onClick={() => navigate("/class-schedule")}
-            sx={{
-              position: "absolute",
-              left: 0,
-              top: "50%",
-              transform: "translateY(-50%)",
-            }}
-          >
-            <ArrowBack sx={{ color: "green", fontSize: "2.2rem" }} />
-          </IconButton>
+        <Box sx={{ position: "relative", mb: 5, mt: "15px" }}>
+          {!isMobile && (
+            <IconButton
+              onClick={() => navigate("/class-reschedule-request")}
+              sx={{
+                position: "absolute",
+                left: 0,
+                top: "50%",
+                transform: "translateY(-50%)",
+              }}
+            >
+              <ArrowBack sx={{ color: "green", fontSize: "2.2rem" }} />
+            </IconButton>
+          )}
           <Typography variant="h5" align="center" sx={{ fontWeight: "bold" }}>
             Editar Grade de Turma
           </Typography>

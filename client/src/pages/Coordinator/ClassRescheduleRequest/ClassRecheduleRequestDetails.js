@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -10,120 +10,170 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import { ArrowBack, School, Check, Close, Description, History, ErrorOutline } from "@mui/icons-material";
-import { useNavigate, useLocation } from "react-router-dom";
+import { ArrowBack, Description, Check, Close, AttachFile } from "@mui/icons-material";
+import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../../components/SideBar";
 import CustomAlert from "../../../components/alert/CustomAlert";
 import JustificationModal from "./JustificationModal";
+import api from "../../../service/api";
 
 const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { state } = location;
+  const { id } = useParams();
   const accessType = localStorage.getItem("accessType") || "";
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState("info");
   const [openDialog, setOpenDialog] = useState(false);
+  const [requestData, setRequestData] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  const fetchRequestDetails = async () => {
+    try {
+      const response = await api.get(`/request/${id}`);
+      console.log("Dados da solicitação:", response.data.request);
+      setRequestData(response.data.request);
+    } catch (error) {
+      console.error("Erro ao buscar detalhes:", error.response?.data || error.message);
+      setAlertMessage("Erro ao buscar detalhes da solicitação.");
+      setAlertType("error");
+      setAlertOpen(true);
+    }
+  };
+
+  useEffect(() => {
+    if (!id) {
+      setAlertMessage("ID da solicitação não fornecido.");
+      setAlertType("error");
+      setAlertOpen(true);
+      return;
+    }
+    fetchRequestDetails();
+  }, [id]);
 
   const handleAlertClose = () => {
     setAlertOpen(false);
   };
 
-  const handleValidateClick = () => {
-    setAlertMessage("Funcionalidade de Validar em desenvolvimento. VAMOS QUERER?");
-    setAlertType("info");
-    setAlertOpen(true);
+  const handleValidateClick = async () => {
+    try {
+      const route = requestData.type === "anteposicao" ? `/request/anteposition/${id}` : `/request/reposition/${id}`;
+      await api.put(route, { requestId: id });
+      setAlertMessage("Solicitação aprovada com sucesso!");
+      setAlertType("success");
+      setAlertOpen(true);
+      fetchRequestDetails();
+    } catch (error) {
+      console.error("Erro ao aprovar solicitação:", error.response?.data || error.message);
+      setAlertMessage("Erro ao aprovar a solicitação.");
+      setAlertType("error");
+      setAlertOpen(true);
+    }
   };
 
   const handleRejectClick = () => {
     setOpenDialog(true);
   };
 
+  const handleSubmitJustification = async (justification) => {
+    try {
+      await api.put(`/request/${id}`, {
+        validated: 0,
+        observationCoordinator: justification,
+      });
+      console.log("Rejeição enviada com justificativa:", justification);
+      setAlertMessage("Solicitação rejeitada com sucesso!");
+      setAlertType("success");
+      setAlertOpen(true);
+      setOpenDialog(false);
+      fetchRequestDetails();
+    } catch (error) {
+      console.error("Erro ao rejeitar solicitação:", error.response?.data || error.message);
+      setAlertMessage("Erro ao rejeitar a solicitação.");
+      setAlertType("error");
+      setAlertOpen(true);
+    }
+  };
+
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
 
-  const cardData = state || {
-    title: "Anteposição",
-    teacher: "N/A",
-    date: "N/A",
-    discipline: "N/A",
-    class: "N/A",
-    shift: "N/A",
-    time: "N/A",
-    weekday: "N/A",
-    observations: "",
-  };
+  const cardData = requestData
+    ? {
+        title: requestData.type === "anteposicao" ? "Anteposição" : "Reposição",
+        teacher: requestData.professor?.username || "N/A",
+        date: new Date(requestData.date).toLocaleDateString("pt-BR") || "N/A",
+        discipline: requestData.discipline || "N/A",
+        class: requestData.class || "N/A",
+        quantity: requestData.quantity || "N/A",
+        time: requestData.hour || "N/A",
+        observations: requestData.observation || "",
+        observationCoordinator: requestData.observationCoordinator || "",
+        validated: requestData.validated,
+      }
+    : {
+        title: "N/A",
+        teacher: "N/A",
+        date: "N/A",
+        discipline: "N/A",
+        class: "N/A",
+        quantity: "N/A",
+        time: "N/A",
+        observations: "",
+        observationCoordinator: "",
+        validated: null,
+      };
 
   return (
     <Box display="flex">
       <CssBaseline />
       <Sidebar setAuthenticated={setAuthenticated} />
-
       <Box sx={{ flexGrow: 1, p: 4, mt: 4 }}>
-        <Box
-          sx={{
-            position: "relative",
-            alignItems: "center",
-            gap: 1,
-            mb: 3,
-          }}
-        >
+        <Box sx={{ position: "relative", alignItems: "center", gap: 1, mb: 3 }}>
           {!isMobile && (
             <IconButton
               onClick={() => navigate("/class-reschedule-request")}
-              sx={{
-                position: "absolute",
-                left: 0,
-                top: "50%",
-                transform: "translateY(-50%)",
-              }}
+              sx={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)" }}
             >
               <ArrowBack sx={{ color: "green", fontSize: "2.2rem" }} />
             </IconButton>
           )}
-          <Typography
-            variant="h5"
-            align="center"
-            sx={{ fontWeight: "bold", mt: 2 }}
-          >
+          <Typography variant="h5" align="center" sx={{ fontWeight: "bold", mt: 2 }}>
             Detalhes de Solicitação de {cardData.title}
           </Typography>
         </Box>
 
-        {/* Reposição / Anteposição */}
-        <Box
-          component={Paper}
-          elevation={3}
-          sx={{ p: 5, m: 4, borderRadius: 3 }}
-        >
+        <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
             <Description sx={{ fontSize: "33px", color: "green" }} />
-            <Typography variant="h5" color="green">
-              {cardData.title}
-            </Typography>
+            <Typography variant="h5" color="green">{cardData.title}</Typography>
           </Box>
-
           <Divider sx={{ backgroundColor: "#C7C7C7", my: 2 }} />
-
           <Box>
             <Typography variant="body1" sx={{ mb: 1 }}>
-              <strong>Professor(a):</strong> {cardData.teacher || "N/A"}
+              <strong>Professor(a):</strong> {cardData.teacher}
             </Typography>
             <Typography variant="body1" sx={{ mb: 1 }}>
-              <strong>Disciplina:</strong> {cardData.discipline || "N/A"}
+              <strong>Disciplina:</strong> {cardData.discipline}
             </Typography>
             <Typography variant="body1" sx={{ mb: 1 }}>
-              <strong>Turma:</strong> {cardData.class || "N/A"}
+              <strong>Turma:</strong> {cardData.class}
+            </Typography>
+            <Typography variant="body1" sx={{ mb: 1 }}>
+              <strong>Quantidade de Aulas:</strong> {cardData.quantity}
+            </Typography>
+            <Typography variant="body1" sx={{ mb: 1 }}>
+              <strong>Data:</strong> {cardData.date}
+            </Typography>
+            <Typography variant="body1" sx={{ mb: 1 }}>
+              <strong>Turno:</strong>
             </Typography>
           </Box>
         </Box>
 
-        {/* Horário */}
-        <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }} >
+        <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
             <Box
               sx={{
@@ -136,77 +186,65 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
                 justifyContent: "center",
               }}
             >
-              <History sx={{ color: "white", fontSize: 27 }} />
+              <AttachFile sx={{ color: "white", fontSize: 25 }} />
             </Box>
             <Typography variant="h5" color="green">
-              Horário
+              Anexo
             </Typography>
           </Box>
-
           <Divider sx={{ backgroundColor: "#C7C7C7", my: 2 }} />
-
-          <Box>
-            <Typography variant="body1" sx={{ mb: 1 }}>
-              <strong>Data:</strong> {cardData.date || "N/A"}
-            </Typography>
-            <Typography variant="body1" sx={{ mb: 1 }}>
-              <strong>Turno:</strong> {cardData.shift || "N/A"}
-            </Typography>
-            <Typography variant="body1" sx={{ mb: 1 }}>
-              <strong>Horário:</strong> {cardData.time || "N/A"}
-            </Typography>
-            <Typography variant="body1" sx={{ mb: 1 }}>
-              <strong>Dia da semana:</strong> {cardData.weekday || "N/A"}
-            </Typography>
-          </Box>
+          <Typography variant="body1">
+            {requestData?.annex ? (
+              <a href={requestData.annex} target="_blank" rel="noopener noreferrer">
+                Visualizar anexo
+              </a>
+            ) : (
+              "Nenhum anexo adicionado"
+            )}
+          </Typography>
         </Box>
 
-        {/* Observações */}
-        <Box
-          component={Paper}
-          elevation={3}
-          sx={{ p: 5, m: 4, borderRadius: 3 }}
-        >
+        <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-              <Box
-                sx={{
-                  backgroundColor: "green",
-                  borderRadius: "50%",
-                  width: 35,
-                  height: 35,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
+            <Box
+              sx={{
+                backgroundColor: "green",
+                borderRadius: "50%",
+                width: 35,
+                height: 35,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Typography
+                component="span"
+                sx={{ color: "#fff", fontSize: "24px", fontWeight: "bold", lineHeight: 0.7 }}
               >
-                <Typography 
-                  component="span" 
-                  sx={{ 
-                    color: "#fff", 
-                    fontSize: "24px", 
-                    fontWeight: "bold",
-                    lineHeight: 0.7
-                  }}
-                >
-                  !
-                </Typography>
-              </Box>
+                !
+              </Typography>
+            </Box>
             <Typography variant="h5" color="green">
               Observações
             </Typography>
           </Box>
-
           <Divider sx={{ backgroundColor: "#C7C7C7", my: 2 }} />
-
-          <Typography variant="body1" color={cardData.observations ? "#000" : "text.secondary"}>
+          <Typography
+            variant="body1"
+            color={cardData.observations ? "#000" : "text.secondary"}
+          >
             {cardData.observations || "Nenhuma observação adicionada"}
           </Typography>
+          {cardData.observationCoordinator && (
+            <Typography variant="body1" sx={{ mt: 2 }}>
+              <strong>Justificativa do Coordenador:</strong>{" "}
+              {cardData.observationCoordinator}
+            </Typography>
+          )}
         </Box>
 
         {accessType === "Coordenador" && (
-          <Box
-            sx={{ display: "flex", justifyContent: "center", mt: 2, mr: 4, gap: 2 }}
-          >
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 2, mr: 4, gap: 2 }}>
             <Button
               variant="contained"
               startIcon={<Close />}
@@ -251,7 +289,11 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
             </Button>
           </Box>
         )}
-        <JustificationModal open={openDialog} onClose={handleCloseDialog} />
+        <JustificationModal
+          open={openDialog}
+          onClose={handleCloseDialog}
+          onSubmit={handleSubmitJustification}
+        />
         {alertOpen && (
           <CustomAlert
             message={alertMessage}

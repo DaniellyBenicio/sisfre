@@ -1,81 +1,128 @@
-import { Stack, Typography, Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, IconButton, } from '@mui/material';
+
+import { Stack, Typography, Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, IconButton } from '@mui/material';
 import Paginate from '../../../../components/paginate/Paginate';
 import PropTypes from 'prop-types';
 import { useState, useMemo } from 'react';
 import { useMediaQuery } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
+import DeleteIcon from '@mui/icons-material/Delete';
 
-const ClassAntepositionTable = ({ antepositions, setAlert, onArchive, onUpdate, onApprove, onReject, accessType }) => {
+const ClassRepositionTable = ({ repositions, setAlert, onView, onDelete, onApprove, onReject, accessType }) => {
   const normalizeString = (str) => {
     if (!str) return 'N/A';
     return str;
   };
 
-  const formattedAntepositions = antepositions.map((anteposition) => ({
-    ...anteposition,
-    turma: normalizeString(anteposition.turma),
-    disciplina: normalizeString(anteposition.disciplina),
-    quantidade: normalizeString(anteposition.quantidade),
-    data: normalizeString(anteposition.data),
-    fileName: normalizeString(anteposition.fileName),
-    observacao: normalizeString(anteposition.observacao),
-    status: anteposition.status || 'Pendente',
-  }));
+ const formattedReposition = Array.isArray(repositions) ? repositions.map((reposition) => ({
+  ...reposition,
+  turma: normalizeString(reposition.turma),
+  disciplina: normalizeString(reposition.disciplina),
+  hour: normalizeString(reposition.hour),
+  quantidade: normalizeString(reposition.quantidade),
+  data: normalizeString(reposition.data),
+  fileName: normalizeString(reposition.fileName),
+  observacao: normalizeString(reposition.observacao),
+  observationCoordinator: normalizeString(reposition.observationCoordinator),
+  status: reposition.status || 'Pendente',
+})) : [];
 
   const headers = accessType === 'Professor' ? [
     { key: 'turma', label: 'Turma' },
     { key: 'disciplina', label: 'Disciplina' },
+    { key: 'hour', label: 'Horário' },
     { key: 'quantidade', label: 'Quantidade' },
     { key: 'data', label: 'Data' },
     { key: 'fileName', label: 'Arquivo' },
+    { key: 'observacao', label: 'Observação' },
     {
       key: 'status',
       label: 'Status',
-      render: (anteposition) => (
+      render: (reposition) => (
         <Typography
           component="span"
           sx={{
             color:
-              anteposition.status === 'Aprovado' ? 'green' :
-              anteposition.status === 'Rejeitado' ? 'red' : 'orange',
-            fontWeight: anteposition.status === 'Pendente' ? 'bold' : 'normal',
+              reposition.status === 'Aprovado' ? 'green' :
+              reposition.status === 'Rejeitado' ? 'red' : 'orange',
+            fontWeight: reposition.status === 'Pendente' ? 'bold' : 'normal',
           }}
         >
-          {anteposition.status}
+          {reposition.status}
         </Typography>
       ),
-    }
+    },
   ] : [
     { key: 'turma', label: 'Turma' },
     { key: 'disciplina', label: 'Disciplina' },
+    { key: 'hour', label: 'Horário' },
+    { key: 'quantidade', label: 'Quantidade' },
+    { key: 'data', label: 'Data' },
     { key: 'fileName', label: 'Arquivo' },
-    { key: 'tipo', label: 'Tipo' },
+    { key: 'observacao', label: 'Observação' },
+    { key: 'observationCoordinator', label: 'Observação do Coordenador' },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (reposition) => (
+        <Typography
+          component="span"
+          sx={{
+            color:
+              reposition.status === 'Aprovado' ? 'green' :
+              reposition.status === 'Rejeitado' ? 'red' : 'orange',
+            fontWeight: reposition.status === 'Pendente' ? 'bold' : 'normal',
+          }}
+        >
+          {reposition.status}
+        </Typography>
+      ),
+    },
     {
       key: 'actions',
       label: 'Ação',
-      render: (anteposition) => (
+      render: (reposition) => (
         <Stack direction="row" spacing={1} justifyContent="center">
           <IconButton
-            onClick={() => onUpdate(anteposition)}
+            onClick={() => onView(reposition.id)}
             sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
           >
             <Visibility />
           </IconButton>
+          <IconButton
+            onClick={() => onDelete(reposition.id)}
+            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
+          >
+            <DeleteIcon />
+          </IconButton>
+          <Button
+            onClick={() => onApprove(reposition.id)}
+            disabled={reposition.status === 'Aprovado'}
+            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
+          >
+            Aprovar
+          </Button>
+          <Button
+            onClick={() => onReject(reposition.id)}
+            disabled={reposition.status === 'Rejeitado'}
+            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
+          >
+            Rejeitar
+          </Button>
         </Stack>
       ),
     },
-  ]
+  ];
 
   const isMobile = useMediaQuery('(max-width:600px)');
   const [page, setPage] = useState(1);
   const rowsPerPage = 7;
 
   const visibleData = useMemo(() => {
-    if (!Array.isArray(formattedAntepositions)) return [];
+    if (!Array.isArray(formattedReposition)) return [];
     const startIndex = (page - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
-    return formattedAntepositions.slice(startIndex, endIndex);
-  }, [formattedAntepositions, page, rowsPerPage]);
+    return formattedReposition.slice(startIndex, endIndex);
+  }, [formattedReposition, page]);
 
   const handleChangePage = (newPage) => {
     setPage(newPage);
@@ -98,68 +145,57 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onArchive, onUpdate, 
     lineHeight: '30px',
   };
 
-  const renderMobileRow = (anteposition) => (
+  const renderMobileRow = (reposition) => (
     <Stack spacing={0.5}>
-      <Typography>
-        <strong>Turma:</strong> {normalizeString(anteposition.turma)}
-      </Typography>
-      <Typography>
-        <strong>Disciplina:</strong> {normalizeString(anteposition.disciplina)}
-      </Typography>
-      <Typography>
-        <strong>Quantidade:</strong> {normalizeString(anteposition.quantidade)}
-      </Typography>
-      <Typography>
-        <strong>Data:</strong> {normalizeString(anteposition.data)}
-      </Typography>
-      <Typography>
-        <strong>Arquivo:</strong> {normalizeString(anteposition.fileName)}
-      </Typography>
-      <Typography>
-        <strong>Observação:</strong> {normalizeString(anteposition.observacao)}
-      </Typography>
+      <Typography><strong>Turma:</strong> {normalizeString(reposition.turma)}</Typography>
+      <Typography><strong>Disciplina:</strong> {normalizeString(reposition.disciplina)}</Typography>
+      <Typography><strong>Horário:</strong> {normalizeString(reposition.hour)}</Typography>
+      <Typography><strong>Quantidade:</strong> {normalizeString(reposition.quantidade)}</Typography>
+      <Typography><strong>Data:</strong> {normalizeString(reposition.data)}</Typography>
+      <Typography><strong>Arquivo:</strong> {normalizeString(reposition.fileName)}</Typography>
+      <Typography><strong>Observação:</strong> {normalizeString(reposition.observacao)}</Typography>
+      <Typography><strong>Observação do Coordenador:</strong> {normalizeString(reposition.observationCoordinator)}</Typography>
       <Typography>
         <strong>Status:</strong>{" "}
         <Box
           component="span"
           sx={{
             color:
-              anteposition.status === 'Aprovado' ? 'green' :
-              anteposition.status === 'Rejeitado' ? 'red' : 'orange',
-            fontWeight: anteposition.status === 'Pendente' ? 'bold' : 'normal',
+              reposition.status === 'Aprovado' ? 'green' :
+              reposition.status === 'Rejeitado' ? 'red' : 'orange',
+            fontWeight: reposition.status === 'Pendente' ? 'bold' : 'normal',
           }}
         >
-          {anteposition.status}
+          {reposition.status}
         </Box>
       </Typography>
       {accessType === 'Coordenador' && (
         <Stack direction="row" spacing={1} justifyContent="center">
           <Button
-            onClick={() => onUpdate(anteposition)}
-            disabled={!anteposition.isActive}
+            onClick={() => onView(reposition.id)}
             sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
           >
-            Editar
+            Visualizar
           </Button>
           <Button
-            onClick={() => onApprove(anteposition.id)}
-            disabled={anteposition.status === 'Aprovado'}
+            onClick={() => onDelete(reposition.id)}
+            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
+          >
+            Deletar
+          </Button>
+          <Button
+            onClick={() => onApprove(reposition.id)}
+            disabled={reposition.status === 'Aprovado'}
             sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
           >
             Aprovar
           </Button>
           <Button
-            onClick={() => onReject(anteposition.id)}
-            disabled={anteposition.status === 'Rejeitado'}
+            onClick={() => onReject(reposition.id)}
+            disabled={reposition.status === 'Rejeitado'}
             sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
           >
             Rejeitar
-          </Button>
-          <Button
-            onClick={() => onArchive(anteposition.id)}
-            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
-          >
-            {anteposition.isActive ? 'Inativar' : 'Ativar'}
           </Button>
         </Stack>
       )}
@@ -180,15 +216,11 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onArchive, onUpdate, 
             </Paper>
           ))
         )}
-        {formattedAntepositions.length > rowsPerPage && (
+        {formattedReposition.length > rowsPerPage && (
           <Paginate
-            count={Math.ceil(
-              (Array.isArray(formattedAntepositions) ? formattedAntepositions.length : 0) / rowsPerPage
-            )}
+            count={Math.ceil((Array.isArray(formattedReposition) ? formattedReposition.length : 0) / rowsPerPage)}
             page={page}
-            onChange={(event, newPage) => {
-              handleChangePage(newPage);
-            }}
+            onChange={(event, newPage) => handleChangePage(newPage)}
           />
         )}
       </Stack>
@@ -244,41 +276,38 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onArchive, onUpdate, 
           </TableBody>
         </Table>
       </TableContainer>
-      {formattedAntepositions.length > rowsPerPage && (
+      {formattedReposition.length > rowsPerPage && (
         <Paginate
-          count={Math.ceil(
-            (Array.isArray(formattedAntepositions) ? formattedAntepositions.length : 0) / rowsPerPage
-          )}
+          count={Math.ceil((Array.isArray(formattedReposition) ? formattedReposition.length : 0) / rowsPerPage)}
           page={page}
-          onChange={(event, newPage) => {
-            handleChangePage(newPage);
-          }}
+          onChange={(event, newPage) => handleChangePage(newPage)}
         />
       )}
     </>
   );
 };
 
-ClassAntepositionTable.propTypes = {
-  antepositions: PropTypes.arrayOf(
+ClassRepositionTable.propTypes = {
+  repositions: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.number.isRequired,
       turma: PropTypes.string.isRequired,
       disciplina: PropTypes.string.isRequired,
+      hour: PropTypes.string.isRequired,
       quantidade: PropTypes.string.isRequired,
       data: PropTypes.string.isRequired,
       fileName: PropTypes.string.isRequired,
       observacao: PropTypes.string.isRequired,
+      observationCoordinator: PropTypes.string,
       status: PropTypes.oneOf(['Pendente', 'Aprovado', 'Rejeitado']),
-      isActive: PropTypes.bool.isRequired,
     })
   ).isRequired,
   setAlert: PropTypes.func,
-  onArchive: PropTypes.func,
-  onUpdate: PropTypes.func,
+  onView: PropTypes.func,
+  onDelete: PropTypes.func,
   onApprove: PropTypes.func,
   onReject: PropTypes.func,
   accessType: PropTypes.string,
 };
 
-export default ClassAntepositionTable;
+export default ClassRepositionTable;

@@ -14,71 +14,76 @@ const StyledButton = styled(Button)(() => ({
 
 const ClassAntepositionRegister = ({ setAlert }) => {
   const [professor, setProfessor] = useState(localStorage.getItem('username') || '');
-  const [turma, setTurma] = useState('');
-  const [disciplina, setDisciplina] = useState('');
-  const [quantidade, setQuantidade] = useState('');
-  const [data, setData] = useState('');
+  const [course, setCourse] = useState(''); // Turma (code)
+  const [discipline, setDiscipline] = useState('');
+  const [hour, setHour] = useState('');
+  const [quantity, setQuantity] = useState('');
+  const [date, setDate] = useState('');
   const [file, setFile] = useState(null);
-  const [observacao, setObservacao] = useState('');
-  const [courseClasses, setCourseClasses] = useState([]);
-  const [courseClassId, setCourseClassId] = useState('');
+  const [observation, setObservation] = useState('');
+  const [scheduleDetails, setScheduleDetails] = useState([]); // Inicialize como array vazio
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchCourseClasses = async () => {
+    const fetchSchedule = async () => {
       try {
-        const response = await api.get('/courseClasses');
-        setCourseClasses(response.data);
+        const response = await api.get('/professor/request'); // getProfessorScheduleDetails
+        // Extraia o array de scheduleDetails da resposta, ou [] se não existir
+        setScheduleDetails(response.data.scheduleDetails || []);
       } catch (error) {
-        setAlert({ message: 'Erro ao carregar turmas.', type: 'error' });
+        setAlert({ message: 'Erro ao carregar grade do professor.', type: 'error' });
+        setScheduleDetails([]); // Defina como array vazio em caso de erro
       }
     };
-    fetchCourseClasses();
+    fetchSchedule();
   }, [setAlert]);
 
   const handleFileChange = (event) => {
-    const selectedFile = event.target.files[0];
-    setFile(selectedFile);
+    setFile(event.target.files[0]);
   };
 
-  const handleCourseClassChange = (event) => {
-    const selectedId = event.target.value;
-    setCourseClassId(selectedId);
-    const selectedCourseClass = courseClasses.find((cc) => cc.id === selectedId);
-    if (selectedCourseClass) {
-      setTurma(selectedCourseClass.code || '');
-      setDisciplina(selectedCourseClass.name || '');
+  const handleScheduleChange = (event) => {
+    const selected = scheduleDetails.find((sd) => sd.id === event.target.value);
+    if (selected) {
+      setCourse(selected.schedule.course.name); // Ajuste conforme seu modelo (course.name como turma?)
+      setDiscipline(selected.discipline.name);
+      setHour(`${selected.hour.hourStart} - ${selected.hour.hourEnd}`);
     }
   };
 
   const handleSubmit = async () => {
-    if (!professor || !courseClassId || !quantidade || !data || !file || !observacao) {
-      setAlert({ message: "Por favor, preencha todos os campos e anexe um arquivo.", type: "error" });
+    if (!course || !discipline || !hour || !quantity || !date || !file) {
+      setAlert({ message: "Preencha todos os campos obrigatórios e anexe um arquivo.", type: "error" });
+      return;
+    }
+    if (parseInt(quantity) > 4 || parseInt(quantity) < 1) {
+      setAlert({ message: "Quantidade deve ser entre 1 e 4.", type: "error" });
+      return;
+    }
+    const selectedDate = new Date(date).setHours(0, 0, 0, 0);
+    if (selectedDate < new Date().setHours(0, 0, 0, 0)) {
+      setAlert({ message: "Data não pode ser anterior à atual.", type: "error" });
       return;
     }
 
     const formData = new FormData();
     formData.append('userId', localStorage.getItem('userId'));
-    formData.append('courseClassId', courseClassId);
+    formData.append('course', course);
+    formData.append('discipline', discipline);
+    formData.append('hour', hour);
     formData.append('type', 'anteposicao');
-    formData.append('quantity', parseInt(quantidade));
-    formData.append('date', data);
+    formData.append('quantity', parseInt(quantity));
+    formData.append('date', date);
     formData.append('annex', file);
-    formData.append('observation', observacao);
+    formData.append('observation', observation);
 
     try {
-      await api.post('/createRequest', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      await api.post('/request', formData, { headers: { 'Content-Type': 'multipart/form-data' } }); // Ajuste rota se necessário
       setAlert({ message: "Anteposição cadastrada com sucesso!", type: "success" });
-      setTimeout(() => navigate('/class-anteposition'), 2000);
+      navigate('/class-anteposition');
     } catch (error) {
-      console.error("Erro ao registrar anteposição:", error);
-      setAlert({
-        message: error.response?.data?.error || "Erro ao registrar anteposição.",
-        type: "error",
-      });
+      setAlert({ message: error.response?.data?.error || "Erro ao cadastrar.", type: "error" });
     }
   };
 
@@ -102,91 +107,27 @@ const ClassAntepositionRegister = ({ setAlert }) => {
 
       <Paper elevation={3} sx={{ p: 4, mt: 2 }}>
         <Stack spacing={3}>
-          <Stack direction="row" spacing={3}>
-            <TextField
-              label="Professor"
-              value={professor}
-              onChange={(e) => setProfessor(e.target.value)}
-              fullWidth
-              required
-              disabled
-            />
-            <FormControl fullWidth required>
-              <InputLabel id="course-class-label">Turma/Disciplina</InputLabel>
-              <Select
-                labelId="course-class-label"
-                value={courseClassId}
-                label="Turma/Disciplina"
-                onChange={handleCourseClassChange}
-              >
-                <MenuItem value="">Selecione</MenuItem>
-                {courseClasses.map((cc) => (
-                  <MenuItem key={cc.id} value={cc.id}>{`${cc.code} - ${cc.name}`}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Stack>
-          <Stack direction="row" spacing={3}>
-            <TextField
-              label="Disciplina"
-              value={disciplina}
-              onChange={(e) => setDisciplina(e.target.value)}
-              fullWidth
-              required
-              disabled
-            />
-            <TextField
-              label="Quantidade"
-              type="number"
-              value={quantidade}
-              onChange={(e) => setQuantidade(e.target.value)}
-              fullWidth
-              required
-            />
-          </Stack>
-          <Stack direction="row" spacing={3}>
-            <TextField
-              label="Data"
-              type="date"
-              InputLabelProps={{ shrink: true }}
-              value={data}
-              onChange={(e) => setData(e.target.value)}
-              sx={{ width: '100%', maxWidth: 'calc(50% - 12px)' }}
-              required
-            />
-            <TextField
-              label="Anexar Ficha"
-              value={file ? file.name : ''}
-              InputProps={{
-                readOnly: true,
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <CloudUpload sx={{ color: '#087619' }} />
-                  </InputAdornment>
-                ),
-              }}
-              required
-              sx={{ width: '100%', maxWidth: 'calc(50% - 12px)' }}
-              onClick={() => document.querySelector('input[type="file"]').click()}
-            />
-            <Button
-              variant="contained"
-              component="label"
-              sx={{ backgroundColor: "#087619", "&:hover": { backgroundColor: "#065412" }, textTransform: "none", height: '56px', minWidth: '56px', display: 'none' }}
-            >
-              <input type="file" hidden onChange={handleFileChange} />
-              <CloudUpload sx={{ color: '#fff' }} />
-            </Button>
-          </Stack>
-          <TextField
-            label="Observação"
-            value={observacao}
-            onChange={(e) => setObservacao(e.target.value)}
-            fullWidth
-            multiline
-            rows={2}
-            required
-          />
+          <TextField label="Professor" value={professor} fullWidth disabled />
+          <FormControl fullWidth required>
+            <InputLabel>Selecionar da Grade</InputLabel>
+            <Select onChange={handleScheduleChange}>
+              <MenuItem value="">Selecione</MenuItem>
+              {scheduleDetails.map((sd) => (
+                <MenuItem key={sd.id} value={sd.id}>
+                  {sd.schedule.course.name} - {sd.discipline.name} - {sd.hour.hourStart}-{sd.hour.hourEnd}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <TextField label="Turma" value={course} fullWidth disabled />
+          <TextField label="Disciplina" value={discipline} fullWidth disabled />
+          <TextField label="Horário" value={hour} fullWidth disabled />
+          <TextField label="Quantidade" type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} fullWidth required />
+          <TextField label="Data" type="date" value={date} onChange={(e) => setDate(e.target.value)} fullWidth required InputLabelProps={{ shrink: true }} />
+          <TextField label="Anexar Ficha" value={file ? file.name : ''} fullWidth readOnly onClick={() => document.querySelector('input[type="file"]').click()} 
+            InputProps={{ endAdornment: <CloudUpload sx={{ color: '#087619' }} /> }} />
+          <input type="file" hidden onChange={handleFileChange} />
+          <TextField label="Observação" value={observation} onChange={(e) => setObservation(e.target.value)} fullWidth multiline rows={2} />
         </Stack>
       </Paper>
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>

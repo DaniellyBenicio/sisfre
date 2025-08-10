@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -19,7 +19,7 @@ import { CustomAlert } from '../../../../components/alert/CustomAlert';
 import { StyledSelect } from '../../../../components/inputs/Input';
 import api from '../../../../service/api';
 
-const INSTITUTIONAL_COLOR = "#307c34";
+const INSTITUTIONAL_COLOR = '#307c34';
 
 const StyledButton = styled(Button)(() => ({
   textTransform: 'none',
@@ -29,6 +29,7 @@ const StyledButton = styled(Button)(() => ({
 }));
 
 const ClassAntepositionList = () => {
+  console.log('Rendering ClassAntepositionList');
   const [antepositions, setAntepositions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
@@ -36,11 +37,12 @@ const ClassAntepositionList = () => {
   const [filterDisciplina, setFilterDisciplina] = useState('all');
   const [filterPeriod, setFilterPeriod] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [openToggleActiveDialog, setOpenToggleActiveDialog] = useState(false);
-  const [antepositionToToggleActive, setAntepositionToToggleActive] = useState(null);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [antepositionToDelete, setAntepositionToDelete] = useState(null);
   const [page, setPage] = useState(1);
   const rowsPerPage = 7;
   const navigate = useNavigate();
+  const location = useLocation();
   const accessType = localStorage.getItem('accessType') || 'Professor';
 
   const handleAlertClose = () => {
@@ -48,207 +50,145 @@ const ClassAntepositionList = () => {
   };
 
   useEffect(() => {
-    const fetchAntepositions = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get('/getRequest', {
-          params: { type: 'anteposicao' },
-        });
-        const antepositionsArray = response.data.map((item) => ({
-          id: item.id,
-          professor: item.professor?.username || 'Desconhecido',
-          professorId: item.userId,
-          coordinatorId: item.coordinatorId || 'coord1',
-          turma: item.disciplinaclasse?.code || 'Desconhecido',
-          disciplina: item.disciplinaclasse?.name || 'Desconhecido',
-          quantidade: item.quantity.toString(),
-          data: item.date,
-          fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
-          observacao: item.observation || 'N/A',
-          isActive: true,
-          status: item.validated === true ? 'Aprovado' : item.validated === false && item.observationCoordinator ? 'Rejeitado' : 'Pendente',
-        })).sort((a, b) => a.turma.toLowerCase().localeCompare(b.turma.toLowerCase()));
-        setAntepositions(antepositionsArray);
-      } catch (error) {
-        console.error('Erro ao carregar anteposições:', error);
-        setAlert({
-          message: 'Erro ao carregar anteposições.',
-          type: 'error',
-        });
-        setAntepositions([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAntepositions();
-  }, []);
-
+ console.log('Location state:', location.state);
+const fetchAntepositions = async () => {
+try {
+ setLoading(true);
+ const response = await api.get('/request', { params: { type: 'anteposicao' } });
+ const antepositionsArray = Array.isArray(response.data.requests)
+ ? response.data.requests.map((item) => ({
+ id: item.id,
+ professor: item.professor?.username || 'Desconhecido',
+ professorId: item.userId,
+ turma: item.originalClass?.schedule?.course?.name || 'Desconhecido',
+ disciplina: item.originalClass?.discipline?.name || 'Desconhecido',
+ hour: item.newHour?.hourStart && item.newHour?.hourEnd ? `${item.newHour.hourStart}-${item.newHour.hourEnd}` : 'N/A',
+ quantidade: item.quantity?.toString() || 'N/A',
+ data: item.newDate,
+ fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
+ observacao: item.observation || 'N/A',
+ observationCoordinator: item.observationCoordinator || 'N/A',
+ status: item.status || 'Pendente',
+ })).sort((a, b) => a.turma.toLowerCase().localeCompare(b.turma.toLowerCase()))
+ : [];
+ setAntepositions(antepositionsArray);
+ } catch (error) {
+ console.error('Erro ao carregar anteposições:', error);
+ setAlert({ message: 'Erro ao carregar anteposições.', type: 'error' });
+ setAntepositions([]);
+ } finally {
+setLoading(false);
+}
+ };
+ fetchAntepositions();
+ }, []); 
   useEffect(() => {
     setPage(1);
   }, [filterTurma, filterDisciplina, filterPeriod, filterStatus]);
 
-  const handleRegisterOrUpdate = async (updatedAnteposition, isEditMode) => {
-    try {
-      if (isEditMode) {
-        await api.put(`/updateRequest/${updatedAnteposition.id}`, {
-          quantity: parseInt(updatedAnteposition.quantidade),
-          date: updatedAnteposition.data,
-          observation: updatedAnteposition.observacao,
-        });
-        setAlert({
-          message: `Anteposição para ${updatedAnteposition.turma} atualizada com sucesso!`,
-          type: 'success',
-        });
-      } else {
-        const formData = new FormData();
-        formData.append('userId', localStorage.getItem('userId'));
-        formData.append('courseClassId', updatedAnteposition.courseClassId);
-        formData.append('type', 'anteposicao');
-        formData.append('quantity', parseInt(updatedAnteposition.quantidade));
-        formData.append('date', updatedAnteposition.data);
-        formData.append('annex', updatedAnteposition.file);
-        formData.append('observation', updatedAnteposition.observacao);
-        await api.post('/createRequest', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        setAlert({
-          message: `Anteposição para ${updatedAnteposition.turma} cadastrada com sucesso!`,
-          type: 'success',
-        });
-      }
-      setPage(1);
-      navigate('/class-anteposition');
-      const response = await api.get('/getRequest', { params: { type: 'anteposicao' } });
-      setAntepositions(response.data.map((item) => ({
-        id: item.id,
-        professor: item.professor?.username || 'Desconhecido',
-        professorId: item.userId,
-        coordinatorId: item.coordinatorId || 'coord1',
-        turma: item.disciplinaclasse?.code || 'Desconhecido',
-        disciplina: item.disciplinaclasse?.name || 'Desconhecido',
-        quantidade: item.quantity.toString(),
-        data: item.date,
-        fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
-        observacao: item.observation || 'N/A',
-        isActive: true,
-        status: item.validated === true ? 'Aprovado' : item.validated === false && item.observationCoordinator ? 'Rejeitado' : 'Pendente',
-      })).sort((a, b) => a.turma.toLowerCase().localeCompare(b.turma.toLowerCase())));
-    } catch (error) {
-      console.error('Erro ao atualizar lista de anteposições:', error);
-      setAlert({
-        message: 'Erro ao atualizar a lista de anteposições.',
-        type: 'error',
-      });
-    }
+  const handleView = (id) => {
+    navigate(`/class-anteposition/view/${id}`);
   };
 
-  const handleEditAnteposition = (anteposition) => {
-    navigate(`/class-anteposition/edit/${anteposition.id}`, { state: { anteposition } });
-  };
-
-  const handleApprove = async (antepositionId) => {
+  const handleApprove = async (id) => {
     try {
-      await api.put(`/updateRequest/${antepositionId}`, { validated: true });
-      setAlert({
-        message: 'Anteposição aprovada com sucesso!',
-        type: 'success',
-      });
-      const response = await api.get('/getRequest', { params: { type: 'anteposicao' } });
-      setAntepositions(response.data.map((item) => ({
-        id: item.id,
-        professor: item.professor?.username || 'Desconhecido',
-        professorId: item.userId,
-        coordinatorId: item.coordinatorId || 'coord1',
-        turma: item.disciplinaclasse?.code || 'Desconhecido',
-        disciplina: item.disciplinaclasse?.name || 'Desconhecido',
-        quantidade: item.quantity.toString(),
-        data: item.date,
-        fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
-        observacao: item.observation || 'N/A',
-        isActive: true,
-        status: item.validated === true ? 'Aprovado' : item.validated === false && item.observationCoordinator ? 'Rejeitado' : 'Pendente',
-      })));
+      await api.put('/request/anteposition', { requestId: id });
+      setAlert({ message: 'Anteposição aprovada com sucesso! Créditos atualizados.', type: 'success' });
+      const response = await api.get('/request', { params: { type: 'anteposicao' } });
+      setAntepositions(
+        Array.isArray(response.data.requests)
+          ? response.data.requests.map((item) => ({
+              id: item.id,
+              professor: item.professor?.username || 'Desconhecido',
+              professorId: item.userId,
+              turma: item.course || 'Desconhecido',
+              disciplina: item.discipline || 'Desconhecido',
+              hour: item.hour || 'N/A',
+              quantidade: item.quantity.toString(),
+              data: item.date,
+              fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
+              observacao: item.observation || 'N/A',
+              observationCoordinator: item.observationCoordinator || 'N/A',
+              status: item.validated ? 'Aprovado' : item.observationCoordinator ? 'Rejeitado' : 'Pendente',
+            }))
+          : []
+      );
     } catch (error) {
       console.error('Erro ao aprovar anteposição:', error);
-      setAlert({
-        message: 'Erro ao aprovar anteposição.',
-        type: 'error',
-      });
+      setAlert({ message: 'Erro ao aprovar anteposição.', type: 'error' });
     }
   };
 
-  const handleReject = async (antepositionId) => {
+  const handleReject = async (id) => {
     try {
-      await api.put(`/updateRequest/${antepositionId}`, {
+      await api.put(`/request/${id}`, {
         validated: false,
         observationCoordinator: 'Rejeitado pelo coordenador',
       });
-      setAlert({
-        message: 'Anteposição rejeitada com sucesso!',
-        type: 'success',
-      });
-      const response = await api.get('/getRequest', { params: { type: 'anteposicao' } });
-      setAntepositions(response.data.map((item) => ({
-        id: item.id,
-        professor: item.professor?.username || 'Desconhecido',
-        professorId: item.userId,
-        coordinatorId: item.coordinatorId || 'coord1',
-        turma: item.disciplinaclasse?.code || 'Desconhecido',
-        disciplina: item.disciplinaclasse?.name || 'Desconhecido',
-        quantidade: item.quantity.toString(),
-        data: item.date,
-        fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
-        observacao: item.observation || 'N/A',
-        isActive: true,
-        status: item.validated === true ? 'Aprovado' : item.validated === false && item.observationCoordinator ? 'Rejeitado' : 'Pendente',
-      })));
+      setAlert({ message: 'Anteposição rejeitada com sucesso!', type: 'success' });
+      const response = await api.get('/request', { params: { type: 'anteposicao' } });
+      setAntepositions(
+        Array.isArray(response.data.requests)
+          ? response.data.requests.map((item) => ({
+              id: item.id,
+              professor: item.professor?.username || 'Desconhecido',
+              professorId: item.userId,
+              turma: item.course || 'Desconhecido',
+              disciplina: item.discipline || 'Desconhecido',
+              hour: item.hour || 'N/A',
+              quantidade: item.quantity.toString(),
+              data: item.date,
+              fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
+              observacao: item.observation || 'N/A',
+              observationCoordinator: item.observationCoordinator || 'N/A',
+              status: item.validated ? 'Aprovado' : item.observationCoordinator ? 'Rejeitado' : 'Pendente',
+            }))
+          : []
+      );
     } catch (error) {
       console.error('Erro ao rejeitar anteposição:', error);
-      setAlert({
-        message: 'Erro ao rejeitar anteposição.',
-        type: 'error',
-      });
+      setAlert({ message: 'Erro ao rejeitar anteposição.', type: 'error' });
     }
   };
 
-  const handleToggleActiveClick = (antepositionId) => {
-    const anteposition = antepositions.find((a) => a.id === antepositionId);
-    setAntepositionToToggleActive(anteposition);
-    setOpenToggleActiveDialog(true);
+  const handleDeleteClick = (anteposition) => {
+    setAntepositionToDelete(anteposition);
+    setOpenDeleteDialog(true);
   };
 
-  const handleConfirmToggleActive = async () => {
+  const handleConfirmDelete = async () => {
     try {
-      await api.delete(`/deleteRequest/${antepositionToToggleActive.id}`);
+      await api.delete(`/request/${antepositionToDelete.id}`);
       setAlert({
-        message: `Anteposição para ${antepositionToToggleActive.turma} inativada com sucesso!`,
+        message: `Anteposição para ${antepositionToDelete.turma} deletada com sucesso!`,
         type: 'success',
       });
-      const response = await api.get('/getRequest', { params: { type: 'anteposicao' } });
-      setAntepositions(response.data.map((item) => ({
-        id: item.id,
-        professor: item.professor?.username || 'Desconhecido',
-        professorId: item.userId,
-        coordinatorId: item.coordinatorId || 'coord1',
-        turma: item.disciplinaclasse?.code || 'Desconhecido',
-        disciplina: item.disciplinaclasse?.name || 'Desconhecido',
-        quantidade: item.quantity.toString(),
-        data: item.date,
-        fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
-        observacao: item.observation || 'N/A',
-        isActive: true,
-        status: item.validated === true ? 'Aprovado' : item.validated === false && item.observationCoordinator ? 'Rejeitado' : 'Pendente',
-      })));
+      const response = await api.get('/request', { params: { type: 'anteposicao' } });
+      setAntepositions(
+        Array.isArray(response.data.requests)
+          ? response.data.requests.map((item) => ({
+              id: item.id,
+              professor: item.professor?.username || 'Desconhecido',
+              professorId: item.userId,
+              turma: item.course || 'Desconhecido',
+              disciplina: item.discipline || 'Desconhecido',
+              hour: item.hour || 'N/A',
+              quantidade: item.quantity.toString(),
+              data: item.date,
+              fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
+              observacao: item.observation || 'N/A',
+              observationCoordinator: item.observationCoordinator || 'N/A',
+              status: item.validated ? 'Aprovado' : item.observationCoordinator ? 'Rejeitado' : 'Pendente',
+            }))
+          : []
+      );
       setPage(1);
     } catch (error) {
-      console.error('Erro ao inativar anteposição:', error);
-      setAlert({
-        message: 'Erro ao inativar anteposição.',
-        type: 'error',
-      });
+      console.error('Erro ao deletar anteposição:', error);
+      setAlert({ message: 'Erro ao deletar anteposição.', type: 'error' });
     } finally {
-      setOpenToggleActiveDialog(false);
-      setAntepositionToToggleActive(null);
+      setOpenDeleteDialog(false);
+      setAntepositionToDelete(null);
     }
   };
 
@@ -256,8 +196,8 @@ const ClassAntepositionList = () => {
     navigate('/class-reschedule-options');
   };
 
-  const turmas = [...new Set(antepositions.map(a => a.turma))].sort();
-  const disciplinas = [...new Set(antepositions.map(a => a.disciplina))].sort();
+  const turmas = [...new Set(antepositions.map((a) => a.turma))].sort();
+  const disciplinas = [...new Set(antepositions.map((a) => a.disciplina))].sort();
 
   const applyFilters = (data) => {
     let filtered = Array.isArray(data) ? [...data] : [];
@@ -277,20 +217,20 @@ const ClassAntepositionList = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    filtered = filtered.filter(rep => {
+    filtered = filtered.filter((rep) => {
       if (!rep.data) return false;
       const repDate = new Date(rep.data + 'T00:00:00');
 
       switch (filterPeriod) {
-        case "yesterday":
+        case 'yesterday':
           const yesterday = new Date(today);
           yesterday.setDate(today.getDate() - 1);
           return repDate.toDateString() === yesterday.toDateString();
-        case "lastWeek":
+        case 'lastWeek':
           const lastWeek = new Date(today);
           lastWeek.setDate(today.getDate() - 7);
           return repDate >= lastWeek && repDate <= today;
-        case "lastMonth":
+        case 'lastMonth':
           const lastMonth = new Date(today);
           lastMonth.setMonth(today.getMonth() - 1);
           return repDate >= lastMonth && repDate <= today;
@@ -309,50 +249,52 @@ const ClassAntepositionList = () => {
     page * rowsPerPage
   );
 
+  console.log('Paginated Antepositions:', paginatedAntepositions);
+
   const commonFormControlSx = {
-    width: { xs: "100%", sm: "150px" },
-    "& .MuiInputBase-root": {
+    width: { xs: '100%', sm: '150px' },
+    '& .MuiInputBase-root': {
       height: { xs: 40, sm: 36 },
-      display: "flex",
-      alignItems: "center",
+      display: 'flex',
+      alignItems: 'center',
     },
-    "& .MuiInputLabel-root": {
-      transform: "translate(14px, 7px) scale(1)",
-      "&.Mui-focused, &.MuiInputLabel-shrink": {
-        transform: "translate(14px, -6px) scale(0.75)",
-        color: "#000000",
+    '& .MuiInputLabel-root': {
+      transform: 'translate(14px, 7px) scale(1)',
+      '&.Mui-focused, &.MuiInputLabel-shrink': {
+        transform: 'translate(14px, -6px) scale(0.75)',
+        color: '#000000',
       },
     },
-    "& .MuiSelect-select": {
-      display: "flex",
-      alignItems: "center",
-      height: "100% !important",
+    '& .MuiSelect-select': {
+      display: 'flex',
+      alignItems: 'center',
+      height: '100% !important',
     },
   };
 
   const commonSelectSx = {
-    "& .MuiOutlinedInput-notchedOutline": {
-      borderColor: "rgba(0, 0, 0, 0.23)",
+    '& .MuiOutlinedInput-notchedOutline': {
+      borderColor: 'rgba(0, 0, 0, 0.23)',
     },
-    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#000000",
+    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+      borderColor: '#000000',
     },
   };
 
   const commonMenuProps = {
     PaperProps: {
       sx: {
-        maxHeight: "200px",
-        overflowY: "auto",
-        width: "auto",
-        "& .MuiMenuItem-root": {
-          "&:hover": {
-            backgroundColor: "#D5FFDB",
+        maxHeight: '200px',
+        overflowY: 'auto',
+        width: 'auto',
+        '& .MuiMenuItem-root': {
+          '&:hover': {
+            backgroundColor: '#D5FFDB',
           },
-          "&.Mui-selected": {
-            backgroundColor: "#E8F5E9",
-            "&:hover": {
-              backgroundColor: "#D5FFDB",
+          '&.Mui-selected': {
+            backgroundColor: '#E8F5E9',
+            '&:hover': {
+              backgroundColor: '#D5FFDB',
             },
           },
         },
@@ -379,16 +321,14 @@ const ClassAntepositionList = () => {
             position: 'absolute',
             left: 0,
             color: INSTITUTIONAL_COLOR,
-            '&:hover': {
-              backgroundColor: 'transparent',
-            },
+            '&:hover': { backgroundColor: 'transparent' },
           }}
         >
           <ArrowBack sx={{ fontSize: 35 }} />
         </IconButton>
         <Typography
-          variant='h5'
-          align='center'
+          variant="h5"
+          align="center"
           gutterBottom
           sx={{ fontWeight: 'bold', flexGrow: 1 }}
         >
@@ -397,16 +337,16 @@ const ClassAntepositionList = () => {
       </Box>
 
       <Stack
-        direction={{ xs: "column", sm: "row" }}
+        direction={{ xs: 'column', sm: 'row' }}
         spacing={2}
         justifyContent="space-between"
-        alignItems={{ xs: "stretch", sm: "center" }}
+        alignItems={{ xs: 'stretch', sm: 'center' }}
         sx={{ mb: 2 }}
       >
         <Stack
-          direction={{ xs: "column", md: "row" }}
+          direction={{ xs: 'column', md: 'row' }}
           spacing={2}
-          alignItems={{ xs: "stretch", md: "center" }}
+          alignItems={{ xs: 'stretch', md: 'center' }}
         >
           <FormControl sx={commonFormControlSx}>
             <InputLabel id="filter-turma-label">Turma</InputLabel>
@@ -486,10 +426,10 @@ const ClassAntepositionList = () => {
           onClick={() => navigate('/class-anteposition/register')}
           sx={{
             flexShrink: 0,
-            width: { xs: "100%", sm: "200px" },
+            width: { xs: '100%', sm: '200px' },
             height: { xs: 40, sm: 36 },
-            fontWeight: "bold",
-            fontSize: { xs: "0.9rem", sm: "1rem" },
+            fontWeight: 'bold',
+            fontSize: { xs: '0.9rem', sm: '1rem' },
             whiteSpace: 'nowrap',
           }}
         >
@@ -497,24 +437,28 @@ const ClassAntepositionList = () => {
         </StyledButton>
       </Stack>
 
-      <ClassAntepositionTable
-        antepositions={paginatedAntepositions}
-        onArchive={handleToggleActiveClick}
-        onUpdate={handleEditAnteposition}
-        onApprove={accessType === 'Coordenador' ? handleApprove : undefined}
-        onReject={accessType === 'Coordenador' ? handleReject : undefined}
-        setAlert={setAlert}
-        accessType={accessType}
-      />
+      {loading ? (
+        <Typography align="center">Carregando...</Typography>
+      ) : (
+        <ClassAntepositionTable
+          antepositions={paginatedAntepositions || []}
+          setAlert={setAlert}
+          onView={handleView}
+          onDelete={handleDeleteClick}
+          onApprove={accessType === 'Coordenador' ? handleApprove : undefined}
+          onReject={accessType === 'Coordenador' ? handleReject : undefined}
+          accessType={accessType}
+        />
+      )}
 
       <DeleteConfirmationDialog
-        open={openToggleActiveDialog}
+        open={openDeleteDialog}
         onClose={() => {
-          setOpenToggleActiveDialog(false);
-          setAntepositionToToggleActive(null);
+          setOpenDeleteDialog(false);
+          setAntepositionToDelete(null);
         }}
-        onConfirm={handleConfirmToggleActive}
-        message={`Deseja realmente ${antepositionToToggleActive?.isActive ? 'inativar' : 'ativar'} a anteposição para "${antepositionToToggleActive?.turma}"?`}
+        onConfirm={handleConfirmDelete}
+        message={`Deseja realmente deletar a anteposição para "${antepositionToDelete?.turma}"?`}
       />
 
       {totalPages > 1 && (

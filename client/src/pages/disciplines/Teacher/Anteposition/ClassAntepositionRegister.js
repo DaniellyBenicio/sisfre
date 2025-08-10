@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Paper, Button, TextField, Stack, InputAdornment, IconButton, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Box, Typography, Paper, Button, TextField, Stack, InputAdornment, IconButton, FormControl, InputLabel, Select, MenuItem, Grid } from '@mui/material';
 import { Close, Save, CloudUpload, ArrowBack } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -14,26 +14,25 @@ const StyledButton = styled(Button)(() => ({
 
 const ClassAntepositionRegister = ({ setAlert }) => {
   const [professor, setProfessor] = useState(localStorage.getItem('username') || '');
-  const [course, setCourse] = useState(''); // Turma (code)
+  const [course, setCourse] = useState('');
   const [discipline, setDiscipline] = useState('');
   const [hour, setHour] = useState('');
   const [quantity, setQuantity] = useState('');
   const [date, setDate] = useState('');
   const [file, setFile] = useState(null);
   const [observation, setObservation] = useState('');
-  const [scheduleDetails, setScheduleDetails] = useState([]); // Inicialize como array vazio
+  const [scheduleDetails, setScheduleDetails] = useState([]);
 
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchSchedule = async () => {
       try {
-        const response = await api.get('/professor/request'); // getProfessorScheduleDetails
-        // Extraia o array de scheduleDetails da resposta, ou [] se não existir
+        const response = await api.get('/professor/request');
         setScheduleDetails(response.data.scheduleDetails || []);
       } catch (error) {
         setAlert({ message: 'Erro ao carregar grade do professor.', type: 'error' });
-        setScheduleDetails([]); // Defina como array vazio em caso de erro
+        setScheduleDetails([]);
       }
     };
     fetchSchedule();
@@ -46,7 +45,7 @@ const ClassAntepositionRegister = ({ setAlert }) => {
   const handleScheduleChange = (event) => {
     const selected = scheduleDetails.find((sd) => sd.id === event.target.value);
     if (selected) {
-      setCourse(selected.schedule.course.name); // Ajuste conforme seu modelo (course.name como turma?)
+      setCourse(selected.schedule.course.name);
       setDiscipline(selected.discipline.name);
       setHour(`${selected.hour.hourStart} - ${selected.hour.hourEnd}`);
     }
@@ -79,7 +78,7 @@ const ClassAntepositionRegister = ({ setAlert }) => {
     formData.append('observation', observation);
 
     try {
-      await api.post('/request', formData, { headers: { 'Content-Type': 'multipart/form-data' } }); // Ajuste rota se necessário
+      await api.post('/request', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       setAlert({ message: "Anteposição cadastrada com sucesso!", type: "success" });
       navigate('/class-anteposition');
     } catch (error) {
@@ -92,52 +91,121 @@ const ClassAntepositionRegister = ({ setAlert }) => {
   };
 
   return (
-    <Box sx={{ p: 4 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', mb: 3 }}>
+    <Box sx={{ p: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', mb: 2 }}>
         <IconButton
           onClick={handleGoBack}
           sx={{ position: 'absolute', left: 0, color: INSTITUTIONAL_COLOR, '&:hover': { backgroundColor: 'transparent' } }}
         >
-          <ArrowBack sx={{ fontSize: 35 }} />
+          <ArrowBack sx={{ fontSize: 30 }} />
         </IconButton>
-        <Typography variant="h5" sx={{ fontWeight: "bold", textAlign: 'center', flexGrow: 1 }}>
+        <Typography variant="h6" sx={{ fontWeight: "bold", textAlign: 'center', flexGrow: 1 }}>
           Cadastrar Anteposição
         </Typography>
       </Box>
 
-      <Paper elevation={3} sx={{ p: 4, mt: 2 }}>
-        <Stack spacing={3}>
-          <TextField label="Professor" value={professor} fullWidth disabled />
-          <FormControl fullWidth required>
-            <InputLabel>Selecionar da Grade</InputLabel>
-            <Select onChange={handleScheduleChange}>
-              <MenuItem value="">Selecione</MenuItem>
-              {scheduleDetails.map((sd) => (
-                <MenuItem key={sd.id} value={sd.id}>
-                  {sd.schedule.course.name} - {sd.discipline.name} - {sd.hour.hourStart}-{sd.hour.hourEnd}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <TextField label="Turma" value={course} fullWidth disabled />
-          <TextField label="Disciplina" value={discipline} fullWidth disabled />
-          <TextField label="Horário" value={hour} fullWidth disabled />
-          <TextField label="Quantidade" type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} fullWidth required />
-          <TextField label="Data" type="date" value={date} onChange={(e) => setDate(e.target.value)} fullWidth required InputLabelProps={{ shrink: true }} />
-          <TextField label="Anexar Ficha" value={file ? file.name : ''} fullWidth readOnly onClick={() => document.querySelector('input[type="file"]').click()} 
-            InputProps={{ endAdornment: <CloudUpload sx={{ color: '#087619' }} /> }} />
-          <input type="file" hidden onChange={handleFileChange} />
-          <TextField label="Observação" value={observation} onChange={(e) => setObservation(e.target.value)} fullWidth multiline rows={2} />
-        </Stack>
+      <Paper elevation={2} sx={{ p: 2, mt: 1 }}>
+        <Box component="form">
+          <Box sx={{ display: 'flex', gap: 2, my: 1.5, alignItems: 'center' }}>
+            <TextField
+              label="Professor"
+              value={professor}
+              fullWidth
+              disabled
+              variant="outlined"
+            />
+            <FormControl fullWidth variant="outlined" required>
+              <InputLabel>Selecionar da Grade</InputLabel>
+              <Select
+                value={scheduleDetails.find(sd => sd.schedule.course.name === course)?.id || ''}
+                onChange={handleScheduleChange}
+              >
+                <MenuItem value="">Selecione</MenuItem>
+                {scheduleDetails.map((sd) => (
+                  <MenuItem key={sd.id} value={sd.id}>
+                    {sd.schedule.course.name} - {sd.discipline.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+          <Box sx={{ display: 'flex', gap: 2, my: 1.5, alignItems: 'center' }}>
+            <TextField
+              label="Turma"
+              value={course}
+              fullWidth
+              disabled
+              variant="outlined"
+            />
+            <TextField
+              label="Disciplina"
+              value={discipline}
+              fullWidth
+              disabled
+              variant="outlined"
+            />
+          </Box>
+          <Box sx={{ display: 'flex', gap: 2, my: 1.5, alignItems: 'center' }}>
+            <TextField
+              label="Horário"
+              value={hour}
+              fullWidth
+              disabled
+              variant="outlined"
+            />
+            <TextField
+              label="Quantidade"
+              type="number"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              fullWidth
+              required
+              variant="outlined"
+            />
+          </Box>
+          <Box sx={{ display: 'flex', gap: 2, my: 1.5, alignItems: 'center' }}>
+            <TextField
+              label="Data"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              fullWidth
+              required
+              variant="outlined"
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              label="Anexar Ficha"
+              value={file ? file.name : ''}
+              fullWidth
+              readOnly
+              onClick={() => document.querySelector('input[type="file"]').click()}
+              variant="outlined"
+              InputProps={{ endAdornment: <InputAdornment position="end"><CloudUpload sx={{ color: '#087619' }} /></InputAdornment> }}
+            />
+            <input type="file" hidden onChange={handleFileChange} />
+          </Box>
+          <Box sx={{ my: 1.5 }}>
+            <TextField
+              label="Observação"
+              value={observation}
+              onChange={(e) => setObservation(e.target.value)}
+              fullWidth
+              multiline
+              rows={2}
+              variant="outlined"
+            />
+          </Box>
+        </Box>
       </Paper>
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 2, mt: 2 }}>
         <Stack direction="row" spacing={2}>
           <StyledButton
             onClick={handleGoBack}
             variant="contained"
             sx={{ backgroundColor: "#F01424", "&:hover": { backgroundColor: "#D4000F" } }}
           >
-            <Close sx={{ fontSize: { xs: 20, sm: 24 } }} />
+            <Close sx={{ fontSize: 20 }} />
             Cancelar
           </StyledButton>
           <StyledButton
@@ -145,7 +213,7 @@ const ClassAntepositionRegister = ({ setAlert }) => {
             variant="contained"
             sx={{ backgroundColor: INSTITUTIONAL_COLOR, "&:hover": { backgroundColor: "#26692b" } }}
           >
-            <Save sx={{ fontSize: { xs: 20, sm: 24 } }} />
+            <Save sx={{ fontSize: 20 }} />
             Cadastrar
           </StyledButton>
         </Stack>

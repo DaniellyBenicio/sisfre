@@ -1,32 +1,38 @@
-import { Stack, Typography, Box, Paper, Table, TableContainer, TableHead, TableRow, TableCell, TableBody, Button } from '@mui/material';
+import { Stack, Typography, Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, IconButton } from '@mui/material';
 import Paginate from '../../../../components/paginate/Paginate';
 import PropTypes from 'prop-types';
 import { useState, useMemo } from 'react';
 import { useMediaQuery } from '@mui/material';
+import Visibility from '@mui/icons-material/Visibility';
+import DeleteIcon from '@mui/icons-material/Delete';
 
-const ClassReplacementTable = ({ replacements, setAlert, onArchive, onUpdate, onApprove, onReject, accessType }) => {
+const ClassReplacementTable = ({ replacements, setAlert, onView, onDelete, onApprove, onReject, accessType }) => {
   const normalizeString = (str) => {
     if (!str) return 'N/A';
     return str;
   };
 
-  const formattedReplacements = replacements.map((replacement) => ({
+  const formattedReplacements = Array.isArray(replacements) ? replacements.map((replacement) => ({
     ...replacement,
     turma: normalizeString(replacement.turma),
     disciplina: normalizeString(replacement.disciplina),
+    hour: normalizeString(replacement.hour),
     quantidade: normalizeString(replacement.quantidade),
     data: normalizeString(replacement.data),
     fileName: normalizeString(replacement.fileName),
     observacao: normalizeString(replacement.observacao),
+    observationCoordinator: normalizeString(replacement.observationCoordinator),
     status: replacement.status || 'Pendente',
-  }));
+  })) : [];
 
-  const headers = [
+  const headers = accessType === 'Professor' ? [
     { key: 'turma', label: 'Turma' },
     { key: 'disciplina', label: 'Disciplina' },
+    { key: 'hour', label: 'Horário' },
     { key: 'quantidade', label: 'Quantidade' },
     { key: 'data', label: 'Data' },
     { key: 'fileName', label: 'Arquivo' },
+    { key: 'observacao', label: 'Observação' },
     {
       key: 'status',
       label: 'Status',
@@ -44,18 +50,49 @@ const ClassReplacementTable = ({ replacements, setAlert, onArchive, onUpdate, on
         </Typography>
       ),
     },
-    ...(accessType === 'Coordenador' ? [{
+  ] : [
+    { key: 'turma', label: 'Turma' },
+    { key: 'disciplina', label: 'Disciplina' },
+    { key: 'hour', label: 'Horário' },
+    { key: 'quantidade', label: 'Quantidade' },
+    { key: 'data', label: 'Data' },
+    { key: 'fileName', label: 'Arquivo' },
+    { key: 'observacao', label: 'Observação' },
+    { key: 'observationCoordinator', label: 'Observação do Coordenador' },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (replacement) => (
+        <Typography
+          component="span"
+          sx={{
+            color:
+              replacement.status === 'Aprovado' ? 'green' :
+              replacement.status === 'Rejeitado' ? 'red' : 'orange',
+            fontWeight: replacement.status === 'Pendente' ? 'bold' : 'normal',
+          }}
+        >
+          {replacement.status}
+        </Typography>
+      ),
+    },
+    {
       key: 'actions',
-      label: 'Ações',
+      label: 'Ação',
       render: (replacement) => (
         <Stack direction="row" spacing={1} justifyContent="center">
-          <Button
-            onClick={() => onUpdate(replacement)}
-            disabled={!replacement.isActive}
+          <IconButton
+            onClick={() => onView(replacement.id)}
             sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
           >
-            Editar
-          </Button>
+            <Visibility />
+          </IconButton>
+          <IconButton
+            onClick={() => onDelete(replacement)}
+            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
+          >
+            <DeleteIcon />
+          </IconButton>
           <Button
             onClick={() => onApprove(replacement.id)}
             disabled={replacement.status === 'Aprovado'}
@@ -70,15 +107,9 @@ const ClassReplacementTable = ({ replacements, setAlert, onArchive, onUpdate, on
           >
             Rejeitar
           </Button>
-          <Button
-            onClick={() => onArchive(replacement.id)}
-            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
-          >
-            {replacement.isActive ? 'Inativar' : 'Ativar'}
-          </Button>
         </Stack>
       ),
-    }] : []),
+    },
   ];
 
   const isMobile = useMediaQuery('(max-width:600px)');
@@ -90,7 +121,7 @@ const ClassReplacementTable = ({ replacements, setAlert, onArchive, onUpdate, on
     const startIndex = (page - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
     return formattedReplacements.slice(startIndex, endIndex);
-  }, [formattedReplacements, page, rowsPerPage]);
+  }, [formattedReplacements, page]);
 
   const handleChangePage = (newPage) => {
     setPage(newPage);
@@ -115,24 +146,14 @@ const ClassReplacementTable = ({ replacements, setAlert, onArchive, onUpdate, on
 
   const renderMobileRow = (replacement) => (
     <Stack spacing={0.5}>
-      <Typography>
-        <strong>Turma:</strong> {normalizeString(replacement.turma)}
-      </Typography>
-      <Typography>
-        <strong>Disciplina:</strong> {normalizeString(replacement.disciplina)}
-      </Typography>
-      <Typography>
-        <strong>Quantidade:</strong> {normalizeString(replacement.quantidade)}
-      </Typography>
-      <Typography>
-        <strong>Data:</strong> {normalizeString(replacement.data)}
-      </Typography>
-      <Typography>
-        <strong>Arquivo:</strong> {normalizeString(replacement.fileName)}
-      </Typography>
-      <Typography>
-        <strong>Observação:</strong> {normalizeString(replacement.observacao)}
-      </Typography>
+      <Typography><strong>Turma:</strong> {normalizeString(replacement.turma)}</Typography>
+      <Typography><strong>Disciplina:</strong> {normalizeString(replacement.disciplina)}</Typography>
+      <Typography><strong>Horário:</strong> {normalizeString(replacement.hour)}</Typography>
+      <Typography><strong>Quantidade:</strong> {normalizeString(replacement.quantidade)}</Typography>
+      <Typography><strong>Data:</strong> {normalizeString(replacement.data)}</Typography>
+      <Typography><strong>Arquivo:</strong> {normalizeString(replacement.fileName)}</Typography>
+      <Typography><strong>Observação:</strong> {normalizeString(replacement.observacao)}</Typography>
+      <Typography><strong>Observação do Coordenador:</strong> {normalizeString(replacement.observationCoordinator)}</Typography>
       <Typography>
         <strong>Status:</strong>{" "}
         <Box
@@ -150,11 +171,16 @@ const ClassReplacementTable = ({ replacements, setAlert, onArchive, onUpdate, on
       {accessType === 'Coordenador' && (
         <Stack direction="row" spacing={1} justifyContent="center">
           <Button
-            onClick={() => onUpdate(replacement)}
-            disabled={!replacement.isActive}
+            onClick={() => onView(replacement.id)}
             sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
           >
-            Editar
+            Visualizar
+          </Button>
+          <Button
+            onClick={() => onDelete(replacement)}
+            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
+          >
+            Deletar
           </Button>
           <Button
             onClick={() => onApprove(replacement.id)}
@@ -169,12 +195,6 @@ const ClassReplacementTable = ({ replacements, setAlert, onArchive, onUpdate, on
             sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
           >
             Rejeitar
-          </Button>
-          <Button
-            onClick={() => onArchive(replacement.id)}
-            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
-          >
-            {replacement.isActive ? 'Inativar' : 'Ativar'}
           </Button>
         </Stack>
       )}
@@ -197,13 +217,9 @@ const ClassReplacementTable = ({ replacements, setAlert, onArchive, onUpdate, on
         )}
         {formattedReplacements.length > rowsPerPage && (
           <Paginate
-            count={Math.ceil(
-              (Array.isArray(formattedReplacements) ? formattedReplacements.length : 0) / rowsPerPage
-            )}
+            count={Math.ceil((Array.isArray(formattedReplacements) ? formattedReplacements.length : 0) / rowsPerPage)}
             page={page}
-            onChange={(event, newPage) => {
-              handleChangePage(newPage);
-            }}
+            onChange={(event, newPage) => handleChangePage(newPage)}
           />
         )}
       </Stack>
@@ -261,13 +277,9 @@ const ClassReplacementTable = ({ replacements, setAlert, onArchive, onUpdate, on
       </TableContainer>
       {formattedReplacements.length > rowsPerPage && (
         <Paginate
-          count={Math.ceil(
-            (Array.isArray(formattedReplacements) ? formattedReplacements.length : 0) / rowsPerPage
-          )}
+          count={Math.ceil((Array.isArray(formattedReplacements) ? formattedReplacements.length : 0) / rowsPerPage)}
           page={page}
-          onChange={(event, newPage) => {
-            handleChangePage(newPage);
-          }}
+          onChange={(event, newPage) => handleChangePage(newPage)}
         />
       )}
     </>
@@ -280,17 +292,18 @@ ClassReplacementTable.propTypes = {
       id: PropTypes.number.isRequired,
       turma: PropTypes.string.isRequired,
       disciplina: PropTypes.string.isRequired,
+      hour: PropTypes.string.isRequired,
       quantidade: PropTypes.string.isRequired,
       data: PropTypes.string.isRequired,
       fileName: PropTypes.string.isRequired,
       observacao: PropTypes.string.isRequired,
+      observationCoordinator: PropTypes.string,
       status: PropTypes.oneOf(['Pendente', 'Aprovado', 'Rejeitado']),
-      isActive: PropTypes.bool.isRequired,
     })
   ).isRequired,
   setAlert: PropTypes.func,
-  onArchive: PropTypes.func,
-  onUpdate: PropTypes.func,
+  onView: PropTypes.func,
+  onDelete: PropTypes.func,
   onApprove: PropTypes.func,
   onReject: PropTypes.func,
   accessType: PropTypes.string,

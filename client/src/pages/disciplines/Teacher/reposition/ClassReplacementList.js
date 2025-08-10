@@ -12,25 +12,32 @@ import {
   IconButton,
 } from '@mui/material';
 import { ArrowBack } from '@mui/icons-material';
+import { styled } from '@mui/material/styles';
 import DeleteConfirmationDialog from '../../../../components/DeleteConfirmationDialog';
 import ClassReplacementTable from './ClassReplacementTable';
 import { CustomAlert } from '../../../../components/alert/CustomAlert';
 import { StyledSelect } from '../../../../components/inputs/Input';
-import api from '../../../../service/api'; 
+import api from '../../../../service/api';
+
+const INSTITUTIONAL_COLOR = '#307c34';
+
+const StyledButton = styled(Button)(() => ({
+  textTransform: 'none',
+  fontWeight: 'bold',
+  backgroundColor: INSTITUTIONAL_COLOR,
+  '&:hover': { backgroundColor: '#26692b' },
+}));
 
 const ClassReplacementList = () => {
   const [replacements, setReplacements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
-
-  // Filter states
   const [filterTurma, setFilterTurma] = useState('all');
   const [filterDisciplina, setFilterDisciplina] = useState('all');
   const [filterPeriod, setFilterPeriod] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
-
-  const [openToggleActiveDialog, setOpenToggleActiveDialog] = useState(false);
-  const [replacementToToggleActive, setReplacementToToggleActive] = useState(null);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [replacementToDelete, setReplacementToDelete] = useState(null);
   const [page, setPage] = useState(1);
   const rowsPerPage = 7;
   const navigate = useNavigate();
@@ -46,31 +53,27 @@ const ClassReplacementList = () => {
     const fetchReplacements = async () => {
       try {
         setLoading(true);
-        const response = await api.get('/request', {
-          params: { type: requestType },
-        });
-        const replacementsArray = response.data.requests.map((item) => ({
-          id: item.id,
-          professor: item.professor?.username || 'Desconhecido',
-          professorId: item.userId,
-          coordinatorId: item.observationCoordinator ? 'coord1' : null,
-          turma: item.disciplinaclasse?.name || 'Desconhecido',
-          disciplina: item.disciplinaclasse?.discipline || 'Desconhecido',
-          quantidade: item.quantity.toString(),
-          data: item.date,
-          fileName: item.annex || 'Nenhum arquivo',
-          observacao: item.observation || 'Sem observação',
-          isActive: !item.validated,
-          status: item.validated ? 'Aprovado' : 'Pendente',
-        }));
-        replacementsArray.sort((a, b) => a.turma.toLowerCase().localeCompare(b.turma.toLowerCase()));
+        const response = await api.get('/request', { params: { type: requestType } });
+        const replacementsArray = Array.isArray(response.data.requests)
+          ? response.data.requests.map((item) => ({
+              id: item.id,
+              professor: item.professor?.username || 'Desconhecido',
+              professorId: item.userId,
+              turma: item.course || 'Desconhecido',
+              disciplina: item.discipline || 'Desconhecido',
+              hour: item.hour || 'N/A',
+              quantidade: item.quantity.toString(),
+              data: item.date,
+              fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
+              observacao: item.observation || 'N/A',
+              observationCoordinator: item.observationCoordinator || 'N/A',
+              status: item.validated ? 'Aprovado' : item.observationCoordinator ? 'Rejeitado' : 'Pendente',
+            })).sort((a, b) => a.turma.toLowerCase().localeCompare(b.turma.toLowerCase()))
+          : [];
         setReplacements(replacementsArray);
       } catch (error) {
         console.error('Erro ao carregar reposições:', error);
-        setAlert({
-          message: 'Erro ao carregar reposições.',
-          type: 'error',
-        });
+        setAlert({ message: 'Erro ao carregar reposições.', type: 'error' });
         setReplacements([]);
       } finally {
         setLoading(false);
@@ -83,151 +86,112 @@ const ClassReplacementList = () => {
     setPage(1);
   }, [filterTurma, filterDisciplina, filterPeriod, filterStatus]);
 
-  const handleRegisterOrUpdate = async (updatedReplacement, isEditMode) => {
-    try {
-      const formData = new FormData();
-      formData.append('userId', updatedReplacement.professorId);
-      formData.append('courseClassId', updatedReplacement.courseClassId);
-      formData.append('type', requestType);
-      formData.append('quantity', updatedReplacement.quantidade);
-      formData.append('date', updatedReplacement.data);
-      formData.append('observation', updatedReplacement.observacao);
-      if (isEditMode) {
-        formData.append('validated', updatedReplacement.status === 'Aprovado');
-        formData.append('observationCoordinator', updatedReplacement.observationCoordinator || '');
-      }
-      if (updatedReplacement.file) {
-        formData.append('annex', updatedReplacement.file);
-      }
-
-      if (isEditMode) {
-        await api.put(`/request/${updatedReplacement.id}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        setReplacements(
-          replacements
-            .map((a) => (a.id === updatedReplacement.id ? { ...updatedReplacement, status: 'Pendente' } : a))
-            .sort((a, b) => a.turma.toLowerCase().localeCompare(b.turma.toLowerCase()))
-        );
-        setAlert({
-          message: `Reposição para ${updatedReplacement.turma} atualizada com sucesso!`,
-          type: 'success',
-        });
-      } else {
-        const response = await api.post('/request', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        const newReplacement = {
-          ...response.data.request,
-          professor: response.data.request.professor?.username || 'Desconhecido',
-          turma: response.data.request.disciplinaclasse?.name || 'Desconhecido',
-          disciplina: response.data.request.disciplinaclasse?.discipline || 'Desconhecido',
-          quantidade: response.data.request.quantity.toString(),
-          data: response.data.request.date,
-          fileName: response.data.request.annex || 'Nenhum arquivo',
-          observacao: response.data.request.observation || 'Sem observação',
-          isActive: !response.data.request.validated,
-          status: response.data.request.validated ? 'Aprovado' : 'Pendente',
-          professorId: response.data.request.userId,
-          coordinatorId: response.data.request.observationCoordinator ? 'coord1' : null,
-        };
-        setReplacements([...replacements, newReplacement].sort((a, b) => a.turma.toLowerCase().localeCompare(b.turma.toLowerCase())));
-        setAlert({
-          message: `Reposição para ${newReplacement.turma} cadastrada com sucesso!`,
-          type: 'success',
-        });
-      }
-      setPage(1);
-      navigate('/class-reposition', { state: { requestType } });
-    } catch (error) {
-      console.error('Erro ao atualizar lista de reposições:', error);
-      setAlert({
-        message: 'Erro ao atualizar a lista de reposições.',
-        type: 'error',
-      });
-    }
+  const handleView = (id) => {
+    navigate(`/class-reposition/view/${id}`, { state: { requestType } });
   };
 
-  const handleEditReplacement = (replacement) => {
-    navigate(`/class-reposition/edit/${replacement.id}`, { state: { replacement, requestType } });
-  };
-
-  const handleApprove = async (replacementId) => {
+  const handleApprove = async (id) => {
     try {
-      await api.put(`/request/${replacementId}`, {
+      await api.put(`/request/${id}`, {
         validated: true,
         observationCoordinator: 'Aprovado pelo coordenador',
       });
+      setAlert({ message: 'Reposição aprovada com sucesso!', type: 'success' });
+      const response = await api.get('/request', { params: { type: requestType } });
       setReplacements(
-        replacements.map((a) =>
-          a.id === replacementId ? { ...a, status: 'Aprovado', isActive: false } : a
-        )
+        Array.isArray(response.data.requests)
+          ? response.data.requests.map((item) => ({
+              id: item.id,
+              professor: item.professor?.username || 'Desconhecido',
+              professorId: item.userId,
+              turma: item.course || 'Desconhecido',
+              disciplina: item.discipline || 'Desconhecido',
+              hour: item.hour || 'N/A',
+              quantidade: item.quantity.toString(),
+              data: item.date,
+              fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
+              observacao: item.observation || 'N/A',
+              observationCoordinator: item.observationCoordinator || 'N/A',
+              status: item.validated ? 'Aprovado' : item.observationCoordinator ? 'Rejeitado' : 'Pendente',
+            }))
+          : []
       );
-      setAlert({
-        message: 'Reposição aprovada com sucesso!',
-        type: 'success',
-      });
     } catch (error) {
       console.error('Erro ao aprovar reposição:', error);
-      setAlert({
-        message: 'Erro ao aprovar reposição.',
-        type: 'error',
-      });
+      setAlert({ message: 'Erro ao aprovar reposição.', type: 'error' });
     }
   };
 
-  const handleReject = async (replacementId) => {
+  const handleReject = async (id) => {
     try {
-      await api.put(`/request/${replacementId}`, {
+      await api.put(`/request/${id}`, {
         validated: false,
         observationCoordinator: 'Rejeitado pelo coordenador',
       });
+      setAlert({ message: 'Reposição rejeitada com sucesso!', type: 'success' });
+      const response = await api.get('/request', { params: { type: requestType } });
       setReplacements(
-        replacements.map((a) =>
-          a.id === replacementId ? { ...a, status: 'Rejeitado', isActive: false } : a
-        )
+        Array.isArray(response.data.requests)
+          ? response.data.requests.map((item) => ({
+              id: item.id,
+              professor: item.professor?.username || 'Desconhecido',
+              professorId: item.userId,
+              turma: item.course || 'Desconhecido',
+              disciplina: item.discipline || 'Desconhecido',
+              hour: item.hour || 'N/A',
+              quantidade: item.quantity.toString(),
+              data: item.date,
+              fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
+              observacao: item.observation || 'N/A',
+              observationCoordinator: item.observationCoordinator || 'N/A',
+              status: item.validated ? 'Aprovado' : item.observationCoordinator ? 'Rejeitado' : 'Pendente',
+            }))
+          : []
       );
-      setAlert({
-        message: 'Reposição rejeitada com sucesso!',
-        type: 'success',
-      });
     } catch (error) {
       console.error('Erro ao rejeitar reposição:', error);
-      setAlert({
-        message: 'Erro ao rejeitar reposição.',
-        type: 'error',
-      });
+      setAlert({ message: 'Erro ao rejeitar reposição.', type: 'error' });
     }
   };
 
-  const handleToggleActiveClick = async (replacementId) => {
-    const replacement = replacements.find((a) => a.id === replacementId);
-    setReplacementToToggleActive(replacement);
-    setOpenToggleActiveDialog(true);
+  const handleDeleteClick = (replacement) => {
+    setReplacementToDelete(replacement);
+    setOpenDeleteDialog(true);
   };
 
-  const handleConfirmToggleActive = async () => {
+  const handleConfirmDelete = async () => {
     try {
-      await api.delete(`/request/${replacementToToggleActive.id}`);
-      setReplacements(
-        replacements
-          .filter((a) => a.id !== replacementToToggleActive.id)
-          .sort((a, b) => a.turma.toLowerCase().localeCompare(b.turma.toLowerCase()))
-      );
+      await api.delete(`/request/${replacementToDelete.id}`);
       setAlert({
-        message: `Reposição para ${replacementToToggleActive.turma} excluída com sucesso!`,
+        message: `Reposição para ${replacementToDelete.turma} deletada com sucesso!`,
         type: 'success',
       });
+      const response = await api.get('/request', { params: { type: requestType } });
+      setReplacements(
+        Array.isArray(response.data.requests)
+          ? response.data.requests.map((item) => ({
+              id: item.id,
+              professor: item.professor?.username || 'Desconhecido',
+              professorId: item.userId,
+              turma: item.course || 'Desconhecido',
+              disciplina: item.discipline || 'Desconhecido',
+              hour: item.hour || 'N/A',
+              quantidade: item.quantity.toString(),
+              data: item.date,
+              fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
+              observacao: item.observation || 'N/A',
+              observationCoordinator: item.observationCoordinator || 'N/A',
+              status: item.validated ? 'Aprovado' : item.observationCoordinator ? 'Rejeitado' : 'Pendente',
+            }))
+          : []
+      );
       setPage(1);
     } catch (error) {
-      console.error('Erro ao excluir reposição:', error);
-      setAlert({
-        message: 'Erro ao excluir reposição.',
-        type: 'error',
-      });
+      console.error('Erro ao deletar reposição:', error);
+      setAlert({ message: 'Erro ao deletar reposição.', type: 'error' });
     } finally {
-      setOpenToggleActiveDialog(false);
-      setReplacementToToggleActive(null);
+      setOpenDeleteDialog(false);
+      setReplacementToDelete(null);
     }
   };
 
@@ -235,29 +199,24 @@ const ClassReplacementList = () => {
     navigate('/class-reschedule-options');
   };
 
-  // Get unique options for filters
   const turmas = [...new Set(replacements.map((a) => a.turma))].sort();
   const disciplinas = [...new Set(replacements.map((a) => a.disciplina))].sort();
 
   const applyFilters = (data) => {
     let filtered = Array.isArray(data) ? [...data] : [];
 
-    // Filter by Turma
     if (filterTurma !== 'all') {
       filtered = filtered.filter((rep) => rep.turma === filterTurma);
     }
 
-    // Filter by Disciplina
     if (filterDisciplina !== 'all') {
       filtered = filtered.filter((rep) => rep.disciplina === filterDisciplina);
     }
 
-    // Filter by Status
     if (filterStatus !== 'all') {
       filtered = filtered.filter((rep) => rep.status === filterStatus);
     }
 
-    // Filter by Period (Date)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -287,7 +246,6 @@ const ClassReplacementList = () => {
   };
 
   const filteredReplacements = applyFilters(replacements);
-
   const totalPages = Math.ceil(filteredReplacements.length / rowsPerPage);
   const paginatedReplacements = filteredReplacements.slice(
     (page - 1) * rowsPerPage,
@@ -363,17 +321,15 @@ const ClassReplacementList = () => {
           sx={{
             position: 'absolute',
             left: 0,
-            color: '#307c34',
-            '&:hover': {
-              backgroundColor: 'transparent',
-            },
+            color: INSTITUTIONAL_COLOR,
+            '&:hover': { backgroundColor: 'transparent' },
           }}
         >
           <ArrowBack sx={{ fontSize: 35 }} />
         </IconButton>
         <Typography
-          variant='h5'
-          align='center'
+          variant="h5"
+          align="center"
           gutterBottom
           sx={{ fontWeight: 'bold', flexGrow: 1 }}
         >
@@ -384,7 +340,7 @@ const ClassReplacementList = () => {
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
         spacing={2}
-        justifyContent='space-between'
+        justifyContent="space-between"
         alignItems={{ xs: 'stretch', sm: 'center' }}
         sx={{ mb: 2 }}
       >
@@ -394,89 +350,82 @@ const ClassReplacementList = () => {
           alignItems={{ xs: 'stretch', md: 'center' }}
         >
           <FormControl sx={commonFormControlSx}>
-            <InputLabel id='filter-turma-label'>Turma</InputLabel>
+            <InputLabel id="filter-turma-label">Turma</InputLabel>
             <StyledSelect
-              labelId='filter-turma-label'
-              id='filter-turma'
+              labelId="filter-turma-label"
+              id="filter-turma"
               value={filterTurma}
-              label='Turma'
+              label="Turma"
               onChange={(e) => setFilterTurma(e.target.value)}
               sx={commonSelectSx}
               MenuProps={commonMenuProps}
             >
-              <MenuItem value='all'>Todas</MenuItem>
+              <MenuItem value="all">Todas</MenuItem>
               {turmas.map((turma) => (
-                <MenuItem key={turma} value={turma}>
-                  {turma}
-                </MenuItem>
+                <MenuItem key={turma} value={turma}>{turma}</MenuItem>
               ))}
             </StyledSelect>
           </FormControl>
 
           <FormControl sx={commonFormControlSx}>
-            <InputLabel id='filter-disciplina-label'>Disciplina</InputLabel>
+            <InputLabel id="filter-disciplina-label">Disciplina</InputLabel>
             <StyledSelect
-              labelId='filter-disciplina-label'
-              id='filter-disciplina'
+              labelId="filter-disciplina-label"
+              id="filter-disciplina"
               value={filterDisciplina}
-              label='Disciplina'
+              label="Disciplina"
               onChange={(e) => setFilterDisciplina(e.target.value)}
               sx={commonSelectSx}
               MenuProps={commonMenuProps}
             >
-              <MenuItem value='all'>Todas</MenuItem>
+              <MenuItem value="all">Todas</MenuItem>
               {disciplinas.map((disciplina) => (
-                <MenuItem key={disciplina} value={disciplina}>
-                  {disciplina}
-                </MenuItem>
+                <MenuItem key={disciplina} value={disciplina}>{disciplina}</MenuItem>
               ))}
             </StyledSelect>
           </FormControl>
 
           <FormControl sx={commonFormControlSx}>
-            <InputLabel id='filter-status-label'>Status</InputLabel>
+            <InputLabel id="filter-status-label">Status</InputLabel>
             <StyledSelect
-              labelId='filter-status-label'
-              id='filter-status'
+              labelId="filter-status-label"
+              id="filter-status"
               value={filterStatus}
-              label='Status'
+              label="Status"
               onChange={(e) => setFilterStatus(e.target.value)}
               sx={commonSelectSx}
               MenuProps={commonMenuProps}
             >
-              <MenuItem value='all'>Todos</MenuItem>
-              <MenuItem value='Pendente'>Pendente</MenuItem>
-              <MenuItem value='Aprovado'>Aprovado</MenuItem>
-              <MenuItem value='Rejeitado'>Rejeitado</MenuItem>
+              <MenuItem value="all">Todos</MenuItem>
+              <MenuItem value="Pendente">Pendente</MenuItem>
+              <MenuItem value="Aprovado">Aprovado</MenuItem>
+              <MenuItem value="Rejeitado">Rejeitado</MenuItem>
             </StyledSelect>
           </FormControl>
 
           <FormControl sx={commonFormControlSx}>
-            <InputLabel id='filter-period-label'>Período</InputLabel>
+            <InputLabel id="filter-period-label">Período</InputLabel>
             <StyledSelect
-              labelId='filter-period-label'
-              id='filter-period'
+              labelId="filter-period-label"
+              id="filter-period"
               value={filterPeriod}
-              label='Período'
+              label="Período"
               onChange={(e) => setFilterPeriod(e.target.value)}
               sx={commonSelectSx}
               MenuProps={commonMenuProps}
             >
-              <MenuItem value='all'>Todas</MenuItem>
-              <MenuItem value='yesterday'>Dia Anterior</MenuItem>
-              <MenuItem value='lastWeek'>Última Semana</MenuItem>
-              <MenuItem value='lastMonth'>Último Mês</MenuItem>
+              <MenuItem value="all">Todas</MenuItem>
+              <MenuItem value="yesterday">Dia Anterior</MenuItem>
+              <MenuItem value="lastWeek">Última Semana</MenuItem>
+              <MenuItem value="lastMonth">Último Mês</MenuItem>
             </StyledSelect>
           </FormControl>
         </Stack>
 
-        <Button
-          variant='contained'
+        <StyledButton
+          variant="contained"
           onClick={() => navigate('/class-reposition/register', { state: { requestType } })}
           sx={{
-            backgroundColor: '#087619',
-            '&:hover': { backgroundColor: '#065412' },
-            textTransform: 'none',
             flexShrink: 0,
             width: { xs: '100%', sm: '200px' },
             height: { xs: 40, sm: 36 },
@@ -486,27 +435,31 @@ const ClassReplacementList = () => {
           }}
         >
           Cadastrar Reposição
-        </Button>
+        </StyledButton>
       </Stack>
 
-      <ClassReplacementTable
-        replacements={paginatedReplacements}
-        onArchive={handleToggleActiveClick}
-        onUpdate={handleEditReplacement}
-        onApprove={accessType === 'Coordenador' ? handleApprove : undefined}
-        onReject={accessType === 'Coordenador' ? handleReject : undefined}
-        setAlert={setAlert}
-        accessType={accessType}
-      />
+      {loading ? (
+        <Typography align="center">Carregando...</Typography>
+      ) : (
+        <ClassReplacementTable
+          replacements={paginatedReplacements || []}
+          setAlert={setAlert}
+          onView={handleView}
+          onDelete={handleDeleteClick}
+          onApprove={accessType === 'Coordenador' ? handleApprove : undefined}
+          onReject={accessType === 'Coordenador' ? handleReject : undefined}
+          accessType={accessType}
+        />
+      )}
 
       <DeleteConfirmationDialog
-        open={openToggleActiveDialog}
+        open={openDeleteDialog}
         onClose={() => {
-          setOpenToggleActiveDialog(false);
-          setReplacementToToggleActive(null);
+          setOpenDeleteDialog(false);
+          setReplacementToDelete(null);
         }}
-        onConfirm={handleConfirmToggleActive}
-        message={`Deseja realmente excluir a reposição para "${replacementToToggleActive?.turma}"?`}
+        onConfirm={handleConfirmDelete}
+        message={`Deseja realmente deletar a reposição para "${replacementToDelete?.turma}"?`}
       />
 
       {totalPages > 1 && (
@@ -515,7 +468,7 @@ const ClassReplacementList = () => {
             count={totalPages}
             page={page}
             onChange={(_, newPage) => setPage(newPage)}
-            color='primary'
+            color="primary"
           />
         </Box>
       )}

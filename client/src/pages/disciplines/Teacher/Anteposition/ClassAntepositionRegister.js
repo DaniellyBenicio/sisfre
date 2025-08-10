@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Paper, Button, TextField, Stack, InputAdornment, IconButton, FormControl, InputLabel, Select, MenuItem, Grid } from '@mui/material';
+import { Box, Typography, Paper, Button, TextField, Stack, InputAdornment, IconButton, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { Close, Save, CloudUpload, ArrowBack } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import api from '../../../../service/api';
+import { jwtDecode } from 'jwt-decode'; 
 
 const INSTITUTIONAL_COLOR = "#307c34";
 
@@ -13,7 +14,7 @@ const StyledButton = styled(Button)(() => ({
 }));
 
 const ClassAntepositionRegister = ({ setAlert }) => {
-  const [professor, setProfessor] = useState(localStorage.getItem('username') || '');
+  const professor = localStorage.getItem('username') || ''; 
   const [course, setCourse] = useState('');
   const [discipline, setDiscipline] = useState('');
   const [hour, setHour] = useState('');
@@ -66,23 +67,43 @@ const ClassAntepositionRegister = ({ setAlert }) => {
       return;
     }
 
-    const formData = new FormData();
-    formData.append('userId', localStorage.getItem('userId'));
-    formData.append('course', course);
-    formData.append('discipline', discipline);
-    formData.append('hour', hour);
-    formData.append('type', 'anteposicao');
-    formData.append('quantity', parseInt(quantity));
-    formData.append('date', date);
-    formData.append('annex', file);
-    formData.append('observation', observation);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setAlert({ message: "Token não encontrado. Faça login novamente.", type: "error" });
+      navigate('/login'); 
+      return;
+    }
 
     try {
+      const decoded = jwtDecode(token);
+      const userId = decoded.id; 
+
+      if (!userId || isNaN(userId)) {
+        setAlert({ message: "ID do usuário inválido no token. Faça login novamente.", type: "error" });
+        navigate('/login');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('userId', userId);
+      formData.append('course', course);
+      formData.append('discipline', discipline);
+      formData.append('hour', hour);
+      formData.append('type', 'anteposicao');
+      formData.append('quantity', parseInt(quantity));
+      formData.append('date', date);
+      formData.append('annex', file);
+      formData.append('observation', observation);
+
       await api.post('/request', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       setAlert({ message: "Anteposição cadastrada com sucesso!", type: "success" });
       navigate('/class-anteposition');
     } catch (error) {
-      setAlert({ message: error.response?.data?.error || "Erro ao cadastrar.", type: "error" });
+      console.error('Erro ao decodificar token ou enviar requisição:', error);
+      setAlert({ message: error.response?.data?.error || "Erro ao cadastrar. Token inválido ou expirado.", type: "error" });
+      if (error.name === 'TokenExpiredError') {
+        navigate('/login'); 
+      }
     }
   };
 

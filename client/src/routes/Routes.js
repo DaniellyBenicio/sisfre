@@ -400,7 +400,7 @@ const AppRoutes = () => {
           }
         />
         <Route
-          path="/class-reschedule-request/details"
+          path="/class-reschedule-request/details/:id"
           element={
             isAuthenticated && accessType === "Coordenador" ? (
               <ClassRescheduleRequestDetails setAuthenticated={handleLogout} />

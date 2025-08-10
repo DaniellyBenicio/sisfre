@@ -10,11 +10,14 @@ import {
   InputAdornment,
   IconButton,
   CssBaseline,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material';
 import { ArrowBack, Close, Save } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import SideBar from '../../../../components/SideBar';
 import { CustomAlert } from '../../../../components/alert/CustomAlert';
+import api from '../../../../service/api';
 
 const INSTITUTIONAL_COLOR = '#307c34';
 
@@ -44,17 +47,41 @@ const JustificationForm = ({ setAuthenticated }) => {
   const navigate = useNavigate();
   const frequencyItem = state?.frequencyItem || {};
   const [justification, setJustification] = useState('');
+  const [useCredit, setUseCredit] = useState(false);
   const [alert, setAlert] = useState(null);
 
-  // Log para depuração
   console.log('JustificationForm state:', state);
   console.log('FrequencyItem:', frequencyItem);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Justificativa enviada:', { frequencyItem, justification });
-    setAlert({ message: 'Justificativa enviada com sucesso!', type: 'success' });
-    setTimeout(() => navigate('/frequency'), 2000); // Simula sucesso com delay
+    try {
+      if (useCredit) {
+        const now = new Date();
+        const response = await api.post("/frequency/absence-credit", {
+          userId: "1", // Substituir por userId real do contexto de autenticação
+          courseId: frequencyItem.courseId,
+          disciplineId: frequencyItem.disciplineId,
+          date: now.toISOString().split("T")[0],
+          time: now.toTimeString().split(" ")[0],
+          useCredit: true,
+        });
+        setAlert({ message: response.data.message, type: "success" });
+      } else {
+        const response = await api.put(`/frequency/${frequencyItem.id}`, {
+          justification,
+          isAbsence: true,
+        });
+        setAlert({ message: response.data.message, type: "success" });
+      }
+      setTimeout(() => navigate('/frequency'), 2000);
+    } catch (error) {
+      console.error("Erro ao enviar justificativa:", error);
+      setAlert({
+        message: error.response?.data?.error || "Erro ao enviar justificativa.",
+        type: "error",
+      });
+    }
   };
 
   const handleGoBack = () => {
@@ -121,19 +148,34 @@ const JustificationForm = ({ setAuthenticated }) => {
               <strong>Turma:</strong> {frequencyItem.class || 'N/A'}
             </Typography>
             <Typography>
+              <strong>Disciplina:</strong> {frequencyItem.discipline || 'N/A'}
+            </Typography>
+            <Typography>
               <strong>Horário:</strong> {frequencyItem.time || 'N/A'}
             </Typography>
-            <TextField
-              label="Justificativa"
-              multiline
-              rows={4}
-              value={justification}
-              onChange={(e) => setJustification(e.target.value)}
-              fullWidth
-              required
-              variant="outlined"
-              placeholder="Digite a justificativa para a falta"
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={useCredit}
+                  onChange={(e) => setUseCredit(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label="Usar crédito para justificar falta"
             />
+            {!useCredit && (
+              <TextField
+                label="Justificativa"
+                multiline
+                rows={4}
+                value={justification}
+                onChange={(e) => setJustification(e.target.value)}
+                fullWidth
+                required
+                variant="outlined"
+                placeholder="Digite a justificativa para a falta"
+              />
+            )}
           </Stack>
         </Paper>
 
@@ -159,7 +201,7 @@ const JustificationForm = ({ setAuthenticated }) => {
             <StyledButton
               onClick={handleSubmit}
               variant="contained"
-              disabled={!justification.trim()}
+              disabled={!useCredit && !justification.trim()}
               sx={{
                 backgroundColor: INSTITUTIONAL_COLOR,
                 '&:hover': { backgroundColor: '#26692b' },

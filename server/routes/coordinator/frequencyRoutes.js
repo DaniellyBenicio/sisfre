@@ -20,7 +20,7 @@ router.get("/frequency", autenticarToken, getFrequencies);
 router.put("/frequency/:id", autenticarToken, isTeacherOrCoordinator(), updateFrequency);
 router.get("/frequency/qrcode/:token", getQrCodeImage);
 router.post("/frequency/absence-credit", autenticarToken, isTeacherOrCoordinator(), registerAbsenceWithCredit);
-router.get("/professor/:professorId/schedule-course-discipline", autenticarToken, getProfessorScheduleCourseDiscipline);
+router.get('/professor/:userId/schedule-course-discipline', getProfessorScheduleCourseDiscipline);
 router.post("/frequency/test-auto-absence", async (req, res) => {
   try {
     await autoAbsenceFrequency();

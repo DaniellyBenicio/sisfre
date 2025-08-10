@@ -59,34 +59,6 @@ const FrequencyList = () => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
-  // Mock data with at least one absence to enable the Edit icon
-  const mockFrequencies = [
-    {
-      id: 1,
-      date: "2025-08-01",
-      displayDate: "01/08/2025",
-      class: "Turma A",
-      time: "08:00",
-      status: "Falta",
-    },
-    {
-      id: 2,
-      date: "2025-08-02",
-      displayDate: "02/08/2025",
-      class: "Turma B",
-      time: "09:00",
-      status: "Presença",
-    },
-    {
-      id: 3,
-      date: "2025-08-03",
-      displayDate: "03/08/2025",
-      class: "Turma C",
-      time: "10:00",
-      status: "Falta",
-    },
-  ];
-
   const commonStyles = {
     formControl: {
       width: { xs: "100%", sm: "200px" },
@@ -157,18 +129,18 @@ const FrequencyList = () => {
   const fetchFrequencies = async () => {
     try {
       setLoading(true);
-      // Commented out API call to use mock data
-      // const response = await api.get("/frequency");
-      // const formattedData = response.data.map((freq) => ({
-      //   id: freq.id,
-      //   date: freq.date,
-      //   displayDate: freq.date ? new Date(freq.date + "T00:00:00").toLocaleDateString("pt-BR") : "N/A",
-      //   class: freq.disciplinaclasse?.name || "N/A",
-      //   time: freq.time || "N/A",
-      //   status: freq.status || "Presença",
-      // }));
-      // setFrequencies(formattedData);
-      setFrequencies(mockFrequencies); // Use mock data
+      const response = await api.get("/frequency");
+      const formattedData = response.data.map((freq) => ({
+        id: freq.id,
+        date: freq.date,
+        displayDate: freq.date ? new Date(freq.date + "T00:00:00").toLocaleDateString("pt-BR") : "N/A",
+        class: freq.courseId ? `Curso ${freq.courseId}` : "N/A", // Substituir por nome real do curso via endpoint
+        time: freq.time || "N/A",
+        status: freq.isAbsence ? "Falta" : "Presença",
+        courseId: freq.courseId,
+        disciplineId: freq.disciplineId,
+      }));
+      setFrequencies(formattedData);
     } catch (error) {
       console.error("Erro ao buscar frequências:", error);
       setAlert({ message: "Erro ao carregar as frequências.", type: "error" });
@@ -220,12 +192,33 @@ const FrequencyList = () => {
 
   const handleUploadFrequency = async (frequencyItem) => {
     try {
-      const response = await api.put(`/frequency/${frequencyItem.id}`, { status: frequencyItem.status });
+      const response = await api.put(`/frequency/${frequencyItem.id}`, {
+        isAbsence: frequencyItem.status === "Falta",
+      });
       setAlert({ message: response.data.message, type: "success" });
       fetchFrequencies();
     } catch (error) {
       console.error("Erro ao atualizar frequência:", error);
       setAlert({ message: "Erro ao atualizar a frequência.", type: "error" });
+    }
+  };
+
+  const handleRegisterAbsenceWithCredit = async (frequencyItem) => {
+    try {
+      const now = new Date();
+      const response = await api.post("/frequency/absence-credit", {
+        userId: "1", // Substituir por userId real do contexto de autenticação
+        courseId: frequencyItem.courseId,
+        disciplineId: frequencyItem.disciplineId,
+        date: now.toISOString().split("T")[0],
+        time: now.toTimeString().split(" ")[0],
+        useCredit: true,
+      });
+      setAlert({ message: response.data.message, type: "success" });
+      fetchFrequencies();
+    } catch (error) {
+      console.error("Erro ao registrar falta com crédito:", error);
+      setAlert({ message: error.response?.data?.error || "Erro ao registrar falta.", type: "error" });
     }
   };
 
@@ -239,7 +232,7 @@ const FrequencyList = () => {
         navigator.geolocation.getCurrentPosition(resolve, reject);
       });
       const { latitude, longitude } = position.coords;
-      const userId = "1";
+      const userId = "1"; // Substituir por userId real do contexto de autenticação
       const response = await api.post("/frequency/scan", { token, userId, latitude, longitude });
       setAlert({ message: response.data.message, type: "success" });
       setShowQrScanner(false);
@@ -511,6 +504,7 @@ const FrequencyList = () => {
             search=""
             isFiltered={filterStatus !== "all" || filterPeriod !== "all" || (filterPeriod === "custom" && (customStartDate || customEndDate))}
             setAlert={setAlert}
+            onRegisterAbsenceWithCredit={handleRegisterAbsenceWithCredit}
           />
           {loading && <Typography align="center">Carregando frequências...</Typography>}
         </Box>

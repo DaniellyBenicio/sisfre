@@ -144,23 +144,28 @@ export const getProfessorScheduleCourseDiscipline = async (req, res) => {
     const scheduleDetails = await db.ClassScheduleDetail.findAll({
       where: { userId },
       include: [
-        { model: db.ClassSchedule, as: "schedule", include: [{ model: db.Course, as: "course", attributes: ["id", "name"] }] },
-        { model: db.Discipline, as: "discipline", attributes: ["id", "name"] },
-        { model: db.Hour, as: "hour", attributes: ["id", "hourStart", "hourEnd"] }
+        { 
+          model: db.ClassSchedule, 
+          as: "schedule", 
+          include: [{ model: db.Course, as: "course" }] 
+        },
+        { 
+          model: db.Discipline, 
+          as: "discipline",
+          attributes: ["id", "name"] 
+        }
       ]
     });
+    
 
-    const result = scheduleDetails.map(detail => ({
-      date: detail.date,
-      hour: detail.hour,
-      course: detail.schedule?.course,
-      discipline: detail.discipline
-    }));
-
-    return res.status(200).json({ schedule: result });
+    const courses = [...new Map(scheduleDetails.map(detail => [detail.schedule?.course?.id, detail.schedule?.course])).values()].filter(Boolean);
+    const disciplines = [...new Map(scheduleDetails.map(detail => [detail.discipline?.id, detail.discipline])).values()].filter(Boolean);
+    
+    console.log("Backend Final: Cursos extraídos:", courses.length, "Disciplina extraídas:", disciplines.length);
+    
+    return res.status(200).json({ courses, disciplines });
   } catch (error) {
-    return res.status(500).json({ error: "Erro ao buscar horários do professor." });
+    console.error("ERRO FINAL DO BACKEND:", error);
+    return res.status(500).json({ error: "Erro ao buscar horários do professor.", details: error.message });
   }
 };
-
-

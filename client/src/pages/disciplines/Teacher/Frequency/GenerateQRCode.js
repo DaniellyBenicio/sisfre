@@ -14,53 +14,97 @@ import api from "../../../../service/api";
 import { CustomAlert } from "../../../../components/alert/CustomAlert";
 import { StyledSelect } from "../../../../components/inputs/Input";
 
+// Função para decodificar o JWT sem biblioteca externa
+const parseJwt = (token) => {
+  if (!token) return null;
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map((c) => {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    console.error("Erro ao decodificar token:", error);
+    return null;
+  }
+};
+
 const GenerateQRCode = ({ setAlert }) => {
-  const [courseClassId, setCourseClassId] = useState("");
+  const [courseId, setCourseId] = useState("");
+  const [disciplineId, setDisciplineId] = useState("");
+  const [courses, setCourses] = useState([]);
+  const [disciplines, setDisciplines] = useState([]);
   const [qrImage, setQrImage] = useState(null);
   const [token, setToken] = useState(null);
-  const [courseClasses, setCourseClasses] = useState([
-    { id: 1, name: "Turma Fictícia 2025 - Matemática" },
-  ]);
   const [loading, setLoading] = useState(false);
 
-  /*
-  const fetchCourseClasses = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get("/course-classes");
-      console.log("Resposta do endpoint /course-classes:", response.data);
-      if (Array.isArray(response.data)) {
-        setCourseClasses(response.data);
-        if (response.data.length === 0) {
-          setAlert({
-            message: "Nenhuma turma disponível. Verifique o backend.",
-            type: "warning",
-          });
-        }
-      } else {
-        throw new Error("Formato de resposta inválido para turmas.");
-      }
-    } catch (error) {
-      console.error("Erro ao buscar turmas:", error.response?.data || error.message);
+  const fetchProfessorSchedule = async () => {
+    const authToken = localStorage.getItem('token');
+    if (!authToken) {
       setAlert({
-        message: error.response?.data?.error || "Erro ao carregar turmas. Verifique o console para mais detalhes.",
+        message: "Token de autenticação não encontrado. Faça login novamente.",
         type: "error",
       });
-      setCourseClasses([]);
+      setCourses([]);
+      setDisciplines([]);
+      setLoading(false);
+      return;
+    }
+
+    const user = parseJwt(authToken);
+    const userId = user?.id || user?.sub || user?.userId;
+
+    // --- LINHA ADICIONADA PARA DEBUG ---
+    console.log("ID do professor extraído do token:", userId);
+
+    if (!userId) {
+      setAlert({
+        message: "Não foi possível obter o ID do usuário do token. Verifique o token JWT.",
+        type: "error",
+      });
+      setCourses([]);
+      setDisciplines([]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await api.get(`/professor/${userId}/schedule-course-discipline`);
+      
+      const { courses: fetchedCourses, disciplines: fetchedDisciplines } = response.data;
+      
+      setCourses(fetchedCourses || []);
+      setDisciplines(fetchedDisciplines || []);
+
+      if (fetchedCourses.length === 0 || fetchedDisciplines.length === 0) {
+        setAlert({
+          message: "Nenhum curso ou disciplina associado ao professor.",
+          type: "warning",
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao buscar horários do professor:", error.response?.data || error.message);
+      setAlert({
+        message: error.response?.data?.error || "Erro ao carregar cursos e disciplinas. Verifique o console.",
+        type: "error",
+      });
+      setCourses([]);
+      setDisciplines([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCourseClasses();
+    fetchProfessorSchedule();
   }, []);
-  */
 
   const handleGenerateQRCode = async () => {
-    if (!courseClassId) {
+    if (!courseId || !disciplineId) {
       setAlert({
-        message: "Selecione uma turma antes de gerar o QR Code.",
+        message: "Selecione um curso e uma disciplina antes de gerar o QR Code.",
         type: "error",
       });
       return;
@@ -68,8 +112,7 @@ const GenerateQRCode = ({ setAlert }) => {
 
     try {
       setLoading(true);
-      const response = await api.post("/frequency/qrcode", { courseClassId });
-      console.log("Resposta do endpoint /frequency/qrcode:", response.data);
+      const response = await api.post("/frequency/qrcode", { courseId, disciplineId });
       setQrImage(response.data.qrImage);
       setToken(response.data.token);
       setAlert({
@@ -77,7 +120,7 @@ const GenerateQRCode = ({ setAlert }) => {
         type: "success",
       });
     } catch (error) {
-      console.error("Erro ao gerar QR Code:", error.response?.data || error.message);
+      console.error("Erro ao gerar QR Code:", error);
       setAlert({
         message: error.response?.data?.error || "Erro ao gerar QR Code.",
         type: "error",
@@ -105,7 +148,8 @@ const GenerateQRCode = ({ setAlert }) => {
   };
 
   const handleCancel = () => {
-    setCourseClassId("");
+    setCourseId("");
+    setDisciplineId("");
     setQrImage(null);
     setToken(null);
   };
@@ -177,12 +221,12 @@ const GenerateQRCode = ({ setAlert }) => {
       </Typography>
       {loading && (
         <Typography align="center" sx={{ mb: 2 }}>
-          Carregando turmas...
+          Carregando dados...
         </Typography>
       )}
-      {!loading && courseClasses.length === 0 && (
+      {!loading && (courses.length === 0 || disciplines.length === 0) && (
         <Typography align="center" sx={{ mb: 2, color: "error.main" }}>
-          Nenhuma turma encontrada.
+          Nenhum curso ou disciplina encontrada.
         </Typography>
       )}
       <Stack
@@ -193,21 +237,41 @@ const GenerateQRCode = ({ setAlert }) => {
         sx={{ mb: 4 }}
       >
         <FormControl sx={commonFormControlSx}>
-          <InputLabel id="course-class-label">Turma</InputLabel>
+          <InputLabel id="course-label">Curso</InputLabel>
           <StyledSelect
-            labelId="course-class-label"
-            id="course-class"
-            value={courseClassId}
-            label="Turma"
-            onChange={(e) => setCourseClassId(e.target.value)}
+            labelId="course-label"
+            id="course"
+            value={courseId}
+            label="Curso"
+            onChange={(e) => setCourseId(e.target.value)}
             sx={commonSelectSx}
             MenuProps={commonMenuProps}
-            disabled={loading || courseClasses.length === 0}
+            disabled={loading || courses.length === 0}
           >
-            <MenuItem value="">Selecione uma turma</MenuItem>
-            {courseClasses.map((course) => (
+            <MenuItem value="">Selecione um curso</MenuItem>
+            {courses.map((course) => (
               <MenuItem key={course.id} value={course.id}>
                 {course.name}
+              </MenuItem>
+            ))}
+          </StyledSelect>
+        </FormControl>
+        <FormControl sx={commonFormControlSx}>
+          <InputLabel id="discipline-label">Disciplina</InputLabel>
+          <StyledSelect
+            labelId="discipline-label"
+            id="discipline"
+            value={disciplineId}
+            label="Disciplina"
+            onChange={(e) => setDisciplineId(e.target.value)}
+            sx={commonSelectSx}
+            MenuProps={commonMenuProps}
+            disabled={loading || disciplines.length === 0}
+          >
+            <MenuItem value="">Selecione uma disciplina</MenuItem>
+            {disciplines.map((discipline) => (
+              <MenuItem key={discipline.id} value={discipline.id}>
+                {discipline.name}
               </MenuItem>
             ))}
           </StyledSelect>
@@ -215,7 +279,7 @@ const GenerateQRCode = ({ setAlert }) => {
         <Button
           variant="contained"
           onClick={handleGenerateQRCode}
-          disabled={loading || courseClasses.length === 0}
+          disabled={loading || courses.length === 0 || disciplines.length === 0}
           sx={{
             bgcolor: "#087619",
             "&:hover": { bgcolor: "#065412" },

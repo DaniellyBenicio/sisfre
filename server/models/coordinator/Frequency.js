@@ -7,11 +7,6 @@ export default (sequelize) => {
                 as: "professor",
                 foreignKey: "userId",
             });
-
-            Frequency.belongsTo(models.CourseClass, {
-                as: "disciplinaclasse",
-                foreignKey: "courseClassId",
-            });
         }
     }
 
@@ -26,7 +21,11 @@ export default (sequelize) => {
                 type: DataTypes.INTEGER,
                 allowNull: false,
             },
-            courseClassId: {
+            courseId: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+            },
+            disciplineId: {
                 type: DataTypes.INTEGER,
                 allowNull: false,
             },
@@ -38,13 +37,18 @@ export default (sequelize) => {
                 type: DataTypes.TIME,
                 allowNull: false,
             },
+            isAbsence: {
+                type: DataTypes.BOOLEAN,
+                allowNull: false,
+                defaultValue: false,
+            },
             latitude: {
                 type: DataTypes.FLOAT,
-                allowNull: false,
+                allowNull: true,
             },
             longitude: {
                 type: DataTypes.FLOAT,
-                allowNull: false,
+                allowNull: true,
             },
             createdAt: {
                 type: DataTypes.DATE,

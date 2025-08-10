@@ -17,17 +17,21 @@ module.exports = {
           model: "Users",
           key: "id",
         },
-        onUpdate: "CASCADE",
       },
 
-      courseClassId: {
-        type: Sequelize.INTEGER,
+      course: {
+        type: Sequelize.STRING,
         allowNull: false,
-        references: {
-          model: "course_classes",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
+      },
+
+      discipline: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+
+      hour: {
+        type: Sequelize.STRING,
+        allowNull: false,
       },
 
       type: {

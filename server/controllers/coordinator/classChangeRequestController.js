@@ -1,10 +1,11 @@
+import { error } from "console";
 import db from "../../models/index.js";
 import fs from "fs";
 
 export const createRequest = async (req, res) => {
-  const { userId, courseClassId, quantity, date, observation, type } = req.body;
+  const { userId, course, discipline, hour, quantity, date, observation, type } = req.body;
 
-  if (!userId || !courseClassId || !quantity || !date || !type) {
+  if (!userId || !course || !discipline || !hour || !quantity || !date || !type) {
     return res.status(400).json({ error: "Todos os campos obrigatórios devem ser preenchidos." });
   }
 
@@ -18,13 +19,8 @@ export const createRequest = async (req, res) => {
       .json({ error: "O limite máximo de aulas para reposição/anteposição por dia é 4." });
   }
 
-  const group = await db.CourseClass.findByPk(courseClassId);
-  if (!group || !group.isActive) {
-    return res.status(400).json({ error: "Turma inexistente ou inativa." });
-  }
-
   const alreadyExist = await db.ClassChangeRequest.findOne({
-    where: { userId, courseClassId, date, type },
+    where: { userId, course, discipline, date, type },
   });
 
   if (alreadyExist) {
@@ -38,7 +34,9 @@ export const createRequest = async (req, res) => {
   try {
     const request = await db.ClassChangeRequest.create({
       userId,
-      courseClassId,
+      course,
+      discipline,
+      hour,
       type,
       quantity,
       date,
@@ -57,15 +55,14 @@ export const getRequest = async (req, res) => {
   try {
     const requests = await db.ClassChangeRequest.findAll({
       include: [
-        { model: db.User, as: "professor", attributes: ["id", "username", "email"] },
-        { model: db.CourseClass, as: "disciplinaclasse" },
+        { model: db.User, as: "professor", attributes: ["id", "username", "email"] }
       ],
       order: [["date", "DESC"]],
     });
 
     return res.status(200).json({ requests });
   } catch (error) {
-    res.status(500).json({ error: "Erro ao listar requisições.", details: error.message });
+    return res.status(500).json({ error: "Erro ao listar requisições.", details: error.message });
   }
 };
 
@@ -98,7 +95,9 @@ export const updateRequest = async (req, res) => {
   const id = Number(req.params.id);
   const {
     userId,
-    courseClassId,
+    course,
+    discipline,
+    hour,
     type,
     quantity,
     date,
@@ -120,7 +119,7 @@ export const updateRequest = async (req, res) => {
 
     const newQuantity = quantity ?? request.quantity;
     const newDate = date ?? request.date;
-    const newCourseClassId = courseClassId ?? request.courseClassId;
+    const newCourse = course ?? request.course;
     const newUserId = userId ?? request.userId;
     const newType = type ?? request.type;
 
@@ -139,7 +138,7 @@ export const updateRequest = async (req, res) => {
       return res.status(400).json({ error: "A data não pode ser anterior à data atual." });
     }
 
-    const group = await db.CourseClass.findByPk(newCourseClassId);
+    const group = await db.CourseClass.findByPk(newCourse);
     if (!group || !group.isActive) {
       return res.status(400).json({ error: "Turma inexistente ou inativa." });
     }
@@ -147,7 +146,7 @@ export const updateRequest = async (req, res) => {
     const conflitante = await db.ClassChangeRequest.findOne({
       where: {
         userId: newUserId,
-        courseClassId: newCourseClassId,
+        course: newCourse,
         date: newDate,
         type: newType,
       },
@@ -169,7 +168,9 @@ export const updateRequest = async (req, res) => {
 
     await request.update({
       userId: newUserId,
-      courseClassId: newCourseClassId,
+      course: newCourse,
+      discipline,
+      hour,
       type: newType,
       quantity: newQuantity,
       date: newDate,
@@ -210,3 +211,66 @@ export const deleteRequest = async (req, res) => {
     return res.status(500).json({ error: "Erro ao excluir a requisição." });
   }
 };
+
+//fazer alterações nesse para buscar os detalhes do professor.
+export const getProfessorScheduleDetails = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    const scheduleDetails = await db.ClassScheduleDetail.findAll({
+      where: { userId },
+      include: [
+        {model: db.ClassSchedule,as: "schedule", include: [
+            {
+              model: db.Course,
+              as: "course",
+              attributes: ["id", "name"]
+            }
+          ]
+        },
+        { model: db.Discipline, as: "discipline", attributes: ["id", "name"] },
+        { model: db.Hour, as: "hour", attributes: ["id", "hourStart", "hourEnd"]},
+        { model: db.User, as: "professor", attributes: ["id", "username"] }
+      ]
+    });
+
+    return res.status(200).json({ scheduleDetails });
+  } catch (error) {
+    console.error("Erro ao buscar os detalhes da grade do professor:", error);
+    return res.status(500).json({ error: "Erro ao buscar os detalhes da grade." });
+  }
+};
+
+export const approveAnteposition = async (req, res) => {
+  const { requestId } = req.body;
+
+  try {
+    const request = await db.ClassChangeRequest.findByPk(requestId);
+    if (!request) {
+      return res.status(404).json({ error: "Solicitação não encontrada." });
+    }
+
+    if (request.validated === 1) {
+      return res.status(400).json({ error: "Esta anteposição já foi validada." });
+    }
+
+    // Verifica se é anteposição
+    if (request.type === "anteposicao") {
+      // Incrementa crédito do professor pela quantidade de aulas
+      const professor = await db.User.findByPk(request.userId);
+      if (professor) {
+        professor.absenceCredits += Number(request.quantity) || 1;
+        await professor.save();
+      }
+    }
+
+    // Atualiza status da solicitação
+    request.validated = 1;
+    await request.save();
+
+    return res.status(200).json({ message: "Anteposição aprovada e créditos concedidos ao professor." });
+  } catch (err) {
+    return res.status(500).json({ error: "Erro ao aprovar anteposição.", details: error.message });
+  }
+};
+

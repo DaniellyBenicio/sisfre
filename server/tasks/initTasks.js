@@ -3,6 +3,7 @@ import db from "../models/index.js";
 import { autoArchiveClassSchedules } from "./autoArchiveClassSchedules.js";
 import "../tasks/holidaySeedTask.js";
 import { exec } from "child_process";
+import { autoAbsenceFrequency } from "./autoAbsenceFrequency.js";
 
 //Cria o usuário administrador, se não existir
 const createAdminIfNotExists = async () => {
@@ -72,6 +73,18 @@ const initializeTasks = async () => {
       } else {
         console.log("Nenhum horário para arquivar");
       }
+    },
+    {
+      timezone: "America/Sao_Paulo",
+    }
+  );
+
+  // Executa todo minuto
+  cron.schedule(
+    "59 23 * * *",
+    async () => {
+      console.log("Executando job de falta automática!");
+      await autoAbsenceFrequency();
     },
     {
       timezone: "America/Sao_Paulo",

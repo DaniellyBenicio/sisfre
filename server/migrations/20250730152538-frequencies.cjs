@@ -18,14 +18,13 @@ module.exports = {
         },
         onUpdate: "CASCADE",
       },
-      courseClassId: {
+      courseId: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: {
-          model: "course_classes",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
+      },
+      disciplineId: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
       },
       date: {
         type: Sequelize.DATEONLY,
@@ -35,13 +34,18 @@ module.exports = {
         type: Sequelize.TIME,
         allowNull: false,
       },
+      isAbsence: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
       latitude: {
         type: Sequelize.FLOAT,
-        allowNull: false,
+        allowNull: true,
       },
       longitude: {
         type: Sequelize.FLOAT,
-        allowNull: false,
+        allowNull: true,
       },
       createdAt: {
         type: Sequelize.DATE,

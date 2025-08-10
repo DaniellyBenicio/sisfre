@@ -7,11 +7,6 @@ export default (sequelize) => {
         as: "professor",
         foreignKey: "userId",
       });
-
-      ClassChangeRequest.belongsTo(models.CourseClass, {
-        as: "disciplinaclasse",
-        foreignKey: "courseClassId",
-      });
     }
   }
 
@@ -30,17 +25,21 @@ export default (sequelize) => {
           model: "Users",
           key: "id",
         },
-        onUpdate: "CASCADE",
       },
 
-      courseClassId: {
-        type: DataTypes.INTEGER,
+      course: {
+        type: DataTypes.STRING,
         allowNull: false,
-        references: {
-          model: "course_classes",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
+      },
+
+      discipline: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+
+      hour: {
+        type: DataTypes.STRING,
+        allowNull: false,
       },
 
       type: {

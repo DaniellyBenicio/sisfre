@@ -77,8 +77,8 @@ export const getRequestById = async (req, res) => {
     const request = await db.ClassChangeRequest.findByPk(id, {
       include: [
         { model: db.User, as: "professor", attributes: ["id", "username", "email"] },
-        { model: db.CourseClass, as: "disciplinaclasse" },
       ],
+      order: [["date", "DESC"]],
     });
 
     if (!request) {
@@ -224,7 +224,10 @@ export const getProfessorScheduleDetails = async (req, res) => {
             {
               model: db.Course,
               as: "course",
-              attributes: ["id", "name"]
+              attributes: ["id", "name"],
+              model: db.Class,
+              as: "class",
+              attributes: ["id", "semester"]
             }
           ]
         },
@@ -274,3 +277,35 @@ export const approveAnteposition = async (req, res) => {
   }
 };
 
+export const approveReposition = async (req, res) => {
+  const { requestId } = req.body;
+
+  try {
+    const request = await db.ClassChangeRequest.findByPk(requestId);
+    if (!request) {
+      return res.status(404).json({ error: "Solicitação não encontrada." });
+    }
+
+    if (request.validated === 1) {
+      return res.status(400).json({ error: "Esta reposição já foi validada." });
+    }
+
+    // Verifica se é reposição
+    if (request.type === "reposicao") {
+      // Decrementa crédito do professor pela quantidade de aulas
+      const professor = await db.User.findByPk(request.userId);
+      if (professor) {
+        professor.absenceCredits += Number(request.quantity) || 1;
+        await professor.save();
+      }
+    }
+
+    // Atualiza status da solicitação
+    request.validated = 1;
+    await request.save();
+
+    return res.status(200).json({ message: "Reposição aprovada e créditos concedidos ao professor." });
+  } catch (error) {
+    return res.status(500).json({ error: "Erro ao aprovar reposição.", details: error.message });
+  }
+}

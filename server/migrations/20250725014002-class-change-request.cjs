@@ -29,7 +29,7 @@ module.exports = {
         allowNull: false,
       },
 
-      hour: {
+      turn: {
         type: Sequelize.STRING,
         allowNull: false,
       },

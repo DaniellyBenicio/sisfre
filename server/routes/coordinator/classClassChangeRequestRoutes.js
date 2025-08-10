@@ -12,6 +12,8 @@ import {
   getProfessorScheduleDetails,
   approveAnteposition,
   approveReposition,
+  negateAnteposition,
+  negateReposition,
 } from "../../controllers/coordinator/classChangeRequestController.js";
 
 const router = express.Router();
@@ -24,4 +26,6 @@ router.delete("/request/:id", autenticarToken, isTeacherOrCoordinator(), deleteR
 router.get("/professor/request", autenticarToken, isTeacherOrCoordinator(), getProfessorScheduleDetails);
 router.put("/request/anteposition/:id", autenticarToken, isTeacherOrCoordinator(), approveAnteposition);
 router.put("/request/reposition/:id", autenticarToken, isTeacherOrCoordinator(), approveReposition);
+router.put("/request/negate/reposition/:id", autenticarToken, isTeacherOrCoordinator(), negateReposition);
+router.put("/request/negate/anteposition/:id", autenticarToken, isTeacherOrCoordinator(), negateAnteposition);
 export default router;

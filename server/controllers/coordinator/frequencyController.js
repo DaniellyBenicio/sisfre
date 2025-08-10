@@ -54,6 +54,27 @@ export const getFrequencies = async (req, res) => {
   }
 };
 
+export const getFrequenciesByProfessor = async (req, res) => {
+  try {
+    const userId = req.user.id; // pega do token/jwt
+    const frequencies = await db.Frequency.findAll({
+      where: { 
+        userId,        // só do professor logado
+        isAbsence: true // apenas faltas
+      },
+      order: [["date", "DESC"], ["time", "DESC"]],
+    });
+
+    res.status(200).json(frequencies);
+  } catch (err) {
+    res.status(500).json({ 
+      error: "Erro ao buscar frequências.", 
+      details: err.message 
+    });
+  }
+};
+
+
 export const updateFrequency = async (req, res) => {
   try {
     const { id } = req.params;

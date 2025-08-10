@@ -3,9 +3,9 @@ import db from "../../models/index.js";
 import fs from "fs";
 
 export const createRequest = async (req, res) => {
-  const { userId, course, discipline, hour, quantity, date, observation, type } = req.body;
+  const { userId, course, discipline, turn, quantity, date, observation, type } = req.body;
 
-  if (!userId || !course || !discipline || !hour || !quantity || !date || !type) {
+  if (!userId || !course || !discipline || !turn || !quantity || !date || !type) {
     return res.status(400).json({ error: "Todos os campos obrigatórios devem ser preenchidos." });
   }
 
@@ -36,7 +36,7 @@ export const createRequest = async (req, res) => {
       userId,
       course,
       discipline,
-      hour,
+      turn,
       type,
       quantity,
       date,
@@ -87,7 +87,7 @@ export const getRequestById = async (req, res) => {
 
     return res.json({ request });
   } catch (error) {
-    return res.status(500).json({ error: "Erro ao buscar a Requisição." });
+    return res.status(500).json({ error: "Erro ao buscar a Requisição.", details: error.message });
   }
 };
 
@@ -97,7 +97,7 @@ export const updateRequest = async (req, res) => {
     userId,
     course,
     discipline,
-    hour,
+    turn,
     type,
     quantity,
     date,
@@ -152,12 +152,6 @@ export const updateRequest = async (req, res) => {
       },
     });
 
-    if (conflitante && conflitante.id !== id) {
-      return res.status(400).json({
-        error: "Já existe outra solicitação para essa data, aula e tipo.",
-      });
-    }
-
     const annex = req.file
       ? `/uploads/class_change_request/${req.file.filename}`
       : request.annex;
@@ -170,7 +164,7 @@ export const updateRequest = async (req, res) => {
       userId: newUserId,
       course: newCourse,
       discipline,
-      hour,
+      turn,
       type: newType,
       quantity: newQuantity,
       date: newDate,
@@ -220,24 +214,54 @@ export const getProfessorScheduleDetails = async (req, res) => {
     const scheduleDetails = await db.ClassScheduleDetail.findAll({
       where: { userId },
       include: [
-        {model: db.ClassSchedule,as: "schedule", include: [
-            {
-              model: db.Course,
-              as: "course",
-              attributes: ["id", "name"],
-              model: db.Class,
-              as: "class",
-              attributes: ["id", "semester"]
-            }
+        {
+          model: db.ClassSchedule,
+          as: "schedule",
+          include: [
+            { model: db.Course, as: "course", attributes: ["id", "name", "acronym"] },
+            { model: db.Class, as: "class", attributes: ["id", "semester"] }
           ]
         },
         { model: db.Discipline, as: "discipline", attributes: ["id", "name"] },
-        { model: db.Hour, as: "hour", attributes: ["id", "hourStart", "hourEnd"]},
+        { model: db.Hour, as: "hour", attributes: ["id", "hourStart"] },
         { model: db.User, as: "professor", attributes: ["id", "username"] }
-      ]
+      ],
+      order: [["hourId", "ASC"]]
     });
 
-    return res.status(200).json({ scheduleDetails });
+    // Filtra para pegar só o primeiro horário consecutivo
+    const filtered = scheduleDetails.filter((detail, index, self) =>
+      !self.some(
+        (other, otherIndex) =>
+          otherIndex < index &&
+          other.dayOfWeek === detail.dayOfWeek &&
+          other.disciplineId === detail.disciplineId &&
+          other.schedule.classId === detail.schedule.classId &&
+          Math.abs(other.hourId - detail.hourId) === 1
+      )
+    );
+
+    // Mapeia para um formato mais enxuto
+    const cleanResult = filtered.map(d => ({
+      day: d.dayOfWeek,
+      turn: d.turn,
+      discipline: d.discipline.name,
+      professor: d.professor.username,
+      course: d.schedule.course.name,
+      acronym: d.schedule.course.acronym,
+      semester: d.schedule.class.semester,
+    }));
+
+    // Remove duplicados pelo conjunto de campos que definem "único"
+    const seen = new Set();
+    const uniqueResult = cleanResult.filter(item => {
+      const key = `${item.discipline}|${item.professor}|${item.course}|${item.semester}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    return res.status(200).json({ scheduleDetails: uniqueResult });
   } catch (error) {
     console.error("Erro ao buscar os detalhes da grade do professor:", error);
     return res.status(500).json({ error: "Erro ao buscar os detalhes da grade." });
@@ -307,5 +331,53 @@ export const approveReposition = async (req, res) => {
     return res.status(200).json({ message: "Reposição aprovada e créditos concedidos ao professor." });
   } catch (error) {
     return res.status(500).json({ error: "Erro ao aprovar reposição.", details: error.message });
+  }
+}
+
+export const negateReposition = async (req, res) => {
+  const { requestId } = req.body;
+
+  try {
+    const request = await db.ClassChangeRequest.findByPk(requestId);
+    if (!request) {
+      return res.status(404).json({ error: "Solicitação não encontrada." });
+    }
+
+    if (request.validated === 2) {
+      return res.status(400).json({ error: "Esta reposição já foi negada." });
+    }
+
+    // Atualiza status da solicitação
+    request.validated = 2;
+    request.observationCoordinator = req.body.observationCoordinator || request.observationCoordinator;
+    await request.save();
+
+    return res.status(200).json({ message: "Reposição negada ao professor, créditos não serão adicionados." });
+  } catch (error) {
+    return res.status(500).json({ error: "Erro ao negar reposição.", details: error.message });
+  }
+}
+
+export const negateAnteposition = async (req, res) => {
+  const { requestId } = req.body;
+
+  try {
+    const request = await db.ClassChangeRequest.findByPk(requestId);
+    if (!request) {
+      return res.status(404).json({ error: "Solicitação não encontrada." });
+    }
+
+    if (request.validated === 2) {
+      return res.status(400).json({ error: "Esta anteposição já foi negada." });
+    }
+
+    // Atualiza status da solicitação
+    request.validated = 2;
+    request.observationCoordinator = req.body.observationCoordinator || request.observationCoordinator;
+    await request.save();
+
+    return res.status(200).json({ message: "Anteposição negada ao professor." });
+  } catch (error) {
+    return res.status(500).json({ error: "Erro ao negar anteposição.", details: error.message });
   }
 }

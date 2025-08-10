@@ -37,7 +37,7 @@ export default (sequelize) => {
         allowNull: false,
       },
 
-      hour: {
+      turn: {
         type: DataTypes.STRING,
         allowNull: false,
       },

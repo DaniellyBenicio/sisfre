@@ -8,7 +8,8 @@ import {
   updateFrequency,
   getQrCodeImage,
   registerAbsenceWithCredit,
-  getProfessorScheduleCourseDiscipline
+  getProfessorScheduleCourseDiscipline,
+  getFrequenciesByProfessor
 } from "../../controllers/coordinator/frequencyController.js";
 import { autoAbsenceFrequency } from "../../tasks/autoAbsenceFrequency.js";
 
@@ -17,6 +18,7 @@ const router = express.Router();
 router.post("/frequency/qrcode", autenticarToken, isTeacherOrCoordinator(), generateQrCode);
 router.post("/frequency/scan", autenticarToken, registerByQrCode);
 router.get("/frequency", autenticarToken, getFrequencies);
+router.get("/frequency/professor", autenticarToken, isTeacherOrCoordinator(), getFrequenciesByProfessor);
 router.put("/frequency/:id", autenticarToken, isTeacherOrCoordinator(), updateFrequency);
 router.get("/frequency/qrcode/:token", getQrCodeImage);
 router.post("/frequency/absence-credit", autenticarToken, isTeacherOrCoordinator(), registerAbsenceWithCredit);

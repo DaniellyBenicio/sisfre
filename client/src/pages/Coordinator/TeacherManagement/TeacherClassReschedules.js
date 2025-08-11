@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -11,41 +11,41 @@ import {
   Pagination,
   IconButton,
   CssBaseline,
-} from '@mui/material';
-import { ArrowBack } from '@mui/icons-material';
-import { styled } from '@mui/material/styles';
-import DeleteConfirmationDialog from '../../../components/DeleteConfirmationDialog';
-import ClassAntepositionTable from '../../disciplines/Teacher/Anteposition/ClassAntepositionTable';
-import { CustomAlert } from '../../../components/alert/CustomAlert';
-import { StyledSelect } from '../../../components/inputs/Input';
-import api from '../../../service/api';
-import Sidebar from '../../../components/SideBar';
+} from "@mui/material";
+import { ArrowBack } from "@mui/icons-material";
+import { styled } from "@mui/material/styles";
+import DeleteConfirmationDialog from "../../../components/DeleteConfirmationDialog";
+import ClassAntepositionTable from "../../disciplines/Teacher/Anteposition/ClassAntepositionTable";
+import { CustomAlert } from "../../../components/alert/CustomAlert";
+import { StyledSelect } from "../../../components/inputs/Input";
+import api from "../../../service/api";
+import Sidebar from "../../../components/SideBar";
 
-const INSTITUTIONAL_COLOR = '#307c34';
+const INSTITUTIONAL_COLOR = "#307c34";
 
 const StyledButton = styled(Button)(() => ({
-  textTransform: 'none',
-  fontWeight: 'bold',
+  textTransform: "none",
+  fontWeight: "bold",
   backgroundColor: INSTITUTIONAL_COLOR,
-  '&:hover': { backgroundColor: '#26692b' },
+  "&:hover": { backgroundColor: "#26692b" },
 }));
 
 const TeacherClassReschedules = ({ setAuthenticated }) => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
-  const [filterTurma, setFilterTurma] = useState('all');
-  const [filterDisciplina, setFilterDisciplina] = useState('all');
-  const [filterPeriod, setFilterPeriod] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [filterType, setFilterType] = useState('all');
+  const [filterTurma, setFilterTurma] = useState("all");
+  const [filterDisciplina, setFilterDisciplina] = useState("all");
+  const [filterPeriod, setFilterPeriod] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterType, setFilterType] = useState("all");
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [requestToDelete, setRequestToDelete] = useState(null);
   const [page, setPage] = useState(1);
   const rowsPerPage = 7;
   const navigate = useNavigate();
   const location = useLocation();
-  const accessType = localStorage.getItem('accessType') || 'Professor';
+  const accessType = localStorage.getItem("accessType") || "Professor";
 
   const handleAlertClose = () => {
     setAlert(null);
@@ -55,28 +55,51 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
     const fetchRequests = async () => {
       try {
         setLoading(true);
-        const response = await api.get('/request', { params: { type: ['anteposicao', 'reposicao'] } });
+        const response = await api.get("/request", {
+          params: { type: ["anteposicao", "reposicao"] },
+        });
         const requestsArray = Array.isArray(response.data.requests)
-          ? response.data.requests.map((item) => ({
-              id: item.id,
-              professor: item.professor?.username || 'Desconhecido',
-              professorId: item.userId,
-              turma: item.course || 'Desconhecido',
-              disciplina: item.discipline || 'Desconhecido',
-              turn: item.turn || 'N/A',
-              quantidade: item.quantity.toString(),
-              data: item.date,
-              fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
-              observacao: item.observation || 'N/A',
-              observationCoordinator: item.observationCoordinator || 'N/A',
-              status: item.validated === 1 ? 'Aprovado' : item.validated === 2 ? 'Rejeitado' : 'Pendente',
-              tipo: item.tipo === 'anteposicao' ? 'Anteposição' : item.tipo === 'reposicao' ? 'Reposição' : 'N/A',
-            })).sort((a, b) => a.turma.toLowerCase().localeCompare(b.turma.toLowerCase()))
+          ? response.data.requests
+              .map((item) => {
+                const semesterNumber = item.semester
+                  ? item.semester.replace(/^S/, "") || "N/A"
+                  : "N/A";
+                return {
+                  id: item.id,
+                  professor: item.professor?.username || "Desconhecido",
+                  professorId: item.userId,
+                  turma: item.acronym
+                    ? `${item.acronym} - S${semesterNumber}`
+                    : "Desconhecido",
+                  disciplina: item.discipline || "Desconhecido",
+                  turn: item.turn || "N/A",
+                  quantidade: item.quantity.toString(),
+                  data: item.date,
+                  fileName: item.annex ? item.annex.split("/").pop() : "N/A",
+                  observacao: item.observation || "N/A",
+                  observationCoordinator: item.observationCoordinator || "N/A",
+                  status:
+                    item.validated === 1
+                      ? "Aprovado"
+                      : item.validated === 2
+                      ? "Rejeitado"
+                      : "Pendente",
+                  tipo:
+                    item.type === "anteposicao"
+                      ? "Anteposição"
+                      : item.type === "reposicao"
+                      ? "Reposição"
+                      : "N/A",
+                };
+              })
+              .sort((a, b) =>
+                a.turma.toLowerCase().localeCompare(b.turma.toLowerCase())
+              )
           : [];
         setRequests(requestsArray);
       } catch (error) {
-        console.error('Erro ao carregar solicitações:', error);
-        setAlert({ message: 'Erro ao carregar solicitações.', type: 'error' });
+        console.error("Erro ao carregar solicitações:", error);
+        setAlert({ message: "Erro ao carregar solicitações.", type: "error" });
         setRequests([]);
       } finally {
         setLoading(false);
@@ -96,62 +119,104 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
   const handleApprove = async (id) => {
     try {
       await api.put(`/request/anteposition/${id}`);
-      setAlert({ message: 'Solicitação aprovada com sucesso! Créditos atualizados.', type: 'success' });
-      const response = await api.get('/request', { params: { type: ['anteposicao', 'reposicao'] } });
-      setRequests(
-        Array.isArray(response.data.requests)
-          ? response.data.requests.map((item) => ({
+      setAlert({
+        message: "Solicitação aprovada com sucesso! Créditos atualizados.",
+        type: "success",
+      });
+      const response = await api.get("/request", {
+        params: { type: ["anteposicao", "reposicao"] },
+      });
+      const requestsArray = Array.isArray(response.data.requests)
+        ? response.data.requests.map((item) => {
+            const semesterNumber = item.semester
+              ? item.semester.replace(/^S/, "") || "N/A"
+              : "N/A";
+            return {
               id: item.id,
-              professor: item.professor?.username || 'Desconhecido',
+              professor: item.professor?.username || "Desconhecido",
               professorId: item.userId,
-              turma: item.course || 'Desconhecido',
-              disciplina: item.discipline || 'Desconhecido',
-              turn: item.turn || 'N/A',
+              turma: item.acronym
+                ? `${item.acronym} - S${semesterNumber}`
+                : "Desconhecido",
+              disciplina: item.discipline || "Desconhecido",
+              turn: item.turn || "N/A",
               quantidade: item.quantity.toString(),
               data: item.date,
-              fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
-              observacao: item.observation || 'N/A',
-              observationCoordinator: item.observationCoordinator || 'N/A',
-              status: item.validated === 1 ? 'Aprovado' : item.validated === 2 ? 'Rejeitado' : 'Pendente',
-              tipo: item.tipo === 'anteposicao' ? 'Anteposição' : 'Reposição',
-            }))
-          : []
-      );
+              fileName: item.annex ? item.annex.split("/").pop() : "N/A",
+              observacao: item.observation || "N/A",
+              observationCoordinator: item.observationCoordinator || "N/A",
+              status:
+                item.validated === 1
+                  ? "Aprovado"
+                  : item.validated === 2
+                  ? "Rejeitado"
+                  : "Pendente",
+              tipo:
+                item.type === "anteposicao"
+                  ? "Anteposição"
+                  : item.type === "reposicao"
+                  ? "Reposição"
+                  : "N/A",
+            };
+          })
+        : [];
+      setRequests(requestsArray);
     } catch (error) {
-      console.error('Erro ao aprovar solicitação:', error);
-      setAlert({ message: 'Erro ao aprovar solicitação.', type: 'error' });
+      console.error("Erro ao aprovar solicitação:", error);
+      setAlert({ message: "Erro ao aprovar solicitação.", type: "error" });
     }
   };
 
   const handleReject = async (id) => {
     try {
       await api.put(`/request/negate/anteposition/${id}`, {
-        observationCoordinator: 'Rejeitado pelo coordenador',
+        observationCoordinator: "Rejeitado pelo coordenador",
       });
-      setAlert({ message: 'Solicitação rejeitada com sucesso!', type: 'success' });
-      const response = await api.get('/request', { params: { type: ['anteposicao', 'reposicao'] } });
-      setRequests(
-        Array.isArray(response.data.requests)
-          ? response.data.requests.map((item) => ({
+      setAlert({
+        message: "Solicitação rejeitada com sucesso!",
+        type: "success",
+      });
+      const response = await api.get("/request", {
+        params: { type: ["anteposicao", "reposicao"] },
+      });
+      const requestsArray = Array.isArray(response.data.requests)
+        ? response.data.requests.map((item) => {
+            const semesterNumber = item.semester
+              ? item.semester.replace(/^S/, "") || "N/A"
+              : "N/A";
+            return {
               id: item.id,
-              professor: item.professor?.username || 'Desconhecido',
+              professor: item.professor?.username || "Desconhecido",
               professorId: item.userId,
-              turma: item.course || 'Desconhecido',
-              disciplina: item.discipline || 'Desconhecido',
-              turn: item.turn || 'N/A',
+              turma: item.acronym
+                ? `${item.acronym} - S${semesterNumber}`
+                : "Desconhecido",
+              disciplina: item.discipline || "Desconhecido",
+              turn: item.turn || "N/A",
               quantidade: item.quantity.toString(),
               data: item.date,
-              fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
-              observacao: item.observation || 'N/A',
-              observationCoordinator: item.observationCoordinator || 'N/A',
-              status: item.validated === 1 ? 'Aprovado' : item.validated === 2 ? 'Rejeitado' : 'Pendente',
-              tipo: item.tipo === 'anteposicao' ? 'Anteposição' : 'Reposição',
-            }))
-          : []
-      );
+              fileName: item.annex ? item.annex.split("/").pop() : "N/A",
+              observacao: item.observation || "N/A",
+              observationCoordinator: item.observationCoordinator || "N/A",
+              status:
+                item.validated === 1
+                  ? "Aprovado"
+                  : item.validated === 2
+                  ? "Rejeitado"
+                  : "Pendente",
+              tipo:
+                item.type === "anteposicao"
+                  ? "Anteposição"
+                  : item.type === "reposicao"
+                  ? "Reposição"
+                  : "N/A",
+            };
+          })
+        : [];
+      setRequests(requestsArray);
     } catch (error) {
-      console.error('Erro ao rejeitar solicitação:', error);
-      setAlert({ message: 'Erro ao rejeitar solicitação.', type: 'error' });
+      console.error("Erro ao rejeitar solicitação:", error);
+      setAlert({ message: "Erro ao rejeitar solicitação.", type: "error" });
     }
   };
 
@@ -165,32 +230,50 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
       await api.delete(`/request/${requestToDelete.id}`);
       setAlert({
         message: `Solicitação para ${requestToDelete.turma} deletada com sucesso!`,
-        type: 'success',
+        type: "success",
       });
-      const response = await api.get('/request', { params: { type: ['anteposicao', 'reposicao'] } });
-      setRequests(
-        Array.isArray(response.data.requests)
-          ? response.data.requests.map((item) => ({
+      const response = await api.get("/request", {
+        params: { type: ["anteposicao", "reposicao"] },
+      });
+      const requestsArray = Array.isArray(response.data.requests)
+        ? response.data.requests.map((item) => {
+            const semesterNumber = item.semester
+              ? item.semester.replace(/^S/, "") || "N/A"
+              : "N/A";
+            return {
               id: item.id,
-              professor: item.professor?.username || 'Desconhecido',
+              professor: item.professor?.username || "Desconhecido",
               professorId: item.userId,
-              turma: item.course || 'Desconhecido',
-              disciplina: item.discipline || 'Desconhecido',
-              turn: item.turn || 'N/A',
+              turma: item.acronym
+                ? `${item.acronym} - S${semesterNumber}`
+                : "Desconhecido",
+              disciplina: item.discipline || "Desconhecido",
+              turn: item.turn || "N/A",
               quantidade: item.quantity.toString(),
               data: item.date,
-              fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
-              observacao: item.observation || 'N/A',
-              observationCoordinator: item.observationCoordinator || 'N/A',
-              status: item.validated === 1 ? 'Aprovado' : item.validated === 2 ? 'Rejeitado' : 'Pendente',
-              tipo: item.tipo === 'anteposicao' ? 'Anteposição' : 'Reposição',
-            }))
-          : []
-      );
+              fileName: item.annex ? item.annex.split("/").pop() : "N/A",
+              observacao: item.observation || "N/A",
+              observationCoordinator: item.observationCoordinator || "N/A",
+              status:
+                item.validated === 1
+                  ? "Aprovado"
+                  : item.validated === 2
+                  ? "Rejeitado"
+                  : "Pendente",
+              tipo:
+                item.type === "anteposicao"
+                  ? "Anteposição"
+                  : item.type === "reposicao"
+                  ? "Reposição"
+                  : "N/A",
+            };
+          })
+        : [];
+      setRequests(requestsArray);
       setPage(1);
     } catch (error) {
-      console.error('Erro ao deletar solicitação:', error);
-      setAlert({ message: 'Erro ao deletar solicitação.', type: 'error' });
+      console.error("Erro ao deletar solicitação:", error);
+      setAlert({ message: "Erro ao deletar solicitação.", type: "error" });
     } finally {
       setOpenDeleteDialog(false);
       setRequestToDelete(null);
@@ -198,7 +281,7 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
   };
 
   const handleGoBack = () => {
-    navigate('/class-reschedule-options');
+    navigate("/class-reschedule-options");
   };
 
   const turmas = [...new Set(requests.map((a) => a.turma))].sort();
@@ -207,19 +290,19 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
   const applyFilters = (data) => {
     let filtered = Array.isArray(data) ? [...data] : [];
 
-    if (filterTurma !== 'all') {
+    if (filterTurma !== "all") {
       filtered = filtered.filter((rep) => rep.turma === filterTurma);
     }
 
-    if (filterDisciplina !== 'all') {
+    if (filterDisciplina !== "all") {
       filtered = filtered.filter((rep) => rep.disciplina === filterDisciplina);
     }
 
-    if (filterStatus !== 'all') {
+    if (filterStatus !== "all") {
       filtered = filtered.filter((rep) => rep.status === filterStatus);
     }
 
-    if (filterType !== 'all') {
+    if (filterType !== "all") {
       filtered = filtered.filter((rep) => rep.tipo === filterType);
     }
 
@@ -228,18 +311,18 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
 
     filtered = filtered.filter((rep) => {
       if (!rep.data) return false;
-      const repDate = new Date(rep.data + 'T00:00:00');
+      const repDate = new Date(rep.data + "T00:00:00");
 
       switch (filterPeriod) {
-        case 'yesterday':
+        case "yesterday":
           const yesterday = new Date(today);
           yesterday.setDate(today.getDate() - 1);
           return repDate.toDateString() === yesterday.toDateString();
-        case 'lastWeek':
+        case "lastWeek":
           const lastWeek = new Date(today);
           lastWeek.setDate(today.getDate() - 7);
           return repDate >= lastWeek && repDate <= today;
-        case 'lastMonth':
+        case "lastMonth":
           const lastMonth = new Date(today);
           lastMonth.setMonth(today.getMonth() - 1);
           return repDate >= lastMonth && repDate <= today;
@@ -259,49 +342,49 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
   );
 
   const commonFormControlSx = {
-    width: { xs: '100%', sm: '150px' },
-    '& .MuiInputBase-root': {
+    width: { xs: "100%", sm: "150px" },
+    "& .MuiInputBase-root": {
       height: { xs: 40, sm: 36 },
-      display: 'flex',
-      alignItems: 'center',
+      display: "flex",
+      alignItems: "center",
     },
-    '& .MuiInputLabel-root': {
-      transform: 'translate(14px, 7px) scale(1)',
-      '&.Mui-focused, &.MuiInputLabel-shrink': {
-        transform: 'translate(14px, -6px) scale(0.75)',
-        color: '#000000',
+    "& .MuiInputLabel-root": {
+      transform: "translate(14px, 7px) scale(1)",
+      "&.Mui-focused, &.MuiInputLabel-shrink": {
+        transform: "translate(14px, -6px) scale(0.75)",
+        color: "#000000",
       },
     },
-    '& .MuiSelect-select': {
-      display: 'flex',
-      alignItems: 'center',
-      height: '100% !important',
+    "& .MuiSelect-select": {
+      display: "flex",
+      alignItems: "center",
+      height: "100% !important",
     },
   };
 
   const commonSelectSx = {
-    '& .MuiOutlinedInput-notchedOutline': {
-      borderColor: 'rgba(0, 0, 0, 0.23)',
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "rgba(0, 0, 0, 0.23)",
     },
-    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-      borderColor: '#000000',
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#000000",
     },
   };
 
   const commonMenuProps = {
     PaperProps: {
       sx: {
-        maxHeight: '200px',
-        overflowY: 'auto',
-        width: 'auto',
-        '& .MuiMenuItem-root': {
-          '&:hover': {
-            backgroundColor: '#D5FFDB',
+        maxHeight: "200px",
+        overflowY: "auto",
+        width: "auto",
+        "& .MuiMenuItem-root": {
+          "&:hover": {
+            backgroundColor: "#D5FFDB",
           },
-          '&.Mui-selected': {
-            backgroundColor: '#E8F5E9',
-            '&:hover': {
-              backgroundColor: '#D5FFDB',
+          "&.Mui-selected": {
+            backgroundColor: "#E8F5E9",
+            "&:hover": {
+              backgroundColor: "#D5FFDB",
             },
           },
         },
@@ -316,22 +399,30 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
       <Box
         sx={{
           p: 3,
-          width: '100%',
-          maxWidth: '1200px',
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
+          width: "100%",
+          maxWidth: "1200px",
+          margin: "0 auto",
+          display: "flex",
+          flexDirection: "column",
           gap: 2,
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', mb: 3 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "relative",
+            mb: 3,
+          }}
+        >
           <IconButton
             onClick={handleGoBack}
             sx={{
-              position: 'absolute',
+              position: "absolute",
               left: 0,
               color: INSTITUTIONAL_COLOR,
-              '&:hover': { backgroundColor: 'transparent' },
+              "&:hover": { backgroundColor: "transparent" },
             }}
           >
             <ArrowBack sx={{ fontSize: 35 }} />
@@ -340,23 +431,23 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
             variant="h5"
             align="center"
             gutterBottom
-            sx={{ fontWeight: 'bold', flexGrow: 1 }}
+            sx={{ fontWeight: "bold", flexGrow: 1 }}
           >
             Anteposições e Reposições
           </Typography>
         </Box>
 
         <Stack
-          direction={{ xs: 'column', sm: 'row' }}
+          direction={{ xs: "column", sm: "row" }}
           spacing={2}
           justifyContent="space-between"
-          alignItems={{ xs: 'stretch', sm: 'center' }}
+          alignItems={{ xs: "stretch", sm: "center" }}
           sx={{ mb: 2 }}
         >
           <Stack
-            direction={{ xs: 'column', md: 'row' }}
+            direction={{ xs: "column", md: "row" }}
             spacing={2}
-            alignItems={{ xs: 'stretch', md: 'center' }}
+            alignItems={{ xs: "stretch", md: "center" }}
           >
             <FormControl sx={commonFormControlSx}>
               <InputLabel id="filter-turma-label">Turma</InputLabel>
@@ -371,7 +462,9 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
               >
                 <MenuItem value="all">Todas</MenuItem>
                 {turmas.map((turma) => (
-                  <MenuItem key={turma} value={turma}>{turma}</MenuItem>
+                  <MenuItem key={turma} value={turma}>
+                    {turma}
+                  </MenuItem>
                 ))}
               </StyledSelect>
             </FormControl>
@@ -389,7 +482,9 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
               >
                 <MenuItem value="all">Todas</MenuItem>
                 {disciplinas.map((disciplina) => (
-                  <MenuItem key={disciplina} value={disciplina}>{disciplina}</MenuItem>
+                  <MenuItem key={disciplina} value={disciplina}>
+                    {disciplina}
+                  </MenuItem>
                 ))}
               </StyledSelect>
             </FormControl>
@@ -457,8 +552,8 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
             setAlert={setAlert}
             onView={handleView}
             onDelete={handleDeleteClick}
-            onApprove={accessType === 'Coordenador' ? handleApprove : undefined}
-            onReject={accessType === 'Coordenador' ? handleReject : undefined}
+            onApprove={accessType === "Coordenador" ? handleApprove : undefined}
+            onReject={accessType === "Coordenador" ? handleReject : undefined}
             accessType={accessType}
           />
         )}
@@ -474,7 +569,7 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
         />
 
         {totalPages > 1 && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
             <Pagination
               count={totalPages}
               page={page}

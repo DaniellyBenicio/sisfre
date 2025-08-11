@@ -29,7 +29,15 @@ const ClassAntepositionRegister = ({ setAlert }) => {
     const fetchSchedule = async () => {
       try {
         const response = await api.get('/professor/request');
-        setScheduleDetails(response.data.scheduleDetails || []);
+        const details = response.data.scheduleDetails || [];
+        // Validação para garantir que os campos estão corretos
+        const validatedDetails = details.filter(
+          (sd) => sd.course && sd.discipline && sd.turn
+        );
+        setScheduleDetails(validatedDetails);
+        if (validatedDetails.length === 0) {
+          setAlert({ message: 'Nenhuma grade válida encontrada.', type: 'error' });
+        }
       } catch (error) {
         setAlert({ message: 'Erro ao carregar grade do professor.', type: 'error' });
         setScheduleDetails([]);
@@ -43,11 +51,18 @@ const ClassAntepositionRegister = ({ setAlert }) => {
   };
 
   const handleScheduleChange = (event) => {
-    const selected = scheduleDetails.find((sd) => `${sd.course}|${sd.discipline}|${sd.turn}` === event.target.value);
+    const selectedValue = event.target.value;
+    const selected = scheduleDetails.find(
+      (sd) => `${sd.course}|${sd.discipline}|${sd.turn}` === selectedValue
+    );
     if (selected) {
       setCourse(selected.course);
       setDiscipline(selected.discipline);
       setTurn(selected.turn);
+    } else {
+      setCourse('');
+      setDiscipline('');
+      setTurn('');
     }
   };
 
@@ -139,11 +154,12 @@ const ClassAntepositionRegister = ({ setAlert }) => {
               <Select
                 value={scheduleDetails.find((sd) => sd.course === course && sd.discipline === discipline && sd.turn === turn) ? `${course}|${discipline}|${turn}` : ''}
                 onChange={handleScheduleChange}
+                label="Selecionar da Grade"
               >
                 <MenuItem value="">Selecione</MenuItem>
                 {scheduleDetails.map((sd) => (
                   <MenuItem key={`${sd.course}|${sd.discipline}|${sd.turn}`} value={`${sd.course}|${sd.discipline}|${sd.turn}`}>
-                    {sd.course} - {sd.discipline} - {sd.turn}
+                    {`${sd.course} - ${sd.discipline} - ${sd.turn}`}
                   </MenuItem>
                 ))}
               </Select>

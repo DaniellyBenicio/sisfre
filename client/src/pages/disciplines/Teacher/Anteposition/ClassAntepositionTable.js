@@ -1,35 +1,32 @@
-
 import { Stack, Typography, Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, IconButton } from '@mui/material';
-import Paginate from '../../../../components/paginate/Paginate';
 import PropTypes from 'prop-types';
-import { useState, useMemo } from 'react';
 import { useMediaQuery } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-const ClassRepositionTable = ({ repositions, setAlert, onView, onDelete, onApprove, onReject, accessType }) => {
+const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onApprove, onReject, accessType }) => {
   const normalizeString = (str) => {
     if (!str) return 'N/A';
     return str;
   };
 
- const formattedReposition = Array.isArray(repositions) ? repositions.map((reposition) => ({
-  ...reposition,
-  turma: normalizeString(reposition.turma),
-  disciplina: normalizeString(reposition.disciplina),
-  hour: normalizeString(reposition.hour),
-  quantidade: normalizeString(reposition.quantidade),
-  data: normalizeString(reposition.data),
-  fileName: normalizeString(reposition.fileName),
-  observacao: normalizeString(reposition.observacao),
-  observationCoordinator: normalizeString(reposition.observationCoordinator),
-  status: reposition.status || 'Pendente',
-})) : [];
+  const formattedAntepositions = Array.isArray(antepositions) ? antepositions.map((anteposition) => ({
+    ...anteposition,
+    turma: normalizeString(anteposition.turma),
+    disciplina: normalizeString(anteposition.disciplina),
+    turn: normalizeString(anteposition.turn),
+    quantidade: normalizeString(anteposition.quantidade),
+    data: normalizeString(anteposition.data),
+    fileName: normalizeString(anteposition.fileName),
+    observacao: normalizeString(anteposition.observacao),
+    observationCoordinator: normalizeString(anteposition.observationCoordinator),
+    status: anteposition.status || 'Pendente',
+  })) : [];
 
   const headers = accessType === 'Professor' ? [
     { key: 'turma', label: 'Turma' },
     { key: 'disciplina', label: 'Disciplina' },
-    { key: 'hour', label: 'Horário' },
+    { key: 'turn', label: 'Turno' },
     { key: 'quantidade', label: 'Quantidade' },
     { key: 'data', label: 'Data' },
     { key: 'fileName', label: 'Arquivo' },
@@ -37,24 +34,24 @@ const ClassRepositionTable = ({ repositions, setAlert, onView, onDelete, onAppro
     {
       key: 'status',
       label: 'Status',
-      render: (reposition) => (
+      render: (anteposition) => (
         <Typography
           component="span"
           sx={{
             color:
-              reposition.status === 'Aprovado' ? 'green' :
-              reposition.status === 'Rejeitado' ? 'red' : 'orange',
-            fontWeight: reposition.status === 'Pendente' ? 'bold' : 'normal',
+              anteposition.status === 'Aprovado' ? 'green' :
+              anteposition.status === 'Rejeitado' ? 'red' : 'orange',
+            fontWeight: anteposition.status === 'Pendente' ? 'bold' : 'normal',
           }}
         >
-          {reposition.status}
+          {anteposition.status}
         </Typography>
       ),
     },
   ] : [
     { key: 'turma', label: 'Turma' },
     { key: 'disciplina', label: 'Disciplina' },
-    { key: 'hour', label: 'Horário' },
+    { key: 'turn', label: 'Turno' },
     { key: 'quantidade', label: 'Quantidade' },
     { key: 'data', label: 'Data' },
     { key: 'fileName', label: 'Arquivo' },
@@ -63,47 +60,47 @@ const ClassRepositionTable = ({ repositions, setAlert, onView, onDelete, onAppro
     {
       key: 'status',
       label: 'Status',
-      render: (reposition) => (
+      render: (anteposition) => (
         <Typography
           component="span"
           sx={{
             color:
-              reposition.status === 'Aprovado' ? 'green' :
-              reposition.status === 'Rejeitado' ? 'red' : 'orange',
-            fontWeight: reposition.status === 'Pendente' ? 'bold' : 'normal',
+              anteposition.status === 'Aprovado' ? 'green' :
+              anteposition.status === 'Rejeitado' ? 'red' : 'orange',
+            fontWeight: anteposition.status === 'Pendente' ? 'bold' : 'normal',
           }}
         >
-          {reposition.status}
+          {anteposition.status}
         </Typography>
       ),
     },
     {
       key: 'actions',
       label: 'Ação',
-      render: (reposition) => (
+      render: (anteposition) => (
         <Stack direction="row" spacing={1} justifyContent="center">
           <IconButton
-            onClick={() => onView(reposition.id)}
+            onClick={() => onView(anteposition.id)}
             sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
           >
             <Visibility />
           </IconButton>
           <IconButton
-            onClick={() => onDelete(reposition.id)}
+            onClick={() => onDelete(anteposition)}
             sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
           >
             <DeleteIcon />
           </IconButton>
           <Button
-            onClick={() => onApprove(reposition.id)}
-            disabled={reposition.status === 'Aprovado'}
+            onClick={() => onApprove(anteposition.id)}
+            disabled={anteposition.status === 'Aprovado'}
             sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
           >
             Aprovar
           </Button>
           <Button
-            onClick={() => onReject(reposition.id)}
-            disabled={reposition.status === 'Rejeitado'}
+            onClick={() => onReject(anteposition.id)}
+            disabled={anteposition.status === 'Rejeitado'}
             sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
           >
             Rejeitar
@@ -114,19 +111,6 @@ const ClassRepositionTable = ({ repositions, setAlert, onView, onDelete, onAppro
   ];
 
   const isMobile = useMediaQuery('(max-width:600px)');
-  const [page, setPage] = useState(1);
-  const rowsPerPage = 7;
-
-  const visibleData = useMemo(() => {
-    if (!Array.isArray(formattedReposition)) return [];
-    const startIndex = (page - 1) * rowsPerPage;
-    const endIndex = startIndex + rowsPerPage;
-    return formattedReposition.slice(startIndex, endIndex);
-  }, [formattedReposition, page]);
-
-  const handleChangePage = (newPage) => {
-    setPage(newPage);
-  };
 
   const tableHeadStyle = {
     fontWeight: 'bold',
@@ -145,54 +129,54 @@ const ClassRepositionTable = ({ repositions, setAlert, onView, onDelete, onAppro
     lineHeight: '30px',
   };
 
-  const renderMobileRow = (reposition) => (
+  const renderMobileRow = (anteposition) => (
     <Stack spacing={0.5}>
-      <Typography><strong>Turma:</strong> {normalizeString(reposition.turma)}</Typography>
-      <Typography><strong>Disciplina:</strong> {normalizeString(reposition.disciplina)}</Typography>
-      <Typography><strong>Horário:</strong> {normalizeString(reposition.hour)}</Typography>
-      <Typography><strong>Quantidade:</strong> {normalizeString(reposition.quantidade)}</Typography>
-      <Typography><strong>Data:</strong> {normalizeString(reposition.data)}</Typography>
-      <Typography><strong>Arquivo:</strong> {normalizeString(reposition.fileName)}</Typography>
-      <Typography><strong>Observação:</strong> {normalizeString(reposition.observacao)}</Typography>
-      <Typography><strong>Observação do Coordenador:</strong> {normalizeString(reposition.observationCoordinator)}</Typography>
+      <Typography><strong>Turma:</strong> {normalizeString(anteposition.turma)}</Typography>
+      <Typography><strong>Disciplina:</strong> {normalizeString(anteposition.disciplina)}</Typography>
+      <Typography><strong>Turno:</strong> {normalizeString(anteposition.turn)}</Typography>
+      <Typography><strong>Quantidade:</strong> {normalizeString(anteposition.quantidade)}</Typography>
+      <Typography><strong>Data:</strong> {normalizeString(anteposition.data)}</Typography>
+      <Typography><strong>Arquivo:</strong> {normalizeString(anteposition.fileName)}</Typography>
+      <Typography><strong>Observação:</strong> {normalizeString(anteposition.observacao)}</Typography>
+      <Typography><strong>Observação do Coordenador:</strong> {normalizeString(anteposition.observationCoordinator)}</Typography>
       <Typography>
         <strong>Status:</strong>{" "}
         <Box
           component="span"
           sx={{
             color:
-              reposition.status === 'Aprovado' ? 'green' :
-              reposition.status === 'Rejeitado' ? 'red' : 'orange',
-            fontWeight: reposition.status === 'Pendente' ? 'bold' : 'normal',
+              anteposition.status === 'Aprovado' ? 'green' :
+              anteposition.status === 'Rejeitado' ? 'red' : 'orange',
+            fontWeight: anteposition.status === 'Pendente' ? 'bold' : 'normal',
           }}
         >
-          {reposition.status}
+          {anteposition.status}
         </Box>
       </Typography>
       {accessType === 'Coordenador' && (
         <Stack direction="row" spacing={1} justifyContent="center">
           <Button
-            onClick={() => onView(reposition.id)}
+            onClick={() => onView(anteposition.id)}
             sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
           >
             Visualizar
           </Button>
           <Button
-            onClick={() => onDelete(reposition.id)}
+            onClick={() => onDelete(anteposition)}
             sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
           >
             Deletar
           </Button>
           <Button
-            onClick={() => onApprove(reposition.id)}
-            disabled={reposition.status === 'Aprovado'}
+            onClick={() => onApprove(anteposition.id)}
+            disabled={anteposition.status === 'Aprovado'}
             sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
           >
             Aprovar
           </Button>
           <Button
-            onClick={() => onReject(reposition.id)}
-            disabled={reposition.status === 'Rejeitado'}
+            onClick={() => onReject(anteposition.id)}
+            disabled={anteposition.status === 'Rejeitado'}
             sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
           >
             Rejeitar
@@ -205,95 +189,79 @@ const ClassRepositionTable = ({ repositions, setAlert, onView, onDelete, onAppro
   if (isMobile) {
     return (
       <Stack spacing={1} sx={{ width: '100%' }}>
-        {visibleData.length === 0 ? (
+        {formattedAntepositions.length === 0 ? (
           <Paper sx={{ p: 1 }}>
             <Typography align="center">Nenhum item encontrado!</Typography>
           </Paper>
         ) : (
-          visibleData.map((item) => (
+          formattedAntepositions.map((item) => (
             <Paper key={item?.id} sx={{ p: 1 }}>
               {renderMobileRow(item)}
             </Paper>
           ))
-        )}
-        {formattedReposition.length > rowsPerPage && (
-          <Paginate
-            count={Math.ceil((Array.isArray(formattedReposition) ? formattedReposition.length : 0) / rowsPerPage)}
-            page={page}
-            onChange={(event, newPage) => handleChangePage(newPage)}
-          />
         )}
       </Stack>
     );
   }
 
   return (
-    <>
-      <TableContainer
-        component={Paper}
-        sx={{
-          width: '100%',
-          maxWidth: '1200px',
-          margin: '0 auto',
-        }}
-      >
-        <Table>
-          <TableHead>
+    <TableContainer
+      component={Paper}
+      sx={{
+        width: '100%',
+        maxWidth: '1200px',
+        margin: '0 auto',
+      }}
+    >
+      <Table>
+        <TableHead>
+          <TableRow>
+            {headers.map((header) => (
+              <TableCell key={header.key} align="center" sx={tableHeadStyle}>
+                {header.label}
+              </TableCell>
+            ))}
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {formattedAntepositions.length === 0 ? (
             <TableRow>
-              {headers.map((header) => (
-                <TableCell key={header.key} align="center" sx={tableHeadStyle}>
-                  {header.label}
-                </TableCell>
-              ))}
+              <TableCell
+                colSpan={headers.length}
+                align="center"
+                sx={tableBodyCellStyle}
+              >
+                Nenhum item encontrado
+              </TableCell>
             </TableRow>
-          </TableHead>
-          <TableBody>
-            {visibleData.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={headers.length}
-                  align="center"
-                  sx={tableBodyCellStyle}
-                >
-                  Nenhum item encontrado
-                </TableCell>
+          ) : (
+            formattedAntepositions.map((item) => (
+              <TableRow key={item?.id}>
+                {headers.map((header) => (
+                  <TableCell
+                    key={header.key}
+                    align="center"
+                    sx={tableBodyCellStyle}
+                  >
+                    {header.render ? header.render(item) : item[header.key]}
+                  </TableCell>
+                ))}
               </TableRow>
-            ) : (
-              visibleData.map((item) => (
-                <TableRow key={item?.id}>
-                  {headers.map((header) => (
-                    <TableCell
-                      key={header.key}
-                      align="center"
-                      sx={tableBodyCellStyle}
-                    >
-                      {header.render ? header.render(item) : item[header.key]}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      {formattedReposition.length > rowsPerPage && (
-        <Paginate
-          count={Math.ceil((Array.isArray(formattedReposition) ? formattedReposition.length : 0) / rowsPerPage)}
-          page={page}
-          onChange={(event, newPage) => handleChangePage(newPage)}
-        />
-      )}
-    </>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 };
 
-ClassRepositionTable.propTypes = {
-  repositions: PropTypes.arrayOf(
+ClassAntepositionTable.propTypes = {
+  antepositions: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.number.isRequired,
       turma: PropTypes.string.isRequired,
       disciplina: PropTypes.string.isRequired,
-      hour: PropTypes.string.isRequired,
+      turn: PropTypes.string.isRequired,
       quantidade: PropTypes.string.isRequired,
       data: PropTypes.string.isRequired,
       fileName: PropTypes.string.isRequired,
@@ -310,4 +278,4 @@ ClassRepositionTable.propTypes = {
   accessType: PropTypes.string,
 };
 
-export default ClassRepositionTable;
+export default ClassAntepositionTable;

@@ -4,7 +4,7 @@ import { Close, Save, CloudUpload, ArrowBack } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import api from '../../../../service/api';
-import { jwtDecode } from 'jwt-decode'; 
+import { jwtDecode } from 'jwt-decode';
 
 const INSTITUTIONAL_COLOR = "#307c34";
 
@@ -14,16 +14,15 @@ const StyledButton = styled(Button)(() => ({
 }));
 
 const ClassAntepositionRegister = ({ setAlert }) => {
-  const professor = localStorage.getItem('username') || ''; 
+  const professor = localStorage.getItem('username') || '';
   const [course, setCourse] = useState('');
   const [discipline, setDiscipline] = useState('');
-  const [hour, setHour] = useState('');
+  const [turn, setTurn] = useState('');
   const [quantity, setQuantity] = useState('');
   const [date, setDate] = useState('');
   const [file, setFile] = useState(null);
   const [observation, setObservation] = useState('');
   const [scheduleDetails, setScheduleDetails] = useState([]);
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -44,20 +43,20 @@ const ClassAntepositionRegister = ({ setAlert }) => {
   };
 
   const handleScheduleChange = (event) => {
-    const selected = scheduleDetails.find((sd) => sd.id === event.target.value);
+    const selected = scheduleDetails.find((sd) => `${sd.course}|${sd.discipline}|${sd.turn}` === event.target.value);
     if (selected) {
-      setCourse(selected.schedule.course.name);
-      setDiscipline(selected.discipline.name);
-      setHour(`${selected.hour.hourStart} - ${selected.hour.hourEnd}`);
+      setCourse(selected.course);
+      setDiscipline(selected.discipline);
+      setTurn(selected.turn);
     }
   };
 
   const handleSubmit = async () => {
-    if (!course || !discipline || !hour || !quantity || !date || !file) {
-      setAlert({ message: "Preencha todos os campos obrigatórios e anexe um arquivo.", type: "error" });
+    if (!course || !discipline || !turn || !quantity || !date) {
+      setAlert({ message: "Preencha todos os campos obrigatórios.", type: "error" });
       return;
     }
-    if (parseInt(quantity) > 4 || parseInt(quantity) < 1) {
+    if (isNaN(quantity) || parseInt(quantity) > 4 || parseInt(quantity) < 1) {
       setAlert({ message: "Quantidade deve ser entre 1 e 4.", type: "error" });
       return;
     }
@@ -70,13 +69,13 @@ const ClassAntepositionRegister = ({ setAlert }) => {
     const token = localStorage.getItem('token');
     if (!token) {
       setAlert({ message: "Token não encontrado. Faça login novamente.", type: "error" });
-      navigate('/login'); 
+      navigate('/login');
       return;
     }
 
     try {
       const decoded = jwtDecode(token);
-      const userId = decoded.id; 
+      const userId = decoded.id;
 
       if (!userId || isNaN(userId)) {
         setAlert({ message: "ID do usuário inválido no token. Faça login novamente.", type: "error" });
@@ -88,21 +87,21 @@ const ClassAntepositionRegister = ({ setAlert }) => {
       formData.append('userId', userId);
       formData.append('course', course);
       formData.append('discipline', discipline);
-      formData.append('hour', hour);
+      formData.append('turn', turn);
       formData.append('type', 'anteposicao');
       formData.append('quantity', parseInt(quantity));
       formData.append('date', date);
-      formData.append('annex', file);
+      if (file) formData.append('annex', file);
       formData.append('observation', observation);
 
       await api.post('/request', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       setAlert({ message: "Anteposição cadastrada com sucesso!", type: "success" });
       navigate('/class-anteposition');
     } catch (error) {
-      console.error('Erro ao decodificar token ou enviar requisição:', error);
-      setAlert({ message: error.response?.data?.error || "Erro ao cadastrar. Token inválido ou expirado.", type: "error" });
-      if (error.name === 'TokenExpiredError') {
-        navigate('/login'); 
+      console.error('Erro ao enviar requisição:', error);
+      setAlert({ message: error.response?.data?.error || "Erro ao cadastrar. Verifique os dados ou tente novamente.", type: "error" });
+      if (error.response?.status === 401) {
+        navigate('/login');
       }
     }
   };
@@ -138,13 +137,13 @@ const ClassAntepositionRegister = ({ setAlert }) => {
             <FormControl fullWidth variant="outlined" required>
               <InputLabel>Selecionar da Grade</InputLabel>
               <Select
-                value={scheduleDetails.find(sd => sd.schedule.course.name === course)?.id || ''}
+                value={scheduleDetails.find((sd) => sd.course === course && sd.discipline === discipline && sd.turn === turn) ? `${course}|${discipline}|${turn}` : ''}
                 onChange={handleScheduleChange}
               >
                 <MenuItem value="">Selecione</MenuItem>
                 {scheduleDetails.map((sd) => (
-                  <MenuItem key={sd.id} value={sd.id}>
-                    {sd.schedule.course.name} - {sd.discipline.name}
+                  <MenuItem key={`${sd.course}|${sd.discipline}|${sd.turn}`} value={`${sd.course}|${sd.discipline}|${sd.turn}`}>
+                    {sd.course} - {sd.discipline} - {sd.turn}
                   </MenuItem>
                 ))}
               </Select>
@@ -168,8 +167,8 @@ const ClassAntepositionRegister = ({ setAlert }) => {
           </Box>
           <Box sx={{ display: 'flex', gap: 2, my: 1.5, alignItems: 'center' }}>
             <TextField
-              label="Horário"
-              value={hour}
+              label="Turno"
+              value={turn}
               fullWidth
               disabled
               variant="outlined"

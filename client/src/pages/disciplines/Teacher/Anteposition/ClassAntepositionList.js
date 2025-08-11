@@ -29,7 +29,6 @@ const StyledButton = styled(Button)(() => ({
 }));
 
 const ClassAntepositionList = () => {
-  console.log('Rendering ClassAntepositionList');
   const [antepositions, setAntepositions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
@@ -50,38 +49,38 @@ const ClassAntepositionList = () => {
   };
 
   useEffect(() => {
- console.log('Location state:', location.state);
-const fetchAntepositions = async () => {
-try {
- setLoading(true);
- const response = await api.get('/request', { params: { type: 'anteposicao' } });
- const antepositionsArray = Array.isArray(response.data.requests)
- ? response.data.requests.map((item) => ({
- id: item.id,
- professor: item.professor?.username || 'Desconhecido',
- professorId: item.userId,
- turma: item.originalClass?.schedule?.course?.name || 'Desconhecido',
- disciplina: item.originalClass?.discipline?.name || 'Desconhecido',
- hour: item.newHour?.hourStart && item.newHour?.hourEnd ? `${item.newHour.hourStart}-${item.newHour.hourEnd}` : 'N/A',
- quantidade: item.quantity?.toString() || 'N/A',
- data: item.newDate,
- fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
- observacao: item.observation || 'N/A',
- observationCoordinator: item.observationCoordinator || 'N/A',
- status: item.status || 'Pendente',
- })).sort((a, b) => a.turma.toLowerCase().localeCompare(b.turma.toLowerCase()))
- : [];
- setAntepositions(antepositionsArray);
- } catch (error) {
- console.error('Erro ao carregar anteposições:', error);
- setAlert({ message: 'Erro ao carregar anteposições.', type: 'error' });
- setAntepositions([]);
- } finally {
-setLoading(false);
-}
- };
- fetchAntepositions();
- }, []); 
+    const fetchAntepositions = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get('/request', { params: { type: 'anteposicao' } });
+        const antepositionsArray = Array.isArray(response.data.requests)
+          ? response.data.requests.map((item) => ({
+              id: item.id,
+              professor: item.professor?.username || 'Desconhecido',
+              professorId: item.userId,
+              turma: item.course || 'Desconhecido',
+              disciplina: item.discipline || 'Desconhecido',
+              turn: item.turn || 'N/A',
+              quantidade: item.quantity.toString(),
+              data: item.date,
+              fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
+              observacao: item.observation || 'N/A',
+              observationCoordinator: item.observationCoordinator || 'N/A',
+              status: item.validated === 1 ? 'Aprovado' : item.validated === 2 ? 'Rejeitado' : 'Pendente',
+            })).sort((a, b) => a.turma.toLowerCase().localeCompare(b.turma.toLowerCase()))
+          : [];
+        setAntepositions(antepositionsArray);
+      } catch (error) {
+        console.error('Erro ao carregar anteposições:', error);
+        setAlert({ message: 'Erro ao carregar anteposições.', type: 'error' });
+        setAntepositions([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAntepositions();
+  }, []);
+
   useEffect(() => {
     setPage(1);
   }, [filterTurma, filterDisciplina, filterPeriod, filterStatus]);
@@ -92,7 +91,7 @@ setLoading(false);
 
   const handleApprove = async (id) => {
     try {
-      await api.put('/request/anteposition', { requestId: id });
+      await api.put(`/request/anteposition/${id}`);
       setAlert({ message: 'Anteposição aprovada com sucesso! Créditos atualizados.', type: 'success' });
       const response = await api.get('/request', { params: { type: 'anteposicao' } });
       setAntepositions(
@@ -103,13 +102,13 @@ setLoading(false);
               professorId: item.userId,
               turma: item.course || 'Desconhecido',
               disciplina: item.discipline || 'Desconhecido',
-              hour: item.hour || 'N/A',
+              turn: item.turn || 'N/A',
               quantidade: item.quantity.toString(),
               data: item.date,
               fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
               observacao: item.observation || 'N/A',
               observationCoordinator: item.observationCoordinator || 'N/A',
-              status: item.validated ? 'Aprovado' : item.observationCoordinator ? 'Rejeitado' : 'Pendente',
+              status: item.validated === 1 ? 'Aprovado' : item.validated === 2 ? 'Rejeitado' : 'Pendente',
             }))
           : []
       );
@@ -121,8 +120,7 @@ setLoading(false);
 
   const handleReject = async (id) => {
     try {
-      await api.put(`/request/${id}`, {
-        validated: false,
+      await api.put(`/request/negate/anteposition/${id}`, {
         observationCoordinator: 'Rejeitado pelo coordenador',
       });
       setAlert({ message: 'Anteposição rejeitada com sucesso!', type: 'success' });
@@ -135,13 +133,13 @@ setLoading(false);
               professorId: item.userId,
               turma: item.course || 'Desconhecido',
               disciplina: item.discipline || 'Desconhecido',
-              hour: item.hour || 'N/A',
+              turn: item.turn || 'N/A',
               quantidade: item.quantity.toString(),
               data: item.date,
               fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
               observacao: item.observation || 'N/A',
               observationCoordinator: item.observationCoordinator || 'N/A',
-              status: item.validated ? 'Aprovado' : item.observationCoordinator ? 'Rejeitado' : 'Pendente',
+              status: item.validated === 1 ? 'Aprovado' : item.validated === 2 ? 'Rejeitado' : 'Pendente',
             }))
           : []
       );
@@ -172,13 +170,13 @@ setLoading(false);
               professorId: item.userId,
               turma: item.course || 'Desconhecido',
               disciplina: item.discipline || 'Desconhecido',
-              hour: item.hour || 'N/A',
+              turn: item.turn || 'N/A',
               quantidade: item.quantity.toString(),
               data: item.date,
               fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
               observacao: item.observation || 'N/A',
               observationCoordinator: item.observationCoordinator || 'N/A',
-              status: item.validated ? 'Aprovado' : item.observationCoordinator ? 'Rejeitado' : 'Pendente',
+              status: item.validated === 1 ? 'Aprovado' : item.validated === 2 ? 'Rejeitado' : 'Pendente',
             }))
           : []
       );
@@ -248,8 +246,6 @@ setLoading(false);
     (page - 1) * rowsPerPage,
     page * rowsPerPage
   );
-
-  console.log('Paginated Antepositions:', paginatedAntepositions);
 
   const commonFormControlSx = {
     width: { xs: '100%', sm: '150px' },

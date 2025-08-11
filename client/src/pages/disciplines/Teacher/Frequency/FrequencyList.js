@@ -93,38 +93,43 @@ const FrequencyList = () => {
       "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#000000" },
     },
     tokenInput: {
-      width: { xs: "100%", sm: "300px" },
-      "& .MuiInputBase-root": {
-        height: { xs: 56, sm: 56 },
-      },
-      "& .MuiOutlinedInput-notchedOutline": {
-        borderColor: "rgba(0, 0, 0, 0.23)",
-        borderWidth: "1px",
-      },
-      "&:hover .MuiOutlinedInput-notchedOutline": {
-        borderColor: "#000000",
-        borderWidth: "1px",
-      },
-      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-        borderColor: "#000000",
-        borderWidth: "1px",
-      },
-      "& .MuiInputLabel-root": {
-        top: "50%",
-        transform: "translate(14px, -50%)",
-        fontSize: "1rem",
-        color: "rgba(0, 0, 0, 0.6)",
-        "@media (max-width: 600px)": {
-          fontSize: "0.875rem",
-        },
-      },
-      "& .MuiInputLabel-shrink": {
-        top: 0,
-        transform: "translate(14px, -9px) scale(0.75)",
-        color: "#000000",
+    width: { xs: "100%", sm: "300px" },
+    "& .MuiInputBase-root": {
+      height: { xs: 56, sm: 56 },
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "rgba(0, 0, 0, 0.23)",
+      borderWidth: "1px",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#000000",
+      borderWidth: "1px",
+    },
+    // **Ajuste este seletor para garantir a borda preta em foco**
+    "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#000000",
+      borderWidth: "1px",
+    },
+    "& .MuiInputLabel-root": {
+      top: "50%",
+      transform: "translate(14px, -50%)",
+      fontSize: "1rem",
+      color: "rgba(0, 0, 0, 0.6)",
+      "@media (max-width: 600px)": {
+        fontSize: "0.875rem",
       },
     },
-  };
+    "& .MuiInputLabel-shrink": {
+      top: 0,
+      transform: "translate(14px, -9px) scale(0.75)",
+      color: "#000000",
+    },
+    // **Corrija a cor do label quando focado aqui**
+    "& .MuiInputLabel-root.Mui-focused": {
+      color: "#000000", // Isso fará com que o label também seja preto
+    },
+  },
+};
 
   const fetchFrequencies = async () => {
     try {

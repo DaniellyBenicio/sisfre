@@ -2,7 +2,6 @@ import { Stack, Typography, Box, Paper, Table, TableBody, TableCell, TableContai
 import PropTypes from 'prop-types';
 import { useMediaQuery, useTheme } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
-import DeleteIcon from '@mui/icons-material/Delete';
 import { useState } from 'react';
 
 const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onApprove, onReject, accessType }) => {
@@ -135,26 +134,6 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
           >
             <Visibility />
           </IconButton>
-          <IconButton
-            onClick={() => onDelete(anteposition)}
-            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
-          >
-            <DeleteIcon />
-          </IconButton>
-          <Button
-            onClick={() => onApprove(anteposition.id)}
-            disabled={anteposition.status === 'Aprovado'}
-            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
-          >
-            Aprovar
-          </Button>
-          <Button
-            onClick={() => onReject(anteposition.id)}
-            disabled={anteposition.status === 'Rejeitado'}
-            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
-          >
-            Rejeitar
-          </Button>
         </Stack>
       ),
     },
@@ -222,12 +201,6 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
             sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
           >
             Visualizar
-          </Button>
-          <Button
-            onClick={() => onDelete(anteposition)}
-            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
-          >
-            Deletar
           </Button>
         </Stack>
       )}
@@ -400,9 +373,9 @@ ClassAntepositionTable.propTypes = {
   ).isRequired,
   setAlert: PropTypes.func,
   onView: PropTypes.func,
-  onDelete: PropTypes.func,
+  onDelete: PropTypes.func, 
   onApprove: PropTypes.func,
-  onReject: PropTypes.func,
+  onReject: PropTypes.func, 
   accessType: PropTypes.string,
 };
 

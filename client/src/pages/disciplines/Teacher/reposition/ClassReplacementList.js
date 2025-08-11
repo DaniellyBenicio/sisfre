@@ -62,7 +62,7 @@ const ClassReplacementList = () => {
                 professor: item.professor?.username || "Desconhecido",
                 professorId: item.userId,
                 turma: item.acronym
-                  ? `${item.acronym} - S${item.semester || "N/A"}`
+                  ? `${item.acronym} - ${item.semester || "N/A"}`
                   : "Desconhecido",
                 disciplina: item.discipline || "Desconhecido",
                 turn: item.turn || "N/A",
@@ -121,7 +121,7 @@ const ClassReplacementList = () => {
               professor: item.professor?.username || "Desconhecido",
               professorId: item.userId,
               turma: item.acronym
-                ? `${item.acronym} - S${item.semester || "N/A"}`
+                ? `${item.acronym} - ${item.semester || "N/A"}`
                 : "Desconhecido",
               disciplina: item.discipline || "Desconhecido",
               turn: item.turn || "N/A",
@@ -175,7 +175,7 @@ const ClassReplacementList = () => {
               professor: item.professor?.username || "Desconhecido",
               professorId: item.userId,
               turma: item.acronym
-                ? `${item.acronym} - S${item.semester || "N/A"}`
+                ? `${item.acronym} - ${item.semester || "N/A"}`
                 : "Desconhecido",
               disciplina: item.discipline || "Desconhecido",
               turn: item.turn || "N/A",
@@ -229,7 +229,7 @@ const ClassReplacementList = () => {
               professor: item.professor?.username || "Desconhecido",
               professorId: item.userId,
               turma: item.acronym
-                ? `${item.acronym} - S${item.semester || "N/A"}`
+                ? `${item.acronym} - ${item.semester || "N/A"}`
                 : "Desconhecido",
               disciplina: item.discipline || "Desconhecido",
               turn: item.turn || "N/A",

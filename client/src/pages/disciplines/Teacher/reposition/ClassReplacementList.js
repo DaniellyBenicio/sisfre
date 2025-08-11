@@ -91,8 +91,10 @@ const ClassReplacementList = () => {
 
   const handleApprove = async (id) => {
     try {
-      await api.put(`/request/reposition/${id}`);
+      // Adicionado body para garantir que validated seja setado para 1
+      await api.put(`/request/reposition/${id}`, { validated: 1 });
       setAlert({ message: 'Reposição aprovada com sucesso! Créditos atualizados.', type: 'success' });
+      // Recarrega a lista
       const response = await api.get('/request', { params: { type: 'reposicao' } });
       setReplacements(
         Array.isArray(response.data.requests)
@@ -113,17 +115,20 @@ const ClassReplacementList = () => {
           : []
       );
     } catch (error) {
-      console.error('Erro ao aprovar reposição:', error);
-      setAlert({ message: 'Erro ao aprovar reposição.', type: 'error' });
+      console.error('Erro ao aprovar reposição:', error.response?.data || error);
+      setAlert({ message: error.response?.data?.error || 'Erro ao aprovar reposição. Verifique o backend.', type: 'error' });
     }
   };
 
   const handleReject = async (id) => {
     try {
-      await api.put(`/request/negate/reposition/${id}`, {
+      // Mudado o endpoint para um padrão (removido /negate/), e adicionado validated: 2 no body
+      await api.put(`/request/${id}`, {
+        validated: 2,
         observationCoordinator: 'Rejeitado pelo coordenador',
       });
       setAlert({ message: 'Reposição rejeitada com sucesso!', type: 'success' });
+      // Recarrega a lista
       const response = await api.get('/request', { params: { type: 'reposicao' } });
       setReplacements(
         Array.isArray(response.data.requests)
@@ -144,8 +149,8 @@ const ClassReplacementList = () => {
           : []
       );
     } catch (error) {
-      console.error('Erro ao rejeitar reposição:', error);
-      setAlert({ message: 'Erro ao rejeitar reposição.', type: 'error' });
+      console.error('Erro ao rejeitar reposição:', error.response?.data || error);
+      setAlert({ message: error.response?.data?.error || 'Erro ao rejeitar reposição. Verifique o backend.', type: 'error' });
     }
   };
 

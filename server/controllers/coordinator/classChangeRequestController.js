@@ -52,8 +52,12 @@ export const createRequest = async (req, res) => {
 };
 
 export const getRequest = async (req, res) => {
+  const { type } = req.query;  // Adicionado: filtro por type (ex: 'reposicao')
+
   try {
+    const whereClause = type ? { type } : {};  // Filtra se type for passado
     const requests = await db.ClassChangeRequest.findAll({
+      where: whereClause,
       include: [
         { model: db.User, as: "professor", attributes: ["id", "username", "email"] }
       ],
@@ -62,6 +66,7 @@ export const getRequest = async (req, res) => {
 
     return res.status(200).json({ requests });
   } catch (error) {
+    console.error("Erro ao listar requisições:", error);
     return res.status(500).json({ error: "Erro ao listar requisições.", details: error.message });
   }
 };
@@ -133,6 +138,7 @@ export const getRequestById = async (req, res) => {
     return res.status(500).json({ error: "Erro ao buscar a Requisição.", details: error.message });
   }
 };
+
 export const updateRequest = async (req, res) => {
   const id = Number(req.params.id);
   const {
@@ -218,6 +224,7 @@ export const updateRequest = async (req, res) => {
 
     return res.status(200).json({ message: "Requisição atualizada com sucesso.", request });
   } catch (error) {
+    console.error("Erro ao atualizar a requisição:", error);
     return res.status(500).json({ error: "Erro ao atualizar a requisição.", details: error.message });
   }
 };
@@ -244,7 +251,8 @@ export const deleteRequest = async (req, res) => {
 
     return res.status(200).json({ message: "Requisição excluída com sucesso." });
   } catch (error) {
-    return res.status(500).json({ error: "Erro ao excluir a requisição." });
+    console.error("Erro ao excluir a requisição:", error);
+    return res.status(500).json({ error: "Erro ao excluir a requisição.", details: error.message });
   }
 };
 
@@ -307,7 +315,7 @@ export const getProfessorScheduleDetails = async (req, res) => {
 };
 
 export const approveAnteposition = async (req, res) => {
-  const { requestId } = req.body;
+  const requestId = req.params.id;  // Corrigido: ler ID de params, não body
 
   try {
     const request = await db.ClassChangeRequest.findByPk(requestId);
@@ -332,12 +340,13 @@ export const approveAnteposition = async (req, res) => {
 
     return res.status(200).json({ message: "Anteposição aprovada e créditos concedidos ao professor." });
   } catch (err) {
-    return res.status(500).json({ error: "Erro ao aprovar anteposição.", details: error.message });
+    console.error("Erro ao aprovar anteposição:", err);
+    return res.status(500).json({ error: "Erro ao aprovar anteposição.", details: err.message });
   }
 };
 
 export const approveReposition = async (req, res) => {
-  const { requestId } = req.body;
+  const requestId = req.params.id;  // Corrigido: ler ID de params
 
   try {
     const request = await db.ClassChangeRequest.findByPk(requestId);
@@ -361,13 +370,15 @@ export const approveReposition = async (req, res) => {
     await request.save();
 
     return res.status(200).json({ message: "Reposição aprovada e créditos concedidos ao professor." });
-  } catch (error) {
-    return res.status(500).json({ error: "Erro ao aprovar reposição.", details: error.message });
+  } catch (err) {
+    console.error("Erro ao aprovar reposição:", err);
+    return res.status(500).json({ error: "Erro ao aprovar reposição.", details: err.message });
   }
-}
+};
 
 export const negateReposition = async (req, res) => {
-  const { requestId } = req.body;
+  const requestId = req.params.id;  // Corrigido: ler ID de params
+  const { observationCoordinator } = req.body;  // Corrigido: ler observationCoordinator do body
 
   try {
     const request = await db.ClassChangeRequest.findByPk(requestId);
@@ -380,17 +391,19 @@ export const negateReposition = async (req, res) => {
     }
 
     request.validated = 2;
-    request.observationCoordinator = req.body.observationCoordinator || request.observationCoordinator;
+    request.observationCoordinator = observationCoordinator || request.observationCoordinator;  // Usa o novo se enviado
     await request.save();
 
     return res.status(200).json({ message: "Reposição negada ao professor, créditos não serão adicionados." });
-  } catch (error) {
-    return res.status(500).json({ error: "Erro ao negar reposição.", details: error.message });
+  } catch (err) {
+    console.error("Erro ao negar reposição:", err);
+    return res.status(500).json({ error: "Erro ao negar reposição.", details: err.message });
   }
-}
+};
 
 export const negateAnteposition = async (req, res) => {
-  const { requestId } = req.body;
+  const requestId = req.params.id;  // Corrigido: ler ID de params
+  const { observationCoordinator } = req.body;  // Corrigido: ler observationCoordinator do body
 
   try {
     const request = await db.ClassChangeRequest.findByPk(requestId);
@@ -403,11 +416,12 @@ export const negateAnteposition = async (req, res) => {
     }
 
     request.validated = 2;
-    request.observationCoordinator = req.body.observationCoordinator || request.observationCoordinator;
+    request.observationCoordinator = observationCoordinator || request.observationCoordinator;  // Usa o novo se enviado
     await request.save();
 
     return res.status(200).json({ message: "Anteposição negada ao professor." });
-  } catch (error) {
-    return res.status(500).json({ error: "Erro ao negar anteposição.", details: error.message });
+  } catch (err) {
+    console.error("Erro ao negar anteposição:", err);
+    return res.status(500).json({ error: "Erro ao negar anteposição.", details: err.message });
   }
-}
+};

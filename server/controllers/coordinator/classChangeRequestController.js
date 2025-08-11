@@ -266,11 +266,17 @@ export const updateRequest = async (req, res) => {
       return res
         .status(400)
         .json({ error: "O limite máximo de aulas por dia é 4." });
-    }
+    } // --- DEBUG: INÍCIO ---
 
     const today = new Date().setHours(0, 0, 0, 0);
     const selectedDate = new Date(newDate).setHours(0, 0, 0, 0);
 
+    console.log("--- DEBUG DE DATA ---");
+    console.log("Data recebida (newDate):", newDate);
+    console.log("Data atual (UTC meia-noite):", new Date(today));
+    console.log("Data selecionada (UTC meia-noite):", new Date(selectedDate));
+    console.log("Timestamp da data atual:", today);
+    console.log("Timestamp da data selecionada:", selectedDate); // --- DEBUG: FIM ---
     if (selectedDate < today) {
       return res
         .status(400)

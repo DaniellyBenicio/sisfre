@@ -71,16 +71,16 @@ export default (sequelize) => {
       //Validação do coordenador
 
       validated: {
-        type: DataTypes.BOOLEAN,
+        type: DataTypes.INTEGER, 
         allowNull: false,
-        defaultValue: false,
+        defaultValue: 0, 
+        comment: "0: Pendente, 1: Aprovado, 2: Rejeitado", 
       },
 
       observationCoordinator: {
         type: DataTypes.STRING,
         allowNull: true,
-      }
-
+      },
     },
     {
       sequelize,

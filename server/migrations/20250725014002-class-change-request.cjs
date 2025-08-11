@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -48,7 +48,7 @@ module.exports = {
         type: Sequelize.DATEONLY,
         allowNull: false,
       },
-      
+
       annex: {
         type: Sequelize.STRING,
         allowNull: true,
@@ -63,9 +63,10 @@ module.exports = {
       // Validação do coordenador
 
       validated: {
-        type: Sequelize.BOOLEAN,
+        type: Sequelize.INTEGER,
         allowNull: false,
-        defaultValue: false,
+        defaultValue: 0,
+        comment: "0: Pendente, 1: Aprovado, 2: Rejeitado",
       },
 
       observationCoordinator: {

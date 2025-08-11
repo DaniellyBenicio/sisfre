@@ -16,6 +16,10 @@ import {
 import { Close, Save, CloudUpload, ArrowBack } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { ptBR } from "date-fns/locale";
 import api from "../../../../service/api";
 import { jwtDecode } from "jwt-decode";
 
@@ -25,6 +29,19 @@ const StyledButton = styled(Button)(() => ({
   textTransform: "none",
   fontWeight: "bold",
 }));
+
+const createLocalDate = (dateString) => {
+  if (!dateString) return null;
+  try {
+    const parts = dateString.split('-');
+    const dateObject = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    dateObject.setHours(0, 0, 0, 0);
+    return dateObject;
+  } catch (error) {
+    console.error("Erro ao criar data local:", error);
+    return null;
+  }
+};
 
 const ClassAntepositionRegister = ({ setAlert }) => {
   const professor = localStorage.getItem("username") || "";
@@ -100,10 +117,12 @@ const ClassAntepositionRegister = ({ setAlert }) => {
       setAlert({ message: "Quantidade deve ser entre 1 e 4.", type: "error" });
       return;
     }
-    const selectedDate = new Date(date).setHours(0, 0, 0, 0);
-    if (selectedDate < new Date().setHours(0, 0, 0, 0)) {
+    const selectedDate = createLocalDate(date);
+    const todayLocalMidnight = new Date();
+    todayLocalMidnight.setHours(0, 0, 0, 0);
+    if (selectedDate < todayLocalMidnight) {
       setAlert({
-        message: "Data não pode ser anterior à atual.",
+        message: "A data não pode ser anterior à atual.",
         type: "error",
       });
       return;
@@ -170,172 +189,215 @@ const ClassAntepositionRegister = ({ setAlert }) => {
   };
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          position: "relative",
-          mb: 2,
-        }}
-      >
-        <IconButton
-          onClick={handleGoBack}
+    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
+      <Box sx={{ p: 2 }}>
+        <Box
           sx={{
-            position: "absolute",
-            left: 0,
-            color: INSTITUTIONAL_COLOR,
-            "&:hover": { backgroundColor: "transparent" },
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "relative",
+            mb: 2,
           }}
         >
-          <ArrowBack sx={{ fontSize: 30 }} />
-        </IconButton>
-        <Typography
-          variant="h6"
-          sx={{ fontWeight: "bold", textAlign: "center", flexGrow: 1 }}
-        >
-          Cadastrar Anteposição
-        </Typography>
-      </Box>
-
-      <Paper elevation={2} sx={{ p: 2, mt: 1 }}>
-        <Box component="form">
-          <Box sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}>
-            <TextField
-              label="Professor"
-              value={professor}
-              fullWidth
-              disabled
-              variant="outlined"
-            />
-            <FormControl fullWidth variant="outlined" required>
-              <InputLabel>Selecionar da Grade</InputLabel>
-              <Select
-                value={
-                  course && discipline && turn
-                    ? `${course}|${discipline}|${turn}`
-                    : ""
-                }
-                onChange={handleScheduleChange}
-                label="Selecionar da Grade"
-              >
-                <MenuItem value="">Selecione</MenuItem>
-                {scheduleDetails.map((sd) => (
-                  <MenuItem
-                    key={`${sd.course}|${sd.discipline}|${sd.turn}`}
-                    value={`${sd.course}|${sd.discipline}|${sd.turn}`}
-                  >
-                    {`${sd.acronym} - ${sd.semester} - ${sd.discipline}`}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
-          <Box sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}>
-            <TextField
-              label="Turma"
-              value={selectedClassLabel}
-              fullWidth
-              disabled
-              variant="outlined"
-            />
-            <TextField
-              label="Disciplina"
-              value={discipline}
-              fullWidth
-              disabled
-              variant="outlined"
-            />
-          </Box>
-          <Box sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}>
-            <TextField
-              label="Turno"
-              value={turn}
-              fullWidth
-              disabled
-              variant="outlined"
-            />
-            <TextField
-              label="Quantidade"
-              type="number"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              fullWidth
-              required
-              variant="outlined"
-            />
-          </Box>
-          <Box sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}>
-            <TextField
-              label="Data"
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              fullWidth
-              required
-              variant="outlined"
-              InputLabelProps={{ shrink: true }}
-            />
-            <TextField
-              label="Anexar Ficha"
-              value={file ? file.name : ""}
-              fullWidth
-              readOnly
-              onClick={() =>
-                document.querySelector('input[type="file"]').click()
-              }
-              variant="outlined"
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <CloudUpload sx={{ color: "#087619" }} />
-                  </InputAdornment>
-                ),
-              }}
-            />
-            <input type="file" hidden onChange={handleFileChange} />
-          </Box>
-          <Box sx={{ my: 1.5 }}>
-            <TextField
-              label="Observação"
-              value={observation}
-              onChange={(e) => setObservation(e.target.value)}
-              fullWidth
-              multiline
-              rows={2}
-              variant="outlined"
-            />
-          </Box>
-        </Box>
-      </Paper>
-      <Box sx={{ display: "flex", justifyContent: "center", p: 2, mt: 2 }}>
-        <Stack direction="row" spacing={2}>
-          <StyledButton
+          <IconButton
             onClick={handleGoBack}
-            variant="contained"
             sx={{
-              backgroundColor: "#F01424",
-              "&:hover": { backgroundColor: "#D4000F" },
+              position: "absolute",
+              left: 0,
+              color: INSTITUTIONAL_COLOR,
+              "&:hover": { backgroundColor: "transparent" },
             }}
           >
-            <Close sx={{ fontSize: 20 }} />
-            Cancelar
-          </StyledButton>
-          <StyledButton
-            onClick={handleSubmit}
-            variant="contained"
-            sx={{
-              backgroundColor: INSTITUTIONAL_COLOR,
-              "&:hover": { backgroundColor: "#26692b" },
-            }}
+            <ArrowBack sx={{ fontSize: 30 }} />
+          </IconButton>
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: "bold", textAlign: "center", flexGrow: 1 }}
           >
-            <Save sx={{ fontSize: 20 }} />
-            Solicitar
-          </StyledButton>
-        </Stack>
+            Cadastrar Anteposição
+          </Typography>
+        </Box>
+
+        <Paper elevation={2} sx={{ p: 2, mt: 1 }}>
+          <Box component="form">
+            <Box sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}>
+              <TextField
+                label="Professor"
+                value={professor}
+                fullWidth
+                disabled
+                variant="outlined"
+              />
+              <FormControl fullWidth variant="outlined" required>
+                <InputLabel>Selecionar da Grade</InputLabel>
+                <Select
+                  value={
+                    course && discipline && turn
+                      ? `${course}|${discipline}|${turn}`
+                      : ""
+                  }
+                  onChange={handleScheduleChange}
+                  label="Selecionar da Grade"
+                >
+                  <MenuItem value="">Selecione</MenuItem>
+                  {scheduleDetails.map((sd) => (
+                    <MenuItem
+                      key={`${sd.course}|${sd.discipline}|${sd.turn}`}
+                      value={`${sd.course}|${sd.discipline}|${sd.turn}`}
+                    >
+                      {`${sd.acronym} - ${sd.semester} - ${sd.discipline}`}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+            <Box sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}>
+              <TextField
+                label="Turma"
+                value={selectedClassLabel}
+                fullWidth
+                disabled
+                variant="outlined"
+              />
+              <TextField
+                label="Disciplina"
+                value={discipline}
+                fullWidth
+                disabled
+                variant="outlined"
+              />
+            </Box>
+            <Box sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}>
+              <TextField
+                label="Turno"
+                value={turn}
+                fullWidth
+                disabled
+                variant="outlined"
+              />
+              <TextField
+                label="Quantidade"
+                type="number"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                fullWidth
+                required
+                variant="outlined"
+              />
+            </Box>
+            <Box sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}>
+              <DatePicker
+                label="Data"
+                value={createLocalDate(date)}
+                onChange={(newValue) => {
+                  let formattedDate = "";
+                  if (newValue) {
+                    const year = newValue.getFullYear();
+                    const month = String(newValue.getMonth() + 1).padStart(2, "0");
+                    const day = String(newValue.getDate()).padStart(2, "0");
+                    formattedDate = `${year}-${month}-${day}`;
+                  }
+                  setDate(formattedDate);
+                }}
+                minDate={new Date()}
+                slotProps={{
+                  textField: {
+                    id: "date-input",
+                    name: "date",
+                    required: true,
+                    fullWidth: true,
+                    InputLabelProps: {
+                      sx: {
+                        "&.Mui-focused": {
+                          color: "#000000",
+                        },
+                      },
+                    },
+                    sx: {
+                      "& .MuiOutlinedInput-root": {
+                        minHeight: { xs: "40px", sm: "56px" },
+                        "& fieldset": { borderColor: "#000000" },
+                        "&:hover fieldset": { borderColor: "#000000" },
+                        "&.Mui-focused fieldset": {
+                          borderColor: "#000000",
+                          borderWidth: "2px",
+                        },
+                      },
+                    },
+                  },
+                  popper: {
+                    sx: {
+                      zIndex: 1500,
+                      "& .MuiPickerStaticWrapper-root": {
+                        maxWidth: { xs: "200px", sm: "250px" },
+                        maxHeight: { xs: "250px", sm: "300px" },
+                      },
+                    },
+                    placement: "top-start",
+                  },
+                }}
+              />
+              <TextField
+                label="Anexar Ficha"
+                value={file ? file.name : ""}
+                fullWidth
+                readOnly
+                onClick={() =>
+                  document.querySelector('input[type="file"]').click()
+                }
+                variant="outlined"
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <CloudUpload sx={{ color: "#087619" }} />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <input type="file" hidden onChange={handleFileChange} />
+            </Box>
+            <Box sx={{ my: 1.5 }}>
+              <TextField
+                label="Observação"
+                value={observation}
+                onChange={(e) => setObservation(e.target.value)}
+                fullWidth
+                multiline
+                rows={2}
+                variant="outlined"
+              />
+            </Box>
+          </Box>
+        </Paper>
+        <Box sx={{ display: "flex", justifyContent: "center", p: 2, mt: 2 }}>
+          <Stack direction="row" spacing={2}>
+            <StyledButton
+              onClick={handleGoBack}
+              variant="contained"
+              sx={{
+                backgroundColor: "#F01424",
+                "&:hover": { backgroundColor: "#D4000F" },
+              }}
+            >
+              <Close sx={{ fontSize: 20 }} />
+              Cancelar
+            </StyledButton>
+            <StyledButton
+              onClick={handleSubmit}
+              variant="contained"
+              sx={{
+                backgroundColor: INSTITUTIONAL_COLOR,
+                "&:hover": { backgroundColor: "#26692b" },
+              }}
+            >
+              <Save sx={{ fontSize: 20 }} />
+              Solicitar
+            </StyledButton>
+          </Stack>
+        </Box>
       </Box>
-    </Box>
+    </LocalizationProvider>
   );
 };
 

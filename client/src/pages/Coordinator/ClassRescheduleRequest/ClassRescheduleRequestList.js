@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -52,7 +52,8 @@ const ClassRecheduleRequestList = ({ setAuthenticated }) => {
     });
   };
 
-  const formattedRequests = requests .filter(
+  const formattedRequests = requests
+    .filter(
       (request) =>
         !request.validated &&
         (!request.observationCoordinator || request.observationCoordinator.trim() === "")
@@ -61,7 +62,7 @@ const ClassRecheduleRequestList = ({ setAuthenticated }) => {
       id: request.id,
       title: request.type === "reposicao" ? "Reposição" : "Anteposição",
       teacher: request.professor?.username || "Desconhecido",
-      date: formatDate(request.createdAt),
+      date: formatDate(request.date), 
       discipline: request.discipline || "N/A",
       class: request.disciplinaclasse?.classCode || "N/A",
       shift: request.disciplinaclasse?.shift || "N/A",
@@ -93,7 +94,7 @@ const ClassRecheduleRequestList = ({ setAuthenticated }) => {
     e.stopPropagation();
     navigate(`/class-reschedule-request/details/${option.id}`);
   };
-  
+
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", position: "relative" }}>
       <Box

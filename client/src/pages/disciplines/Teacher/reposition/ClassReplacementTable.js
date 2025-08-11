@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { useMediaQuery, useTheme } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
+import PictureAsPdf from '@mui/icons-material/PictureAsPdf'; // Adicionado
 import { useState } from 'react';
 
 const ClassReplacementTable = ({ replacements, setAlert, onView, onDelete, onApprove, onReject, accessType }) => {
@@ -28,19 +29,22 @@ const ClassReplacementTable = ({ replacements, setAlert, onView, onDelete, onApp
   })) : [];
 
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedObservation, setSelectedObservation] = useState('');
+  const [selectedContent, setSelectedContent] = useState(''); // Alterado para selectedContent
   const [dialogTitle, setDialogTitle] = useState('');
+  const [isFileDialog, setIsFileDialog] = useState(false); // Adicionado
 
-  const handleOpenDialog = (text, title) => {
-    setSelectedObservation(text);
+  const handleOpenDialog = (content, title, isFile = false) => { // Adicionado isFile
+    setSelectedContent(content);
     setDialogTitle(title);
+    setIsFileDialog(isFile);
     setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setSelectedObservation('');
+    setSelectedContent('');
     setDialogTitle('');
+    setIsFileDialog(false);
   };
 
   const headers = accessType === 'Professor' ? [
@@ -49,7 +53,17 @@ const ClassReplacementTable = ({ replacements, setAlert, onView, onDelete, onApp
     { key: 'turn', label: 'Turno' },
     { key: 'quantidade', label: 'Quantidade' },
     { key: 'data', label: 'Data' },
-    { key: 'fileName', label: 'Arquivo' },
+    { 
+      key: 'fileName', 
+      label: 'Arquivo',
+      render: (replacement) => (
+        replacement.fileName !== 'N/A' ? (
+          <IconButton onClick={() => handleOpenDialog(replacement.fileName, 'Arquivo', true)}>
+            <PictureAsPdf />
+          </IconButton>
+        ) : 'N/A'
+      ),
+    },
     { 
       key: 'observacao', 
       label: 'Observação',
@@ -84,7 +98,17 @@ const ClassReplacementTable = ({ replacements, setAlert, onView, onDelete, onApp
     { key: 'turn', label: 'Turno' },
     { key: 'quantidade', label: 'Quantidade' },
     { key: 'data', label: 'Data' },
-    { key: 'fileName', label: 'Arquivo' },
+    { 
+      key: 'fileName', 
+      label: 'Arquivo',
+      render: (replacement) => (
+        replacement.fileName !== 'N/A' ? (
+          <IconButton onClick={() => handleOpenDialog(replacement.fileName, 'Arquivo', true)}>
+            <PictureAsPdf />
+          </IconButton>
+        ) : 'N/A'
+      ),
+    },
     { 
       key: 'observacao', 
       label: 'Observação',
@@ -184,7 +208,14 @@ const ClassReplacementTable = ({ replacements, setAlert, onView, onDelete, onApp
       <Typography><strong>Turno:</strong> {normalizeString(replacement.turn)}</Typography>
       <Typography><strong>Quantidade:</strong> {normalizeString(replacement.quantidade)}</Typography>
       <Typography><strong>Data:</strong> {normalizeString(replacement.data)}</Typography>
-      <Typography><strong>Arquivo:</strong> {normalizeString(replacement.fileName)}</Typography>
+      <Typography>
+        <strong>Arquivo:</strong>{" "}
+        {replacement.fileName !== 'N/A' ? (
+          <IconButton onClick={() => handleOpenDialog(replacement.fileName, 'Arquivo', true)}>
+            <PictureAsPdf />
+          </IconButton>
+        ) : 'N/A'}
+      </Typography>
       <Typography>
         <strong>Observação:</strong>{" "}
         {replacement.observacao !== 'N/A' ? (
@@ -282,9 +313,22 @@ const ClassReplacementTable = ({ replacements, setAlert, onView, onDelete, onApp
             {dialogTitle}
           </DialogTitle>
           <DialogContent sx={{ p: 3, overflowY: 'visible' }}>
-            <Typography sx={{ fontSize: '1rem', lineHeight: 1.5, wordBreak: 'break-word' }}>
-              {selectedObservation || 'Nenhuma observação fornecida'}
-            </Typography>
+            {isFileDialog ? (
+              <Typography sx={{ fontSize: '1rem', lineHeight: 1.5, wordBreak: 'break-word' }}>
+                <a
+                  href={`/path/to/files/${selectedContent}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: '#087619', textDecoration: 'underline' }}
+                >
+                  {selectedContent || 'Nenhum arquivo fornecido'}
+                </a>
+              </Typography>
+            ) : (
+              <Typography sx={{ fontSize: '1rem', lineHeight: 1.5, wordBreak: 'break-word' }}>
+                {selectedContent || 'Nenhuma observação fornecida'}
+              </Typography>
+            )}
           </DialogContent>
           <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
             <Button
@@ -373,9 +417,22 @@ const ClassReplacementTable = ({ replacements, setAlert, onView, onDelete, onApp
           {dialogTitle}
         </DialogTitle>
         <DialogContent sx={{ p: 3, overflowY: 'visible' }}>
-          <Typography sx={{ fontSize: '1rem', lineHeight: 1.5, wordBreak: 'break-word' }}>
-            {selectedObservation || 'Nenhuma observação fornecida'}
-          </Typography>
+          {isFileDialog ? (
+            <Typography sx={{ fontSize: '1rem', lineHeight: 1.5, wordBreak: 'break-word' }}>
+              <a
+                href={`/path/to/files/${selectedContent}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#087619', textDecoration: 'underline' }}
+              >
+                {selectedContent || 'Nenhum arquivo fornecido'}
+              </a>
+            </Typography>
+          ) : (
+            <Typography sx={{ fontSize: '1rem', lineHeight: 1.5, wordBreak: 'break-word' }}>
+              {selectedContent || 'Nenhuma observação fornecida'}
+            </Typography>
+          )}
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
           <Button

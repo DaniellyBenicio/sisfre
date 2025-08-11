@@ -1,7 +1,8 @@
-import { Stack, Typography, Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Stack, Typography, Box, Paper, Table, TableContainer, TableHead, TableRow, TableCell, TableBody, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import PropTypes from 'prop-types';
 import { useMediaQuery, useTheme } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
+import PictureAsPdf from '@mui/icons-material/PictureAsPdf';
 import { useState } from 'react';
 
 const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onApprove, onReject, accessType }) => {
@@ -27,19 +28,22 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
   })) : [];
 
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedObservation, setSelectedObservation] = useState('');
+  const [selectedContent, setSelectedContent] = useState('');
   const [dialogTitle, setDialogTitle] = useState('');
+  const [isFileDialog, setIsFileDialog] = useState(false);
 
-  const handleOpenDialog = (text, title) => {
-    setSelectedObservation(text);
+  const handleOpenDialog = (content, title, isFile = false) => {
+    setSelectedContent(content);
     setDialogTitle(title);
+    setIsFileDialog(isFile);
     setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setSelectedObservation('');
+    setSelectedContent('');
     setDialogTitle('');
+    setIsFileDialog(false);
   };
 
   const headers = accessType === 'Professor' ? [
@@ -48,7 +52,17 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
     { key: 'turn', label: 'Turno' },
     { key: 'quantidade', label: 'Quantidade' },
     { key: 'data', label: 'Data' },
-    { key: 'fileName', label: 'Arquivo' },
+    { 
+      key: 'fileName', 
+      label: 'Arquivo',
+      render: (anteposition) => (
+        anteposition.fileName !== 'N/A' ? (
+          <IconButton onClick={() => handleOpenDialog(anteposition.fileName, 'Arquivo', true)}>
+            <PictureAsPdf />
+          </IconButton>
+        ) : 'N/A'
+      ),
+    },
     { 
       key: 'observacao', 
       label: 'Observação',
@@ -83,7 +97,17 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
     { key: 'turn', label: 'Turno' },
     { key: 'quantidade', label: 'Quantidade' },
     { key: 'data', label: 'Data' },
-    { key: 'fileName', label: 'Arquivo' },
+    { 
+      key: 'fileName', 
+      label: 'Arquivo',
+      render: (anteposition) => (
+        anteposition.fileName !== 'N/A' ? (
+          <IconButton onClick={() => handleOpenDialog(anteposition.fileName, 'Arquivo', true)}>
+            <PictureAsPdf />
+          </IconButton>
+        ) : 'N/A'
+      ),
+    },
     { 
       key: 'observacao', 
       label: 'Observação',
@@ -163,7 +187,14 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
       <Typography><strong>Turno:</strong> {normalizeString(anteposition.turn)}</Typography>
       <Typography><strong>Quantidade:</strong> {normalizeString(anteposition.quantidade)}</Typography>
       <Typography><strong>Data:</strong> {normalizeString(anteposition.data)}</Typography>
-      <Typography><strong>Arquivo:</strong> {normalizeString(anteposition.fileName)}</Typography>
+      <Typography>
+        <strong>Arquivo:</strong>{" "}
+        {anteposition.fileName !== 'N/A' ? (
+          <IconButton onClick={() => handleOpenDialog(anteposition.fileName, 'Arquivo', true)}>
+            <PictureAsPdf />
+          </IconButton>
+        ) : 'N/A'}
+      </Typography>
       <Typography>
         <strong>Observação:</strong>{" "}
         {anteposition.observacao !== 'N/A' ? (
@@ -241,9 +272,22 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
             {dialogTitle}
           </DialogTitle>
           <DialogContent sx={{ p: 3, overflowY: 'visible' }}>
-            <Typography sx={{ fontSize: '1rem', lineHeight: 1.5, wordBreak: 'break-word' }}>
-              {selectedObservation || 'Nenhuma observação fornecida'}
-            </Typography>
+            {isFileDialog ? (
+              <Typography sx={{ fontSize: '1rem', lineHeight: 1.5, wordBreak: 'break-word' }}>
+                <a
+                  href={`/path/to/files/${selectedContent}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: '#087619', textDecoration: 'underline' }}
+                >
+                  {selectedContent || 'Nenhum arquivo fornecido'}
+                </a>
+              </Typography>
+            ) : (
+              <Typography sx={{ fontSize: '1rem', lineHeight: 1.5, wordBreak: 'break-word' }}>
+                {selectedContent || 'Nenhuma observação fornecida'}
+              </Typography>
+            )}
           </DialogContent>
           <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
             <Button
@@ -332,9 +376,22 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
           {dialogTitle}
         </DialogTitle>
         <DialogContent sx={{ p: 3, overflowY: 'visible' }}>
-          <Typography sx={{ fontSize: '1rem', lineHeight: 1.5, wordBreak: 'break-word' }}>
-            {selectedObservation || 'Nenhuma observação fornecida'}
-          </Typography>
+          {isFileDialog ? (
+            <Typography sx={{ fontSize: '1rem', lineHeight: 1.5, wordBreak: 'break-word' }}>
+              <a
+                href={`/path/to/files/${selectedContent}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#087619', textDecoration: 'underline' }}
+              >
+                {selectedContent || 'Nenhum arquivo fornecido'}
+              </a>
+            </Typography>
+          ) : (
+            <Typography sx={{ fontSize: '1rem', lineHeight: 1.5, wordBreak: 'break-word' }}>
+              {selectedContent || 'Nenhuma observação fornecida'}
+            </Typography>
+          )}
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
           <Button

@@ -85,7 +85,7 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
             color:
               anteposition.status === 'Aprovado' ? 'green' :
               anteposition.status === 'Rejeitado' ? 'red' : 'orange',
-            fontWeight: anteposition.status === 'Pendente' ? 'bold' : 'normal',
+            fontWeight: anteposition.status === 'Pendente' ? 'semi bold' : 'normal',
           }}
         >
           {anteposition.status}
@@ -142,7 +142,7 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
             color:
               anteposition.status === 'Aprovado' ? 'green' :
               anteposition.status === 'Rejeitado' ? 'red' : 'orange',
-            fontWeight: anteposition.status === 'Pendente' ? 'bold' : 'normal',
+            fontWeight: anteposition.status === 'Pendente' ? 'semi bold' : 'normal',
           }}
         >
           {anteposition.status}
@@ -210,7 +210,7 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
             color:
               anteposition.status === 'Aprovado' ? 'green' :
               anteposition.status === 'Rejeitado' ? 'red' : 'orange',
-            fontWeight: anteposition.status === 'Pendente' ? 'bold' : 'normal',
+            fontWeight: anteposition.status === 'Pendente' ? 'semi bold' : 'normal',
           }}
         >
           {anteposition.status}

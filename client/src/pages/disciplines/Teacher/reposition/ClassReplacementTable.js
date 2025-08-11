@@ -85,7 +85,7 @@ const ClassReplacementTable = ({ replacements, setAlert, onView, onDelete, onApp
             color:
               replacement.status === 'Aprovado' ? 'green' :
               replacement.status === 'Rejeitado' ? 'red' : 'orange',
-            fontWeight: replacement.status === 'Pendente' ? 'bold' : 'normal',
+            fontWeight: replacement.status === 'Pendente' ? 'semi bold' : 'normal',
           }}
         >
           {replacement.status}
@@ -141,7 +141,7 @@ const ClassReplacementTable = ({ replacements, setAlert, onView, onDelete, onApp
             color:
               replacement.status === 'Aprovado' ? 'green' :
               replacement.status === 'Rejeitado' ? 'red' : 'orange',
-            fontWeight: replacement.status === 'Pendente' ? 'bold' : 'normal',
+            fontWeight: replacement.status === 'Pendente' ? 'semi bold' : 'normal',
           }}
         >
           {replacement.status}
@@ -240,7 +240,7 @@ const ClassReplacementTable = ({ replacements, setAlert, onView, onDelete, onApp
             color:
               replacement.status === 'Aprovado' ? 'green' :
               replacement.status === 'Rejeitado' ? 'red' : 'orange',
-            fontWeight: replacement.status === 'Pendente' ? 'bold' : 'normal',
+            fontWeight: replacement.status === 'Pendente' ? 'semi bold' : 'normal',
           }}
         >
           {replacement.status}

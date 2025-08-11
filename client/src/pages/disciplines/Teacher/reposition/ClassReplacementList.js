@@ -42,7 +42,6 @@ const ClassReplacementList = () => {
   const rowsPerPage = 7;
   const navigate = useNavigate();
   const location = useLocation();
-  const { requestType } = location.state || { requestType: 'reposicao' };
   const accessType = localStorage.getItem('accessType') || 'Professor';
 
   const handleAlertClose = () => {
@@ -53,7 +52,7 @@ const ClassReplacementList = () => {
     const fetchReplacements = async () => {
       try {
         setLoading(true);
-        const response = await api.get('/request', { params: { type: requestType } });
+        const response = await api.get('/request', { params: { type: 'reposicao' } });
         const replacementsArray = Array.isArray(response.data.requests)
           ? response.data.requests.map((item) => ({
               id: item.id,
@@ -61,13 +60,13 @@ const ClassReplacementList = () => {
               professorId: item.userId,
               turma: item.course || 'Desconhecido',
               disciplina: item.discipline || 'Desconhecido',
-              hour: item.hour || 'N/A',
+              turn: item.turn || 'N/A',
               quantidade: item.quantity.toString(),
               data: item.date,
               fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
               observacao: item.observation || 'N/A',
               observationCoordinator: item.observationCoordinator || 'N/A',
-              status: item.validated ? 'Aprovado' : item.observationCoordinator ? 'Rejeitado' : 'Pendente',
+              status: item.validated === 1 ? 'Aprovado' : item.validated === 2 ? 'Rejeitado' : 'Pendente',
             })).sort((a, b) => a.turma.toLowerCase().localeCompare(b.turma.toLowerCase()))
           : [];
         setReplacements(replacementsArray);
@@ -80,24 +79,21 @@ const ClassReplacementList = () => {
       }
     };
     fetchReplacements();
-  }, [requestType]);
+  }, []);
 
   useEffect(() => {
     setPage(1);
   }, [filterTurma, filterDisciplina, filterPeriod, filterStatus]);
 
   const handleView = (id) => {
-    navigate(`/class-reposition/view/${id}`, { state: { requestType } });
+    navigate(`/class-reposition/view/${id}`);
   };
 
   const handleApprove = async (id) => {
     try {
-      await api.put(`/request/${id}`, {
-        validated: true,
-        observationCoordinator: 'Aprovado pelo coordenador',
-      });
-      setAlert({ message: 'Reposição aprovada com sucesso!', type: 'success' });
-      const response = await api.get('/request', { params: { type: requestType } });
+      await api.put(`/request/reposition/${id}`);
+      setAlert({ message: 'Reposição aprovada com sucesso! Créditos atualizados.', type: 'success' });
+      const response = await api.get('/request', { params: { type: 'reposicao' } });
       setReplacements(
         Array.isArray(response.data.requests)
           ? response.data.requests.map((item) => ({
@@ -106,13 +102,13 @@ const ClassReplacementList = () => {
               professorId: item.userId,
               turma: item.course || 'Desconhecido',
               disciplina: item.discipline || 'Desconhecido',
-              hour: item.hour || 'N/A',
+              turn: item.turn || 'N/A',
               quantidade: item.quantity.toString(),
               data: item.date,
               fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
               observacao: item.observation || 'N/A',
               observationCoordinator: item.observationCoordinator || 'N/A',
-              status: item.validated ? 'Aprovado' : item.observationCoordinator ? 'Rejeitado' : 'Pendente',
+              status: item.validated === 1 ? 'Aprovado' : item.validated === 2 ? 'Rejeitado' : 'Pendente',
             }))
           : []
       );
@@ -124,12 +120,11 @@ const ClassReplacementList = () => {
 
   const handleReject = async (id) => {
     try {
-      await api.put(`/request/${id}`, {
-        validated: false,
+      await api.put(`/request/negate/reposition/${id}`, {
         observationCoordinator: 'Rejeitado pelo coordenador',
       });
       setAlert({ message: 'Reposição rejeitada com sucesso!', type: 'success' });
-      const response = await api.get('/request', { params: { type: requestType } });
+      const response = await api.get('/request', { params: { type: 'reposicao' } });
       setReplacements(
         Array.isArray(response.data.requests)
           ? response.data.requests.map((item) => ({
@@ -138,13 +133,13 @@ const ClassReplacementList = () => {
               professorId: item.userId,
               turma: item.course || 'Desconhecido',
               disciplina: item.discipline || 'Desconhecido',
-              hour: item.hour || 'N/A',
+              turn: item.turn || 'N/A',
               quantidade: item.quantity.toString(),
               data: item.date,
               fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
               observacao: item.observation || 'N/A',
               observationCoordinator: item.observationCoordinator || 'N/A',
-              status: item.validated ? 'Aprovado' : item.observationCoordinator ? 'Rejeitado' : 'Pendente',
+              status: item.validated === 1 ? 'Aprovado' : item.validated === 2 ? 'Rejeitado' : 'Pendente',
             }))
           : []
       );
@@ -166,7 +161,7 @@ const ClassReplacementList = () => {
         message: `Reposição para ${replacementToDelete.turma} deletada com sucesso!`,
         type: 'success',
       });
-      const response = await api.get('/request', { params: { type: requestType } });
+      const response = await api.get('/request', { params: { type: 'reposicao' } });
       setReplacements(
         Array.isArray(response.data.requests)
           ? response.data.requests.map((item) => ({
@@ -175,13 +170,13 @@ const ClassReplacementList = () => {
               professorId: item.userId,
               turma: item.course || 'Desconhecido',
               disciplina: item.discipline || 'Desconhecido',
-              hour: item.hour || 'N/A',
+              turn: item.turn || 'N/A',
               quantidade: item.quantity.toString(),
               data: item.date,
               fileName: item.annex ? item.annex.split('/').pop() : 'N/A',
               observacao: item.observation || 'N/A',
               observationCoordinator: item.observationCoordinator || 'N/A',
-              status: item.validated ? 'Aprovado' : item.observationCoordinator ? 'Rejeitado' : 'Pendente',
+              status: item.validated === 1 ? 'Aprovado' : item.validated === 2 ? 'Rejeitado' : 'Pendente',
             }))
           : []
       );
@@ -424,7 +419,7 @@ const ClassReplacementList = () => {
 
         <StyledButton
           variant="contained"
-          onClick={() => navigate('/class-reposition/register', { state: { requestType } })}
+          onClick={() => navigate('/class-reposition/register')}
           sx={{
             flexShrink: 0,
             width: { xs: '100%', sm: '200px' },
@@ -434,7 +429,7 @@ const ClassReplacementList = () => {
             whiteSpace: 'nowrap',
           }}
         >
-          Cadastrar Reposição
+          Cadastrar reposição
         </StyledButton>
       </Stack>
 

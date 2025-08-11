@@ -1,12 +1,14 @@
-import { Stack, Typography, Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, IconButton } from '@mui/material';
-import Paginate from '../../../../components/paginate/Paginate';
+import { Stack, Typography, Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import PropTypes from 'prop-types';
-import { useState, useMemo } from 'react';
-import { useMediaQuery } from '@mui/material';
+import { useMediaQuery, useTheme } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { useState } from 'react';
 
 const ClassReplacementTable = ({ replacements, setAlert, onView, onDelete, onApprove, onReject, accessType }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   const normalizeString = (str) => {
     if (!str) return 'N/A';
     return str;
@@ -16,7 +18,7 @@ const ClassReplacementTable = ({ replacements, setAlert, onView, onDelete, onApp
     ...replacement,
     turma: normalizeString(replacement.turma),
     disciplina: normalizeString(replacement.disciplina),
-    hour: normalizeString(replacement.hour),
+    turn: normalizeString(replacement.turn),
     quantidade: normalizeString(replacement.quantidade),
     data: normalizeString(replacement.data),
     fileName: normalizeString(replacement.fileName),
@@ -25,14 +27,40 @@ const ClassReplacementTable = ({ replacements, setAlert, onView, onDelete, onApp
     status: replacement.status || 'Pendente',
   })) : [];
 
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedObservation, setSelectedObservation] = useState('');
+  const [dialogTitle, setDialogTitle] = useState('');
+
+  const handleOpenDialog = (text, title) => {
+    setSelectedObservation(text);
+    setDialogTitle(title);
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setSelectedObservation('');
+    setDialogTitle('');
+  };
+
   const headers = accessType === 'Professor' ? [
     { key: 'turma', label: 'Turma' },
     { key: 'disciplina', label: 'Disciplina' },
-    { key: 'hour', label: 'Horário' },
+    { key: 'turn', label: 'Turno' },
     { key: 'quantidade', label: 'Quantidade' },
     { key: 'data', label: 'Data' },
     { key: 'fileName', label: 'Arquivo' },
-    { key: 'observacao', label: 'Observação' },
+    { 
+      key: 'observacao', 
+      label: 'Observação',
+      render: (replacement) => (
+        replacement.observacao !== 'N/A' ? (
+          <IconButton onClick={() => handleOpenDialog(replacement.observacao, 'Observação')}>
+            <Visibility />
+          </IconButton>
+        ) : 'N/A'
+      ),
+    },
     {
       key: 'status',
       label: 'Status',
@@ -53,12 +81,32 @@ const ClassReplacementTable = ({ replacements, setAlert, onView, onDelete, onApp
   ] : [
     { key: 'turma', label: 'Turma' },
     { key: 'disciplina', label: 'Disciplina' },
-    { key: 'hour', label: 'Horário' },
+    { key: 'turn', label: 'Turno' },
     { key: 'quantidade', label: 'Quantidade' },
     { key: 'data', label: 'Data' },
     { key: 'fileName', label: 'Arquivo' },
-    { key: 'observacao', label: 'Observação' },
-    { key: 'observationCoordinator', label: 'Observação do Coordenador' },
+    { 
+      key: 'observacao', 
+      label: 'Observação',
+      render: (replacement) => (
+        replacement.observacao !== 'N/A' ? (
+          <IconButton onClick={() => handleOpenDialog(replacement.observacao, 'Observação')}>
+            <Visibility />
+          </IconButton>
+        ) : 'N/A'
+      ),
+    },
+    { 
+      key: 'observationCoordinator', 
+      label: 'Observação do Coordenador',
+      render: (replacement) => (
+        replacement.observationCoordinator !== 'N/A' ? (
+          <IconButton onClick={() => handleOpenDialog(replacement.observationCoordinator, 'Observação do Coordenador')}>
+            <Visibility />
+          </IconButton>
+        ) : 'N/A'
+      ),
+    },
     {
       key: 'status',
       label: 'Status',
@@ -112,21 +160,6 @@ const ClassReplacementTable = ({ replacements, setAlert, onView, onDelete, onApp
     },
   ];
 
-  const isMobile = useMediaQuery('(max-width:600px)');
-  const [page, setPage] = useState(1);
-  const rowsPerPage = 7;
-
-  const visibleData = useMemo(() => {
-    if (!Array.isArray(formattedReplacements)) return [];
-    const startIndex = (page - 1) * rowsPerPage;
-    const endIndex = startIndex + rowsPerPage;
-    return formattedReplacements.slice(startIndex, endIndex);
-  }, [formattedReplacements, page]);
-
-  const handleChangePage = (newPage) => {
-    setPage(newPage);
-  };
-
   const tableHeadStyle = {
     fontWeight: 'bold',
     backgroundColor: '#087619',
@@ -148,12 +181,26 @@ const ClassReplacementTable = ({ replacements, setAlert, onView, onDelete, onApp
     <Stack spacing={0.5}>
       <Typography><strong>Turma:</strong> {normalizeString(replacement.turma)}</Typography>
       <Typography><strong>Disciplina:</strong> {normalizeString(replacement.disciplina)}</Typography>
-      <Typography><strong>Horário:</strong> {normalizeString(replacement.hour)}</Typography>
+      <Typography><strong>Turno:</strong> {normalizeString(replacement.turn)}</Typography>
       <Typography><strong>Quantidade:</strong> {normalizeString(replacement.quantidade)}</Typography>
       <Typography><strong>Data:</strong> {normalizeString(replacement.data)}</Typography>
       <Typography><strong>Arquivo:</strong> {normalizeString(replacement.fileName)}</Typography>
-      <Typography><strong>Observação:</strong> {normalizeString(replacement.observacao)}</Typography>
-      <Typography><strong>Observação do Coordenador:</strong> {normalizeString(replacement.observationCoordinator)}</Typography>
+      <Typography>
+        <strong>Observação:</strong>{" "}
+        {replacement.observacao !== 'N/A' ? (
+          <IconButton onClick={() => handleOpenDialog(replacement.observacao, 'Observação')}>
+            <Visibility />
+          </IconButton>
+        ) : 'N/A'}
+      </Typography>
+      <Typography>
+        <strong>Observação do Coordenador:</strong>{" "}
+        {replacement.observationCoordinator !== 'N/A' ? (
+          <IconButton onClick={() => handleOpenDialog(replacement.observationCoordinator, 'Observação do Coordenador')}>
+            <Visibility />
+          </IconButton>
+        ) : 'N/A'}
+      </Typography>
       <Typography>
         <strong>Status:</strong>{" "}
         <Box
@@ -203,26 +250,59 @@ const ClassReplacementTable = ({ replacements, setAlert, onView, onDelete, onApp
 
   if (isMobile) {
     return (
-      <Stack spacing={1} sx={{ width: '100%' }}>
-        {visibleData.length === 0 ? (
-          <Paper sx={{ p: 1 }}>
-            <Typography align="center">Nenhum item encontrado!</Typography>
-          </Paper>
-        ) : (
-          visibleData.map((item) => (
-            <Paper key={item?.id} sx={{ p: 1 }}>
-              {renderMobileRow(item)}
+      <>
+        <Stack spacing={1} sx={{ width: '100%' }}>
+          {formattedReplacements.length === 0 ? (
+            <Paper sx={{ p: 1 }}>
+              <Typography align="center">Nenhum item encontrado!</Typography>
             </Paper>
-          ))
-        )}
-        {formattedReplacements.length > rowsPerPage && (
-          <Paginate
-            count={Math.ceil((Array.isArray(formattedReplacements) ? formattedReplacements.length : 0) / rowsPerPage)}
-            page={page}
-            onChange={(event, newPage) => handleChangePage(newPage)}
-          />
-        )}
-      </Stack>
+          ) : (
+            formattedReplacements.map((item) => (
+              <Paper key={item?.id} sx={{ p: 1 }}>
+                {renderMobileRow(item)}
+              </Paper>
+            ))
+          )}
+        </Stack>
+        <Dialog
+          open={openDialog}
+          onClose={handleCloseDialog}
+          maxWidth="md"
+          fullWidth
+          sx={{
+            '& .MuiDialog-paper': {
+              width: '600px',
+              maxWidth: '90vw',
+              minHeight: '200px',
+              borderRadius: '8px',
+            },
+          }}
+        >
+          <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.5rem', py: 2 }}>
+            {dialogTitle}
+          </DialogTitle>
+          <DialogContent sx={{ p: 3, overflowY: 'visible' }}>
+            <Typography sx={{ fontSize: '1rem', lineHeight: 1.5, wordBreak: 'break-word' }}>
+              {selectedObservation || 'Nenhuma observação fornecida'}
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
+            <Button
+              onClick={handleCloseDialog}
+              variant="contained"
+              sx={{
+                backgroundColor: '#F01424',
+                '&:hover': { backgroundColor: '#D4000F' },
+                textTransform: 'none',
+                fontWeight: 'bold',
+                px: 4,
+              }}
+            >
+              Fechar
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </>
     );
   }
 
@@ -247,7 +327,7 @@ const ClassReplacementTable = ({ replacements, setAlert, onView, onDelete, onApp
             </TableRow>
           </TableHead>
           <TableBody>
-            {visibleData.length === 0 ? (
+            {formattedReplacements.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={headers.length}
@@ -258,7 +338,7 @@ const ClassReplacementTable = ({ replacements, setAlert, onView, onDelete, onApp
                 </TableCell>
               </TableRow>
             ) : (
-              visibleData.map((item) => (
+              formattedReplacements.map((item) => (
                 <TableRow key={item?.id}>
                   {headers.map((header) => (
                     <TableCell
@@ -275,13 +355,44 @@ const ClassReplacementTable = ({ replacements, setAlert, onView, onDelete, onApp
           </TableBody>
         </Table>
       </TableContainer>
-      {formattedReplacements.length > rowsPerPage && (
-        <Paginate
-          count={Math.ceil((Array.isArray(formattedReplacements) ? formattedReplacements.length : 0) / rowsPerPage)}
-          page={page}
-          onChange={(event, newPage) => handleChangePage(newPage)}
-        />
-      )}
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        maxWidth="md"
+        fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            width: '600px',
+            maxWidth: '90vw',
+            minHeight: '200px',
+            borderRadius: '8px',
+          },
+        }}
+      >
+        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.5rem', py: 2 }}>
+          {dialogTitle}
+        </DialogTitle>
+        <DialogContent sx={{ p: 3, overflowY: 'visible' }}>
+          <Typography sx={{ fontSize: '1rem', lineHeight: 1.5, wordBreak: 'break-word' }}>
+            {selectedObservation || 'Nenhuma observação fornecida'}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
+          <Button
+            onClick={handleCloseDialog}
+            variant="contained"
+            sx={{
+              backgroundColor: '#F01424',
+              '&:hover': { backgroundColor: '#D4000F' },
+              textTransform: 'none',
+              fontWeight: 'bold',
+              px: 4,
+            }}
+          >
+            Fechar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };
@@ -292,7 +403,7 @@ ClassReplacementTable.propTypes = {
       id: PropTypes.number.isRequired,
       turma: PropTypes.string.isRequired,
       disciplina: PropTypes.string.isRequired,
-      hour: PropTypes.string.isRequired,
+      turn: PropTypes.string.isRequired,
       quantidade: PropTypes.string.isRequired,
       data: PropTypes.string.isRequired,
       fileName: PropTypes.string.isRequired,

@@ -1,67 +1,66 @@
+
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import {
-  Box,
-  Typography,
-  Paper,
-  Button,
-  TextField,
-  Stack,
-  InputAdornment,
-  IconButton,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  CssBaseline,
-  CircularProgress, // Added for a better loading state UI
-} from '@mui/material';
-import { ArrowBack, CloudUpload, Close, Save } from '@mui/icons-material';
+import { Box, Typography, Paper, Button, TextField, Stack, InputAdornment, IconButton, CssBaseline, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Close, Save, CloudUpload, ArrowBack } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
-import { CustomAlert } from '../../../../components/alert/CustomAlert';
+import { useNavigate } from 'react-router-dom';
 import SideBar from '../../../../components/SideBar';
 import api from '../../../../service/api';
+import { jwtDecode } from 'jwt-decode';
+import { CustomAlert } from '../../../../components/alert/CustomAlert';
 
-const INSTITUTIONAL_COLOR = '#307c34';
+const INSTITUTIONAL_COLOR = "#307c34";
 
 const StyledButton = styled(Button)(() => ({
+  borderRadius: '8px',
+  padding: '8px 28px',
   textTransform: 'none',
   fontWeight: 'bold',
+  fontSize: '0.875rem',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  width: 'fit-content',
+  minWidth: 100,
+  '@media (max-width: 600px)': {
+    fontSize: '0.7rem',
+    padding: '4px 8px',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    maxWidth: '120px',
+  },
 }));
 
 const ClassReplacementRegister = ({ setAlert }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { requestType = 'reposicao', setAuthenticated } = location.state || {};
-
-  const [professor, setProfessor] = useState(localStorage.getItem('username') || '');
+  const professor = localStorage.getItem('username') || '';
   const [course, setCourse] = useState('');
   const [discipline, setDiscipline] = useState('');
-  const [hour, setHour] = useState('');
+  const [turn, setTurn] = useState('');
   const [quantity, setQuantity] = useState('');
   const [date, setDate] = useState('');
   const [file, setFile] = useState(null);
   const [observation, setObservation] = useState('');
   const [scheduleDetails, setScheduleDetails] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [alert, setLocalAlert] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false); // New state to prevent multiple submissions
+  const [selectedClassLabel, setSelectedClassLabel] = useState('');
+  const [localAlert, setLocalAlert] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchSchedule = async () => {
       try {
-        setLoading(true);
         const response = await api.get('/professor/request');
-        setScheduleDetails(response.data.scheduleDetails || []);
+        const details = response.data.scheduleDetails || [];
+        const validatedDetails = details.filter(
+          (sd) => sd.course && sd.discipline && sd.turn && sd.acronym && sd.semester
+        );
+        setScheduleDetails(validatedDetails);
+        if (validatedDetails.length === 0) {
+          (setAlert || setLocalAlert)({ message: 'Nenhuma grade válida encontrada.', type: 'error' });
+        }
       } catch (error) {
-        console.error('Erro ao carregar grade do professor:', error);
-        (setAlert || setLocalAlert)({
-          message: 'Erro ao carregar grade do professor.',
-          type: 'error',
-        });
+        (setAlert || setLocalAlert)({ message: 'Erro ao carregar grade do professor.', type: 'error' });
         setScheduleDetails([]);
-      } finally {
-        setLoading(false);
       }
     };
     fetchSchedule();
@@ -72,140 +71,134 @@ const ClassReplacementRegister = ({ setAlert }) => {
   };
 
   const handleScheduleChange = (event) => {
-    const selected = scheduleDetails.find((sd) => sd.id === event.target.value);
+    const selectedValue = event.target.value;
+    const selected = scheduleDetails.find(
+      (sd) => `${sd.course}|${sd.discipline}|${sd.turn}` === selectedValue
+    );
     if (selected) {
-      setCourse(selected.schedule.course.name);
-      setDiscipline(selected.discipline.name);
-      setHour(`${selected.hour.hourStart} - ${selected.hour.hourEnd}`);
+      setCourse(selected.course);
+      setDiscipline(selected.discipline);
+      setTurn(selected.turn);
+      setSelectedClassLabel(`${selected.acronym} - ${selected.semester}`);
     } else {
       setCourse('');
       setDiscipline('');
-      setHour('');
+      setTurn('');
+      setSelectedClassLabel('');
     }
   };
 
   const handleSubmit = async () => {
-    // Prevent multiple submissions
-    if (isSubmitting) return;
-
-    if (!course || !discipline || !hour || !quantity || !date || !file) {
-      (setAlert || setLocalAlert)({
-        message: 'Preencha todos os campos obrigatórios e anexe um arquivo.',
-        type: 'error',
-      });
+    if (!course || !discipline || !turn || !quantity || !date) {
+      (setAlert || setLocalAlert)({ message: "Preencha todos os campos obrigatórios.", type: "error" });
       return;
     }
-    if (parseInt(quantity) > 4 || parseInt(quantity) < 1) {
-      (setAlert || setLocalAlert)({
-        message: 'Quantidade deve ser entre 1 e 4.',
-        type: 'error',
-      });
+    if (isNaN(quantity) || parseInt(quantity) > 4 || parseInt(quantity) < 1) {
+      (setAlert || setLocalAlert)({ message: "Quantidade deve ser entre 1 e 4.", type: "error" });
       return;
     }
     const selectedDate = new Date(date).setHours(0, 0, 0, 0);
     if (selectedDate < new Date().setHours(0, 0, 0, 0)) {
-      (setAlert || setLocalAlert)({
-        message: 'Data não pode ser anterior à atual.',
-        type: 'error',
-      });
+      (setAlert || setLocalAlert)({ message: "Data não pode ser anterior à atual.", type: "error" });
       return;
     }
 
-    setIsSubmitting(true); // Set submitting state to true
-
-    const formData = new FormData();
-    formData.append('userId', localStorage.getItem('userId'));
-    formData.append('course', course);
-    formData.append('discipline', discipline);
-    formData.append('hour', hour);
-    formData.append('type', 'reposicao');
-    formData.append('quantity', parseInt(quantity));
-    formData.append('date', date);
-    formData.append('annex', file);
-    formData.append('observation', observation);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      (setAlert || setLocalAlert)({ message: "Token não encontrado. Faça login novamente.", type: "error" });
+      navigate('/login');
+      return;
+    }
 
     try {
+      const decoded = jwtDecode(token);
+      const userId = decoded.id;
+
+      if (!userId || isNaN(userId)) {
+        (setAlert || setLocalAlert)({ message: "ID do usuário inválido no token. Faça login novamente.", type: "error" });
+        navigate('/login');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('userId', userId);
+      formData.append('course', course);
+      formData.append('discipline', discipline);
+      formData.append('turn', turn);
+      formData.append('type', 'reposicao');
+      formData.append('quantity', parseInt(quantity));
+      formData.append('date', date);
+      if (file) formData.append('annex', file);
+      formData.append('observation', observation);
+
       await api.post('/request', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-      (setAlert || setLocalAlert)({
-        message: 'Reposição cadastrada com sucesso!',
-        type: 'success',
-      });
-      navigate('/class-reposition', { state: { requestType } });
+      (setAlert || setLocalAlert)({ message: "Reposição cadastrada com sucesso!", type: "success" });
+      navigate('/class-reposition');
     } catch (error) {
-      (setAlert || setLocalAlert)({
-        message: error.response?.data?.error || 'Erro ao cadastrar.',
-        type: 'error',
-      });
-    } finally {
-      setIsSubmitting(false); // Reset submitting state
+      console.error('Erro ao enviar requisição:', error);
+      (setAlert || setLocalAlert)({ message: error.response?.data?.error || "Erro ao cadastrar. Verifique os dados ou tente novamente.", type: "error" });
+      if (error.response?.status === 401) {
+        navigate('/login');
+      }
     }
   };
 
   const handleGoBack = () => {
-    navigate('/class-reposition', { state: { requestType } });
+    navigate('/class-reposition');
   };
 
   const handleAlertClose = () => {
-    setLocalAlert(null);
+    (setAlert || setLocalAlert)(null);
   };
-
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', width: '100vw' }}>
-        <CircularProgress />
-        <Typography variant="h6" sx={{ ml: 2 }}>Carregando...</Typography>
-      </Box>
-    );
-  }
 
   return (
     <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       <CssBaseline />
-      <SideBar setAuthenticated={setAuthenticated || (() => {})} />
+      <SideBar setAuthenticated={() => {}} />
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          p: 2,
+          p: 4,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          overflowY: 'auto', // Changed to 'auto' to allow scrolling
+          overflowY: 'auto',
           backgroundColor: '#f5f5f5',
+          py: { xs: 2, md: 4 },
         }}
       >
-        {/* Alert component, if any */}
-        {alert && (
-          <CustomAlert
-            message={alert.message}
-            type={alert.type}
-            onClose={handleAlertClose}
-          />
-        )}
-        
-        {/* Header section with back button */}
-        <Box sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-          mb: 2,
-          width: '100%',
-          maxWidth: '1200px'
-        }}>
-          {/* Back button */}
+        <Box
+          sx={{
+            width: '100%',
+            maxWidth: '1000px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            mb: 3,
+            mt: 2,
+          }}
+        >
           <IconButton
             onClick={handleGoBack}
-            sx={{ position: 'absolute', left: 0, color: INSTITUTIONAL_COLOR }}
+            sx={{
+              position: 'absolute',
+              left: 0,
+              color: INSTITUTIONAL_COLOR,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              '&:hover': { backgroundColor: 'transparent' },
+            }}
           >
-            <ArrowBack sx={{ fontSize: 30 }} />
+            <ArrowBack sx={{ fontSize: 35 }} />
           </IconButton>
-          <Typography variant="h6" sx={{ fontWeight: 'bold', textAlign: 'center', flexGrow: 1 }}>
+          <Typography variant="h5" sx={{ fontWeight: 'bold', textAlign: 'center', flexGrow: 1 }}>
             Cadastrar Reposição
           </Typography>
         </Box>
 
-        <Paper elevation={2} sx={{ p: 2, mt: 1, width: '100%', maxWidth: '1200px' }}>
+        <Paper elevation={3} sx={{ p: 4, mt: 2, width: '100%', maxWidth: '1000px' }}>
           <Box component="form">
             <Box sx={{ display: 'flex', gap: 2, my: 1.5, alignItems: 'center' }}>
               <TextField
@@ -218,14 +211,17 @@ const ClassReplacementRegister = ({ setAlert }) => {
               <FormControl fullWidth variant="outlined" required>
                 <InputLabel>Selecionar da Grade</InputLabel>
                 <Select
-                  value={scheduleDetails.find((sd) => sd.schedule.course.name === course && sd.discipline.name === discipline)?.id || ''}
+                  value={course && discipline && turn ? `${course}|${discipline}|${turn}` : ''}
                   onChange={handleScheduleChange}
                   label="Selecionar da Grade"
                 >
                   <MenuItem value="">Selecione</MenuItem>
                   {scheduleDetails.map((sd) => (
-                    <MenuItem key={sd.id} value={sd.id}>
-                      {sd.schedule.course.name} - {sd.discipline.name}
+                    <MenuItem
+                      key={`${sd.course}|${sd.discipline}|${sd.turn}`}
+                      value={`${sd.course}|${sd.discipline}|${sd.turn}`}
+                    >
+                      {`${sd.acronym} - ${sd.semester} - ${sd.discipline}`}
                     </MenuItem>
                   ))}
                 </Select>
@@ -234,7 +230,7 @@ const ClassReplacementRegister = ({ setAlert }) => {
             <Box sx={{ display: 'flex', gap: 2, my: 1.5, alignItems: 'center' }}>
               <TextField
                 label="Turma"
-                value={course}
+                value={selectedClassLabel}
                 fullWidth
                 disabled
                 variant="outlined"
@@ -249,8 +245,8 @@ const ClassReplacementRegister = ({ setAlert }) => {
             </Box>
             <Box sx={{ display: 'flex', gap: 2, my: 1.5, alignItems: 'center' }}>
               <TextField
-                label="Horário"
-                value={hour}
+                label="Turno"
+                value={turn}
                 fullWidth
                 disabled
                 variant="outlined"
@@ -263,7 +259,6 @@ const ClassReplacementRegister = ({ setAlert }) => {
                 fullWidth
                 required
                 variant="outlined"
-                inputProps={{ min: 1, max: 4 }}
               />
             </Box>
             <Box sx={{ display: 'flex', gap: 2, my: 1.5, alignItems: 'center' }}>
@@ -277,24 +272,16 @@ const ClassReplacementRegister = ({ setAlert }) => {
                 variant="outlined"
                 InputLabelProps={{ shrink: true }}
               />
-              <Box sx={{ width: '100%' }}>
-                <TextField
-                  label="Anexar Ficha"
-                  value={file ? file.name : ''}
-                  fullWidth
-                  readOnly
-                  onClick={() => document.querySelector('input[type="file"]').click()}
-                  variant="outlined"
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <CloudUpload sx={{ color: '#087619' }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-                <input type="file" hidden onChange={handleFileChange} />
-              </Box>
+              <TextField
+                label="Anexar Ficha"
+                value={file ? file.name : ''}
+                fullWidth
+                readOnly
+                onClick={() => document.querySelector('input[type="file"]').click()}
+                variant="outlined"
+                InputProps={{ endAdornment: <InputAdornment position="end"><CloudUpload sx={{ color: '#087619' }} /></InputAdornment> }}
+              />
+              <input type="file" hidden onChange={handleFileChange} />
             </Box>
             <Box sx={{ my: 1.5 }}>
               <TextField
@@ -309,33 +296,46 @@ const ClassReplacementRegister = ({ setAlert }) => {
             </Box>
           </Box>
         </Paper>
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2, mt: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            p: 3,
+          }}
+        >
           <Stack direction="row" spacing={2}>
             <StyledButton
               onClick={handleGoBack}
               variant="contained"
-              sx={{ backgroundColor: '#F01424', '&:hover': { backgroundColor: '#D4000F' } }}
+              sx={{
+                backgroundColor: '#F01424',
+                '&:hover': { backgroundColor: '#D4000F' },
+              }}
             >
-              <Close sx={{ fontSize: 20 }} />
+              <Close sx={{ fontSize: { xs: 20, sm: 24 } }} />
               Cancelar
             </StyledButton>
             <StyledButton
               onClick={handleSubmit}
               variant="contained"
-              sx={{ backgroundColor: INSTITUTIONAL_COLOR, '&:hover': { backgroundColor: '#26692b' } }}
-              disabled={isSubmitting} // Disable button while submitting
+              sx={{
+                backgroundColor: INSTITUTIONAL_COLOR,
+                '&:hover': { backgroundColor: '#26692b' },
+              }}
             >
-              {isSubmitting ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                <>
-                  <Save sx={{ fontSize: 20 }} />
-                  Cadastrar
-                </>
-              )}
+              <Save sx={{ fontSize: { xs: 20, sm: 24 } }} />
+              Cadastrar
             </StyledButton>
           </Stack>
         </Box>
+
+        {localAlert && (
+          <CustomAlert
+            message={localAlert.message}
+            type={localAlert.type}
+            onClose={handleAlertClose}
+          />
+        )}
       </Box>
     </Box>
   );

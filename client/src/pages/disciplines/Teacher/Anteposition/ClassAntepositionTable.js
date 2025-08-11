@@ -24,6 +24,7 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
     fileName: normalizeString(anteposition.fileName),
     observacao: normalizeString(anteposition.observacao),
     observationCoordinator: normalizeString(anteposition.observationCoordinator),
+    tipo: normalizeString(anteposition.tipo),
     status: anteposition.status || 'Pendente',
   })) : [];
 
@@ -97,6 +98,7 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
     { key: 'turn', label: 'Turno' },
     { key: 'quantidade', label: 'Quantidade' },
     { key: 'data', label: 'Data' },
+    { key: 'tipo', label: 'Tipo' },
     { 
       key: 'fileName', 
       label: 'Arquivo',
@@ -121,10 +123,10 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
     },
     { 
       key: 'observationCoordinator', 
-      label: 'Observação do Coordenador',
+      label: 'Justificativa',
       render: (anteposition) => (
         anteposition.observationCoordinator !== 'N/A' ? (
-          <IconButton onClick={() => handleOpenDialog(anteposition.observationCoordinator, 'Observação do Coordenador')}>
+          <IconButton onClick={() => handleOpenDialog(anteposition.observationCoordinator, 'Justificativa')}>
             <Visibility />
           </IconButton>
         ) : 'N/A'
@@ -145,20 +147,6 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
         >
           {anteposition.status}
         </Typography>
-      ),
-    },
-    {
-      key: 'actions',
-      label: 'Ação',
-      render: (anteposition) => (
-        <Stack direction="row" spacing={1} justifyContent="center">
-          <IconButton
-            onClick={() => onView(anteposition.id)}
-            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
-          >
-            <Visibility />
-          </IconButton>
-        </Stack>
       ),
     },
   ];
@@ -187,6 +175,9 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
       <Typography><strong>Turno:</strong> {normalizeString(anteposition.turn)}</Typography>
       <Typography><strong>Quantidade:</strong> {normalizeString(anteposition.quantidade)}</Typography>
       <Typography><strong>Data:</strong> {normalizeString(anteposition.data)}</Typography>
+      {accessType === 'Coordenador' && (
+        <Typography><strong>Tipo:</strong> {normalizeString(anteposition.tipo)}</Typography>
+      )}
       <Typography>
         <strong>Arquivo:</strong>{" "}
         {anteposition.fileName !== 'N/A' ? (
@@ -204,9 +195,9 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
         ) : 'N/A'}
       </Typography>
       <Typography>
-        <strong>Observação do Coordenador:</strong>{" "}
+        <strong>{accessType === 'Coordenador' ? 'Justificativa' : 'Observação do Coordenador'}:</strong>{" "}
         {anteposition.observationCoordinator !== 'N/A' ? (
-          <IconButton onClick={() => handleOpenDialog(anteposition.observationCoordinator, 'Observação do Coordenador')}>
+          <IconButton onClick={() => handleOpenDialog(anteposition.observationCoordinator, accessType === 'Coordenador' ? 'Justificativa' : 'Observação do Coordenador')}>
             <Visibility />
           </IconButton>
         ) : 'N/A'}
@@ -225,16 +216,6 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
           {anteposition.status}
         </Box>
       </Typography>
-      {accessType === 'Coordenador' && (
-        <Stack direction="row" spacing={1} justifyContent="center">
-          <Button
-            onClick={() => onView(anteposition.id)}
-            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
-          >
-            Visualizar
-          </Button>
-        </Stack>
-      )}
     </Stack>
   );
 
@@ -425,6 +406,7 @@ ClassAntepositionTable.propTypes = {
       fileName: PropTypes.string.isRequired,
       observacao: PropTypes.string.isRequired,
       observationCoordinator: PropTypes.string,
+      tipo: PropTypes.string,
       status: PropTypes.oneOf(['Pendente', 'Aprovado', 'Rejeitado']),
     })
   ).isRequired,

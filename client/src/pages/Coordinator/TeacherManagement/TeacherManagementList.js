@@ -14,11 +14,12 @@ import {
 } from '@mui/material';
 import { ArrowBack } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import ClassScheduleTable from './TeacherManagementTable';
+import TeacherManagementTable from './TeacherManagementTable';
 import api from '../../../service/api';
 import { CustomAlert } from '../../../components/alert/CustomAlert';
 import { StyledSelect } from '../../../components/inputs/Input';
 import SearchAndCreateBar from '../../../components/homeScreen/SearchAndCreateBar';
+import AbsencesModal from './AbsencesModal';
 
 const TeacherManagementList = () => {
   const [teachers, setTeachers] = useState([]);
@@ -33,6 +34,10 @@ const TeacherManagementList = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  const [openAbsencesModal, setOpenAbsencesModal] = useState(false);
+  const [absencesData, setAbsencesData] = useState([]);
+  const [modalLoading, setModalLoading] = useState(false);
 
   useEffect(() => {
     const fetchTeachers = async () => {
@@ -96,6 +101,23 @@ const TeacherManagementList = () => {
 
   const handleBackClick = () => {
     navigate('/teachers-management/options');
+  };
+
+  const handleViewAbsences = async (professorId) => {
+    setOpenAbsencesModal(true);
+    setModalLoading(true);
+    try {
+      const response = await api.get('/frequencies/absences-by-discipline', {
+        params: { userId: professorId },
+      });
+      setAbsencesData(response.data);
+    } catch (error) {
+      console.error('Erro ao buscar faltas:', error);
+      setAbsencesData([]);
+      setError("Erro ao buscar as faltas do professor.");
+    } finally {
+      setModalLoading(false);
+    }
   };
 
   const filteredTeachers = teachers
@@ -173,81 +195,95 @@ const TeacherManagementList = () => {
           placeholder="Pesquisar por nome ou e-mail"
         />
         <FormControl
+          sx={{
+            minWidth: { xs: '100%', sm: 200 },
+            '& .MuiInputBase-root': {
+              height: 36,
+              display: 'flex',
+              alignItems: 'center',
+            },
+            '& .MuiInputLabel-root': {
+              transform: 'translate(14px, 7px) scale(1)',
+              '&.Mui-focused, &.MuiInputLabel-shrink': {
+                transform: 'translate(14px, -6px) scale(0.75)',
+                color: '#000000',
+              },
+            },
+            '& .MuiSelect-select': {
+              display: 'flex',
+              alignItems: 'center',
+              height: '100% !important',
+            },
+          }}
+        >
+          <InputLabel id="calendar-filter-label">Calendário</InputLabel>
+          <StyledSelect
+            labelId="calendar-filter-label"
+            value={selectedCalendar}
+            label="Calendar"
+            onChange={handleCalendarChange}
             sx={{
-              minWidth: { xs: '100%', sm: 200 },
-              '& .MuiInputBase-root': {
-                height: 36,
-                display: 'flex',
-                alignItems: 'center',
+              '& .MuiOutlinedInput-notchedOutline': {
+                borderColor: 'rgba(0, 0, 0, 0.23)',
               },
-              '& .MuiInputLabel-root': {
-                transform: 'translate(14px, 7px) scale(1)',
-                '&.Mui-focused, &.MuiInputLabel-shrink': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                  color: '#000000',
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#000000',
+              },
+            }}
+            MenuProps={{
+              PaperProps: {
+                sx: {
+                  maxHeight: '200px',
+                  overflowY: 'auto',
+                  width: 'auto',
+                  '& .MuiMenuItem-root': {
+                    minHeight: '36px',
+                    display: 'flex',
+                    alignItems: 'center',
+                  },
+                  '& .MuiMenuItem-root.Mui-selected': {
+                    backgroundColor: '#D5FFDB',
+                    '&:hover': {
+                      backgroundColor: '#C5F5CB',
+                    },
+                  },
+                  '& .MuiMenuItem-root:hover': {
+                    backgroundColor: '#D5FFDB',
+                  },
                 },
-              },
-              '& .MuiSelect-select': {
-                display: 'flex',
-                alignItems: 'center',
-                height: '100% !important',
               },
             }}
           >
-            <InputLabel id="calendar-filter-label">Calendário</InputLabel>
-            <StyledSelect
-              labelId="calendar-filter-label"
-              value={selectedCalendar}
-              label="Calendar"
-              onChange={handleCalendarChange}
-              sx={{
-                '& .MuiOutlinedInput-notchedOutline': {
-                  borderColor: 'rgba(0, 0, 0, 0.23)',
-                },
-                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                  borderColor: '#000000',
-                },
-              }}
-              MenuProps={{
-                PaperProps: {
-                  sx: {
-                    maxHeight: '200px',
-                    overflowY: 'auto',
-                    width: 'auto',
-                    '& .MuiMenuItem-root': {
-                      minHeight: '36px',
-                      display: 'flex',
-                      alignItems: 'center',
-                    },
-                    '& .MuiMenuItem-root.Mui-selected': {
-                      backgroundColor: '#D5FFDB',
-                      '&:hover': {
-                        backgroundColor: '#C5F5CB',
-                      },
-                    },
-                    '& .MuiMenuItem-root:hover': {
-                      backgroundColor: '#D5FFDB',
-                    },
-                  },
-                },
-              }}
-            >
-              <MenuItem value="">Todos</MenuItem>
-              {calendars.map((calendar) => (
-                <MenuItem key={calendar.id} value={calendar.id}>
-                  {calendar.name}
-                </MenuItem>
-              ))}
-            </StyledSelect>
-          </FormControl>
+            <MenuItem value="">Todos</MenuItem>
+            {calendars.map((calendar) => (
+              <MenuItem key={calendar.id} value={calendar.id}>
+                {calendar.name}
+              </MenuItem>
+            ))}
+          </StyledSelect>
+        </FormControl>
       </Box>
 
-      <ClassScheduleTable
-        teachers={filteredTeachers}
-        onView={handleViewTeacherDetails}
-        search={searchTerm}
-        showActions={true}
-        loading={loading}
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <TeacherManagementTable
+          teachers={filteredTeachers}
+          onView={handleViewTeacherDetails}
+          search={searchTerm}
+          showActions={true}
+          loading={loading}
+          onViewAbsences={handleViewAbsences}
+        />
+      )}
+      
+      <AbsencesModal
+        open={openAbsencesModal}
+        onClose={() => setOpenAbsencesModal(false)}
+        data={absencesData}
+        loading={modalLoading}
       />
     </Box>
   );

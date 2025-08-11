@@ -9,15 +9,11 @@ export const registerByQrCode = async (req, res) => {
   const { token, userId, latitude, longitude } = req.body;
 
   const qrData = qrCodes.get(token);
-  if (!qrData) {
-    return res.status(400).json({ error: "QR Code inválido ou expirado." });
-  }
-
+  if (!qrData) return res.status(400).json({ error: "QR Code inválido ou expirado." });
   if (qrData.expiresAt < Date.now()) {
     qrCodes.delete(token);
     return res.status(410).json({ error: "QR Code expirado." });
   }
-
   if (!isInCampus({ latitude, longitude })) {
     return res.status(403).json({ error: "Você precisa estar no campus." });
   }
@@ -27,6 +23,20 @@ export const registerByQrCode = async (req, res) => {
   const time = now.toTimeString().split(" ")[0];
 
   try {
+    // Conta quantas frequências já existem hoje para esse usuário/curso/disciplin a
+    const existingCount = await db.Frequency.count({
+      where: {
+        userId,
+        courseId: qrData.courseId,
+        disciplineId: qrData.disciplineId,
+        date
+      }
+    });
+
+    if (existingCount >= 2) {
+      return res.status(409).json({ error: "Limite de 2 frequências por curso/disciplina para hoje atingido." });
+    }
+
     const frequency = await db.Frequency.create({
       userId,
       courseId: qrData.courseId,
@@ -42,6 +52,7 @@ export const registerByQrCode = async (req, res) => {
     res.status(500).json({ error: "Erro ao registrar frequência.", details: err.message });
   }
 };
+
 
 export const getFrequencies = async (req, res) => {
   try {

@@ -2,6 +2,7 @@ import express from "express";
 import autenticarToken from "../../middlewares/authMiddleware.js";
 import { isTeacherOrCoordinator } from '../../middlewares/isTeacherOrCoordinator.js';
 import upload from "../../middlewares/uploadClassChangeRequest.js";
+import { isCoordinator } from "../../middlewares/isCoordinator.js";
 
 import {
   createRequest,
@@ -14,6 +15,7 @@ import {
   approveReposition,
   negateAnteposition,
   negateReposition,
+  getRequestsByProfessor
 } from "../../controllers/coordinator/classChangeRequestController.js";
 
 const router = express.Router();
@@ -28,4 +30,5 @@ router.put("/request/anteposition/:id", autenticarToken, isTeacherOrCoordinator(
 router.put("/request/reposition/:id", autenticarToken, isTeacherOrCoordinator(), approveReposition);
 router.put("/request/negate/reposition/:id", autenticarToken, isTeacherOrCoordinator(), negateReposition);
 router.put("/request/negate/anteposition/:id", autenticarToken, isTeacherOrCoordinator(), negateAnteposition);
+router.get("/requests/teacher", autenticarToken, isCoordinator(), getRequestsByProfessor);
 export default router;

@@ -31,8 +31,8 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
 
   const fetchRequestDetails = async () => {
     try {
+      // Agora o backend retorna todos os dados da turma
       const response = await api.get(`/request/${id}`);
-      console.log("Dados da solicitação:", response.data.request);
       setRequestData(response.data.request);
     } catch (error) {
       console.error("Erro ao buscar detalhes:", error.response?.data || error.message);
@@ -64,6 +64,7 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
       setAlertType("success");
       setAlertOpen(true);
       fetchRequestDetails();
+      setTimeout(() => navigate("/class-reschedule-request"), 1000);
     } catch (error) {
       console.error("Erro ao aprovar solicitação:", error.response?.data || error.message);
       setAlertMessage("Erro ao aprovar a solicitação.");
@@ -78,19 +79,18 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
 
   const handleSubmitJustification = async (justification) => {
     try {
-      await api.put(`/request/${id}`, {
-        validated: 0,
-        observationCoordinator: justification,
-      });
+      const route = requestData.type === "anteposicao" ? `/request/negate/anteposition/${id}` : `/request/negate/reposition/${id}`;
+      await api.put(route, { requestId: id, observationCoordinator: justification });
       console.log("Rejeição enviada com justificativa:", justification);
       setAlertMessage("Solicitação rejeitada com sucesso!");
       setAlertType("success");
       setAlertOpen(true);
       setOpenDialog(false);
       fetchRequestDetails();
+      setTimeout(() => navigate("/class-reschedule-request"), 1000);
     } catch (error) {
       console.error("Erro ao rejeitar solicitação:", error.response?.data || error.message);
-      setAlertMessage("Erro ao rejeitar a solicitação.");
+      setAlertMessage("Erro ao rejeitar a solicitação: " + (error.response?.data?.error || error.message));
       setAlertType("error");
       setAlertOpen(true);
     }
@@ -104,11 +104,17 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
     ? {
         title: requestData.type === "anteposicao" ? "Anteposição" : "Reposição",
         teacher: requestData.professor?.username || "N/A",
-        date: new Date(requestData.date).toLocaleDateString("pt-BR") || "N/A",
+        date: requestData.date
+          ? new Date(`${requestData.date}T00:00:00`).toLocaleDateString("pt-BR", {
+              timeZone: "America/Sao_Paulo",
+            })
+          : "N/A",
         discipline: requestData.discipline || "N/A",
-        class: requestData.class || "N/A",
+        // Pega as informações da turma diretamente da resposta do backend
+        class: requestData.acronym && requestData.semester ? `${requestData.acronym} - ${requestData.semester}` : "N/A",
         quantity: requestData.quantity || "N/A",
         time: requestData.hour || "N/A",
+        turn: requestData.turn || "N/A",
         observations: requestData.observation || "",
         observationCoordinator: requestData.observationCoordinator || "",
         validated: requestData.validated,
@@ -168,7 +174,7 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
               <strong>Data:</strong> {cardData.date}
             </Typography>
             <Typography variant="body1" sx={{ mb: 1 }}>
-              <strong>Turno:</strong>
+              <strong>Turno:</strong> {cardData.turn}
             </Typography>
           </Box>
         </Box>

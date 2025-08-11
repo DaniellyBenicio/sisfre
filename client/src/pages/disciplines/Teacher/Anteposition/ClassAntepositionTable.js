@@ -229,20 +229,6 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
           >
             Deletar
           </Button>
-          <Button
-            onClick={() => onApprove(anteposition.id)}
-            disabled={anteposition.status === 'Aprovado'}
-            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
-          >
-            Aprovar
-          </Button>
-          <Button
-            onClick={() => onReject(anteposition.id)}
-            disabled={anteposition.status === 'Rejeitado'}
-            sx={{ color: '#087619', '&:hover': { color: '#065412' } }}
-          >
-            Rejeitar
-          </Button>
         </Stack>
       )}
     </Stack>

@@ -78,19 +78,61 @@ export const getRequestById = async (req, res) => {
       include: [
         { model: db.User, as: "professor", attributes: ["id", "username", "email"] },
       ],
-      order: [["date", "DESC"]],
     });
 
     if (!request) {
       return res.status(404).json({ error: "Requisição não encontrada." });
     }
 
-    return res.json({ request });
+    const classDetail = await db.ClassScheduleDetail.findOne({
+      where: {
+        userId: request.userId,
+        turn: request.turn,
+      },
+      include: [
+        {
+          model: db.ClassSchedule,
+          as: "schedule",
+          include: [
+            { model: db.Class, as: "class", attributes: ["semester"] },
+            {
+              model: db.Course,
+              as: "course",
+              attributes: ["acronym"],
+              where: { name: request.course }
+            }
+          ],
+        },
+        {
+          model: db.Discipline,
+          as: "discipline",
+          where: { name: request.discipline }
+        }
+      ]
+    });
+
+    let semester = "N/A";
+    let acronym = "N/A";
+    let disciplineName = request.discipline;
+
+    if (classDetail) {
+      semester = classDetail.schedule.class.semester;
+      acronym = classDetail.schedule.course.acronym;
+    }
+
+    const response = {
+      ...request.get({ plain: true }),
+      acronym,
+      semester,
+      discipline: disciplineName,
+    };
+
+    return res.json({ request: response });
   } catch (error) {
+    console.error("Erro ao buscar a Requisição:", error);
     return res.status(500).json({ error: "Erro ao buscar a Requisição.", details: error.message });
   }
 };
-
 export const updateRequest = async (req, res) => {
   const id = Number(req.params.id);
   const {
@@ -206,7 +248,6 @@ export const deleteRequest = async (req, res) => {
   }
 };
 
-//fazer alterações nesse para buscar os detalhes do professor.
 export const getProfessorScheduleDetails = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -229,7 +270,6 @@ export const getProfessorScheduleDetails = async (req, res) => {
       order: [["hourId", "ASC"]]
     });
 
-    // Filtra para pegar só o primeiro horário consecutivo
     const filtered = scheduleDetails.filter((detail, index, self) =>
       !self.some(
         (other, otherIndex) =>
@@ -241,7 +281,6 @@ export const getProfessorScheduleDetails = async (req, res) => {
       )
     );
 
-    // Mapeia para um formato mais enxuto
     const cleanResult = filtered.map(d => ({
       day: d.dayOfWeek,
       turn: d.turn,
@@ -252,7 +291,6 @@ export const getProfessorScheduleDetails = async (req, res) => {
       semester: d.schedule.class.semester,
     }));
 
-    // Remove duplicados pelo conjunto de campos que definem "único"
     const seen = new Set();
     const uniqueResult = cleanResult.filter(item => {
       const key = `${item.discipline}|${item.professor}|${item.course}|${item.semester}`;
@@ -281,9 +319,7 @@ export const approveAnteposition = async (req, res) => {
       return res.status(400).json({ error: "Esta anteposição já foi validada." });
     }
 
-    // Verifica se é anteposição
     if (request.type === "anteposicao") {
-      // Incrementa crédito do professor pela quantidade de aulas
       const professor = await db.User.findByPk(request.userId);
       if (professor) {
         professor.absenceCredits += Number(request.quantity) || 1;
@@ -291,7 +327,6 @@ export const approveAnteposition = async (req, res) => {
       }
     }
 
-    // Atualiza status da solicitação
     request.validated = 1;
     await request.save();
 
@@ -314,9 +349,7 @@ export const approveReposition = async (req, res) => {
       return res.status(400).json({ error: "Esta reposição já foi validada." });
     }
 
-    // Verifica se é reposição
     if (request.type === "reposicao") {
-      // Decrementa crédito do professor pela quantidade de aulas
       const professor = await db.User.findByPk(request.userId);
       if (professor) {
         professor.absenceCredits += Number(request.quantity) || 1;
@@ -324,7 +357,6 @@ export const approveReposition = async (req, res) => {
       }
     }
 
-    // Atualiza status da solicitação
     request.validated = 1;
     await request.save();
 
@@ -347,7 +379,6 @@ export const negateReposition = async (req, res) => {
       return res.status(400).json({ error: "Esta reposição já foi negada." });
     }
 
-    // Atualiza status da solicitação
     request.validated = 2;
     request.observationCoordinator = req.body.observationCoordinator || request.observationCoordinator;
     await request.save();
@@ -371,7 +402,6 @@ export const negateAnteposition = async (req, res) => {
       return res.status(400).json({ error: "Esta anteposição já foi negada." });
     }
 
-    // Atualiza status da solicitação
     request.validated = 2;
     request.observationCoordinator = req.body.observationCoordinator || request.observationCoordinator;
     await request.save();

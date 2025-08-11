@@ -324,7 +324,7 @@ const ClassReplacementRegister = ({ setAlert }) => {
               }}
             >
               <Save sx={{ fontSize: { xs: 20, sm: 24 } }} />
-              Cadastrar
+              Solicitar
             </StyledButton>
           </Stack>
         </Box>

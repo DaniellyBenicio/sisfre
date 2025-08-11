@@ -331,7 +331,7 @@ const ClassAntepositionRegister = ({ setAlert }) => {
             }}
           >
             <Save sx={{ fontSize: 20 }} />
-            Cadastrar
+            Solicitar
           </StyledButton>
         </Stack>
       </Box>

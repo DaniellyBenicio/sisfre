@@ -1,10 +1,14 @@
-import { Stack, Typography, Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, IconButton } from '@mui/material';
+import { Stack, Typography, Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import PropTypes from 'prop-types';
-import { useMediaQuery } from '@mui/material';
+import { useMediaQuery, useTheme } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { useState } from 'react';
 
 const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onApprove, onReject, accessType }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   const normalizeString = (str) => {
     if (!str) return 'N/A';
     return str;
@@ -23,6 +27,22 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
     status: anteposition.status || 'Pendente',
   })) : [];
 
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedObservation, setSelectedObservation] = useState('');
+  const [dialogTitle, setDialogTitle] = useState('');
+
+  const handleOpenDialog = (text, title) => {
+    setSelectedObservation(text);
+    setDialogTitle(title);
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setSelectedObservation('');
+    setDialogTitle('');
+  };
+
   const headers = accessType === 'Professor' ? [
     { key: 'turma', label: 'Turma' },
     { key: 'disciplina', label: 'Disciplina' },
@@ -30,7 +50,17 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
     { key: 'quantidade', label: 'Quantidade' },
     { key: 'data', label: 'Data' },
     { key: 'fileName', label: 'Arquivo' },
-    { key: 'observacao', label: 'Observação' },
+    { 
+      key: 'observacao', 
+      label: 'Observação',
+      render: (anteposition) => (
+        anteposition.observacao !== 'N/A' ? (
+          <IconButton onClick={() => handleOpenDialog(anteposition.observacao, 'Observação')}>
+            <Visibility />
+          </IconButton>
+        ) : 'N/A'
+      ),
+    },
     {
       key: 'status',
       label: 'Status',
@@ -55,8 +85,28 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
     { key: 'quantidade', label: 'Quantidade' },
     { key: 'data', label: 'Data' },
     { key: 'fileName', label: 'Arquivo' },
-    { key: 'observacao', label: 'Observação' },
-    { key: 'observationCoordinator', label: 'Observação do Coordenador' },
+    { 
+      key: 'observacao', 
+      label: 'Observação',
+      render: (anteposition) => (
+        anteposition.observacao !== 'N/A' ? (
+          <IconButton onClick={() => handleOpenDialog(anteposition.observacao, 'Observação')}>
+            <Visibility />
+          </IconButton>
+        ) : 'N/A'
+      ),
+    },
+    { 
+      key: 'observationCoordinator', 
+      label: 'Observação do Coordenador',
+      render: (anteposition) => (
+        anteposition.observationCoordinator !== 'N/A' ? (
+          <IconButton onClick={() => handleOpenDialog(anteposition.observationCoordinator, 'Observação do Coordenador')}>
+            <Visibility />
+          </IconButton>
+        ) : 'N/A'
+      ),
+    },
     {
       key: 'status',
       label: 'Status',
@@ -110,8 +160,6 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
     },
   ];
 
-  const isMobile = useMediaQuery('(max-width:600px)');
-
   const tableHeadStyle = {
     fontWeight: 'bold',
     backgroundColor: '#087619',
@@ -137,8 +185,22 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
       <Typography><strong>Quantidade:</strong> {normalizeString(anteposition.quantidade)}</Typography>
       <Typography><strong>Data:</strong> {normalizeString(anteposition.data)}</Typography>
       <Typography><strong>Arquivo:</strong> {normalizeString(anteposition.fileName)}</Typography>
-      <Typography><strong>Observação:</strong> {normalizeString(anteposition.observacao)}</Typography>
-      <Typography><strong>Observação do Coordenador:</strong> {normalizeString(anteposition.observationCoordinator)}</Typography>
+      <Typography>
+        <strong>Observação:</strong>{" "}
+        {anteposition.observacao !== 'N/A' ? (
+          <IconButton onClick={() => handleOpenDialog(anteposition.observacao, 'Observação')}>
+            <Visibility />
+          </IconButton>
+        ) : 'N/A'}
+      </Typography>
+      <Typography>
+        <strong>Observação do Coordenador:</strong>{" "}
+        {anteposition.observationCoordinator !== 'N/A' ? (
+          <IconButton onClick={() => handleOpenDialog(anteposition.observationCoordinator, 'Observação do Coordenador')}>
+            <Visibility />
+          </IconButton>
+        ) : 'N/A'}
+      </Typography>
       <Typography>
         <strong>Status:</strong>{" "}
         <Box
@@ -188,70 +250,150 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
 
   if (isMobile) {
     return (
-      <Stack spacing={1} sx={{ width: '100%' }}>
-        {formattedAntepositions.length === 0 ? (
-          <Paper sx={{ p: 1 }}>
-            <Typography align="center">Nenhum item encontrado!</Typography>
-          </Paper>
-        ) : (
-          formattedAntepositions.map((item) => (
-            <Paper key={item?.id} sx={{ p: 1 }}>
-              {renderMobileRow(item)}
+      <>
+        <Stack spacing={1} sx={{ width: '100%' }}>
+          {formattedAntepositions.length === 0 ? (
+            <Paper sx={{ p: 1 }}>
+              <Typography align="center">Nenhum item encontrado!</Typography>
             </Paper>
-          ))
-        )}
-      </Stack>
+          ) : (
+            formattedAntepositions.map((item) => (
+              <Paper key={item?.id} sx={{ p: 1 }}>
+                {renderMobileRow(item)}
+              </Paper>
+            ))
+          )}
+        </Stack>
+        <Dialog
+          open={openDialog}
+          onClose={handleCloseDialog}
+          maxWidth="md"
+          fullWidth
+          sx={{
+            '& .MuiDialog-paper': {
+              width: '600px',
+              maxWidth: '90vw',
+              minHeight: '200px',
+              borderRadius: '8px',
+            },
+          }}
+        >
+          <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.5rem', py: 2 }}>
+            {dialogTitle}
+          </DialogTitle>
+          <DialogContent sx={{ p: 3, overflowY: 'visible' }}>
+            <Typography sx={{ fontSize: '1rem', lineHeight: 1.5, wordBreak: 'break-word' }}>
+              {selectedObservation || 'Nenhuma observação fornecida'}
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
+            <Button
+              onClick={handleCloseDialog}
+              variant="contained"
+              sx={{
+                backgroundColor: '#F01424',
+                '&:hover': { backgroundColor: '#D4000F' },
+                textTransform: 'none',
+                fontWeight: 'bold',
+                px: 4,
+              }}
+            >
+              Fechar
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </>
     );
   }
 
   return (
-    <TableContainer
-      component={Paper}
-      sx={{
-        width: '100%',
-        maxWidth: '1200px',
-        margin: '0 auto',
-      }}
-    >
-      <Table>
-        <TableHead>
-          <TableRow>
-            {headers.map((header) => (
-              <TableCell key={header.key} align="center" sx={tableHeadStyle}>
-                {header.label}
-              </TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {formattedAntepositions.length === 0 ? (
+    <>
+      <TableContainer
+        component={Paper}
+        sx={{
+          width: '100%',
+          maxWidth: '1200px',
+          margin: '0 auto',
+        }}
+      >
+        <Table>
+          <TableHead>
             <TableRow>
-              <TableCell
-                colSpan={headers.length}
-                align="center"
-                sx={tableBodyCellStyle}
-              >
-                Nenhum item encontrado
-              </TableCell>
+              {headers.map((header) => (
+                <TableCell key={header.key} align="center" sx={tableHeadStyle}>
+                  {header.label}
+                </TableCell>
+              ))}
             </TableRow>
-          ) : (
-            formattedAntepositions.map((item) => (
-              <TableRow key={item?.id}>
-                {headers.map((header) => (
-                  <TableCell
-                    key={header.key}
-                    align="center"
-                    sx={tableBodyCellStyle}
-                  >
-                    {header.render ? header.render(item) : item[header.key]}
-                  </TableCell>
-                ))}
+          </TableHead>
+          <TableBody>
+            {formattedAntepositions.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={headers.length}
+                  align="center"
+                  sx={tableBodyCellStyle}
+                >
+                  Nenhum item encontrado
+                </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-    </TableContainer>
+            ) : (
+              formattedAntepositions.map((item) => (
+                <TableRow key={item?.id}>
+                  {headers.map((header) => (
+                    <TableCell
+                      key={header.key}
+                      align="center"
+                      sx={tableBodyCellStyle}
+                    >
+                      {header.render ? header.render(item) : item[header.key]}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        maxWidth="md"
+        fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            width: '600px',
+            maxWidth: '90vw',
+            minHeight: '200px',
+            borderRadius: '8px',
+          },
+        }}
+      >
+        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.5rem', py: 2 }}>
+          {dialogTitle}
+        </DialogTitle>
+        <DialogContent sx={{ p: 3, overflowY: 'visible' }}>
+          <Typography sx={{ fontSize: '1rem', lineHeight: 1.5, wordBreak: 'break-word' }}>
+            {selectedObservation || 'Nenhuma observação fornecida'}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
+          <Button
+            onClick={handleCloseDialog}
+            variant="contained"
+            sx={{
+              backgroundColor: '#F01424',
+              '&:hover': { backgroundColor: '#D4000F' },
+              textTransform: 'none',
+              fontWeight: 'bold',
+              px: 4,
+            }}
+          >
+            Fechar
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 

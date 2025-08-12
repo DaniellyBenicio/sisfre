@@ -11,6 +11,8 @@ import {
   Pagination,
   IconButton,
   CssBaseline,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
@@ -45,6 +47,8 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
   const rowsPerPage = 7;
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const accessType = localStorage.getItem("accessType") || "Professor";
 
   const handleAlertClose = () => {
@@ -281,7 +285,7 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
   };
 
   const handleGoBack = () => {
-    navigate("/class-reschedule-options");
+    navigate("/teachers-management");
   };
 
   const turmas = [...new Set(requests.map((a) => a.turma))].sort();
@@ -414,19 +418,22 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
             justifyContent: "center",
             position: "relative",
             mb: 3,
+            mt: 4,
           }}
         >
-          <IconButton
-            onClick={handleGoBack}
-            sx={{
+          {!isMobile && (
+            <IconButton
+              onClick={handleGoBack}
+              sx={{
               position: "absolute",
               left: 0,
               color: INSTITUTIONAL_COLOR,
               "&:hover": { backgroundColor: "transparent" },
             }}
-          >
-            <ArrowBack sx={{ fontSize: 35 }} />
-          </IconButton>
+            >
+              <ArrowBack sx={{ fontSize: 35 }}/>
+            </IconButton>
+          )}
           <Typography
             variant="h5"
             align="center"

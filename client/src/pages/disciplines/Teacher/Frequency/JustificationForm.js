@@ -10,8 +10,6 @@ import {
   InputAdornment,
   IconButton,
   CssBaseline,
-  FormControlLabel,
-  Checkbox,
 } from '@mui/material';
 import { ArrowBack, Close, Save } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
@@ -42,12 +40,45 @@ const StyledButton = styled(Button)(() => ({
   },
 }));
 
+// Estilos reutilizáveis para o campo TextField
+const inputStyles = {
+  "& .MuiInputBase-root": {
+    height: { xs: 40, sm: 56 }, // Altura ajustada para responsividade
+    minHeight: '150px', // Garantir altura mínima para 6 linhas
+    "& .MuiOutlinedInput-input": {
+      padding: '12px', // Ajuste de padding interno para melhor visualização
+    },
+  },
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: "rgba(0, 0, 0, 0.23)", // Borda padrão
+    borderWidth: "1px",
+  },
+  "&:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#000000", // Borda preta ao passar o mouse
+    borderWidth: "1px",
+  },
+  "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#000000", // Borda preta quando focado
+    borderWidth: "1px",
+  },
+  "& .MuiInputLabel-root": {
+    transform: "translate(14px, 7px) scale(1)", // Posição inicial do label
+    color: "rgba(0, 0, 0, 0.6)", // Cor padrão do label
+    "@media (max-width: 600px)": {
+      fontSize: "0.875rem", // Tamanho da fonte em telas menores
+    },
+  },
+  "& .MuiInputLabel-root.Mui-focused, & .MuiInputLabel-shrink": {
+    transform: "translate(14px, -9px) scale(0.75)", // Label "flutuando" quando focado ou preenchido
+    color: "#000000", // Label preto quando focado ou preenchido
+  },
+};
+
 const JustificationForm = ({ setAuthenticated }) => {
   const { state } = useLocation();
   const navigate = useNavigate();
   const frequencyItem = state?.frequencyItem || {};
-  const [justification, setJustification] = useState('');
-  const [useCredit, setUseCredit] = useState(false);
+  const [justification, setJustification] = useState(''); // Estado inicial vazio
   const [alert, setAlert] = useState(null);
 
   console.log('JustificationForm state:', state);
@@ -56,24 +87,11 @@ const JustificationForm = ({ setAuthenticated }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (useCredit) {
-        const now = new Date();
-        const response = await api.post("/frequency/absence-credit", {
-          userId: "1", // Substituir por userId real do contexto de autenticação
-          courseId: frequencyItem.courseId,
-          disciplineId: frequencyItem.disciplineId,
-          date: now.toISOString().split("T")[0],
-          time: now.toTimeString().split(" ")[0],
-          useCredit: true,
-        });
-        setAlert({ message: response.data.message, type: "success" });
-      } else {
-        const response = await api.put(`/frequency/${frequencyItem.id}`, {
-          justification,
-          isAbsence: true,
-        });
-        setAlert({ message: response.data.message, type: "success" });
-      }
+      const response = await api.put(`/frequency/${frequencyItem.id}`, {
+        justification,
+        isAbsence: true,
+      });
+      setAlert({ message: response.data.message || "Justificativa enviada com sucesso!", type: "success" });
       setTimeout(() => navigate('/frequency'), 2000);
     } catch (error) {
       console.error("Erro ao enviar justificativa:", error);
@@ -153,29 +171,18 @@ const JustificationForm = ({ setAuthenticated }) => {
             <Typography>
               <strong>Horário:</strong> {frequencyItem.time || 'N/A'}
             </Typography>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={useCredit}
-                  onChange={(e) => setUseCredit(e.target.checked)}
-                  color="primary"
-                />
-              }
-              label="Usar crédito para justificar falta"
+            <TextField
+              label="Justificativa"
+              multiline
+              rows={6} // Mantido com 6 linhas
+              defaultValue="Justificativa para a falta" // Texto inicial dentro do campo
+              value={justification} // Estado controlado para capturar edições
+              onChange={(e) => setJustification(e.target.value)}
+              fullWidth
+              required
+              variant="outlined"
+              sx={inputStyles} // Aplicar estilos para label flutuante e borda preta
             />
-            {!useCredit && (
-              <TextField
-                label="Justificativa"
-                multiline
-                rows={4}
-                value={justification}
-                onChange={(e) => setJustification(e.target.value)}
-                fullWidth
-                required
-                variant="outlined"
-                placeholder="Digite a justificativa para a falta"
-              />
-            )}
           </Stack>
         </Paper>
 
@@ -201,7 +208,7 @@ const JustificationForm = ({ setAuthenticated }) => {
             <StyledButton
               onClick={handleSubmit}
               variant="contained"
-              disabled={!useCredit && !justification.trim()}
+              disabled={!justification.trim()} // Desabilitar apenas se estiver vazio
               sx={{
                 backgroundColor: INSTITUTIONAL_COLOR,
                 '&:hover': { backgroundColor: '#26692b' },

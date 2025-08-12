@@ -51,7 +51,6 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const accessType = localStorage.getItem("accessType") || "Professor";
 
-  // CORREÇÃO: Extrai o userId e converte para número imediatamente.
   const { userId: userIdFromState } = location.state || {};
   const userId = userIdFromState ? Number(userIdFromState) : null;
 
@@ -59,12 +58,10 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
     setAlert(null);
   };
 
-  // Funções para buscar os dados da API com o userId corrigido
   const fetchRequests = async () => {
     try {
       setLoading(true);
 
-      // CORREÇÃO: Constrói a URL de forma precisa e robusta
       let url = "/request";
       const queryParams = new URLSearchParams();
       queryParams.append("type[]", "anteposicao");
@@ -126,7 +123,7 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
 
   useEffect(() => {
     fetchRequests();
-  }, [userId]); // Dependência atualizada
+  }, [userId]);
 
   useEffect(() => {
     setPage(1);
@@ -150,7 +147,6 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
         message: "Solicitação aprovada com sucesso! Créditos atualizados.",
         type: "success",
       });
-      // Recarrega os dados após a aprovação
       await fetchRequests();
     } catch (error) {
       console.error("Erro ao aprovar solicitação:", error);
@@ -167,7 +163,6 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
         message: "Solicitação rejeitada com sucesso!",
         type: "success",
       });
-      // Recarrega os dados após a rejeição
       await fetchRequests();
     } catch (error) {
       console.error("Erro ao rejeitar solicitação:", error);
@@ -189,7 +184,6 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
       });
       setOpenDeleteDialog(false);
       setRequestToDelete(null);
-      // Recarrega os dados após a exclusão
       await fetchRequests();
       setPage(1);
     } catch (error) {
@@ -258,6 +252,8 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
     (page - 1) * rowsPerPage,
     page * rowsPerPage
   );
+
+  const professorName = requests[0]?.professor || "Desconhecido";
 
   const commonFormControlSx = {
     width: { xs: "100%", sm: "150px" },
@@ -354,7 +350,7 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
             gutterBottom
             sx={{ fontWeight: "bold", flexGrow: 1 }}
           >
-            Anteposições e Reposições
+            Anteposições e Reposições de {professorName}
           </Typography>
         </Box>
 

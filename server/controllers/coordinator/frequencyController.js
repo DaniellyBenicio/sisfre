@@ -9,7 +9,8 @@ export const registerByQrCode = async (req, res) => {
   const { token, userId, latitude, longitude } = req.body;
 
   const qrData = qrCodes.get(token);
-  if (!qrData) return res.status(400).json({ error: "QR Code inválido ou expirado." });
+  if (!qrData)
+    return res.status(400).json({ error: "QR Code inválido ou expirado." });
   if (qrData.expiresAt < Date.now()) {
     qrCodes.delete(token);
     return res.status(410).json({ error: "QR Code expirado." });
@@ -29,12 +30,15 @@ export const registerByQrCode = async (req, res) => {
         userId,
         courseId: qrData.courseId,
         disciplineId: qrData.disciplineId,
-        date
-      }
+        date,
+      },
     });
 
     if (existingCount >= 2) {
-      return res.status(409).json({ error: "Limite de 2 frequências por curso/disciplina para hoje atingido." });
+      return res.status(409).json({
+        error:
+          "Limite de 2 frequências por curso/disciplina para hoje atingido.",
+      });
     }
 
     const frequency = await db.Frequency.create({
@@ -47,44 +51,165 @@ export const registerByQrCode = async (req, res) => {
       longitude,
     });
 
-    res.status(201).json({ message: "Frequência registrada via QR Code.", frequency });
+    res
+      .status(201)
+      .json({ message: "Frequência registrada via QR Code.", frequency });
   } catch (err) {
-    res.status(500).json({ error: "Erro ao registrar frequência.", details: err.message });
+    res
+      .status(500)
+      .json({ error: "Erro ao registrar frequência.", details: err.message });
   }
 };
-
 
 export const getFrequencies = async (req, res) => {
   try {
     const frequencies = await db.Frequency.findAll({
-      order: [["date", "DESC"], ["time", "DESC"]],
+      order: [
+        ["date", "DESC"],
+        ["time", "DESC"],
+      ],
+      include: [
+        {
+          model: db.User,
+          as: "professor",
+          attributes: ["id", "username"],
+        },
+      ],
     });
-    res.status(200).json(frequencies);
+
+    const enhancedFrequencies = await Promise.all(
+      frequencies.map(async (frequency) => {
+        const plainFrequency = frequency.get({ plain: true });
+        const classDetail = await db.ClassScheduleDetail.findOne({
+          where: {
+            userId: plainFrequency.userId,
+            disciplineId: plainFrequency.disciplineId,
+          },
+          include: [
+            {
+              model: db.ClassSchedule,
+              as: "schedule",
+              include: [
+                {
+                  model: db.Course,
+                  as: "course",
+                  attributes: ["acronym"],
+                },
+                {
+                  model: db.Class,
+                  as: "class",
+                  attributes: ["semester"],
+                },
+              ],
+            },
+            {
+              model: db.Discipline,
+              as: "discipline",
+              attributes: ["name"],
+            },
+          ],
+        });
+
+        const acronym = classDetail?.schedule?.course?.acronym || "N/A";
+        const semester = classDetail?.schedule?.class?.semester || "N/A";
+        const disciplineName = classDetail?.discipline?.name || "N/A";
+        const className = `${acronym} - ${semester}`;
+
+        return {
+          ...plainFrequency,
+          disciplineName,
+          className,
+        };
+      })
+    );
+
+    res.status(200).json(enhancedFrequencies);
   } catch (err) {
-    res.status(500).json({ error: "Erro ao buscar frequências.", details: err.message });
+    console.error("Erro ao buscar frequências:", err);
+    res
+      .status(500)
+      .json({ error: "Erro ao buscar frequências.", details: err.message });
   }
 };
 
 export const getFrequenciesByProfessor = async (req, res) => {
   try {
-    const userId = req.user.id; // pega do token/jwt
+    const userId = req.user.id;
     const frequencies = await db.Frequency.findAll({
-      where: { 
-        userId,        // só do professor logado
-        isAbsence: true // apenas faltas
+      where: {
+        userId,
+        isAbsence: true,
       },
-      order: [["date", "DESC"], ["time", "DESC"]],
+      order: [
+        ["date", "DESC"],
+        ["time", "DESC"],
+      ],
+      include: [
+        {
+          model: db.User,
+          as: "professor",
+          attributes: ["id", "username"],
+        },
+      ],
     });
 
-    res.status(200).json(frequencies);
+    const enhancedFrequencies = await Promise.all(
+      frequencies.map(async (frequency) => {
+        const plainFrequency = frequency.get({ plain: true });
+
+        // Encontrar a turma/disciplina do professor para esta frequência
+        const classDetail = await db.ClassScheduleDetail.findOne({
+          where: {
+            userId: plainFrequency.userId,
+            disciplineId: plainFrequency.disciplineId,
+          },
+          include: [
+            {
+              model: db.ClassSchedule,
+              as: "schedule",
+              include: [
+                {
+                  model: db.Course,
+                  as: "course",
+                  attributes: ["acronym"],
+                },
+                {
+                  model: db.Class,
+                  as: "class",
+                  attributes: ["semester"],
+                },
+              ],
+            },
+            {
+              model: db.Discipline,
+              as: "discipline",
+              attributes: ["name"],
+            },
+          ],
+        });
+
+        const acronym = classDetail?.schedule?.course?.acronym || "N/A";
+        const semester = classDetail?.schedule?.class?.semester || "N/A";
+        const disciplineName = classDetail?.discipline?.name || "N/A";
+        const className = `${acronym} - ${semester}`;
+
+        return {
+          ...plainFrequency,
+          disciplineName,
+          className,
+        };
+      })
+    );
+
+    res.status(200).json(enhancedFrequencies);
   } catch (err) {
-    res.status(500).json({ 
-      error: "Erro ao buscar frequências.", 
-      details: err.message 
+    console.error("Erro ao buscar frequências do professor:", err);
+    res.status(500).json({
+      error: "Erro ao buscar frequências.",
+      details: err.message,
     });
   }
 };
-
 
 export const updateFrequency = async (req, res) => {
   try {
@@ -99,7 +224,9 @@ export const updateFrequency = async (req, res) => {
 
     res.json({ message: "Frequência atualizada com sucesso." });
   } catch (err) {
-    res.status(500).json({ error: "Erro ao atualizar frequência.", details: err.message });
+    res
+      .status(500)
+      .json({ error: "Erro ao atualizar frequência.", details: err.message });
   }
 };
 
@@ -122,7 +249,9 @@ export const getQrCodeImage = async (req, res) => {
 
   const qrData = qrCodes.get(token);
   if (!qrData) {
-    return res.status(404).json({ error: "QR Code não encontrado ou expirado." });
+    return res
+      .status(404)
+      .json({ error: "QR Code não encontrado ou expirado." });
   }
 
   try {
@@ -148,7 +277,10 @@ export const registerAbsenceWithCredit = async (req, res) => {
     if (useCredit && professor.absenceCredits > 0) {
       professor.absenceCredits -= 1;
       await professor.save();
-      return res.status(200).json({ message: "Falta registrada usando crédito. Nenhuma falta contabilizada." });
+      return res.status(200).json({
+        message:
+          "Falta registrada usando crédito. Nenhuma falta contabilizada.",
+      });
     }
 
     // Registra falta normalmente
@@ -176,29 +308,50 @@ export const getProfessorScheduleCourseDiscipline = async (req, res) => {
     const scheduleDetails = await db.ClassScheduleDetail.findAll({
       where: { userId },
       include: [
-        { 
-          model: db.ClassSchedule, 
-          as: "schedule", 
-          include: [{ model: db.Course, as: "course" }] 
+        {
+          model: db.ClassSchedule,
+          as: "schedule",
+          include: [{ model: db.Course, as: "course" }],
         },
-        { 
-          model: db.Discipline, 
+        {
+          model: db.Discipline,
           as: "discipline",
-          attributes: ["id", "name"] 
-        }
-      ]
+          attributes: ["id", "name"],
+        },
+      ],
     });
-    
 
-    const courses = [...new Map(scheduleDetails.map(detail => [detail.schedule?.course?.id, detail.schedule?.course])).values()].filter(Boolean);
-    const disciplines = [...new Map(scheduleDetails.map(detail => [detail.discipline?.id, detail.discipline])).values()].filter(Boolean);
-    
-    console.log("Backend Final: Cursos extraídos:", courses.length, "Disciplina extraídas:", disciplines.length);
-    
+    const courses = [
+      ...new Map(
+        scheduleDetails.map((detail) => [
+          detail.schedule?.course?.id,
+          detail.schedule?.course,
+        ])
+      ).values(),
+    ].filter(Boolean);
+    const disciplines = [
+      ...new Map(
+        scheduleDetails.map((detail) => [
+          detail.discipline?.id,
+          detail.discipline,
+        ])
+      ).values(),
+    ].filter(Boolean);
+
+    console.log(
+      "Backend Final: Cursos extraídos:",
+      courses.length,
+      "Disciplina extraídas:",
+      disciplines.length
+    );
+
     return res.status(200).json({ courses, disciplines });
   } catch (error) {
     console.error("ERRO FINAL DO BACKEND:", error);
-    return res.status(500).json({ error: "Erro ao buscar horários do professor.", details: error.message });
+    return res.status(500).json({
+      error: "Erro ao buscar horários do professor.",
+      details: error.message,
+    });
   }
 };
 

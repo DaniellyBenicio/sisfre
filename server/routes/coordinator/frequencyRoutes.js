@@ -1,5 +1,6 @@
 import express from "express";
 import autenticarToken from "../../middlewares/authMiddleware.js";
+import { isCoordinator } from "../../middlewares/isCoordinator.js";
 import { isTeacherOrCoordinator } from "../../middlewares/isTeacherOrCoordinator.js";
 import {
   generateQrCode,
@@ -9,7 +10,8 @@ import {
   getQrCodeImage,
   registerAbsenceWithCredit,
   getProfessorScheduleCourseDiscipline,
-  getFrequenciesByProfessor
+  getFrequenciesByProfessor,
+  getAbsencesAndDisciplinesByTeacher
 } from "../../controllers/coordinator/frequencyController.js";
 import { autoAbsenceFrequency } from "../../tasks/autoAbsenceFrequency.js";
 
@@ -23,6 +25,7 @@ router.put("/frequency/:id", autenticarToken, isTeacherOrCoordinator(), updateFr
 router.get("/frequency/qrcode/:token", getQrCodeImage);
 router.post("/frequency/absence-credit", autenticarToken, isTeacherOrCoordinator(), registerAbsenceWithCredit);
 router.get('/professor/:userId/schedule-course-discipline', getProfessorScheduleCourseDiscipline);
+router.get("/absences/by-teacher", autenticarToken, isCoordinator(), getAbsencesAndDisciplinesByTeacher);
 router.post("/frequency/test-auto-absence", async (req, res) => {
   try {
     await autoAbsenceFrequency();

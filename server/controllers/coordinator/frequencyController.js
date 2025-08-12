@@ -201,3 +201,62 @@ export const getProfessorScheduleCourseDiscipline = async (req, res) => {
     return res.status(500).json({ error: "Erro ao buscar horários do professor.", details: error.message });
   }
 };
+
+export const getAbsencesAndDisciplinesByTeacher = async (req, res) => {
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).json({ error: "O userId é obrigatório." });
+  }
+
+  try {
+    const scheduleDetails = await db.ClassScheduleDetail.findAll({
+      where: { userId },
+      include: [
+        {
+          model: db.Discipline,
+          as: "discipline",
+          attributes: ["id", "name"],
+        },
+      ],
+    });
+
+    const disciplines = [
+      ...new Map(
+        scheduleDetails.map((detail) => [
+          detail.discipline?.id,
+          detail.discipline,
+        ])
+      ).values(),
+    ].filter(Boolean);
+
+    const absences = await db.Frequency.findAll({
+      where: { userId, isAbsence: true },
+      attributes: [
+        "disciplineId",
+        [
+          db.Sequelize.fn("COUNT", db.Sequelize.col("disciplineId")),
+          "absenceCount",
+        ],
+      ],
+      group: ["disciplineId"],
+      raw: true,
+    });
+
+    const result = disciplines.map((discipline) => {
+      const absence = absences.find((a) => a.disciplineId === discipline.id);
+      return {
+        disciplineId: discipline.id,
+        disciplineName: discipline.name,
+        absenceCount: absence ? absence.absenceCount : 0,
+      };
+    });
+
+    return res.status(200).json({ disciplines: result });
+  } catch (error) {
+    console.error("Erro ao buscar disciplinas e faltas:", error);
+    return res
+      .status(500)
+      .json({ error: "Erro ao buscar dados.", details: error.message });
+  }
+};

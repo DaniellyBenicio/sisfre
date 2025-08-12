@@ -49,6 +49,16 @@ const AppRoutes = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const publicRoutes = ["/login", "/forgot-password", "/resetPassword"];
+    
+    const currentPath = window.location.pathname;
+    if (
+      publicRoutes.includes(currentPath) ||
+      currentPath.startsWith("/resetPassword/")
+    ) {
+      return;
+    }
+
     const token = localStorage.getItem("token");
     if (token) {
       try {
@@ -117,12 +127,8 @@ const AppRoutes = () => {
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<Login onLogin={handleLogin} />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route
-          path="/resetPassword/:token"
-          element={
-            !isAuthenticated ? <ResetPassword /> : <Navigate to="/login" />
-          }
-        />
+        <Route path="/resetPassword/:token" element={ <ResetPassword /> } />
+        
         <Route
           path="/calendar-options"
           element={

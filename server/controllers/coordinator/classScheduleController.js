@@ -103,7 +103,7 @@ export const createClassSchedule = async (req, res) => {
         }).`,
       });
     }
-    
+
     const existingClassSchedule = await db.ClassSchedule.findOne({
       where: { classId, calendarId },
     });
@@ -548,40 +548,6 @@ export const updateClassSchedule = async (req, res) => {
 
     const startDate = new Date(classSchedule.calendar.startDate);
     const endDate = new Date(classSchedule.calendar.endDate);
-
-    if (isNaN(startDate)) {
-      return res.status(400).json({
-        message: `A data de início do calendário ${classSchedule.calendar.year}/${classSchedule.calendar.period} é inválida (valor: ${classSchedule.calendar.startDate}).`,
-      });
-    }
-    if (isNaN(endDate)) {
-      return res.status(400).json({
-        message: `A data de fim do calendário ${classSchedule.calendar.year}/${classSchedule.calendar.period} é inválida (valor: ${classSchedule.calendar.endDate}).`,
-      });
-    }
-
-    if (startDate > currentDate) {
-      return res.status(400).json({
-        message: `O calendário ${classSchedule.calendar.year}/${
-          classSchedule.calendar.period
-        } é inválido. A data de início (${
-          startDate.toISOString().split("T")[0]
-        }) é posterior à data atual (${
-          currentDate.toISOString().split("T")[0]
-        }).`,
-      });
-    }
-    if (endDate < currentDate) {
-      return res.status(400).json({
-        message: `O calendário ${classSchedule.calendar.year}/${
-          classSchedule.calendar.period
-        } é inválido. A data de fim (${
-          endDate.toISOString().split("T")[0]
-        }) é anterior à data atual (${
-          currentDate.toISOString().split("T")[0]
-        }).`,
-      });
-    }
 
     const disciplineIds = new Set();
     const userIds = new Set();
@@ -1107,11 +1073,9 @@ export const getClassScheduleDetails = async (req, res) => {
         where: { coordinatorId: loggedUserId },
       });
       if (!course) {
-        return res
-          .status(403)
-          .json({
-            message: "Acesso negado. Você não é coordenador de nenhum curso.",
-          });
+        return res.status(403).json({
+          message: "Acesso negado. Você não é coordenador de nenhum curso.",
+        });
       }
     }
 
@@ -1166,11 +1130,9 @@ export const getClassScheduleDetails = async (req, res) => {
     }
 
     if (accessType !== "Admin" && schedule.courseId !== course.id) {
-      return res
-        .status(403)
-        .json({
-          message: "Acesso negado. Este horário não pertence ao seu curso.",
-        });
+      return res.status(403).json({
+        message: "Acesso negado. Este horário não pertence ao seu curso.",
+      });
     }
 
     return res.status(200).json({

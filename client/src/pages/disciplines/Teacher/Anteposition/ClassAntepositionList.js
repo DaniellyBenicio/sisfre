@@ -52,7 +52,7 @@ const ClassAntepositionList = () => {
     const fetchAntepositions = async () => {
       try {
         setLoading(true);
-        const response = await api.get("/request", {
+        const response = await api.get("/requests/only", {
           params: { type: "anteposicao" },
         });
         const antepositionsArray = Array.isArray(response.data.requests)

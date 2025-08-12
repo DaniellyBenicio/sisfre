@@ -48,6 +48,58 @@ const createLocalDate = (dateString) => {
   }
 };
 
+// Estilos reutilizáveis para os campos
+const inputStyles = {
+  "& .MuiInputBase-root": {
+    height: { xs: 40, sm: 56 }, // Altura ajustada para responsividade
+  },
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: "rgba(0, 0, 0, 0.23)", // Borda padrão
+    borderWidth: "1px",
+  },
+  "&:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#000000", // Borda preta ao passar o mouse
+    borderWidth: "1px",
+  },
+  "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#000000", // Borda preta quando focado
+    borderWidth: "1px",
+  },
+  "& .MuiInputLabel-root": {
+    transform: "translate(14px, 7px) scale(1)", // Posição inicial do label
+    color: "rgba(0, 0, 0, 0.6)", // Cor padrão do label
+    "@media (max-width: 600px)": {
+      fontSize: "0.875rem", // Tamanho da fonte em telas menores
+    },
+  },
+  "& .MuiInputLabel-root.Mui-focused, & .MuiInputLabel-shrink": {
+    transform: "translate(14px, -9px) scale(0.75)", // Label "flutuando" quando focado ou preenchido
+    color: "#000000", // Label preto quando focado ou preenchido
+  },
+};
+
+// Estilos específicos para o Select
+const selectStyles = {
+  ...inputStyles,
+  "& .MuiSelect-select": {
+    paddingTop: "8px",
+    paddingBottom: "8px",
+  },
+};
+
+// Estilos para o Menu do Select
+const menuProps = {
+  PaperProps: {
+    sx: {
+      maxHeight: "200px",
+      "& .MuiMenuItem-root": {
+        "&:hover": { backgroundColor: "#D5FFDB" },
+        "&.Mui-selected": { backgroundColor: "#E8F5E9", "&:hover": { backgroundColor: "#D5FFDB" } },
+      },
+    },
+  },
+};
+
 const ClassReplacementRegister = ({ setAlert }) => {
   const professor = localStorage.getItem('username') || '';
   const [course, setCourse] = useState('');
@@ -226,13 +278,16 @@ const ClassReplacementRegister = ({ setAlert }) => {
                   fullWidth
                   disabled
                   variant="outlined"
+                  sx={inputStyles} // Aplicar estilos
                 />
-                <FormControl fullWidth variant="outlined" required>
+                <FormControl fullWidth variant="outlined" required sx={inputStyles}>
                   <InputLabel>Selecionar da Grade</InputLabel>
                   <Select
                     value={course && discipline && turn ? `${course}|${discipline}|${turn}` : ''}
                     onChange={handleScheduleChange}
                     label="Selecionar da Grade"
+                    sx={selectStyles} // Estilos específicos para Select
+                    MenuProps={menuProps} // Estilos para o menu
                   >
                     <MenuItem value="">Selecione</MenuItem>
                     {scheduleDetails.map((sd) => (
@@ -253,6 +308,7 @@ const ClassReplacementRegister = ({ setAlert }) => {
                   fullWidth
                   disabled
                   variant="outlined"
+                  sx={inputStyles} // Aplicar estilos
                 />
                 <TextField
                   label="Disciplina"
@@ -260,6 +316,7 @@ const ClassReplacementRegister = ({ setAlert }) => {
                   fullWidth
                   disabled
                   variant="outlined"
+                  sx={inputStyles} // Aplicar estilos
                 />
               </Box>
               <Box sx={{ display: 'flex', gap: 2, my: 1.5, alignItems: 'center' }}>
@@ -269,6 +326,7 @@ const ClassReplacementRegister = ({ setAlert }) => {
                   fullWidth
                   disabled
                   variant="outlined"
+                  sx={inputStyles} // Aplicar estilos
                 />
                 <TextField
                   label="Quantidade"
@@ -278,6 +336,7 @@ const ClassReplacementRegister = ({ setAlert }) => {
                   fullWidth
                   required
                   variant="outlined"
+                  sx={inputStyles} // Aplicar estilos
                 />
               </Box>
               <Box sx={{ display: 'flex', gap: 2, my: 1.5, alignItems: 'center' }}>
@@ -301,23 +360,9 @@ const ClassReplacementRegister = ({ setAlert }) => {
                       name: "date",
                       required: true,
                       fullWidth: true,
-                      InputLabelProps: {
-                        sx: {
-                          "&.Mui-focused": {
-                            color: "#000000",
-                          },
-                        },
-                      },
                       sx: {
-                        "& .MuiOutlinedInput-root": {
-                          minHeight: { xs: "40px", sm: "56px" },
-                          "& fieldset": { borderColor: "#000000" },
-                          "&:hover fieldset": { borderColor: "#000000" },
-                          "&.Mui-focused fieldset": {
-                            borderColor: "#000000",
-                            borderWidth: "2px",
-                          },
-                        },
+                        ...inputStyles, // Aplicar estilos do token
+                        minWidth: 150, // Adicionar minWidth para consistência
                       },
                     },
                     popper: {
@@ -339,6 +384,7 @@ const ClassReplacementRegister = ({ setAlert }) => {
                   readOnly
                   onClick={() => document.querySelector('input[type="file"]').click()}
                   variant="outlined"
+                  sx={inputStyles} // Aplicar estilos
                   InputProps={{ endAdornment: <InputAdornment position="end"><CloudUpload sx={{ color: '#087619' }} /></InputAdornment> }}
                 />
                 <input type="file" hidden onChange={handleFileChange} />
@@ -352,6 +398,7 @@ const ClassReplacementRegister = ({ setAlert }) => {
                   multiline
                   rows={2}
                   variant="outlined"
+                  sx={inputStyles} // Aplicar estilos
                 />
               </Box>
             </Box>

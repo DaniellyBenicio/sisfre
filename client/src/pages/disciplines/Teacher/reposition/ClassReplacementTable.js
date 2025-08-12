@@ -420,7 +420,7 @@ const ClassReplacementTable = ({ replacements, setAlert, onView, onDelete, onApp
           {isFileDialog ? (
             <Typography sx={{ fontSize: '1rem', lineHeight: 1.5, wordBreak: 'break-word' }}>
               <a
-                href={`/path/to/files/${selectedContent}`}
+                href={`http://localhost:3000/uploads/class_change_requests/${selectedContent}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ color: '#087619', textDecoration: 'underline' }}

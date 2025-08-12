@@ -53,8 +53,8 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
     { key: 'turn', label: 'Turno' },
     { key: 'quantidade', label: 'Quantidade' },
     { key: 'data', label: 'Data' },
-    { 
-      key: 'fileName', 
+    {
+      key: 'fileName',
       label: 'Arquivo',
       render: (anteposition) => (
         anteposition.fileName !== 'N/A' ? (
@@ -64,8 +64,8 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
         ) : 'N/A'
       ),
     },
-    { 
-      key: 'observacao', 
+    {
+      key: 'observacao',
       label: 'Observação',
       render: (anteposition) => (
         anteposition.observacao !== 'N/A' ? (
@@ -84,7 +84,7 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
           sx={{
             color:
               anteposition.status === 'Aprovado' ? 'green' :
-              anteposition.status === 'Rejeitado' ? 'red' : 'orange',
+                anteposition.status === 'Rejeitado' ? 'red' : 'orange',
             fontWeight: anteposition.status === 'Pendente' ? 'semi bold' : 'normal',
           }}
         >
@@ -99,8 +99,8 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
     { key: 'quantidade', label: 'Quantidade' },
     { key: 'data', label: 'Data' },
     { key: 'tipo', label: 'Tipo' },
-    { 
-      key: 'fileName', 
+    {
+      key: 'fileName',
       label: 'Arquivo',
       render: (anteposition) => (
         anteposition.fileName !== 'N/A' ? (
@@ -110,8 +110,8 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
         ) : 'N/A'
       ),
     },
-    { 
-      key: 'observacao', 
+    {
+      key: 'observacao',
       label: 'Observação',
       render: (anteposition) => (
         anteposition.observacao !== 'N/A' ? (
@@ -121,8 +121,8 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
         ) : 'N/A'
       ),
     },
-    { 
-      key: 'observationCoordinator', 
+    {
+      key: 'observationCoordinator',
       label: 'Justificativa',
       render: (anteposition) => (
         anteposition.observationCoordinator !== 'N/A' ? (
@@ -141,7 +141,7 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
           sx={{
             color:
               anteposition.status === 'Aprovado' ? 'green' :
-              anteposition.status === 'Rejeitado' ? 'red' : 'orange',
+                anteposition.status === 'Rejeitado' ? 'red' : 'orange',
             fontWeight: anteposition.status === 'Pendente' ? 'semi bold' : 'normal',
           }}
         >
@@ -209,7 +209,7 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
           sx={{
             color:
               anteposition.status === 'Aprovado' ? 'green' :
-              anteposition.status === 'Rejeitado' ? 'red' : 'orange',
+                anteposition.status === 'Rejeitado' ? 'red' : 'orange',
             fontWeight: anteposition.status === 'Pendente' ? 'semi bold' : 'normal',
           }}
         >
@@ -256,7 +256,7 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
             {isFileDialog ? (
               <Typography sx={{ fontSize: '1rem', lineHeight: 1.5, wordBreak: 'break-word' }}>
                 <a
-                  href={`/path/to/files/${selectedContent}`}
+                  href={selectedContent}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ color: '#087619', textDecoration: 'underline' }}
@@ -360,7 +360,7 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
           {isFileDialog ? (
             <Typography sx={{ fontSize: '1rem', lineHeight: 1.5, wordBreak: 'break-word' }}>
               <a
-                href={`/path/to/files/${selectedContent}`}
+                href={`http://localhost:3000/uploads/class_change_requests/${selectedContent}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ color: '#087619', textDecoration: 'underline' }}
@@ -412,9 +412,9 @@ ClassAntepositionTable.propTypes = {
   ).isRequired,
   setAlert: PropTypes.func,
   onView: PropTypes.func,
-  onDelete: PropTypes.func, 
+  onDelete: PropTypes.func,
   onApprove: PropTypes.func,
-  onReject: PropTypes.func, 
+  onReject: PropTypes.func,
   accessType: PropTypes.string,
 };
 

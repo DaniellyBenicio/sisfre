@@ -1,6 +1,7 @@
-import { error } from "console";
 import db from "../../models/index.js";
 import fs from "fs";
+
+const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
 
 export const createRequest = async (req, res) => {
   const {
@@ -51,9 +52,9 @@ export const createRequest = async (req, res) => {
     });
   }
 
-  const annex = req.file
-    ? `/uploads/class_change_request/${req.file.filename}`
-    : null;
+const annex = req.file
+  ? `${BASE_URL}/uploads/class_change_requests/${req.file.filename}`
+  : null;
 
   try {
     const request = await db.ClassChangeRequest.create({

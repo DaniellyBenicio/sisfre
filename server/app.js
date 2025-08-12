@@ -20,12 +20,18 @@ import classScheduleArchivedRoutes from "./routes/coordinator/classScheduleArchi
 import teacherRoutes from "./routes/teacher/teacherRoutes.js";
 import classChangeRequestRoutes from "./routes/coordinator/classClassChangeRequestRoutes.js";
 import frequenyRoutes from "./routes/coordinator/frequencyRoutes.js";
+import path from "path";
 
 const app = express();
 dotenv.config();
 
 app.use(cors());
 app.use(express.json());
+
+app.use(
+  "/uploads",
+  express.static(path.join(process.cwd(), "uploads"))
+);
 
 app.use("/api/auth", authRoutes);
 app.use("/api", userRoutes);

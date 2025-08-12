@@ -62,7 +62,7 @@ const ClassRecheduleRequestList = ({ setAuthenticated }) => {
       id: request.id,
       title: request.type === "reposicao" ? "Reposição" : "Anteposição",
       teacher: request.professor?.username || "Desconhecido",
-      date: formatDate(request.date), 
+      date: formatDate(request.createdAt),
       discipline: request.discipline || "N/A",
       class: request.disciplinaclasse?.classCode || "N/A",
       shift: request.disciplinaclasse?.shift || "N/A",

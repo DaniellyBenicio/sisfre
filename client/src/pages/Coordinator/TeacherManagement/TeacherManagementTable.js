@@ -1,16 +1,20 @@
 import { Stack, Typography, IconButton, Tooltip } from "@mui/material";
-import { Description, AccessTime, Error as ErrorIcon } from '@mui/icons-material';
+import {
+  Description,
+  AccessTime,
+  Error as ErrorIcon,
+} from "@mui/icons-material";
 import Tables from "../../../components/homeScreen/Tables";
 import { useNavigate } from "react-router-dom";
 
-const TeacherManagementTable = ({ 
-  teachers, 
-  onView, 
-  onUpdate, 
+const TeacherManagementTable = ({
+  teachers,
+  onView,
+  onUpdate,
   onViewAbsences,
-  search, 
-  showActions, 
-  loading 
+  search,
+  showActions,
+  loading,
 }) => {
   const navigate = useNavigate();
 
@@ -44,7 +48,7 @@ const TeacherManagementTable = ({
           <ErrorIcon />
         </IconButton>
       </Tooltip>
-      
+
       <Tooltip title="Ver Horários">
         <IconButton
           onClick={() => onView(teacher.id)}
@@ -55,8 +59,11 @@ const TeacherManagementTable = ({
       </Tooltip>
 
       <Tooltip title="Ver Anteposições/Reposições">
+        {/* CORREÇÃO AQUI: Passe o ID do professor no estado da navegação */}
         <IconButton
-          onClick={() => navigate("/class-reschedules")}
+          onClick={() =>
+            navigate("/class-reschedules", { state: { userId: teacher.id } })
+          }
           sx={{ color: "#666666", "&:hover": { color: "#535252" } }}
         >
           <Description />

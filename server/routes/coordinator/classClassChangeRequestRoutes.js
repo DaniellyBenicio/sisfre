@@ -33,6 +33,6 @@ router.put("/request/reposition/:id", autenticarToken, isTeacherOrCoordinator(),
 router.put("/request/negate/reposition/:id", autenticarToken, isTeacherOrCoordinator(), negateReposition);
 router.put("/request/negate/anteposition/:id", autenticarToken, isTeacherOrCoordinator(), negateAnteposition);
 router.get("/requests/teacher", autenticarToken, isCoordinator(), getRequestsByProfessor);
-router.get("/requests/only", autenticarToken, isTeacher(), getOwnRequests);
+router.get("/requests/only", autenticarToken, isTeacherOrCoordinator(), getOwnRequests);
 
 export default router;

@@ -52,7 +52,7 @@ const ClassReplacementList = () => {
     const fetchReplacements = async () => {
       try {
         setLoading(true);
-        const response = await api.get("/request", {
+        const response = await api.get("/requests/only", {
           params: { type: "reposicao" },
         });
         const replacementsArray = Array.isArray(response.data.requests)

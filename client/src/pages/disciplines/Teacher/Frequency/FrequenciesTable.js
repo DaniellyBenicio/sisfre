@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from "react";
 import {
   IconButton,
   Paper,
@@ -11,26 +11,25 @@ import {
   Stack,
   Typography,
   useMediaQuery,
-} from '@mui/material';
-import { Note } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import Paginate from '../../../../components/paginate/Paginate';
-import PropTypes from 'prop-types'; 
+} from "@mui/material";
+import { Note } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
+import Paginate from "../../../../components/paginate/Paginate";
+import PropTypes from "prop-types";
 
 const FrequenciesTable = ({ frequencies, search, isFiltered, setAlert }) => {
   const navigate = useNavigate();
 
-  const formattedFrequencies = frequencies.map(freq => ({
-    ...freq,
-    class: freq.courseId ? `Curso ${freq.courseId}` : "N/A",
-    discipline: freq.disciplineId ? `Disciplina ${freq.disciplineId}` : "N/A",
-  }));
+  const formattedFrequencies = frequencies; 
 
   const handleJustify = (item) => {
-    if (item.status === 'Falta') {
-      navigate('/justify', { state: { frequencyItem: item } });
+    if (item.status === "Falta") {
+      navigate("/justify", { state: { frequencyItem: item } });
     } else {
-      setAlert({ message: 'Justificativa disponível apenas para status "Falta".', type: 'warning' });
+      setAlert({
+        message: 'Justificativa disponível apenas para status "Falta".',
+        type: "warning",
+      });
     }
   };
 
@@ -42,11 +41,13 @@ const FrequenciesTable = ({ frequencies, search, isFiltered, setAlert }) => {
     { key: "status", label: "Status" },
   ];
 
-  const isMobile = useMediaQuery('(max-width:600px)');
+  const isMobile = useMediaQuery("(max-width:600px)");
   const [page, setPage] = useState(1);
   const [rowsPerPage] = useState(7);
 
-  const safeData = Array.isArray(formattedFrequencies) ? formattedFrequencies : [];
+  const safeData = Array.isArray(formattedFrequencies)
+    ? formattedFrequencies
+    : [];
   console.log("SafeData in FrequenciesTable:", safeData);
 
   const visibleData = useMemo(() => {
@@ -56,7 +57,14 @@ const FrequenciesTable = ({ frequencies, search, isFiltered, setAlert }) => {
     const startIndex = (page - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
     const slicedData = safeData.slice(startIndex, endIndex);
-    console.log("VisibleData:", slicedData, "startIndex:", startIndex, "endIndex:", endIndex);
+    console.log(
+      "VisibleData:",
+      slicedData,
+      "startIndex:",
+      startIndex,
+      "endIndex:",
+      endIndex
+    );
     return slicedData;
   }, [safeData, page, rowsPerPage, search]);
 
@@ -65,27 +73,29 @@ const FrequenciesTable = ({ frequencies, search, isFiltered, setAlert }) => {
   };
 
   const tableHeadStyle = {
-    fontWeight: 'bold',
-    backgroundColor: '#087619',
-    color: '#fff',
-    borderRight: '1px solid #fff',
-    padding: { xs: '4px', sm: '6px' },
-    height: '30px',
-    lineHeight: '30px',
+    fontWeight: "bold",
+    backgroundColor: "#087619",
+    color: "#fff",
+    borderRight: "1px solid #fff",
+    padding: { xs: "4px", sm: "6px" },
+    height: "30px",
+    lineHeight: "30px",
   };
 
   const tableBodyCellStyle = {
-    borderRight: '1px solid #e0e0e0',
-    padding: { xs: '4px', sm: '6px' },
-    height: '30px',
-    lineHeight: '30px',
+    borderRight: "1px solid #e0e0e0",
+    padding: { xs: "4px", sm: "6px" },
+    height: "30px",
+    lineHeight: "30px",
   };
 
-  const showNoItemsFound = safeData.length === 0 || (visibleData.length === 0 && (search || isFiltered));
+  const showNoItemsFound =
+    safeData.length === 0 ||
+    (visibleData.length === 0 && (search || isFiltered));
 
   if (isMobile) {
     return (
-      <Stack spacing={1} sx={{ width: '100%' }}>
+      <Stack spacing={1} sx={{ width: "100%" }}>
         {showNoItemsFound ? (
           <Paper sx={{ p: 1 }}>
             <Typography align="center">Nenhum item encontrado!</Typography>
@@ -98,22 +108,34 @@ const FrequenciesTable = ({ frequencies, search, isFiltered, setAlert }) => {
                   <Typography
                     key={header.key}
                     sx={{
-                      color: (header.key === 'status' && item[header.key] === 'Falta') ? 'red' : 'inherit',
-                      fontWeight: (header.key === 'status' && item[header.key] === 'Falta') ? 'bold' : 'normal',
+                      color:
+                        header.key === "status" && item[header.key] === "Falta"
+                          ? "red"
+                          : "inherit",
+                      fontWeight:
+                        header.key === "status" && item[header.key] === "Falta"
+                          ? "bold"
+                          : "normal",
                     }}
                   >
-                    <strong>{header.label}:</strong> {item[header.key] || 'N/A'}
+                    <strong>{header.label}:</strong> {item[header.key] || "N/A"}
                   </Typography>
                 ))}
                 <Stack direction="row" spacing={1} justifyContent="center">
                   <IconButton
                     onClick={() => handleJustify(item)}
-                    disabled={item.status !== 'Falta'}
+                    disabled={item.status !== "Falta"}
                     sx={{
-                      color: item.status !== 'Falta' ? 'rgba(0, 0, 0, 0.26)' : '#087619',
-                      '&:hover': {
-                        color: item.status !== 'Falta' ? 'rgba(0, 0, 0, 0.26)' : '#065412',
-                        backgroundColor: 'transparent',
+                      color:
+                        item.status !== "Falta"
+                          ? "rgba(0, 0, 0, 0.26)"
+                          : "#087619",
+                      "&:hover": {
+                        color:
+                          item.status !== "Falta"
+                            ? "rgba(0, 0, 0, 0.26)"
+                            : "#065412",
+                        backgroundColor: "transparent",
                       },
                     }}
                   >
@@ -124,13 +146,14 @@ const FrequenciesTable = ({ frequencies, search, isFiltered, setAlert }) => {
             </Paper>
           ))
         )}
-        {(!search || search.trim().length < 2) && safeData.length > rowsPerPage && (
-          <Paginate
-            count={Math.ceil(safeData.length / rowsPerPage)}
-            page={page}
-            onChange={(event, newPage) => handleChangePage(newPage)}
-          />
-        )}
+        {(!search || search.trim().length < 2) &&
+          safeData.length > rowsPerPage && (
+            <Paginate
+              count={Math.ceil(safeData.length / rowsPerPage)}
+              page={page}
+              onChange={(event, newPage) => handleChangePage(newPage)}
+            />
+          )}
       </Stack>
     );
   }
@@ -140,9 +163,9 @@ const FrequenciesTable = ({ frequencies, search, isFiltered, setAlert }) => {
       <TableContainer
         component={Paper}
         sx={{
-          width: '100%',
-          maxWidth: '1200px',
-          margin: '0 auto',
+          width: "100%",
+          maxWidth: "1200px",
+          margin: "0 auto",
         }}
       >
         <Table>
@@ -178,22 +201,36 @@ const FrequenciesTable = ({ frequencies, search, isFiltered, setAlert }) => {
                       align="center"
                       sx={{
                         ...tableBodyCellStyle,
-                        color: (header.key === 'status' && item[header.key] === 'Falta') ? 'red' : 'inherit',
-                        fontWeight: (header.key === 'status' && item[header.key] === 'Falta') ? 'bold' : 'normal',
+                        color:
+                          header.key === "status" &&
+                          item[header.key] === "Falta"
+                            ? "red"
+                            : "inherit",
+                        fontWeight:
+                          header.key === "status" &&
+                          item[header.key] === "Falta"
+                            ? "bold"
+                            : "normal",
                       }}
                     >
-                      {item[header.key] || 'N/A'}
+                      {item[header.key] || "N/A"}
                     </TableCell>
                   ))}
                   <TableCell align="center" sx={tableBodyCellStyle}>
                     <IconButton
                       onClick={() => handleJustify(item)}
-                      disabled={item.status !== 'Falta'}
+                      disabled={item.status !== "Falta"}
                       sx={{
-                        color: item.status !== 'Falta' ? 'rgba(0, 0, 0, 0.26)' : '#087619',
-                        '&:hover': {
-                          color: item.status !== 'Falta' ? 'rgba(0, 0, 0, 0.26)' : '#065412',
-                          backgroundColor: 'transparent',
+                        color:
+                          item.status !== "Falta"
+                            ? "rgba(0, 0, 0, 0.26)"
+                            : "#087619",
+                        "&:hover": {
+                          color:
+                            item.status !== "Falta"
+                              ? "rgba(0, 0, 0, 0.26)"
+                              : "#065412",
+                          backgroundColor: "transparent",
                         },
                       }}
                     >
@@ -206,13 +243,14 @@ const FrequenciesTable = ({ frequencies, search, isFiltered, setAlert }) => {
           </TableBody>
         </Table>
       </TableContainer>
-      {(!search || search.trim().length < 2) && safeData.length > rowsPerPage && (
-        <Paginate
-          count={Math.ceil(safeData.length / rowsPerPage)}
-          page={page}
-          onChange={(event, newPage) => handleChangePage(newPage)}
-        />
-      )}
+      {(!search || search.trim().length < 2) &&
+        safeData.length > rowsPerPage && (
+          <Paginate
+            count={Math.ceil(safeData.length / rowsPerPage)}
+            page={page}
+            onChange={(event, newPage) => handleChangePage(newPage)}
+          />
+        )}
     </>
   );
 };

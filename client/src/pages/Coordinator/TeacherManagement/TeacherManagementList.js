@@ -107,10 +107,14 @@ const TeacherManagementList = () => {
     setOpenAbsencesModal(true);
     setModalLoading(true);
     try {
-      const response = await api.get('/frequencies/absences-by-discipline', {
+      const response = await api.get('/absences/by-teacher', {
         params: { userId: professorId },
       });
-      setAbsencesData(response.data);
+      const formattedData = (response.data.disciplines || []).map(item => ({
+        discipline: item.disciplineName,
+        totalAbsences: item.absenceCount
+      }));
+      setAbsencesData(formattedData);
     } catch (error) {
       console.error('Erro ao buscar faltas:', error);
       setAbsencesData([]);
@@ -194,74 +198,6 @@ const TeacherManagementList = () => {
           onSearchChange={handleSearchChange}
           placeholder="Pesquisar por nome ou e-mail"
         />
-        <FormControl
-          sx={{
-            minWidth: { xs: '100%', sm: 200 },
-            '& .MuiInputBase-root': {
-              height: 36,
-              display: 'flex',
-              alignItems: 'center',
-            },
-            '& .MuiInputLabel-root': {
-              transform: 'translate(14px, 7px) scale(1)',
-              '&.Mui-focused, &.MuiInputLabel-shrink': {
-                transform: 'translate(14px, -6px) scale(0.75)',
-                color: '#000000',
-              },
-            },
-            '& .MuiSelect-select': {
-              display: 'flex',
-              alignItems: 'center',
-              height: '100% !important',
-            },
-          }}
-        >
-          <InputLabel id="calendar-filter-label">Calendário</InputLabel>
-          <StyledSelect
-            labelId="calendar-filter-label"
-            value={selectedCalendar}
-            label="Calendar"
-            onChange={handleCalendarChange}
-            sx={{
-              '& .MuiOutlinedInput-notchedOutline': {
-                borderColor: 'rgba(0, 0, 0, 0.23)',
-              },
-              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#000000',
-              },
-            }}
-            MenuProps={{
-              PaperProps: {
-                sx: {
-                  maxHeight: '200px',
-                  overflowY: 'auto',
-                  width: 'auto',
-                  '& .MuiMenuItem-root': {
-                    minHeight: '36px',
-                    display: 'flex',
-                    alignItems: 'center',
-                  },
-                  '& .MuiMenuItem-root.Mui-selected': {
-                    backgroundColor: '#D5FFDB',
-                    '&:hover': {
-                      backgroundColor: '#C5F5CB',
-                    },
-                  },
-                  '& .MuiMenuItem-root:hover': {
-                    backgroundColor: '#D5FFDB',
-                  },
-                },
-              },
-            }}
-          >
-            <MenuItem value="">Todos</MenuItem>
-            {calendars.map((calendar) => (
-              <MenuItem key={calendar.id} value={calendar.id}>
-                {calendar.name}
-              </MenuItem>
-            ))}
-          </StyledSelect>
-        </FormControl>
       </Box>
 
       {loading ? (

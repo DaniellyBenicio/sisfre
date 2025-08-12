@@ -21,27 +21,23 @@ import GenerateQRCode from "./GenerateQRCode";
 import { StyledSelect } from "../../../../components/inputs/Input";
 import { styled } from "@mui/material/styles";
 
-// Define the institutional color
 const INSTITUTIONAL_COLOR = "#307c34";
 
-// Styled button
-const StyledButton = styled(Button)(() => ({
+const StyledButton = styled(Button)(({ theme }) => ({
   borderRadius: "8px",
-  padding: "8px 28px",
+  padding: theme.spacing(1, 3.5),
   textTransform: "none",
   fontWeight: "bold",
-  fontSize: "0.875rem",
+  fontSize: theme.typography.pxToRem(14),
   display: "flex",
   alignItems: "center",
-  gap: "8px",
-  width: "120px",
-  "@media (max-width: 600px)": {
-    fontSize: "0.7rem",
-    padding: "4px 8px",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    maxWidth: "100px",
+  gap: theme.spacing(1),
+  width: "auto",
+  minWidth: "100px",
+  [theme.breakpoints.down("sm")]: {
+    fontSize: theme.typography.pxToRem(12),
+    padding: theme.spacing(0.5, 1),
+    minWidth: "80px",
   },
 }));
 
@@ -65,6 +61,7 @@ const FrequencyList = () => {
       "& .MuiInputBase-root": { height: { xs: 40, sm: 36 } },
       "& .MuiInputLabel-root": {
         transform: "translate(14px, 7px) scale(1)",
+        fontSize: { xs: "0.875rem", sm: "1rem" },
         "&.Mui-focused, &.MuiInputLabel-shrink": {
           transform: "translate(14px, -6px) scale(0.75)",
           color: "#000000",
@@ -72,8 +69,12 @@ const FrequencyList = () => {
       },
     },
     select: {
-      "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(0, 0, 0, 0.23)" },
-      "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#000000" },
+      "& .MuiOutlinedInput-notchedOutline": {
+        borderColor: "rgba(0, 0, 0, 0.23)",
+      },
+      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#000000",
+      },
     },
     menuProps: {
       PaperProps: {
@@ -81,73 +82,85 @@ const FrequencyList = () => {
           maxHeight: "200px",
           "& .MuiMenuItem-root": {
             "&:hover": { backgroundColor: "#D5FFDB" },
-            "&.Mui-selected": { backgroundColor: "#E8F5E9", "&:hover": { backgroundColor: "#D5FFDB" } },
+            "&.Mui-selected": {
+              backgroundColor: "#E8F5E9",
+              "&:hover": { backgroundColor: "#D5FFDB" },
+            },
           },
         },
       },
     },
     dateInput: {
-      minWidth: 150,
+      width: { xs: "100%", sm: "150px" },
       "& .MuiInputBase-root": { height: { xs: 40, sm: 36 } },
-      "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(0, 0, 0, 0.23)" },
-      "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#000000" },
-    },
-    tokenInput: {
-    width: { xs: "100%", sm: "300px" },
-    "& .MuiInputBase-root": {
-      height: { xs: 56, sm: 56 },
-    },
-    "& .MuiOutlinedInput-notchedOutline": {
-      borderColor: "rgba(0, 0, 0, 0.23)",
-      borderWidth: "1px",
-    },
-    "&:hover .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#000000",
-      borderWidth: "1px",
-    },
-    // **Ajuste este seletor para garantir a borda preta em foco**
-    "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#000000",
-      borderWidth: "1px",
-    },
-    "& .MuiInputLabel-root": {
-      top: "50%",
-      transform: "translate(14px, -50%)",
-      fontSize: "1rem",
-      color: "rgba(0, 0, 0, 0.6)",
-      "@media (max-width: 600px)": {
-        fontSize: "0.875rem",
+      "& .MuiOutlinedInput-notchedOutline": {
+        borderColor: "rgba(0, 0, 0, 0.23)",
+      },
+      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#000000",
       },
     },
-    "& .MuiInputLabel-shrink": {
-      top: 0,
-      transform: "translate(14px, -9px) scale(0.75)",
-      color: "#000000",
+    tokenInput: {
+      width: { xs: "100%", sm: "300px" },
+      "& .MuiInputBase-root": {
+        height: { xs: 48, sm: 56 },
+      },
+      "& .MuiOutlinedInput-notchedOutline": {
+        borderColor: "rgba(0, 0, 0, 0.23)",
+        borderWidth: "1px",
+      },
+      "&:hover .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#000000",
+        borderWidth: "1px",
+      },
+      "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#000000",
+        borderWidth: "1px",
+      },
+      "& .MuiInputLabel-root": {
+        top: "50%",
+        transform: "translate(14px, -50%)",
+        fontSize: { xs: "0.875rem", sm: "1rem" },
+        color: "rgba(0, 0, 0, 0.6)",
+      },
+      "& .MuiInputLabel-shrink": {
+        top: 0,
+        transform: "translate(14px, -9px) scale(0.75)",
+        color: "#000000",
+      },
+      "& .MuiInputLabel-root.Mui-focused": {
+        color: "#000000",
+      },
     },
-    // **Corrija a cor do label quando focado aqui**
-    "& .MuiInputLabel-root.Mui-focused": {
-      color: "#000000", // Isso fará com que o label também seja preto
-    },
-  },
-};
+  };
 
   const fetchFrequencies = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/frequency");
-      const formattedData = response.data.map((freq) => ({
-        id: freq.id,
-        date: freq.date,
-        displayDate: freq.date ? new Date(freq.date + "T00:00:00").toLocaleDateString("pt-BR") : "N/A",
-        class: freq.courseId ? `Curso ${freq.courseId}` : "N/A", // Substituir por nome real do curso via endpoint
-        time: freq.time || "N/A",
-        status: freq.isAbsence ? "Falta" : "Presença",
-        courseId: freq.courseId,
-        disciplineId: freq.disciplineId,
-      }));
+      const response = await api.get("/frequency/professor");
+      console.log("Raw API response:", response.data);
+      const formattedData = response.data.map((freq) => {
+        const mapped = {
+          id: freq.id,
+          date: freq.date,
+          displayDate: freq.date
+            ? new Date(freq.date + "T00:00:00").toLocaleDateString("pt-BR")
+            : "N/A",
+          class: freq.className || "N/A",
+          discipline: freq.disciplineName || "N/A",
+          time: freq.time || "N/A",
+          status: freq.isAbsence ? "Falta" : "Presença",
+          courseId: freq.courseId,
+          disciplineId: freq.disciplineId,
+        };
+        console.log("Mapped frequency:", mapped);
+        return mapped;
+      });
+      console.log("Formatted frequencies:", formattedData);
       setFrequencies(formattedData);
     } catch (error) {
       console.error("Erro ao buscar frequências:", error);
+      console.log("Error details:", error.response?.data);
       setAlert({ message: "Erro ao carregar as frequências.", type: "error" });
       setFrequencies([]);
     } finally {
@@ -161,12 +174,14 @@ const FrequencyList = () => {
 
   const applyFilters = (data) => {
     let filtered = Array.isArray(data) ? [...data] : [];
-    if (filterStatus === "absences") filtered = filtered.filter((freq) => freq.status === "Falta");
-    else if (filterStatus === "presences") filtered = filtered.filter((freq) => freq.status === "Presença");
+    if (filterStatus === "absences")
+      filtered = filtered.filter((freq) => freq.status === "Falta");
+    else if (filterStatus === "presences")
+      filtered = filtered.filter((freq) => freq.status === "Presença");
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return filtered.filter((freq) => {
+    filtered = filtered.filter((freq) => {
       if (!freq.date) return false;
       const freqDate = new Date(freq.date + "T00:00:00");
       switch (filterPeriod) {
@@ -193,6 +208,8 @@ const FrequencyList = () => {
           return true;
       }
     });
+    console.log("Filtered frequencies:", filtered);
+    return filtered;
   };
 
   const handleUploadFrequency = async (frequencyItem) => {
@@ -212,7 +229,7 @@ const FrequencyList = () => {
     try {
       const now = new Date();
       const response = await api.post("/frequency/absence-credit", {
-        userId: "1", // Substituir por userId real do contexto de autenticação
+        userId: "1",
         courseId: frequencyItem.courseId,
         disciplineId: frequencyItem.disciplineId,
         date: now.toISOString().split("T")[0],
@@ -223,7 +240,10 @@ const FrequencyList = () => {
       fetchFrequencies();
     } catch (error) {
       console.error("Erro ao registrar falta com crédito:", error);
-      setAlert({ message: error.response?.data?.error || "Erro ao registrar falta.", type: "error" });
+      setAlert({
+        message: error.response?.data?.error || "Erro ao registrar falta.",
+        type: "error",
+      });
     }
   };
 
@@ -237,8 +257,13 @@ const FrequencyList = () => {
         navigator.geolocation.getCurrentPosition(resolve, reject);
       });
       const { latitude, longitude } = position.coords;
-      const userId = "1"; // Substituir por userId real do contexto de autenticação
-      const response = await api.post("/frequency/scan", { token, userId, latitude, longitude });
+      const userId = "1";
+      const response = await api.post("/frequency/scan", {
+        token,
+        userId,
+        latitude,
+        longitude,
+      });
       setAlert({ message: response.data.message, type: "success" });
       setShowQrScanner(false);
       setTokenInput("");
@@ -246,7 +271,9 @@ const FrequencyList = () => {
     } catch (error) {
       console.error("Erro ao escanear QR Code:", error);
       setAlert({
-        message: error.response?.data?.error || "Erro ao registrar frequência via QR Code.",
+        message:
+          error.response?.data?.error ||
+          "Erro ao registrar frequência via QR Code.",
         type: "error",
       });
       setShowQrScanner(false);
@@ -265,7 +292,8 @@ const FrequencyList = () => {
   const handleScanError = (error) => {
     console.error("Erro ao escanear QR Code:", error);
     setAlert({
-      message: "Erro ao escanear o QR Code. Verifique a permissão da câmera ou tente novamente.",
+      message:
+        "Erro ao escanear o QR Code. Verifique a permissão da câmera ou tente novamente.",
       type: "error",
     });
     setShowQrScanner(false);
@@ -274,7 +302,9 @@ const FrequencyList = () => {
   const startQrScanner = async () => {
     setShowQrScanner(true);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+      });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.play();
@@ -304,8 +334,15 @@ const FrequencyList = () => {
         canvas.height = video.videoHeight;
         canvas.width = video.videoWidth;
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+        const imageData = context.getImageData(
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: "dontInvert",
+        });
         if (code) {
           handleScanQRCode(code.data);
           stopQrScanner();
@@ -329,10 +366,28 @@ const FrequencyList = () => {
   };
 
   const filteredFrequencies = applyFilters(frequencies);
+  console.log("Data passed to FrequenciesTable:", filteredFrequencies);
 
   return (
-    <Box sx={{ p: 3, maxWidth: "1200px", mx: "auto", display: "flex", flexDirection: "column", gap: 2 }}>
-      <Typography variant="h5" align="center" sx={{ fontWeight: "bold", my: 2 }}>
+    <Box
+      sx={{
+        p: { xs: 2, sm: 3 },
+        maxWidth: "100%",
+        mx: "auto",
+        display: "flex",
+        flexDirection: "column",
+        gap: { xs: 1.5, sm: 2 },
+      }}
+    >
+      <Typography
+        variant="h5"
+        align="center"
+        sx={{
+          fontWeight: "bold",
+          my: { xs: 1, sm: 2 },
+          fontSize: { xs: "1.25rem", sm: "1.5rem" },
+        }}
+      >
         Frequências
       </Typography>
 
@@ -342,30 +397,90 @@ const FrequencyList = () => {
         centered
         sx={{
           mb: 1,
-          "& .MuiTab-root": { textTransform: "none", fontWeight: "bold", fontSize: { xs: "0.9rem", sm: "1rem" }, color: "rgba(0, 0, 0, 0.6)" },
+          "& .MuiTab-root": {
+            textTransform: "none",
+            fontWeight: "bold",
+            fontSize: { xs: "0.8rem", sm: "0.9rem", md: "1rem" },
+            color: "rgba(0, 0, 0, 0.6)",
+            padding: { xs: "6px 12px", sm: "12px 16px" },
+          },
           "& .Mui-selected": { color: "#087619 !important" },
           "& .MuiTabs-indicator": { backgroundColor: "#087619" },
+          "& .MuiTabs-flexContainer": {
+            flexWrap: "wrap",
+            justifyContent: { xs: "flex-start", sm: "center" },
+          },
         }}
       >
         <Tab label="Gerar QR Code" />
         <Tab label="Escanear QR Code" />
         <Tab label="Frequências" />
       </Tabs>
-      <Box sx={{ height: "2px", boxShadow: "0 1px 3px rgba(0, 0, 0, 0.2)", width: "100%", mb: 2 }} />
+      <Box
+        sx={{
+          height: "2px",
+          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.2)",
+          width: "100%",
+          mb: 2,
+        }}
+      />
 
-      {alert && <CustomAlert message={alert.message} type={alert.type} onClose={() => setAlert(null)} />}
+      {alert && (
+        <CustomAlert
+          message={alert.message}
+          type={alert.type}
+          onClose={() => setAlert(null)}
+        />
+      )}
 
       {tabValue === 0 && <GenerateQRCode setAlert={setAlert} />}
 
       {tabValue === 1 && (
-        <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2 }}>
-          <Box sx={{ p: 2, boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", borderRadius: "4px", textAlign: "center", flex: 1 }}>
-            <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            gap: { xs: 1.5, sm: 2 },
+            flexWrap: "wrap",
+          }}
+        >
+          <Box
+            sx={{
+              p: { xs: 1.5, sm: 2 },
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+              borderRadius: "4px",
+              textAlign: "center",
+              flex: { xs: "1 1 100%", sm: "1 1 45%" },
+            }}
+          >
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: "bold",
+                mb: 2,
+                fontSize: { xs: "1rem", sm: "1.25rem" },
+              }}
+            >
               Escanear QR Code
             </Typography>
             {showQrScanner ? (
-              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                <video ref={videoRef} style={{ width: "100%", maxWidth: "300px", mx: "auto" }} />
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 2,
+                }}
+              >
+                <video
+                  ref={videoRef}
+                  style={{
+                    width: "100%",
+                    maxWidth: { xs: "250px", sm: "300px" },
+                    aspectRatio: "4/3",
+                    borderRadius: "8px",
+                  }}
+                />
                 <canvas ref={canvasRef} style={{ display: "none" }} />
                 <StyledButton
                   onClick={stopQrScanner}
@@ -391,7 +506,7 @@ const FrequencyList = () => {
                   width: { xs: "100%", sm: "200px" },
                   height: { xs: 40, sm: 36 },
                   fontWeight: "bold",
-                  fontSize: { xs: "0.9rem", sm: "1rem" },
+                  fontSize: { xs: "0.8rem", sm: "1rem" },
                   mx: "auto",
                   display: "block",
                 }}
@@ -401,8 +516,23 @@ const FrequencyList = () => {
             )}
           </Box>
 
-          <Box sx={{ p: 2, boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", borderRadius: "4px", textAlign: "center", flex: 1 }}>
-            <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
+          <Box
+            sx={{
+              p: { xs: 1.5, sm: 2 },
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+              borderRadius: "4px",
+              textAlign: "center",
+              flex: { xs: "1 1 100%", sm: "1 1 45%" },
+            }}
+          >
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: "bold",
+                mb: 2,
+                fontSize: { xs: "1rem", sm: "1.25rem" },
+              }}
+            >
               Inserir Token
             </Typography>
             <Stack direction="column" spacing={1} alignItems="center">
@@ -413,7 +543,11 @@ const FrequencyList = () => {
                 sx={commonStyles.tokenInput}
                 placeholder="Cole o token aqui"
               />
-              <Stack direction="row" spacing={1} sx={{ mt: 1, justifyContent: "center" }}>
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{ mt: 1, justifyContent: "center" }}
+              >
                 <StyledButton
                   onClick={handleCancelToken}
                   variant="contained"
@@ -433,7 +567,9 @@ const FrequencyList = () => {
                   variant="contained"
                   disabled={!tokenInput}
                   sx={{
-                    backgroundColor: !tokenInput ? "#E0E0E0" : INSTITUTIONAL_COLOR,
+                    backgroundColor: !tokenInput
+                      ? "#E0E0E0"
+                      : INSTITUTIONAL_COLOR,
                     "&:hover": {
                       backgroundColor: !tokenInput ? "#E0E0E0" : "#26692b",
                     },
@@ -450,7 +586,11 @@ const FrequencyList = () => {
 
       {tabValue === 2 && (
         <Box>
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 2 }}>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={{ xs: 1, sm: 2 }}
+            sx={{ mb: 2, flexWrap: "wrap" }}
+          >
             <FormControl sx={commonStyles.formControl}>
               <InputLabel id="filter-status-label">Status</InputLabel>
               <StyledSelect
@@ -504,14 +644,23 @@ const FrequencyList = () => {
               </Stack>
             )}
           </Stack>
-          <FrequenciesTable
-            frequencies={filteredFrequencies}
-            search=""
-            isFiltered={filterStatus !== "all" || filterPeriod !== "all" || (filterPeriod === "custom" && (customStartDate || customEndDate))}
-            setAlert={setAlert}
-            onRegisterAbsenceWithCredit={handleRegisterAbsenceWithCredit}
-          />
-          {loading && <Typography align="center">Carregando frequências...</Typography>}
+          <Box sx={{ overflowX: "auto" }}>
+            <FrequenciesTable
+              frequencies={filteredFrequencies}
+              search=""
+              isFiltered={
+                filterStatus !== "all" ||
+                filterPeriod !== "all" ||
+                (filterPeriod === "custom" &&
+                  (customStartDate || customEndDate))
+              }
+              setAlert={setAlert}
+              onRegisterAbsenceWithCredit={handleRegisterAbsenceWithCredit}
+            />
+          </Box>
+          {loading && (
+            <Typography align="center">Carregando frequências...</Typography>
+          )}
         </Box>
       )}
     </Box>

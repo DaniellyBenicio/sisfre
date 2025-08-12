@@ -639,3 +639,81 @@ export const getRequestsByProfessor = async (req, res) => {
       .json({ error: "Erro ao listar requisições.", details: error.message });
   }
 };
+
+export const getOwnRequests = async (req, res) => {
+  const { type } = req.query;
+  const userId = req.user.id; 
+
+  try {
+    const whereClause = { userId };
+    if (type) {
+      whereClause.type = type;
+    }
+
+    const requests = await db.ClassChangeRequest.findAll({
+      where: whereClause,
+      include: [
+        {
+          model: db.User,
+          as: "professor",
+          attributes: ["id", "username", "email"],
+        },
+      ],
+      order: [["date", "DESC"]],
+    });
+
+    const enhancedRequests = await Promise.all(
+      requests.map(async (request) => {
+        const plainRequest = request.get({ plain: true });
+
+        const classDetail = await db.ClassScheduleDetail.findOne({
+          where: {
+            userId: plainRequest.userId,
+            turn: plainRequest.turn,
+          },
+          include: [
+            {
+              model: db.ClassSchedule,
+              as: "schedule",
+              include: [
+                { model: db.Class, as: "class", attributes: ["semester"] },
+                {
+                  model: db.Course,
+                  as: "course",
+                  attributes: ["acronym"],
+                  where: { name: plainRequest.course },
+                },
+              ],
+            },
+            {
+              model: db.Discipline,
+              as: "discipline",
+              where: { name: plainRequest.discipline },
+            },
+          ],
+        });
+
+        let acronym = "N/A";
+        let semester = "N/A";
+
+        if (classDetail) {
+          acronym = classDetail.schedule.course.acronym || "N/A";
+          semester = classDetail.schedule.class.semester || "N/A";
+        }
+
+        return {
+          ...plainRequest,
+          acronym,
+          semester,
+        };
+      })
+    );
+
+    return res.status(200).json({ requests: enhancedRequests });
+  } catch (error) {
+    console.error("Erro ao listar requisições do professor:", error);
+    return res
+      .status(500)
+      .json({ error: "Erro ao listar requisições.", details: error.message });
+  }
+};

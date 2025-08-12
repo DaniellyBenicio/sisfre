@@ -31,7 +31,6 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
 
   const fetchRequestDetails = async () => {
     try {
-      // Agora o backend retorna todos os dados da turma
       const response = await api.get(`/request/${id}`);
       setRequestData(response.data.request);
     } catch (error) {
@@ -110,7 +109,6 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
             })
           : "N/A",
         discipline: requestData.discipline || "N/A",
-        // Pega as informações da turma diretamente da resposta do backend
         class: requestData.acronym && requestData.semester ? `${requestData.acronym} - ${requestData.semester}` : "N/A",
         quantity: requestData.quantity || "N/A",
         time: requestData.hour || "N/A",
@@ -118,6 +116,7 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
         observations: requestData.observation || "",
         observationCoordinator: requestData.observationCoordinator || "",
         validated: requestData.validated,
+        annex: requestData.annex ? requestData.annex.split("/").pop() : "N/A",
       }
     : {
         title: "N/A",
@@ -127,9 +126,11 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
         class: "N/A",
         quantity: "N/A",
         time: "N/A",
+        turn: "N/A",
         observations: "",
         observationCoordinator: "",
         validated: null,
+        annex: "N/A",
       };
 
   return (
@@ -200,8 +201,17 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
           </Box>
           <Divider sx={{ backgroundColor: "#C7C7C7", my: 2 }} />
           <Typography variant="body1">
-            {requestData?.annex ? (
-              <a href={requestData.annex} target="_blank" rel="noopener noreferrer">
+            {cardData.annex !== "N/A" ? (
+              <a
+                href={`http://localhost:3000/uploads/class_change_requests/${cardData.annex}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: "#2653e7ff",
+                  textDecoration: "underline",
+                  fontWeight: "bold",
+                }}
+              >
                 Visualizar anexo
               </a>
             ) : (
@@ -295,6 +305,7 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
             </Button>
           </Box>
         )}
+
         <JustificationModal
           open={openDialog}
           onClose={handleCloseDialog}

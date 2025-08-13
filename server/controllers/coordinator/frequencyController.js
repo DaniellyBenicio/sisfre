@@ -138,7 +138,6 @@ export const getFrequenciesByProfessor = async (req, res) => {
     const frequencies = await db.Frequency.findAll({
       where: {
         userId,
-        isAbsence: true,
       },
       order: [
         ["date", "DESC"],

@@ -801,7 +801,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
         <Box sx={{ position: "relative", mb: 5, mt: "15px" }}>
           {!isMobile && (
             <IconButton
-              onClick={() => navigate("/class-reschedule-request")}
+              onClick={() => navigate("/class-schedule")}
               sx={{
                 position: "absolute",
                 left: 0,

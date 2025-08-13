@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { QrCodeScanner, Close, Save } from "@mui/icons-material";
 import jsQR from "jsqr";
+import { jwtDecode } from "jwt-decode"; 
 import api from "../../../../service/api";
 import { CustomAlert } from "../../../../components/alert/CustomAlert";
 import FrequenciesTable from "./FrequenciesTable";
@@ -54,6 +55,23 @@ const FrequencyList = () => {
   const [tokenInput, setTokenInput] = useState("");
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+
+  // Obter o userId do token JWT armazenado
+  const getUserId = () => {
+    try {
+      const token = localStorage.getItem("token"); 
+      if (token) {
+        const decoded = jwtDecode(token);
+        return decoded.id; 
+      }
+      return null;
+    } catch (error) {
+      console.error("Erro ao decodificar o token:", error);
+      return null;
+    }
+  };
+
+  const userId = getUserId();
 
   const commonStyles = {
     formControl: {
@@ -169,8 +187,13 @@ const FrequencyList = () => {
   };
 
   useEffect(() => {
-    fetchFrequencies();
-  }, []);
+    if (userId) {
+      fetchFrequencies();
+    } else {
+      setAlert({ message: "Usuário não autenticado.", type: "error" });
+      setLoading(false);
+    }
+  }, [userId]);
 
   const applyFilters = (data) => {
     let filtered = Array.isArray(data) ? [...data] : [];
@@ -226,10 +249,14 @@ const FrequencyList = () => {
   };
 
   const handleRegisterAbsenceWithCredit = async (frequencyItem) => {
+    if (!userId) {
+      setAlert({ message: "Usuário não autenticado.", type: "error" });
+      return;
+    }
     try {
       const now = new Date();
       const response = await api.post("/frequency/absence-credit", {
-        userId: "1",
+        userId,
         courseId: frequencyItem.courseId,
         disciplineId: frequencyItem.disciplineId,
         date: now.toISOString().split("T")[0],
@@ -249,6 +276,12 @@ const FrequencyList = () => {
 
   const handleScanQRCode = async (data) => {
     if (!data) return;
+    if (!userId) {
+      setAlert({ message: "Usuário não autenticado.", type: "error" });
+      setShowQrScanner(false);
+      setTokenInput("");
+      return;
+    }
     try {
       const parsedData = JSON.parse(data);
       const token = parsedData.token;
@@ -257,7 +290,6 @@ const FrequencyList = () => {
         navigator.geolocation.getCurrentPosition(resolve, reject);
       });
       const { latitude, longitude } = position.coords;
-      const userId = "1";
       const response = await api.post("/frequency/scan", {
         token,
         userId,

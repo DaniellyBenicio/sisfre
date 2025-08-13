@@ -228,7 +228,7 @@ const Sidebar = ({ setAuthenticated }) => {
                 sx={getListItemStyle(selectedItem, "classes")}
               >
                 <Class sx={{ mr: 1 }} />
-                <ListItemText primary="Horário" />
+                <ListItemText primary="Horários" />
               </ListItem>
               <ListItem
                 button
@@ -246,7 +246,7 @@ const Sidebar = ({ setAuthenticated }) => {
                 sx={getListItemStyle(selectedItem, "frequency")}
               >
                 <EventAvailable sx={{ mr: 1 }} />
-                <ListItemText primary="Frequência" />
+                <ListItemText primary="Frequências" />
               </ListItem>
             </>
           )}

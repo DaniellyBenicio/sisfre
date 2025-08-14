@@ -71,11 +71,6 @@ const ClassRecheduleRequestList = ({ setAuthenticated }) => {
       observations: request.observation || "",
     }));
 
-  const handleCardClick = (option) => {
-    const targetPath = accessType === "Admin" && option.adminPath ? option.adminPath : option.path;
-    navigate(targetPath);
-  };
-
   const totalItems = formattedRequests.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (page - 1) * itemsPerPage;
@@ -224,7 +219,7 @@ const ClassRecheduleRequestList = ({ setAuthenticated }) => {
                       <MailOutline sx={{ fontSize: 40, color: "#087619" }} />
                     </Box>
                     <CardActionArea
-                      onClick={() => handleCardClick(option)}
+                      onClick={(e) => handleDetailsClick(e, option)}
                       sx={{
                         height: "100%",
                         width: "100%",

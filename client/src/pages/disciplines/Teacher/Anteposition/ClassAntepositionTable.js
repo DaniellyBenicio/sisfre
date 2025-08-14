@@ -1,8 +1,7 @@
-import { Stack, Typography, Box, Paper, Table, TableContainer, TableHead, TableRow, TableCell, TableBody, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Stack, Typography, Box, Paper, Table, TableContainer, TableHead, TableRow, TableCell, TableBody, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Tooltip } from '@mui/material';
 import PropTypes from 'prop-types';
 import { useMediaQuery, useTheme } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
-import PictureAsPdf from '@mui/icons-material/PictureAsPdf';
 import { useState } from 'react';
 
 const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onApprove, onReject, accessType }) => {
@@ -58,9 +57,22 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
       label: 'Arquivo',
       render: (anteposition) => (
         anteposition.fileName !== 'N/A' ? (
-          <IconButton onClick={() => handleOpenDialog(anteposition.fileName, 'Arquivo', true)}>
-            <PictureAsPdf />
-          </IconButton>
+          <Tooltip title="Abrir Arquivo">
+            <Typography
+              component="a"
+              href={`http://localhost:3000/uploads/class_change_requests/${anteposition.fileName}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{
+                color: '#087619',
+                textDecoration: 'underline',
+                cursor: 'pointer',
+                '&:hover': { color: '#0A8C1F' },
+              }}
+            >
+              Arquivo
+            </Typography>
+          </Tooltip>
         ) : 'N/A'
       ),
     },
@@ -69,9 +81,24 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
       label: 'Observação',
       render: (anteposition) => (
         anteposition.observacao !== 'N/A' ? (
-          <IconButton onClick={() => handleOpenDialog(anteposition.observacao, 'Observação')}>
-            <Visibility />
-          </IconButton>
+          <Tooltip title="Abrir Observação">
+            <IconButton onClick={() => handleOpenDialog(anteposition.observacao, 'Observação')}>
+              <Visibility />
+            </IconButton>
+          </Tooltip>
+        ) : 'N/A'
+      ),
+    },
+    {
+      key: 'justificativa',
+      label: 'Justificativa',
+      render: (anteposition) => (
+        anteposition.observationCoordinator !== 'N/A' ? (
+          <Tooltip title="Abrir Justificativa">
+            <IconButton onClick={() => handleOpenDialog(anteposition.observationCoordinator, 'Justificativa')}>
+              <Visibility />
+            </IconButton>
+          /</Tooltip>
         ) : 'N/A'
       ),
     },
@@ -104,9 +131,22 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
       label: 'Arquivo',
       render: (anteposition) => (
         anteposition.fileName !== 'N/A' ? (
-          <IconButton onClick={() => handleOpenDialog(anteposition.fileName, 'Arquivo', true)}>
-            <PictureAsPdf />
-          </IconButton>
+          <Tooltip title="Abrir Arquivo">
+            <Typography
+              component="a"
+              href={`http://localhost:3000/uploads/class_change_requests/${anteposition.fileName}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{
+                color: '#087619',
+                textDecoration: 'underline',
+                cursor: 'pointer',
+                '&:hover': { color: '#0A8C1F' },
+              }}
+            >
+              Arquivo
+            </Typography>
+          </Tooltip>
         ) : 'N/A'
       ),
     },
@@ -115,9 +155,11 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
       label: 'Observação',
       render: (anteposition) => (
         anteposition.observacao !== 'N/A' ? (
-          <IconButton onClick={() => handleOpenDialog(anteposition.observacao, 'Observação')}>
-            <Visibility />
-          </IconButton>
+          <Tooltip title="Abrir Observação">
+            <IconButton onClick={() => handleOpenDialog(anteposition.observacao, 'Observação')}>
+              <Visibility />
+            </IconButton>
+          </Tooltip>
         ) : 'N/A'
       ),
     },
@@ -126,9 +168,11 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
       label: 'Justificativa',
       render: (anteposition) => (
         anteposition.observationCoordinator !== 'N/A' ? (
-          <IconButton onClick={() => handleOpenDialog(anteposition.observationCoordinator, 'Justificativa')}>
-            <Visibility />
-          </IconButton>
+          <Tooltip title="Abrir Justificativa">
+            <IconButton onClick={() => handleOpenDialog(anteposition.observationCoordinator, 'Justificativa')}>
+              <Visibility />
+            </IconButton>
+          </Tooltip>
         ) : 'N/A'
       ),
     },
@@ -181,9 +225,22 @@ const ClassAntepositionTable = ({ antepositions, setAlert, onView, onDelete, onA
       <Typography>
         <strong>Arquivo:</strong>{" "}
         {anteposition.fileName !== 'N/A' ? (
-          <IconButton onClick={() => handleOpenDialog(anteposition.fileName, 'Arquivo', true)}>
-            <PictureAsPdf />
-          </IconButton>
+          <Tooltip title="Abrir Arquivo">
+            <Typography
+              component="a"
+              href={`http://localhost:3000/uploads/class_change_requests/${anteposition.fileName}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{
+                color: '#087619',
+                textDecoration: 'underline',
+                cursor: 'pointer',
+                '&:hover': { color: '#0A8C1F' },
+              }}
+            >
+              Arquivo
+            </Typography>
+          </Tooltip>
         ) : 'N/A'}
       </Typography>
       <Typography>

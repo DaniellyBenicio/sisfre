@@ -5,7 +5,6 @@ import {
   Typography,
   FormControl,
   InputLabel,
-  Button,
   Stack,
   MenuItem,
   Pagination,
@@ -15,8 +14,6 @@ import {
   useTheme,
 } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
-import { styled } from "@mui/material/styles";
-import DeleteConfirmationDialog from "../../../components/DeleteConfirmationDialog";
 import ClassAntepositionTable from "../../disciplines/Teacher/Anteposition/ClassAntepositionTable";
 import { CustomAlert } from "../../../components/alert/CustomAlert";
 import { StyledSelect } from "../../../components/inputs/Input";
@@ -24,13 +21,6 @@ import api from "../../../service/api";
 import Sidebar from "../../../components/SideBar";
 
 const INSTITUTIONAL_COLOR = "#307c34";
-
-const StyledButton = styled(Button)(() => ({
-  textTransform: "none",
-  fontWeight: "bold",
-  backgroundColor: INSTITUTIONAL_COLOR,
-  "&:hover": { backgroundColor: "#26692b" },
-}));
 
 const TeacherClassReschedules = ({ setAuthenticated }) => {
   const [requests, setRequests] = useState([]);
@@ -41,8 +31,6 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
   const [filterPeriod, setFilterPeriod] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterType, setFilterType] = useState("all");
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const [requestToDelete, setRequestToDelete] = useState(null);
   const [page, setPage] = useState(1);
   const rowsPerPage = 7;
   const navigate = useNavigate();
@@ -50,12 +38,32 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const accessType = localStorage.getItem("accessType") || "Professor";
+  const [professorName, setProfessorName] = useState(null);
 
   const { userId: userIdFromState } = location.state || {};
   const userId = userIdFromState ? Number(userIdFromState) : null;
 
   const handleAlertClose = () => {
     setAlert(null);
+  };
+
+  const fetchProfessorName = async () => {
+    if (!userId) {
+      console.log("No userId provided in location.state");
+      setProfessorName("Desconhecido");
+      return;
+    }
+    try {
+      const response = await api.get(`/users/${userId}`);
+      console.log("API response for /users/:id:", response.data);
+      const name = response.data.user?.username || "Desconhecido";
+      setProfessorName(name);
+
+    } catch (error) {
+      console.error("Erro ao carregar nome do professor:", error);
+      setAlert({ message: "Erro ao carregar nome do professor.", type: "error" });
+      setProfessorName("Desconhecido");
+    }
   };
 
   const fetchRequests = async () => {
@@ -122,6 +130,12 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
   };
 
   useEffect(() => {
+    console.log("userId from location.state:", userId);
+    if (userId) {
+      fetchProfessorName();
+    } else {
+      setProfessorName("Desconhecido");
+    }
     fetchRequests();
   }, [userId]);
 
@@ -138,58 +152,6 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
 
   const handleView = (id) => {
     navigate(`/class-anteposition/view/${id}`);
-  };
-
-  const handleApprove = async (id) => {
-    try {
-      await api.put(`/request/anteposition/${id}`);
-      setAlert({
-        message: "Solicitação aprovada com sucesso! Créditos atualizados.",
-        type: "success",
-      });
-      await fetchRequests();
-    } catch (error) {
-      console.error("Erro ao aprovar solicitação:", error);
-      setAlert({ message: "Erro ao aprovar solicitação.", type: "error" });
-    }
-  };
-
-  const handleReject = async (id) => {
-    try {
-      await api.put(`/request/negate/anteposition/${id}`, {
-        observationCoordinator: "Rejeitado pelo coordenador",
-      });
-      setAlert({
-        message: "Solicitação rejeitada com sucesso!",
-        type: "success",
-      });
-      await fetchRequests();
-    } catch (error) {
-      console.error("Erro ao rejeitar solicitação:", error);
-      setAlert({ message: "Erro ao rejeitar solicitação.", type: "error" });
-    }
-  };
-
-  const handleDeleteClick = (request) => {
-    setRequestToDelete(request);
-    setOpenDeleteDialog(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    try {
-      await api.delete(`/request/${requestToDelete.id}`);
-      setAlert({
-        message: `Solicitação para ${requestToDelete.turma} deletada com sucesso!`,
-        type: "success",
-      });
-      setOpenDeleteDialog(false);
-      setRequestToDelete(null);
-      await fetchRequests();
-      setPage(1);
-    } catch (error) {
-      console.error("Erro ao deletar solicitação:", error);
-      setAlert({ message: "Erro ao deletar solicitação.", type: "error" });
-    }
   };
 
   const handleGoBack = () => {
@@ -252,8 +214,6 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
     (page - 1) * rowsPerPage,
     page * rowsPerPage
   );
-
-  const professorName = requests[0]?.professor || "Desconhecido";
 
   const commonFormControlSx = {
     width: { xs: "100%", sm: "150px" },
@@ -468,22 +428,9 @@ const TeacherClassReschedules = ({ setAuthenticated }) => {
             antepositions={paginatedRequests || []}
             setAlert={setAlert}
             onView={handleView}
-            onDelete={handleDeleteClick}
-            onApprove={accessType === "Coordenador" ? handleApprove : undefined}
-            onReject={accessType === "Coordenador" ? handleReject : undefined}
             accessType={accessType}
           />
         )}
-
-        <DeleteConfirmationDialog
-          open={openDeleteDialog}
-          onClose={() => {
-            setOpenDeleteDialog(false);
-            setRequestToDelete(null);
-          }}
-          onConfirm={handleConfirmDelete}
-          message={`Deseja realmente deletar a solicitação para "${requestToDelete?.turma}"?`}
-        />
 
         {totalPages > 1 && (
           <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>

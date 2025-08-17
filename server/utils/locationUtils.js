@@ -1,7 +1,7 @@
 import haversine from "haversine-distance";
 
-const CAMPUS_COORDS = { latitude: -6.353131736454447, longitude: -39.2963145500635 };
-const MAX_DIST = 100; // metros
+const CAMPUS_COORDS = { latitude: -6.600767156023205, longitude: -39.05512157768739 };
+const MAX_DIST = 2000; // metros
 
 // Campus -6.600767156023205, -39.05512157768739
 // my house -6.353131736454447, -39.2963145500635

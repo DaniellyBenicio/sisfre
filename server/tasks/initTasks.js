@@ -4,6 +4,7 @@ import { autoArchiveClassSchedules } from "./autoArchiveClassSchedules.js";
 import "../tasks/holidaySeedTask.js";
 import { exec } from "child_process";
 import { autoAbsenceFrequency } from "./autoAbsenceFrequency.js";
+import { autoAbsenceAttendance } from "./autoAbsenceAttendance.js";
 
 //Cria o usuário administrador, se não existir
 const createAdminIfNotExists = async () => {
@@ -89,6 +90,46 @@ const initializeTasks = async () => {
     {
       timezone: "America/Sao_Paulo",
     }
+  );
+
+  // MATUTINO: 11:59:59
+  cron.schedule(
+    "0 12 * * *",
+    async () => {
+      console.log("Executando faltas automáticas MATUTINO!");
+      await autoAbsenceAttendance("MATUTINO");
+    },
+    { timezone: "America/Sao_Paulo" }
+  );
+
+  // VESPERTINO: 17:39:59
+  cron.schedule(
+    "40 17 * * *",
+    async () => {
+      console.log("Executando faltas automáticas VESPERTINO!");
+      await autoAbsenceAttendance("VESPERTINO");
+    },
+    { timezone: "America/Sao_Paulo" }
+  );
+
+  // NOTURNO: 23:59:59
+  cron.schedule(
+    "0 0 * * *",
+    async () => {
+      console.log("Executando faltas automáticas NOTURNO!");
+      await autoAbsenceAttendance("NOTURNO");
+    },
+    { timezone: "America/Sao_Paulo" }
+  );
+
+  // INTEGRADO: 17:59:59
+  cron.schedule(
+    "0 16 * * *",
+    async () => {
+      console.log("Executando faltas automáticas INTEGRADO!");
+      await autoAbsenceAttendance("INTEGRADO");
+    },
+    { timezone: "America/Sao_Paulo" }
   );
 };
 

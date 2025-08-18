@@ -97,7 +97,7 @@ export const registerAttendanceByTurn = async (req, res) => {
     if (!turno) {
       return res.status(400).json({
         error:
-          "O horário atual não permite registrar frequência. Tente novamente dentro do período de algum turno (MATUTINO, VESPERTINO ou NOTURNO).",
+          "O período para registrar a frequência deste turno já foi encerrado.",
       });
     }
 

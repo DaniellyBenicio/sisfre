@@ -125,7 +125,7 @@ export const registerAttendanceByTurn = async (req, res) => {
     const holiday = await db.Holiday.findOne({ where: { date: currentDate } });
     if (holiday) {
       return res.status(200).json({
-        message: `Hoje é feriado (${holiday.name} - ${holiday.type}). Nenhuma frequência registrada.`,
+        message: `Hoje é feriado. Nenhuma frequência será registrada.`,
       });
     }
 

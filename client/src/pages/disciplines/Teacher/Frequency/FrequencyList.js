@@ -36,7 +36,6 @@ const FrequencyList = () => {
   const [filterPeriod, setFilterPeriod] = useState("all");
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
-  const [turno, setTurno] = useState("");
   const [page, setPage] = useState(1);
   const rowsPerPage = 7;
   const navigate = useNavigate();
@@ -49,7 +48,6 @@ const FrequencyList = () => {
     try {
       setLoading(true);
       const params = {
-        turno: turno || undefined,
         attended: filterStatus === "Presença" ? true : filterStatus === "Falta" ? false : undefined,
         date: filterPeriod === "custom" && customStartDate ? customStartDate : undefined,
       };
@@ -63,12 +61,13 @@ const FrequencyList = () => {
             displayDate: freq.attendance.date
               ? new Date(freq.attendance.date + "T00:00:00").toLocaleDateString("pt-BR")
               : "N/A",
+            // AQUI ESTÁ O AJUSTE PARA COMBINAR ACRÔNIMO DO CURSO E TURMA
             class: `${freq.course_acronym || "N/A"} - ${freq.class || "N/A"}`,
             discipline: freq.discipline || "N/A",
             time: freq.hour || "N/A",
             status: freq.attendance.attended ? "Presença" : "Falta",
-            courseId: freq.course_acronym || "N/A",
-            disciplineId: freq.discipline_acronym || "N/A",
+            courseId: freq.courseId || "N/A",
+            disciplineId: freq.disciplineId || "N/A",
           }))
           .sort((a, b) => a.class.toLowerCase().localeCompare(b.class.toLowerCase()))
         : [];
@@ -87,13 +86,12 @@ const FrequencyList = () => {
   };
 
   useEffect(() => {
-    console.log("Estado turno atual:", turno);
     fetchFrequencies();
-  }, [filterStatus, filterPeriod, customStartDate, customEndDate, turno]);
+  }, [filterStatus, filterPeriod, customStartDate, customEndDate]);
 
   useEffect(() => {
     setPage(1);
-  }, [filterStatus, filterPeriod, customStartDate, customEndDate, turno]);
+  }, [filterStatus, filterPeriod, customStartDate, customEndDate]);
 
   const applyFilters = (data) => {
     let filtered = Array.isArray(data) ? [...data] : [];
@@ -137,15 +135,11 @@ const FrequencyList = () => {
   };
 
   const handleRegisterFrequency = async () => {
-    if (!turno) {
-      setAlert({ message: "Por favor, selecione um turno.", type: "error" });
-      return;
-    }
-
     try {
-      const currentDate = new Date().toISOString().split("T")[0];
-      console.log("Data atual do sistema:", currentDate);
-      let latitude = -6.603;
+      setLoading(true);
+
+      // Obter geolocalização
+      let latitude = -6.603; // Coordenadas fixas para teste
       let longitude = -39.059;
       try {
         const position = await new Promise((resolve, reject) => {
@@ -166,9 +160,9 @@ const FrequencyList = () => {
       }
       console.log("Geolocalização usada:", { latitude, longitude });
 
-      setLoading(true);
+      // Registrar frequência
+      console.log("Chamando POST /register-by-turn com:", { latitude, longitude });
       const response = await api.post("/register-by-turn", {
-        turno,
         latitude,
         longitude,
       });
@@ -181,19 +175,26 @@ const FrequencyList = () => {
     } catch (error) {
       console.error("Erro ao registrar frequência:", error);
       let errorMessage = "Erro ao registrar frequência.";
-      if (error.code === error.PERMISSION_DENIED) {
+      if (error.response?.status === 401) {
+        errorMessage = "Usuário não autenticado. Faça login novamente.";
+      } else if (error.response?.status === 403) {
+        errorMessage = error.response.data.error || "Você precisa estar no campus.";
+      } else if (error.response?.status === 404) {
+        errorMessage = `Endpoint não encontrado: ${error.response.config.url}. Verifique a configuração do servidor.`;
+      } else if (error.code === "PERMISSION_DENIED") {
         errorMessage = "Permissão de geolocalização negada. Ative a geolocalização no navegador.";
-      } else if (error.code === error.POSITION_UNAVAILABLE) {
+      } else if (error.code === "POSITION_UNAVAILABLE") {
         errorMessage = "Não foi possível obter a localização. Verifique sua conexão ou configurações.";
-      } else if (error.code === error.TIMEOUT) {
+      } else if (error.code === "TIMEOUT") {
         errorMessage = "Tempo esgotado ao obter a localização. Tente novamente.";
       } else if (error.response?.data?.error) {
         errorMessage = error.response.data.error;
+      } else {
+        errorMessage = error.message || "Erro ao registrar frequência.";
       }
       setAlert({ message: errorMessage, type: "error" });
     } finally {
       setLoading(false);
-      setTurno("");
     }
   };
 
@@ -409,33 +410,12 @@ const FrequencyList = () => {
               />
             </Stack>
           )}
-
-          <FormControl sx={commonFormControlSx}>
-            <InputLabel id="turno-label">Turno</InputLabel>
-            <StyledSelect
-              labelId="turno-label"
-              id="turno"
-              value={turno}
-              label="Turno"
-              onChange={(e) => {
-                console.log("Turno selecionado:", e.target.value);
-                setTurno(e.target.value);
-              }}
-              sx={commonSelectSx}
-              MenuProps={commonMenuProps}
-            >
-              <MenuItem value="">Selecione um turno</MenuItem>
-              <MenuItem value="MATUTINO">Matutino</MenuItem>
-              <MenuItem value="VESPERTINO">Vespertino</MenuItem>
-              <MenuItem value="NOTURNO">Noturno</MenuItem>
-            </StyledSelect>
-          </FormControl>
         </Stack>
 
         <StyledButton
           variant="contained"
           onClick={handleRegisterFrequency}
-          disabled={!turno}
+          disabled={loading}
           sx={{
             flexShrink: 0,
             width: { xs: "100%", sm: "200px" },
@@ -443,11 +423,9 @@ const FrequencyList = () => {
             fontWeight: "bold",
             fontSize: { xs: "0.9rem", sm: "1rem" },
             whiteSpace: "nowrap",
-            backgroundColor: !turno ? "#E0E0E0" : INSTITUTIONAL_COLOR,
-            "&:hover": { backgroundColor: !turno ? "#E0E0E0" : "#26692b" },
           }}
         >
-          Registrar Frequência
+          {loading ? "Registrando..." : "Registrar Frequência"}
         </StyledButton>
       </Stack>
 

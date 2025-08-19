@@ -9,11 +9,24 @@ const dayOfWeekMap = {
   sexta: "Sexta",
 };
 
-const turnIntervals = {
+export const turnIntervals = {
   MATUTINO: { start: "07:00:00", end: "11:59:59" },
   VESPERTINO: { start: "12:59:59", end: "17:39:59" },
   NOTURNO: { start: "18:20:00", end: "23:59:59" },
 };
+
+export function getDayOfWeek(date) {
+  const days = [
+    "Domingo",
+    "Segunda",
+    "Terça",
+    "Quarta",
+    "Quinta",
+    "Sexta",
+    "Sábado",
+  ];
+  return days[date.getDay()];
+}
 
 function getTurnFromTime(currentTime) {
   const [hours, minutes, seconds] = currentTime
@@ -53,6 +66,24 @@ function getTurnFromTime(currentTime) {
   }
 
   return null;
+}
+
+function haversineDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
 }
 
 export const registerAttendanceByTurn = async (req, res) => {
@@ -99,7 +130,29 @@ export const registerAttendanceByTurn = async (req, res) => {
     if (!turno) {
       return res.status(400).json({
         error:
-          "O horário atual não permite registrar frequência. Tente novamente dentro do período da sua aula.",
+          "O horário atual não permite registrar frequência. Tente novamente dentro do período de algum turno (MATUTINO, VESPERTINO ou NOTURNO).",
+      });
+    }
+
+    // Validação para o fim do turno com uma tolerância de 10 minutos
+    const turnEndTime = turnIntervals[turno].end;
+    const [endHours, endMinutes, endSeconds] = turnEndTime
+      .split(":")
+      .map(Number);
+    const turnEndMoment = new Date(
+      `${currentDate}T${String(endHours).padStart(2, "0")}:${String(
+        endMinutes
+      ).padStart(2, "0")}:${String(endSeconds).padStart(2, "0")}-03:00`
+    );
+
+    const toleranceMinutes = 10;
+    const turnEndWithTolerance = new Date(
+      turnEndMoment.getTime() + toleranceMinutes * 60000
+    );
+
+    if (currentTime > turnEndWithTolerance) {
+      return res.status(403).json({
+        error: `Não é possível registrar frequência. O tempo para o turno ${turno} já se esgotou.`,
       });
     }
 
@@ -110,7 +163,7 @@ export const registerAttendanceByTurn = async (req, res) => {
       });
     }
 
-    let dayOfWeek = currentDateTime.toDayOfWeek();
+    let dayOfWeek = getDayOfWeek(currentDateTime);
     const schoolSaturday = await db.SchoolSaturday.findOne({
       where: { date: currentDate },
       include: [
@@ -187,15 +240,6 @@ export const registerAttendanceByTurn = async (req, res) => {
 
     const registrations = [];
     for (const detail of details) {
-      const hourEnd = new Date(`${currentDate}T${detail.hour.hourEnd}-03:00`);
-      const isAfterClass = currentTime > hourEnd;
-
-      if (isAfterClass) {
-        return res.status(403).json({
-          error: "Não é possível registrar frequência após o término da aula.",
-        });
-      }
-
       const [attendance, created] = await db.Attendance.upsert({
         classScheduleDetailId: detail.id,
         date: currentDate,
@@ -228,37 +272,6 @@ export const registerAttendanceByTurn = async (req, res) => {
       .json({ error: "Erro interno do servidor.", details: error.message });
   }
 };
-
-Date.prototype.toDayOfWeek = function () {
-  const days = [
-    "Domingo",
-    "Segunda",
-    "Terça",
-    "Quarta",
-    "Quinta",
-    "Sexta",
-    "Sábado",
-  ];
-  return days[this.getDay()];
-};
-
-function haversineDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c;
-}
 
 export const getAttendanceByTurn = async (req, res) => {
   const { turno, date, attended } = req.query;

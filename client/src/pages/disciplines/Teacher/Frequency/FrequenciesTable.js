@@ -20,7 +20,7 @@ import PropTypes from "prop-types";
 const FrequenciesTable = ({ frequencies, search, isFiltered, setAlert }) => {
   const navigate = useNavigate();
 
-  const formattedFrequencies = frequencies; 
+  const formattedFrequencies = frequencies;
 
   const handleJustify = (item) => {
     if (item.status === "Falta") {

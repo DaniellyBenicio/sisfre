@@ -48,13 +48,14 @@ const FrequencyList = () => {
   const fetchFrequencies = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/register-by-turn", {
-        params: {
-          turno: filterStatus !== "all" ? turno : undefined,
-          attended: filterStatus === "Presença" ? true : filterStatus === "Falta" ? false : undefined,
-          date: filterPeriod === "custom" && customStartDate && customEndDate ? customStartDate : undefined,
-        },
-      });
+      const params = {
+        turno: turno || undefined,
+        attended: filterStatus === "Presença" ? true : filterStatus === "Falta" ? false : undefined,
+        date: filterPeriod === "custom" && customStartDate ? customStartDate : undefined,
+      };
+      console.log("Parâmetros enviados para GET /register-by-turn:", params);
+      const response = await api.get("/register-by-turn", { params });
+      console.log("Resposta do backend (GET /register-by-turn):", response.data);
       const formattedData = Array.isArray(response.data.attendances)
         ? response.data.attendances.map((freq) => ({
             id: freq.attendance.id,
@@ -62,7 +63,7 @@ const FrequencyList = () => {
             displayDate: freq.attendance.date
               ? new Date(freq.attendance.date + "T00:00:00").toLocaleDateString("pt-BR")
               : "N/A",
-            class: freq.class || "N/A",
+            class: `${freq.course_acronym || "N/A"} - ${freq.class || "N/A"}`,
             discipline: freq.discipline || "N/A",
             time: freq.hour || "N/A",
             status: freq.attendance.attended ? "Presença" : "Falta",
@@ -72,9 +73,13 @@ const FrequencyList = () => {
           .sort((a, b) => a.class.toLowerCase().localeCompare(b.class.toLowerCase()))
         : [];
       setFrequencies(formattedData);
+      console.log("Frequências formatadas:", formattedData);
     } catch (error) {
       console.error("Erro ao buscar frequências:", error);
-      setAlert({ message: error.response?.data?.error || "Erro ao carregar frequências.", type: "error" });
+      setAlert({
+        message: error.response?.data?.error || "Erro ao carregar frequências.",
+        type: "error",
+      });
       setFrequencies([]);
     } finally {
       setLoading(false);
@@ -82,6 +87,7 @@ const FrequencyList = () => {
   };
 
   useEffect(() => {
+    console.log("Estado turno atual:", turno);
     fetchFrequencies();
   }, [filterStatus, filterPeriod, customStartDate, customEndDate, turno]);
 
@@ -137,10 +143,28 @@ const FrequencyList = () => {
     }
 
     try {
-      const position = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject);
-      });
-      const { latitude, longitude } = position.coords;
+      const currentDate = new Date().toISOString().split("T")[0];
+      console.log("Data atual do sistema:", currentDate);
+      let latitude = -6.603;
+      let longitude = -39.059;
+      try {
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0,
+          });
+        });
+        latitude = position.coords.latitude;
+        longitude = position.coords.longitude;
+      } catch (geoError) {
+        console.warn("Geolocalização falhou, usando coordenadas fixas para teste:", geoError);
+        setAlert({
+          message: "Usando coordenadas fixas para teste devido a falha na geolocalização.",
+          type: "warning",
+        });
+      }
+      console.log("Geolocalização usada:", { latitude, longitude });
 
       setLoading(true);
       const response = await api.post("/register-by-turn", {
@@ -148,17 +172,28 @@ const FrequencyList = () => {
         latitude,
         longitude,
       });
-      setAlert({ message: response.data.message || "Frequência registrada com sucesso!", type: "success" });
+      console.log("Resposta do backend (POST /register-by-turn):", response.data);
+      setAlert({
+        message: response.data.message || "Frequência registrada com sucesso!",
+        type: "success",
+      });
       fetchFrequencies();
     } catch (error) {
       console.error("Erro ao registrar frequência:", error);
-      setAlert({
-        message: error.response?.data?.error || "Erro ao registrar frequência.",
-        type: "error",
-      });
+      let errorMessage = "Erro ao registrar frequência.";
+      if (error.code === error.PERMISSION_DENIED) {
+        errorMessage = "Permissão de geolocalização negada. Ative a geolocalização no navegador.";
+      } else if (error.code === error.POSITION_UNAVAILABLE) {
+        errorMessage = "Não foi possível obter a localização. Verifique sua conexão ou configurações.";
+      } else if (error.code === error.TIMEOUT) {
+        errorMessage = "Tempo esgotado ao obter a localização. Tente novamente.";
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      }
+      setAlert({ message: errorMessage, type: "error" });
     } finally {
       setLoading(false);
-      setTurno(""); // Limpar o turno após o registro
+      setTurno("");
     }
   };
 
@@ -313,7 +348,10 @@ const FrequencyList = () => {
               id="filter-status"
               value={filterStatus}
               label="Status"
-              onChange={(e) => setFilterStatus(e.target.value)}
+              onChange={(e) => {
+                console.log("Status selecionado:", e.target.value);
+                setFilterStatus(e.target.value);
+              }}
               sx={commonSelectSx}
               MenuProps={commonMenuProps}
             >
@@ -330,10 +368,13 @@ const FrequencyList = () => {
               id="filter-period"
               value={filterPeriod}
               label="Período"
-              onChange={(e) => setFilterPeriod(e.target.value)}
+              onChange={(e) => {
+                console.log("Período selecionado:", e.target.value);
+                setFilterPeriod(e.target.value);
+              }}
               sx={commonSelectSx}
               MenuProps={commonMenuProps}
-    >
+            >
               <MenuItem value="all">Todas</MenuItem>
               <MenuItem value="yesterday">Dia Anterior</MenuItem>
               <MenuItem value="lastWeek">Última Semana</MenuItem>
@@ -349,7 +390,10 @@ const FrequencyList = () => {
                 type="date"
                 InputLabelProps={{ shrink: true }}
                 value={customStartDate}
-                onChange={(e) => setCustomStartDate(e.target.value)}
+                onChange={(e) => {
+                  console.log("Data inicial selecionada:", e.target.value);
+                  setCustomStartDate(e.target.value);
+                }}
                 sx={commonDateInputSx}
               />
               <TextField
@@ -357,7 +401,10 @@ const FrequencyList = () => {
                 type="date"
                 InputLabelProps={{ shrink: true }}
                 value={customEndDate}
-                onChange={(e) => setCustomEndDate(e.target.value)}
+                onChange={(e) => {
+                  console.log("Data final selecionada:", e.target.value);
+                  setCustomEndDate(e.target.value);
+                }}
                 sx={commonDateInputSx}
               />
             </Stack>
@@ -370,7 +417,10 @@ const FrequencyList = () => {
               id="turno"
               value={turno}
               label="Turno"
-              onChange={(e) => setTurno(e.target.value)}
+              onChange={(e) => {
+                console.log("Turno selecionado:", e.target.value);
+                setTurno(e.target.value);
+              }}
               sx={commonSelectSx}
               MenuProps={commonMenuProps}
             >

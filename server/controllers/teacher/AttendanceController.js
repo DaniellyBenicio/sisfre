@@ -98,9 +98,8 @@ export const registerAttendanceByTurn = async (req, res) => {
     const turno = getTurnFromTime(currentTime);
     if (!turno) {
       return res.status(400).json({
-        error: `O horário atual (${currentTime.toLocaleTimeString("pt-BR", {
-          hour12: false,
-        })}) não corresponde a nenhum turno válido (MATUTINO, VESPERTINO ou NOTURNO).`,
+        error:
+          "O horário atual não permite registrar frequência. Tente novamente dentro do período da sua aula.",
       });
     }
 

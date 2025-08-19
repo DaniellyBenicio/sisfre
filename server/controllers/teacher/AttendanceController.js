@@ -86,7 +86,6 @@ export const registerAttendanceByTurn = async (req, res) => {
         .json({ error: "Latitude e longitude são obrigatórias." });
     }
 
-    // Usando a função isInCampus para verificar a geolocalização
     const coords = { latitude, longitude };
     if (!isInCampus(coords)) {
       return res

@@ -95,7 +95,8 @@ export const getAbsencesByDiscipline = async (req, res) => {
       const course = attendance.detail.schedule.course;
       const discipline = attendance.detail.discipline;
       const turn = attendance.detail.turn;
-      const key = `${course.id}-${discipline.id}-${turn}`;
+      const semester = attendance.detail.schedule.class.semester;
+      const key = `${course.id}-${discipline.id}-${turn}-${semester}`;
       if (!absencesMap.has(key)) {
         absencesMap.set(key, {
           discipline: discipline.name,
@@ -103,6 +104,7 @@ export const getAbsencesByDiscipline = async (req, res) => {
           course_name: course.name,
           course_acronym: course.acronym,
           turn: turn,
+          semester: semester,
           count: 0,
         });
       }

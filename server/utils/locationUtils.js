@@ -6,11 +6,27 @@ const CAMPUS_COORDS = {
 };
 const MAX_DIST = 2000; // metros
 
-// Campus -6.600767156023205, -39.05512157768739
-// my house -6.353131736454447, -39.2963145500635     -6.60352750792448, -39.060096172282485
-//Danielly = -6.753737859947655, -38.96898803330336;
-
 export const isInCampus = (coords) => {
-  const distance = haversine(CAMPUS_COORDS, coords);
-  return distance <= MAX_DIST;
+  console.log("Entrando na função isInCampus com coords:", coords);
+  
+  // Garantir que as coordenadas sejam números
+  const lat = parseFloat(coords.latitude);
+  const lon = parseFloat(coords.longitude);
+  
+  if (isNaN(lat) || isNaN(lon)) {
+    console.error("Erro: Coordenadas inválidas (não são números).", { lat, lon });
+    throw new Error("Latitude e longitude devem ser números válidos.");
+  }
+
+  const coordsToCompare = { latitude: lat, longitude: lon };
+  console.log("Coordenadas após parse:", coordsToCompare);
+  console.log("Coordenadas do campus:", CAMPUS_COORDS);
+
+  const distance = haversine(CAMPUS_COORDS, coordsToCompare);
+  console.log("Distância calculada:", distance, "metros");
+
+  const isWithinCampus = distance <= MAX_DIST;
+  console.log("Está no campus?", isWithinCampus);
+
+  return isWithinCampus;
 };

@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import db from "../../models/index.js";
-import haversine from "haversine-distance";
+import { isInCampus } from "../../utils/locationUtils.js";
 
 const dayOfWeekMap = {
   segunda: "Segunda",
@@ -86,14 +86,9 @@ export const registerAttendanceByTurn = async (req, res) => {
         .json({ error: "Latitude e longitude são obrigatórias." });
     }
 
-    const CAMPUS_COORDS = {
-      latitude: -6.600636043056981,
-      longitude: -39.05515249097756,
-    };
-    const MAX_DIST_METERS = 500;
-    const distance = haversine(CAMPUS_COORDS, { latitude, longitude });
-
-    if (distance > MAX_DIST_METERS) {
+    // Usando a função isInCampus para verificar a geolocalização
+    const coords = { latitude, longitude };
+    if (!isInCampus(coords)) {
       return res
         .status(403)
         .json({ error: "Você não está no campus IFCE Cedro." });

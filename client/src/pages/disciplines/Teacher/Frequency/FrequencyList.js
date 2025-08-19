@@ -54,16 +54,21 @@ const FrequencyList = () => {
             : filterStatus === "Falta"
             ? false
             : undefined,
-        date:
+        startDate:
           filterPeriod === "custom" && customStartDate
             ? customStartDate
             : undefined,
+        endDate:
+          filterPeriod === "custom" && customEndDate
+            ? customEndDate
+            : undefined,
       };
-
-      // A CORREÇÃO ESTÁ AQUI: a rota no backend para GET é a mesma da de POST.
-      // E você precisa passar os parâmetros de filtro corretamente.
+      console.log("Parâmetros enviados para GET /register-by-turn:", params);
       const response = await api.get("/register-by-turn", { params });
-
+      console.log(
+        "Resposta do backend (GET /register-by-turn):",
+        response.data
+      );
       const formattedData = Array.isArray(response.data.attendances)
         ? response.data.attendances
             .map((freq) => ({
@@ -86,6 +91,7 @@ const FrequencyList = () => {
             )
         : [];
       setFrequencies(formattedData);
+      console.log("Frequências formatadas:", formattedData);
     } catch (error) {
       console.error("Erro ao buscar frequências:", error);
       setAlert({
@@ -143,6 +149,7 @@ const FrequencyList = () => {
           return true;
       }
     });
+
     return filtered;
   };
 
@@ -150,32 +157,31 @@ const FrequencyList = () => {
     try {
       setLoading(true);
 
-      let latitude = null;
-      let longitude = null;
-      try {
-        const position = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true,
-            timeout: 20000,
-            maximumAge: 0,
-          });
+      // Obter geolocalização
+      const position = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 20000,
+          maximumAge: 0,
         });
-        latitude = position.coords.latitude;
-        longitude = position.coords.longitude;
-      } catch (geoError) {
-        setAlert({
-          message:
-            "Permissão de geolocalização negada. Ative a geolocalização no navegador.",
-          type: "error",
-        });
-        setLoading(false);
-        return;
-      }
+      });
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
+      console.log("Geolocalização obtida:", { latitude, longitude });
 
+      // Registrar frequência
+      console.log("Chamando POST /register-by-turn com:", {
+        latitude,
+        longitude,
+      });
       const response = await api.post("/register-by-turn", {
         latitude,
         longitude,
       });
+      console.log(
+        "Resposta do backend (POST /register-by-turn):",
+        response.data
+      );
       setAlert({
         message: response.data.message || "Frequência registrada com sucesso!",
         type: "success",
@@ -189,13 +195,26 @@ const FrequencyList = () => {
       } else if (error.response?.status === 403) {
         errorMessage =
           error.response.data.error || "Você precisa estar no campus.";
+      } else if (error.response?.status === 400) {
+        errorMessage =
+          error.response.data.error || "Dados inválidos fornecidos.";
       } else if (error.response?.status === 404) {
         errorMessage =
-          error.response.data.error || "Rota não encontrada. Verifique o URL.";
+          error.response.data.error ||
+          "Nenhuma aula encontrada para o turno atual.";
+      } else if (error.code === "ERR_NETWORK") {
+        errorMessage = "Erro de rede. Verifique sua conexão e tente novamente.";
+      } else if (error.code === "PERMISSION_DENIED") {
+        errorMessage =
+          "Permissão de geolocalização negada. Ative a geolocalização no navegador.";
+      } else if (error.code === "POSITION_UNAVAILABLE") {
+        errorMessage =
+          "Não foi possível obter a localização. Verifique sua conexão ou configurações.";
+      } else if (error.code === "TIMEOUT") {
+        errorMessage =
+          "Tempo esgotado ao obter a localização. Tente novamente.";
       } else if (error.response?.data?.error) {
         errorMessage = error.response.data.error;
-      } else {
-        errorMessage = error.message || "Erro ao registrar frequência.";
       }
       setAlert({ message: errorMessage, type: "error" });
     } finally {
@@ -355,6 +374,7 @@ const FrequencyList = () => {
               value={filterStatus}
               label="Status"
               onChange={(e) => {
+                console.log("Status selecionado:", e.target.value);
                 setFilterStatus(e.target.value);
               }}
               sx={commonSelectSx}
@@ -374,6 +394,7 @@ const FrequencyList = () => {
               value={filterPeriod}
               label="Período"
               onChange={(e) => {
+                console.log("Período selecionado:", e.target.value);
                 setFilterPeriod(e.target.value);
               }}
               sx={commonSelectSx}
@@ -395,6 +416,7 @@ const FrequencyList = () => {
                 InputLabelProps={{ shrink: true }}
                 value={customStartDate}
                 onChange={(e) => {
+                  console.log("Data inicial selecionada:", e.target.value);
                   setCustomStartDate(e.target.value);
                 }}
                 sx={commonDateInputSx}
@@ -405,6 +427,7 @@ const FrequencyList = () => {
                 InputLabelProps={{ shrink: true }}
                 value={customEndDate}
                 onChange={(e) => {
+                  console.log("Data final selecionada:", e.target.value);
                   setCustomEndDate(e.target.value);
                 }}
                 sx={commonDateInputSx}

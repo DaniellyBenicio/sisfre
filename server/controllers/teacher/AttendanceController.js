@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
 import db from "../../models/index.js";
+import haversine from "haversine-distance";
 
 const dayOfWeekMap = {
   segunda: "Segunda",
@@ -48,15 +49,6 @@ function getTurnFromTime(currentTime) {
       parseInt(endMinutes) * 60 +
       parseInt(endSeconds);
 
-    console.log(
-      `Validando horário: ${currentTime.toLocaleTimeString(
-        "pt-BR"
-      )} para turno ${turn} (${interval.start} - ${interval.end})`
-    );
-    console.log(
-      `totalCurrentSeconds: ${totalCurrentSeconds}, totalStartSeconds: ${totalStartSeconds}, totalEndSeconds: ${totalEndSeconds}`
-    );
-
     if (
       totalCurrentSeconds >= totalStartSeconds &&
       totalCurrentSeconds <= totalEndSeconds
@@ -66,24 +58,6 @@ function getTurnFromTime(currentTime) {
   }
 
   return null;
-}
-
-function haversineDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c;
 }
 
 export const registerAttendanceByTurn = async (req, res) => {
@@ -111,16 +85,15 @@ export const registerAttendanceByTurn = async (req, res) => {
         .status(400)
         .json({ error: "Latitude e longitude são obrigatórias." });
     }
-    const campusLat = -6.600636043056981;
-    const campusLng = -39.05515249097756;
-    const radius = 0.5;
-    const distance = haversineDistance(
-      latitude,
-      longitude,
-      campusLat,
-      campusLng
-    );
-    if (distance > radius) {
+
+    const CAMPUS_COORDS = {
+      latitude: -6.600636043056981,
+      longitude: -39.05515249097756,
+    };
+    const MAX_DIST_METERS = 500;
+    const distance = haversine(CAMPUS_COORDS, { latitude, longitude });
+
+    if (distance > MAX_DIST_METERS) {
       return res
         .status(403)
         .json({ error: "Você não está no campus IFCE Cedro." });
@@ -134,7 +107,6 @@ export const registerAttendanceByTurn = async (req, res) => {
       });
     }
 
-    // Validação para o fim do turno com uma tolerância de 10 minutos
     const turnEndTime = turnIntervals[turno].end;
     const [endHours, endMinutes, endSeconds] = turnEndTime
       .split(":")

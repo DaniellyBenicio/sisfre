@@ -9,11 +9,61 @@ const dayOfWeekMap = {
   sexta: "Sexta",
 };
 
+const turnIntervals = {
+  MATUTINO: { start: "07:00:00", end: "11:59:59" },
+  VESPERTINO: { start: "12:59:59", end: "17:39:59" },
+  NOTURNO: { start: "18:20:00", end: "23:59:59" },
+};
+
+function getTurnFromTime(currentTime) {
+  const [hours, minutes, seconds] = currentTime
+    .toTimeString()
+    .split(" ")[0]
+    .split(":");
+  const totalCurrentSeconds =
+    parseInt(hours) * 3600 + parseInt(minutes) * 60 + parseInt(seconds);
+
+  for (const [turn, interval] of Object.entries(turnIntervals)) {
+    const [startHours, startMinutes, startSeconds] = interval.start.split(":");
+    const [endHours, endMinutes, endSeconds] = interval.end.split(":");
+    const totalStartSeconds =
+      parseInt(startHours) * 3600 +
+      parseInt(startMinutes) * 60 +
+      parseInt(startSeconds);
+    const totalEndSeconds =
+      parseInt(endHours) * 3600 +
+      parseInt(endMinutes) * 60 +
+      parseInt(endSeconds);
+
+    console.log(
+      `Validando horário: ${currentTime.toLocaleTimeString(
+        "pt-BR"
+      )} para turno ${turn} (${interval.start} - ${interval.end})`
+    );
+    console.log(
+      `totalCurrentSeconds: ${totalCurrentSeconds}, totalStartSeconds: ${totalStartSeconds}, totalEndSeconds: ${totalEndSeconds}`
+    );
+
+    if (
+      totalCurrentSeconds >= totalStartSeconds &&
+      totalCurrentSeconds <= totalEndSeconds
+    ) {
+      return turn;
+    }
+  }
+
+  return null;
+}
+
 export const registerAttendanceByTurn = async (req, res) => {
-  const { turno, latitude, longitude } = req.body;
+  const { latitude, longitude } = req.body;
   const loggedUserId = req.user?.id;
-  const currentDate = new Date().toISOString().split("T")[0];
-  const currentTime = new Date(); // Hora atual: 21:40 -03 em 16/08/2025
+
+  const currentDateTime = new Date(
+    new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })
+  );
+  const currentDate = currentDateTime.toISOString().split("T")[0];
+  const currentTime = currentDateTime;
 
   try {
     if (!loggedUserId) {
@@ -30,8 +80,8 @@ export const registerAttendanceByTurn = async (req, res) => {
         .status(400)
         .json({ error: "Latitude e longitude são obrigatórias." });
     }
-    const campusLat = -6.603;
-    const campusLng = -39.059;
+    const campusLat = -6.600636043056981;
+    const campusLng = -39.05515249097756;
     const radius = 0.5;
     const distance = haversineDistance(
       latitude,
@@ -45,10 +95,11 @@ export const registerAttendanceByTurn = async (req, res) => {
         .json({ error: "Você não está no campus IFCE Cedro." });
     }
 
-    const validTurns = ["MATUTINO", "VESPERTINO", "NOTURNO"];
-    if (!validTurns.includes(turno.toUpperCase())) {
+    const turno = getTurnFromTime(currentTime);
+    if (!turno) {
       return res.status(400).json({
-        error: "Turno inválido. Use MATUTINO, VESPERTINO ou NOTURNO.",
+        error:
+          "O horário atual não permite registrar frequência. Tente novamente dentro do período da sua aula.",
       });
     }
 
@@ -59,7 +110,7 @@ export const registerAttendanceByTurn = async (req, res) => {
       });
     }
 
-    let dayOfWeek = new Date(currentDate).toDayOfWeek();
+    let dayOfWeek = currentDateTime.toDayOfWeek();
     const schoolSaturday = await db.SchoolSaturday.findOne({
       where: { date: currentDate },
       include: [
@@ -94,7 +145,7 @@ export const registerAttendanceByTurn = async (req, res) => {
     const whereClause = {
       userId: loggedUserId,
       dayOfWeek,
-      turn: turno.toUpperCase(),
+      turn: turno,
     };
 
     const details = await db.ClassScheduleDetail.findAll({
@@ -128,29 +179,29 @@ export const registerAttendanceByTurn = async (req, res) => {
       },
     });
 
+    if (existingAttendances === details.length) {
+      return res.status(200).json({
+        message: `Frequência já registrada para o turno ${turno} hoje.`,
+      });
+    }
+
     const registrations = [];
     for (const detail of details) {
-      const hourStart = new Date(
-        `${currentDate}T${detail.hour.hourStart}-03:00`
-      );
       const hourEnd = new Date(`${currentDate}T${detail.hour.hourEnd}-03:00`);
-      const isAfterClass = currentTime > hourEnd; // Verifica se o horário atual passou o fim da aula
+      const isAfterClass = currentTime > hourEnd;
 
-      let attended = true; // Presença padrão se a requisição for feita
-      let notes = "Registrado automaticamente por turno via geolocalização.";
-
-      // Se o horário da aula já passou e não há registro, registrar falta
-      if (isAfterClass && !existingAttendances) {
-        attended = false;
-        notes = "Falta registrada automaticamente por ausência de registro.";
+      if (isAfterClass) {
+        return res.status(403).json({
+          error: "Não é possível registrar frequência após o término da aula.",
+        });
       }
 
       const [attendance, created] = await db.Attendance.upsert({
         classScheduleDetailId: detail.id,
         date: currentDate,
-        attended,
+        attended: true,
         reason: null,
-        notes,
+        notes: "Registrado automaticamente por turno via geolocalização.",
         registeredBy: loggedUserId,
         latitude,
         longitude,
@@ -166,13 +217,8 @@ export const registerAttendanceByTurn = async (req, res) => {
       });
     }
 
-    const message =
-      existingAttendances === details.length
-        ? `Frequência já registrada para o turno ${turno} hoje.`
-        : `Frequência registrada com sucesso para ${details.length} aulas no turno ${turno}!`;
-
     return res.status(200).json({
-      message,
+      message: `Frequência registrada com sucesso para ${details.length} aulas no turno ${turno}!`,
       registrations,
     });
   } catch (error) {
@@ -197,13 +243,11 @@ Date.prototype.toDayOfWeek = function () {
 };
 
 function haversineDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371; // Raio da Terra em km
+  const R = 6371;
 
-  // Diferença das coordenadas em radianos
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
 
-  // Fórmula de Haversine
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos((lat1 * Math.PI) / 180) *
@@ -219,10 +263,12 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
 export const getAttendanceByTurn = async (req, res) => {
   const { turno, date, attended } = req.query;
   const loggedUserId = req.user?.id;
-  const currentDate = new Date().toISOString().split("T")[0]; // 2025-08-16
+  const currentDateTime = new Date(
+    new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })
+  );
+  const currentDate = currentDateTime.toISOString().split("T")[0];
 
   try {
-    // Validar autenticação e tipo de usuário
     if (!loggedUserId) {
       return res.status(401).json({ error: "Usuário não autenticado." });
     }
@@ -232,7 +278,6 @@ export const getAttendanceByTurn = async (req, res) => {
       });
     }
 
-    // Validar turno, se fornecido
     const validTurns = ["MATUTINO", "VESPERTINO", "NOTURNO"];
     if (turno && !validTurns.includes(turno.toUpperCase())) {
       return res.status(400).json({
@@ -240,7 +285,6 @@ export const getAttendanceByTurn = async (req, res) => {
       });
     }
 
-    // Validar attended, se fornecido
     const validAttended = [true, false, "true", "false"];
     const attendedValue = attended
       ? ["true", "false"].includes(attended)
@@ -257,10 +301,8 @@ export const getAttendanceByTurn = async (req, res) => {
       });
     }
 
-    // Determinar data de filtro
     const filterDate = date || currentDate;
 
-    // Encontrar calendário ativo para a data
     const calendar = await db.Calendar.findOne({
       where: {
         startDate: { [Op.lte]: filterDate },
@@ -273,7 +315,6 @@ export const getAttendanceByTurn = async (req, res) => {
         .json({ error: "Nenhum calendário ativo encontrado para a data." });
     }
 
-    // Buscar todas as frequências registradas pelo professor com filtros
     const attendances = await db.Attendance.findAll({
       where: {
         registeredBy: loggedUserId,
@@ -308,7 +349,6 @@ export const getAttendanceByTurn = async (req, res) => {
         .json({ error: "Nenhuma frequência encontrada para o professor." });
     }
 
-    // Formatando a resposta para o front-end
     const formattedAttendances = attendances.map((attendance) => ({
       attendance: {
         id: attendance.id,

@@ -111,11 +111,13 @@ const MyAbsences = () => {
       const groupedAbsences = (Array.isArray(response.data.attendances) ? response.data.attendances : [])
         .filter((freq) => !freq.attendance.attended)
         .reduce((acc, freq) => {
-          const key = `${freq.courseId}-${freq.disciplineId}`;
+          // Usamos 'freq.course_acronym' para agrupar por turma, se for o campo correto
+          const key = `${freq.course_acronym}-${freq.disciplineId}`;
           if (!acc[key]) {
             acc[key] = {
               id: key,
               course: freq.course_acronym,
+              class: freq.course_acronym, // Usando course_acronym como turma
               discipline: freq.discipline,
               count: 0,
               dates: [],
@@ -140,11 +142,9 @@ const MyAbsences = () => {
   const fetchCoursesAndDisciplines = async () => {
     try {
       const coursesResponse = await api.get("/courses");
-      // Correção: Garanta que a resposta é um array antes de atualizar o estado
       setCourses(Array.isArray(coursesResponse.data) ? coursesResponse.data : []);
 
       const disciplinesResponse = await api.get("/disciplines");
-      // Correção: Garanta que a resposta é um array antes de atualizar o estado
       setDisciplines(Array.isArray(disciplinesResponse.data) ? disciplinesResponse.data : []);
     } catch (error) {
       console.error("Erro ao buscar cursos e disciplinas:", error);
@@ -199,14 +199,13 @@ const MyAbsences = () => {
             MenuProps={commonMenuProps}
           >
             <MenuItem value="all">Todos os Cursos</MenuItem>
-            {/* O erro ocorre aqui. A verificação if-else é a solução mais segura. */}
             {Array.isArray(courses) && courses.length > 0 ? (
-                courses.map((course) => (
-                  <MenuItem key={course.id} value={course.id}>
-                    {course.acronym}
-                  </MenuItem>
-                ))
-              ) : null}
+              courses.map((course) => (
+                <MenuItem key={course.id} value={course.id}>
+                  {course.acronym}
+                </MenuItem>
+              ))
+            ) : null}
           </StyledSelect>
         </FormControl>
 
@@ -222,14 +221,13 @@ const MyAbsences = () => {
             MenuProps={commonMenuProps}
           >
             <MenuItem value="all">Todas as Disciplinas</MenuItem>
-            {/* O erro ocorre aqui. A verificação if-else é a solução mais segura. */}
             {Array.isArray(disciplines) && disciplines.length > 0 ? (
-                disciplines.map((discipline) => (
-                  <MenuItem key={discipline.id} value={discipline.id}>
-                    {discipline.name}
-                  </MenuItem>
-                ))
-              ) : null}
+              disciplines.map((discipline) => (
+                <MenuItem key={discipline.id} value={discipline.id}>
+                  {discipline.name}
+                </MenuItem>
+              ))
+            ) : null}
           </StyledSelect>
         </FormControl>
       </Stack>
@@ -237,9 +235,9 @@ const MyAbsences = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell align="center" sx={tableHeadStyle}>Data(s)</TableCell>
               <TableCell align="center" sx={tableHeadStyle}>Curso</TableCell>
               <TableCell align="center" sx={tableHeadStyle}>Disciplina</TableCell>
+              <TableCell align="center" sx={tableHeadStyle}>Turma</TableCell> {/* Nova coluna */}
               <TableCell align="center" sx={tableHeadStyle}>Quantidade de Faltas</TableCell>
             </TableRow>
           </TableHead>
@@ -247,9 +245,9 @@ const MyAbsences = () => {
             {absences.length > 0 ? (
               absences.map((absence) => (
                 <TableRow key={absence.id}>
-                  <TableCell align="center" sx={tableBodyCellStyle}>{absence.dates.join(', ')}</TableCell>
                   <TableCell align="center" sx={tableBodyCellStyle}>{absence.course}</TableCell>
                   <TableCell align="center" sx={tableBodyCellStyle}>{absence.discipline}</TableCell>
+                  <TableCell align="center" sx={tableBodyCellStyle}>{absence.class}</TableCell> {/* Nova célula */}
                   <TableCell align="center" sx={tableBodyCellStyle}>{absence.count}</TableCell>
                 </TableRow>
               ))

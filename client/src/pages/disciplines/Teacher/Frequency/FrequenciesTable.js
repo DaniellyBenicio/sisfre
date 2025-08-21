@@ -33,11 +33,10 @@ const FrequenciesTable = ({ frequencies, search, isFiltered, setAlert }) => {
     }
   };
 
+  // Alteração: Remover os campos "Disciplina" e "Horário"
   const headers = [
     { key: "displayDate", label: "Data" },
-    { key: "class", label: "Turma" },
-    { key: "discipline", label: "Disciplina" },
-    { key: "time", label: "Horário" },
+    { key: "class", label: "Turno" }, // Renomeado de "class" para "Turno"
     { key: "status", label: "Status" },
   ];
 

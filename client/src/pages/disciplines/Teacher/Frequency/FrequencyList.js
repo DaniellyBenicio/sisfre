@@ -11,12 +11,15 @@ import {
   Pagination,
   IconButton,
   TextField,
+  Tabs,
+  Tab,
 } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 import { CustomAlert } from "../../../../components/alert/CustomAlert";
 import { StyledSelect } from "../../../../components/inputs/Input";
 import FrequenciesTable from "./FrequenciesTable";
+import MyAbsences from "./MyAbsences";
 import api from "../../../../service/api";
 
 const INSTITUTIONAL_COLOR = "#307c34";
@@ -28,6 +31,38 @@ const StyledButton = styled(Button)(() => ({
   "&:hover": { backgroundColor: "#26692b" },
 }));
 
+// Estilos para as abas
+const StyledTabs = styled(Tabs)({
+  borderBottom: "1px solid #e8e8e8",
+  "& .MuiTabs-indicator": {
+    backgroundColor: INSTITUTIONAL_COLOR,
+  },
+  justifyContent: "center", // Centraliza as abas
+});
+
+const StyledTab = styled((props) => <Tab disableRipple {...props} />)(
+  ({ theme }) => ({
+    textTransform: "none",
+    minWidth: 0,
+    [theme.breakpoints.up("sm")]: {
+      minWidth: 0,
+    },
+    fontWeight: theme.typography.fontWeightMedium,
+    marginRight: theme.spacing(1),
+    color: "rgba(0, 0, 0, 0.85)",
+    "&:hover": {
+      color: INSTITUTIONAL_COLOR,
+      opacity: 1,
+    },
+    "&.Mui-selected": {
+      color: INSTITUTIONAL_COLOR,
+    },
+    "&.Mui-focusVisible": {
+      backgroundColor: "#d5ffdb",
+    },
+  })
+);
+
 const FrequencyList = () => {
   const [frequencies, setFrequencies] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -37,11 +72,16 @@ const FrequencyList = () => {
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
   const [page, setPage] = useState(1);
+  const [tabIndex, setTabIndex] = useState(0);
   const rowsPerPage = 7;
   const navigate = useNavigate();
 
   const handleAlertClose = () => {
     setAlert(null);
+  };
+
+  const handleChangeTab = (event, newValue) => {
+    setTabIndex(newValue);
   };
 
   const fetchFrequencies = async () => {
@@ -79,7 +119,9 @@ const FrequencyList = () => {
                     freq.attendance.date + "T00:00:00"
                   ).toLocaleDateString("pt-BR")
                 : "N/A",
-              class: `${freq.course_acronym || "N/A"} - ${freq.class || "N/A"}`,
+              class: `${freq.course_acronym || "N/A"} - ${
+                freq.class || "N/A"
+              }`,
               discipline: freq.discipline || "N/A",
               time: freq.hour || "N/A",
               status: freq.attendance.attended ? "Presença" : "Falta",
@@ -157,7 +199,6 @@ const FrequencyList = () => {
     try {
       setLoading(true);
 
-      // Obter geolocalização
       const position = await new Promise((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
           enableHighAccuracy: true,
@@ -169,7 +210,6 @@ const FrequencyList = () => {
       const longitude = position.coords.longitude;
       console.log("Geolocalização obtida:", { latitude, longitude });
 
-      // Registrar frequência
       console.log("Chamando POST /register-by-turn com:", {
         latitude,
         longitude,
@@ -328,7 +368,7 @@ const FrequencyList = () => {
         sx={{
           display: "flex",
           alignItems: "center",
-          justifyContent: "center",
+          justifyContent: "space-between",
           position: "relative",
           mb: 3,
         }}
@@ -336,146 +376,157 @@ const FrequencyList = () => {
         <IconButton
           onClick={() => navigate("/dashboard")}
           sx={{
-            position: "absolute",
-            left: 0,
             color: INSTITUTIONAL_COLOR,
             "&:hover": { backgroundColor: "transparent" },
           }}
         >
           <ArrowBack sx={{ fontSize: 35 }} />
         </IconButton>
-        <Typography
-          variant="h5"
-          align="center"
-          gutterBottom
-          sx={{ fontWeight: "bold", flexGrow: 1 }}
+        <StyledTabs
+          value={tabIndex}
+          onChange={handleChangeTab}
+          aria-label="frequencia tabs"
         >
-          Frequências
-        </Typography>
+          <StyledTab label="Frequências" />
+          <StyledTab label="Minhas Faltas" />
+        </StyledTabs>
+        <Box sx={{ width: 35 }} />
       </Box>
 
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        spacing={2}
-        justifyContent="space-between"
-        alignItems={{ xs: "stretch", sm: "center" }}
-        sx={{ mb: 2 }}
-      >
-        <Stack
-          direction={{ xs: "column", md: "row" }}
-          spacing={2}
-          alignItems={{ xs: "stretch", md: "center" }}
-        >
-          <FormControl sx={commonFormControlSx}>
-            <InputLabel id="filter-status-label">Status</InputLabel>
-            <StyledSelect
-              labelId="filter-status-label"
-              id="filter-status"
-              value={filterStatus}
-              label="Status"
-              onChange={(e) => {
-                console.log("Status selecionado:", e.target.value);
-                setFilterStatus(e.target.value);
-              }}
-              sx={commonSelectSx}
-              MenuProps={commonMenuProps}
+      {/* Conteúdo da aba de Frequências */}
+      {tabIndex === 0 && (
+        <Box>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={2}
+            justifyContent="space-between"
+            alignItems={{ xs: "stretch", sm: "center" }}
+            sx={{ mb: 2 }}
+          >
+            <Stack
+              direction={{ xs: "column", md: "row" }}
+              spacing={2}
+              alignItems={{ xs: "stretch", md: "center" }}
             >
-              <MenuItem value="all">Todas</MenuItem>
-              <MenuItem value="Presença">Presenças</MenuItem>
-              <MenuItem value="Falta">Faltas</MenuItem>
-            </StyledSelect>
-          </FormControl>
+              <FormControl sx={commonFormControlSx}>
+                <InputLabel id="filter-status-label">Status</InputLabel>
+                <StyledSelect
+                  labelId="filter-status-label"
+                  id="filter-status"
+                  value={filterStatus}
+                  label="Status"
+                  onChange={(e) => {
+                    console.log("Status selecionado:", e.target.value);
+                    setFilterStatus(e.target.value);
+                  }}
+                  sx={commonSelectSx}
+                  MenuProps={commonMenuProps}
+                >
+                  <MenuItem value="all">Todas</MenuItem>
+                  <MenuItem value="Presença">Presenças</MenuItem>
+                  <MenuItem value="Falta">Faltas</MenuItem>
+                </StyledSelect>
+              </FormControl>
 
-          <FormControl sx={commonFormControlSx}>
-            <InputLabel id="filter-period-label">Período</InputLabel>
-            <StyledSelect
-              labelId="filter-period-label"
-              id="filter-period"
-              value={filterPeriod}
-              label="Período"
-              onChange={(e) => {
-                console.log("Período selecionado:", e.target.value);
-                setFilterPeriod(e.target.value);
-              }}
-              sx={commonSelectSx}
-              MenuProps={commonMenuProps}
-            >
-              <MenuItem value="all">Todas</MenuItem>
-              <MenuItem value="yesterday">Dia Anterior</MenuItem>
-              <MenuItem value="lastWeek">Última Semana</MenuItem>
-              <MenuItem value="lastMonth">Último Mês</MenuItem>
-              <MenuItem value="custom">Intervalo Personalizado</MenuItem>
-            </StyledSelect>
-          </FormControl>
+              <FormControl sx={commonFormControlSx}>
+                <InputLabel id="filter-period-label">Período</InputLabel>
+                <StyledSelect
+                  labelId="filter-period-label"
+                  id="filter-period"
+                  value={filterPeriod}
+                  label="Período"
+                  onChange={(e) => {
+                    console.log("Período selecionado:", e.target.value);
+                    setFilterPeriod(e.target.value);
+                  }}
+                  sx={commonSelectSx}
+                  MenuProps={commonMenuProps}
+                >
+                  <MenuItem value="all">Todas</MenuItem>
+                  <MenuItem value="yesterday">Dia Anterior</MenuItem>
+                  <MenuItem value="lastWeek">Última Semana</MenuItem>
+                  <MenuItem value="lastMonth">Último Mês</MenuItem>
+                  <MenuItem value="custom">Intervalo Personalizado</MenuItem>
+                </StyledSelect>
+              </FormControl>
 
-          {filterPeriod === "custom" && (
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-              <TextField
-                label="Data Inicial"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                value={customStartDate}
-                onChange={(e) => {
-                  console.log("Data inicial selecionada:", e.target.value);
-                  setCustomStartDate(e.target.value);
-                }}
-                sx={commonDateInputSx}
-              />
-              <TextField
-                label="Data Final"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                value={customEndDate}
-                onChange={(e) => {
-                  console.log("Data final selecionada:", e.target.value);
-                  setCustomEndDate(e.target.value);
-                }}
-                sx={commonDateInputSx}
-              />
+              {filterPeriod === "custom" && (
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                  <TextField
+                    label="Data Inicial"
+                    type="date"
+                    InputLabelProps={{ shrink: true }}
+                    value={customStartDate}
+                    onChange={(e) => {
+                      console.log("Data inicial selecionada:", e.target.value);
+                      setCustomStartDate(e.target.value);
+                    }}
+                    sx={commonDateInputSx}
+                  />
+                  <TextField
+                    label="Data Final"
+                    type="date"
+                    InputLabelProps={{ shrink: true }}
+                    value={customEndDate}
+                    onChange={(e) => {
+                      console.log("Data final selecionada:", e.target.value);
+                      setCustomEndDate(e.target.value);
+                    }}
+                    sx={commonDateInputSx}
+                  />
+                </Stack>
+              )}
             </Stack>
+
+            <StyledButton
+              variant="contained"
+              onClick={handleRegisterFrequency}
+              disabled={loading}
+              sx={{
+                flexShrink: 0,
+                width: { xs: "100%", sm: "200px" },
+                height: { xs: 40, sm: 36 },
+                fontWeight: "bold",
+                fontSize: { xs: "0.9rem", sm: "1rem" },
+                whiteSpace: "nowrap",
+              }}
+            >
+              {loading ? "Registrando..." : "Registrar Frequência"}
+            </StyledButton>
+          </Stack>
+
+          {loading ? (
+            <Typography align="center">Carregando...</Typography>
+          ) : (
+            <FrequenciesTable
+              frequencies={paginatedFrequencies || []}
+              setAlert={setAlert}
+              onRegisterAbsenceWithCredit={handleRegisterAbsenceWithCredit}
+              isFiltered={
+                filterStatus !== "all" ||
+                filterPeriod !== "all" ||
+                (filterPeriod === "custom" && (customStartDate || customEndDate))
+              }
+            />
           )}
-        </Stack>
 
-        <StyledButton
-          variant="contained"
-          onClick={handleRegisterFrequency}
-          disabled={loading}
-          sx={{
-            flexShrink: 0,
-            width: { xs: "100%", sm: "200px" },
-            height: { xs: 40, sm: 36 },
-            fontWeight: "bold",
-            fontSize: { xs: "0.9rem", sm: "1rem" },
-            whiteSpace: "nowrap",
-          }}
-        >
-          {loading ? "Registrando..." : "Registrar Frequência"}
-        </StyledButton>
-      </Stack>
-
-      {loading ? (
-        <Typography align="center">Carregando...</Typography>
-      ) : (
-        <FrequenciesTable
-          frequencies={paginatedFrequencies || []}
-          setAlert={setAlert}
-          onRegisterAbsenceWithCredit={handleRegisterAbsenceWithCredit}
-          isFiltered={
-            filterStatus !== "all" ||
-            filterPeriod !== "all" ||
-            (filterPeriod === "custom" && (customStartDate || customEndDate))
-          }
-        />
+          {totalPages > 1 && (
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+              <Pagination
+                count={totalPages}
+                page={page}
+                onChange={(_, newPage) => setPage(newPage)}
+                color="primary"
+              />
+            </Box>
+          )}
+        </Box>
       )}
 
-      {totalPages > 1 && (
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-          <Pagination
-            count={totalPages}
-            page={page}
-            onChange={(_, newPage) => setPage(newPage)}
-            color="primary"
-          />
+      {/* Conteúdo da aba de Faltas */}
+      {tabIndex === 1 && (
+        <Box>
+          <MyAbsences />
         </Box>
       )}
 

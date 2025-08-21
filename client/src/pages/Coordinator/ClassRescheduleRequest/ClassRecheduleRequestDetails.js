@@ -101,37 +101,37 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
 
   const cardData = requestData
     ? {
-        title: requestData.type === "anteposicao" ? "Anteposição" : "Reposição",
-        teacher: requestData.professor?.username || "N/A",
-        date: requestData.date
-          ? new Date(`${requestData.date}T00:00:00`).toLocaleDateString("pt-BR", {
-              timeZone: "America/Sao_Paulo",
-            })
-          : "N/A",
-        discipline: requestData.discipline || "N/A",
-        class: requestData.acronym && requestData.semester ? `${requestData.acronym} - ${requestData.semester}` : "N/A",
-        quantity: requestData.quantity || "N/A",
-        time: requestData.hour || "N/A",
-        turn: requestData.turn || "N/A",
-        observations: requestData.observation || "",
-        observationCoordinator: requestData.observationCoordinator || "",
-        validated: requestData.validated,
-        annex: requestData.annex ? requestData.annex.split("/").pop() : "N/A",
-      }
+      title: requestData.type === "anteposicao" ? "Anteposição" : "Reposição",
+      teacher: requestData.professor?.username || "N/A",
+      date: requestData.date
+        ? new Date(`${requestData.date}T00:00:00`).toLocaleDateString("pt-BR", {
+          timeZone: "America/Sao_Paulo",
+        })
+        : "N/A",
+      discipline: requestData.discipline || "N/A",
+      class: requestData.acronym && requestData.semester ? `${requestData.acronym} - ${requestData.semester}` : "N/A",
+      quantity: requestData.quantity || "N/A",
+      time: requestData.hour || "N/A",
+      turn: requestData.turn || "N/A",
+      observations: requestData.observation || "",
+      observationCoordinator: requestData.observationCoordinator || "",
+      validated: requestData.validated,
+      annex: requestData.annex ? requestData.annex.split("/").pop() : "N/A",
+    }
     : {
-        title: "N/A",
-        teacher: "N/A",
-        date: "N/A",
-        discipline: "N/A",
-        class: "N/A",
-        quantity: "N/A",
-        time: "N/A",
-        turn: "N/A",
-        observations: "",
-        observationCoordinator: "",
-        validated: null,
-        annex: "N/A",
-      };
+      title: "N/A",
+      teacher: "N/A",
+      date: "N/A",
+      discipline: "N/A",
+      class: "N/A",
+      quantity: "N/A",
+      time: "N/A",
+      turn: "N/A",
+      observations: "",
+      observationCoordinator: "",
+      validated: null,
+      annex: "N/A",
+    };
 
   return (
     <Box display="flex">
@@ -201,19 +201,40 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
           </Box>
           <Divider sx={{ backgroundColor: "#C7C7C7", my: 2 }} />
           <Typography variant="body1">
-            {cardData.annex !== "N/A" ? (
-              <a
-                href={`http://localhost:3000/uploads/class_change_requests/${cardData.annex}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  color: "#2653e7ff",
-                  textDecoration: "underline",
-                  fontWeight: "bold",
-                }}
-              >
-                Visualizar anexo
-              </a>
+            {cardData.annex && cardData.annex !== "N/A" ? (
+              <>
+                {(() => {
+                  let annexArray = [];
+                  try {
+                    annexArray = JSON.parse(cardData.annex);
+                  } catch {
+                    // Se não for JSON, trata como string única
+                    annexArray = [cardData.annex];
+                  }
+                  return annexArray.map((filePath, idx) => {
+                    // Extrai só o nome do arquivo para exibir
+                    const fileName = filePath.split(/[\\/]/).pop();
+                    return (
+                      <div key={idx}>
+                        <a
+                          href={`http://localhost:3000/${filePath.replace(/\\/g, "/")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            color: "#2653e7ff",
+                            textDecoration: "underline",
+                            fontWeight: "bold",
+                            display: "block",
+                            marginBottom: 4,
+                          }}
+                        >
+                          {fileName}
+                        </a>
+                      </div>
+                    );
+                  });
+                })()}
+              </>
             ) : (
               "Nenhum anexo adicionado"
             )}

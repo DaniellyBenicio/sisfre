@@ -30,7 +30,7 @@ module.exports = {
       },
 
       turn: {
-        type: Sequelize.STRING,
+        type: Sequelize.ENUM("MATUTINO", "VESPERTINO", "NOTURNO"),
         allowNull: false,
       },
 

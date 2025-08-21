@@ -22,8 +22,8 @@ import {
 
 const router = express.Router();
 
-router.post("/request", autenticarToken, isTeacherOrCoordinator(), upload.single("annex"), createRequest);
-router.put("/request/:id", autenticarToken, isTeacherOrCoordinator(), upload.single("annex"), updateRequest);
+router.post("/request", autenticarToken, isTeacherOrCoordinator(), upload.array("annex", 10), createRequest);
+router.put("/request/:id", autenticarToken, isTeacherOrCoordinator(), upload.array("annex", 10), updateRequest);
 router.get("/request", autenticarToken, isTeacherOrCoordinator(), getRequest);
 router.get("/request/:id", autenticarToken, isTeacherOrCoordinator(), getRequestById);
 router.delete("/request/:id", autenticarToken, isTeacherOrCoordinator(), deleteRequest);

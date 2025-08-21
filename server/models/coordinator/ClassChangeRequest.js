@@ -38,7 +38,7 @@ export default (sequelize) => {
       },
 
       turn: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM("MATUTINO", "VESPERTINO", "NOTURNO"),
         allowNull: false,
       },
 

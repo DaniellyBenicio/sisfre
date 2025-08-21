@@ -47,7 +47,8 @@ const StyledTab = styled((props) => <Tab disableRipple {...props} />)(
     [theme.breakpoints.up("sm")]: {
       minWidth: 0,
     },
-    fontWeight: theme.typography.fontWeightMedium,
+    fontWeight: "bold", // Adiciona negrito ao texto da aba
+    fontSize: "1rem", // Aumenta o tamanho da fonte para destacar os nomes
     marginRight: theme.spacing(1),
     color: "rgba(0, 0, 0, 0.85)",
     "&:hover": {
@@ -368,20 +369,11 @@ const FrequencyList = () => {
         sx={{
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
+          justifyContent: "center",
           position: "relative",
           mb: 3,
         }}
       >
-        <IconButton
-          onClick={() => navigate("/dashboard")}
-          sx={{
-            color: INSTITUTIONAL_COLOR,
-            "&:hover": { backgroundColor: "transparent" },
-          }}
-        >
-          <ArrowBack sx={{ fontSize: 35 }} />
-        </IconButton>
         <StyledTabs
           value={tabIndex}
           onChange={handleChangeTab}
@@ -390,7 +382,6 @@ const FrequencyList = () => {
           <StyledTab label="Frequências" />
           <StyledTab label="Minhas Faltas" />
         </StyledTabs>
-        <Box sx={{ width: 35 }} />
       </Box>
 
       {/* Conteúdo da aba de Frequências */}

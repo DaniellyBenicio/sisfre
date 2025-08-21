@@ -1,20 +1,21 @@
 import haversine from "haversine-distance";
 
 const CAMPUS_COORDS = {
-  latitude: -6.753737859947655,
-  longitude: -38.96898803330336,
+  latitude: -6.753416222980834,
+  longitude: -38.968368589297896,
 };
-const MAX_DIST = 2000; // metros
+const MAX_DIST = 20000;
+
+//if  latitude: -6.60075173908146, longitude: -39.05512217154764
 
 export const isInCampus = (coords) => {
   console.log("Entrando na função isInCampus com coords:", coords);
-  
-  // Garantir que as coordenadas sejam números
+
   const lat = parseFloat(coords.latitude);
   const lon = parseFloat(coords.longitude);
-  
+
   if (isNaN(lat) || isNaN(lon)) {
-    console.error("Erro: Coordenadas inválidas (não são números).", { lat, lon });
+    console.error("Erro: Coordenadas inválidas.", { lat, lon });
     throw new Error("Latitude e longitude devem ser números válidos.");
   }
 

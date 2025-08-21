@@ -97,7 +97,7 @@ export const registerAttendanceByTurn = async (req, res) => {
     if (!turno) {
       return res.status(400).json({
         error:
-          "O horário atual não permite registrar frequência. Tente novamente dentro do período de algum turno (MATUTINO, VESPERTINO ou NOTURNO).",
+          "O período para registrar a frequência deste turno já foi encerrado.",
       });
     }
 
@@ -125,7 +125,7 @@ export const registerAttendanceByTurn = async (req, res) => {
     const holiday = await db.Holiday.findOne({ where: { date: currentDate } });
     if (holiday) {
       return res.status(200).json({
-        message: `Hoje é feriado (${holiday.name} - ${holiday.type}). Nenhuma frequência registrada.`,
+        message: `Hoje é feriado. Nenhuma frequência será registrada.`,
       });
     }
 
@@ -209,9 +209,8 @@ export const registerAttendanceByTurn = async (req, res) => {
       const [attendance, created] = await db.Attendance.upsert({
         classScheduleDetailId: detail.id,
         date: currentDate,
-        attended: true,
-        reason: null,
-        notes: "Registrado automaticamente por turno via geolocalização.",
+        status: "presença",
+        justification: null,
         registeredBy: loggedUserId,
         latitude,
         longitude,
@@ -240,7 +239,7 @@ export const registerAttendanceByTurn = async (req, res) => {
 };
 
 export const getAttendanceByTurn = async (req, res) => {
-  const { turno, date, attended } = req.query;
+  const { turno, date, status } = req.query;
   const loggedUserId = req.user?.id;
   const currentDateTime = new Date(
     new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })
@@ -264,19 +263,10 @@ export const getAttendanceByTurn = async (req, res) => {
       });
     }
 
-    const validAttended = [true, false, "true", "false"];
-    const attendedValue = attended
-      ? ["true", "false"].includes(attended)
-        ? attended === "true"
-        : Boolean(attended)
-      : undefined;
-    if (
-      attended &&
-      !validAttended.includes(attended) &&
-      attended !== undefined
-    ) {
+    const validStatus = ["presença", "falta", "abonada"];
+    if (status && !validStatus.includes(status)) {
       return res.status(400).json({
-        error: "Valor inválido para attended. Use true ou false.",
+        error: "Status inválido. Use presença, falta ou abonada.",
       });
     }
 
@@ -298,7 +288,7 @@ export const getAttendanceByTurn = async (req, res) => {
       where: {
         registeredBy: loggedUserId,
         date: date ? filterDate : { [Op.gte]: currentDate },
-        ...(attendedValue !== undefined && { attended: attendedValue }),
+        ...(status !== undefined && { status }),
       },
       include: [
         {
@@ -320,6 +310,10 @@ export const getAttendanceByTurn = async (req, res) => {
           ],
         },
       ],
+      order: [
+        ["date", "DESC"], 
+        [{ model: db.ClassScheduleDetail, as: "detail" }, { model: db.Hour, as: "hour" }, "hourStart", "DESC"],
+      ],
     });
 
     if (!attendances.length) {
@@ -332,7 +326,8 @@ export const getAttendanceByTurn = async (req, res) => {
       attendance: {
         id: attendance.id,
         date: attendance.date,
-        attended: attendance.attended,
+        status: attendance.status,
+        justification: attendance.justification,
         registeredBy: attendance.registeredBy,
       },
       class: attendance.detail.schedule.class.semester,
@@ -349,6 +344,257 @@ export const getAttendanceByTurn = async (req, res) => {
     });
   } catch (error) {
     console.error("Erro ao consultar frequência por turno:", error);
+    return res
+      .status(500)
+      .json({ error: "Erro interno do servidor.", details: error.message });
+  }
+};
+
+export const justifyAbsenceByTurn = async (req, res) => {
+  const { date, turno, justification } = req.body;
+  const loggedUserId = req.user?.id;
+
+  try {
+    if (!loggedUserId) {
+      return res.status(401).json({ error: "Usuário não autenticado." });
+    }
+    if (req.user.accessType !== "Professor") {
+      return res.status(403).json({
+        error: "Acesso negado. Apenas Professores podem justificar faltas.",
+      });
+    }
+
+    if (!date || !turno || !justification) {
+      return res.status(400).json({
+        error: "Data, turno e justificativa são obrigatórios.",
+      });
+    }
+
+    const validTurns = ["MATUTINO", "VESPERTINO", "NOTURNO"];
+    if (!validTurns.includes(turno.toUpperCase())) {
+      return res.status(400).json({
+        error: "Turno inválido. Use MATUTINO, VESPERTINO ou NOTURNO.",
+      });
+    }
+
+    const calendar = await db.Calendar.findOne({
+      where: {
+        startDate: { [Op.lte]: date },
+        endDate: { [Op.gte]: date },
+      },
+    });
+    if (!calendar) {
+      return res
+        .status(404)
+        .json({ error: "Nenhum calendário ativo encontrado para a data." });
+    }
+
+    const attendances = await db.Attendance.findAll({
+      where: {
+        registeredBy: loggedUserId,
+        date,
+        status: "falta",
+      },
+      include: [
+        {
+          model: db.ClassScheduleDetail,
+          as: "detail",
+          where: { turn: turno.toUpperCase() },
+          include: [
+            {
+              model: db.ClassSchedule,
+              as: "schedule",
+              where: { calendarId: calendar.id, isActive: true },
+            },
+          ],
+        },
+      ],
+    });
+
+    if (!attendances.length) {
+      return res.status(404).json({
+        error:
+          "Nenhuma falta encontrada para o professor no turno e data especificados.",
+      });
+    }
+
+    await db.Attendance.update(
+      { justification },
+      {
+        where: {
+          id: { [Op.in]: attendances.map((att) => att.id) },
+        },
+      }
+    );
+
+    return res.status(200).json({
+      message: `Justificativa registrada com sucesso para ${attendances.length} faltas no turno ${turno}.`,
+      affectedAttendances: attendances.map((att) => att.id),
+    });
+  } catch (error) {
+    console.error("Erro ao registrar justificativa por turno:", error);
+    return res
+      .status(500)
+      .json({ error: "Erro interno do servidor.", details: error.message });
+  }
+};
+
+export const getJustificationByTurn = async (req, res) => {
+  const { date, turno, professorId } = req.query;
+  const loggedUserId = req.userId; 
+  const currentDateTime = new Date(
+    new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })
+  );
+  const currentDate = currentDateTime.toISOString().split("T")[0];
+
+  try {
+    if (!loggedUserId) {
+      return res.status(401).json({
+        error: "Usuário não autenticado. Verifique o token de autenticação.",
+      });
+    }
+
+    const user = await db.User.findOne({
+      where: { id: loggedUserId },
+      attributes: ["accessType"],
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "Usuário não encontrado." });
+    }
+
+    const accessType = user.accessType;
+
+    const validAccessTypes = ["Professor", "Coordenador", "Admin"];
+    if (!validAccessTypes.includes(accessType)) {
+      return res.status(403).json({
+        error:
+          "Acesso negado. Apenas Professores, Coordenadores ou Admins podem visualizar justificativas.",
+      });
+    }
+
+    const filterDate = date || currentDate;
+
+    const validTurns = ["MATUTINO", "VESPERTINO", "NOTURNO"];
+    if (turno && !validTurns.includes(turno.toUpperCase())) {
+      return res.status(400).json({
+        error: "Turno inválido. Use MATUTINO, VESPERTINO ou NOTURNO.",
+      });
+    }
+
+    const calendar = await db.Calendar.findOne({
+      where: {
+        startDate: { [Op.lte]: filterDate },
+        endDate: { [Op.gte]: filterDate },
+      },
+    });
+    if (!calendar) {
+      return res
+        .status(404)
+        .json({ error: "Nenhum calendário ativo encontrado para a data." });
+    }
+
+    let whereClause = {
+      date: filterDate,
+      status: "falta",
+    };
+
+    if (accessType !== "Admin" || professorId) {
+      whereClause.registeredBy = professorId || loggedUserId;
+    }
+
+    let courseFilter = {};
+    if (accessType === "Coordenador") {
+      const coordinatedCourses = await db.Course.findAll({
+        where: { coordinatorId: loggedUserId },
+        attributes: ["id"],
+      });
+      const courseIds = coordinatedCourses.map((course) => course.id);
+      if (!courseIds.length) {
+        return res
+          .status(403)
+          .json({ error: "Nenhum curso associado ao coordenador." });
+      }
+      courseFilter = { "$detail.schedule.course.id$": { [Op.in]: courseIds } };
+    }
+
+    if (accessType === "Professor" && professorId && professorId !== loggedUserId) {
+      return res.status(403).json({
+        error: "Professores só podem visualizar suas próprias justificativas.",
+      });
+    }
+
+    const attendances = await db.Attendance.findAll({
+      where: { ...whereClause, ...courseFilter },
+      include: [
+        {
+          model: db.User,
+          as: "registrar",
+          attributes: ["username"],
+        },
+        {
+          model: db.ClassScheduleDetail,
+          as: "detail",
+          where: turno ? { turn: turno.toUpperCase() } : {},
+          include: [
+            {
+              model: db.ClassSchedule,
+              as: "schedule",
+              where: { calendarId: calendar.id, isActive: true },
+              include: [
+                { model: db.Class, as: "class" },
+                { model: db.Course, as: "course" },
+              ],
+            },
+            { model: db.Discipline, as: "discipline" },
+            { model: db.Hour, as: "hour" },
+          ],
+        },
+      ],
+      order: [
+        ["date", "DESC"], 
+        [
+          { model: db.ClassScheduleDetail, as: "detail" },
+          { model: db.Hour, as: "hour" },
+          "hourStart",
+          "DESC",
+        ], 
+      ],
+    });
+
+    if (!attendances.length) {
+      return res.status(404).json({
+        error:
+          accessType === "Coordenador"
+            ? "Nenhuma falta encontrada para os cursos coordenados nos critérios especificados."
+            : "Nenhuma falta encontrada para os critérios especificados.",
+      });
+    }
+
+    const formattedJustifications = attendances.map((attendance) => ({
+      attendance: {
+        id: attendance.id,
+        date: attendance.date,
+        status: attendance.status,
+        justification: attendance.justification,
+        registeredBy: attendance.registeredBy,
+      },
+      professor_name: attendance.registrar?.username || "Desconhecido",
+      class: attendance.detail.schedule.class.semester,
+      course_name: attendance.detail.schedule.course.name,
+      course_acronym: attendance.detail.schedule.course.acronym,
+      discipline: attendance.detail.discipline.name,
+      discipline_acronym: attendance.detail.discipline.acronym,
+      hour: `${attendance.detail.hour.hourStart} - ${attendance.detail.hour.hourEnd}`,
+      turn: attendance.detail.turn,
+    }));
+
+    return res.status(200).json({
+      message: "Justificativas recuperadas com sucesso.",
+      justifications: formattedJustifications,
+    });
+  } catch (error) {
+    console.error("Erro ao consultar justificativas por turno:", error);
     return res
       .status(500)
       .json({ error: "Erro interno do servidor.", details: error.message });

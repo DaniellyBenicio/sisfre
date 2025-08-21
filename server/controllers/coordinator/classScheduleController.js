@@ -105,9 +105,9 @@ export const createClassSchedule = async (req, res) => {
     }
 
     const existingClassSchedule = await db.ClassSchedule.findOne({
-      where: { classId, calendarId },
+      where: { classId, calendarId, courseId },
     });
-
+    
     if (existingClassSchedule) {
       return res.status(409).json({
         message: `Já existe uma grade de horário para a turma ${classRecord.semester} no calendário ${calendar.year}/${calendar.period}.`,

@@ -13,7 +13,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: "class_schedule_details", 
+          model: "class_schedule_details",
           key: "id",
         },
         onUpdate: "CASCADE",
@@ -23,10 +23,10 @@ module.exports = {
         type: Sequelize.DATEONLY,
         allowNull: false,
       },
-      attended: {
-        type: Sequelize.BOOLEAN,
+      status: {
+        type: Sequelize.ENUM("presença", "falta", "abonada"),
         allowNull: false,
-        defaultValue: true,
+        defaultValue: "presença",
       },
       registeredBy: {
         type: Sequelize.INTEGER,
@@ -46,6 +46,10 @@ module.exports = {
         type: Sequelize.DECIMAL(9, 6),
         allowNull: true,
       },
+      justification: {
+        type: Sequelize.TEXT("medium"),
+        allowNull: true,
+      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
@@ -58,10 +62,14 @@ module.exports = {
       },
     });
 
-    await queryInterface.addIndex("attendances", ["classScheduleDetailId", "date"], {
-      unique: true,
-      name: "attendance_unique_schedule_date",
-    });
+    await queryInterface.addIndex(
+      "attendances",
+      ["classScheduleDetailId", "date"],
+      {
+        unique: true,
+        name: "attendance_unique_schedule_date",
+      }
+    );
 
     await queryInterface.addIndex("attendances", ["date"], {
       name: "attendance_date_index",

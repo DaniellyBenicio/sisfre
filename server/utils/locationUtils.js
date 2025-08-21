@@ -1,10 +1,12 @@
 import haversine from "haversine-distance";
 
 const CAMPUS_COORDS = {
-  latitude: -6.6004442040661155,
-  longitude: -39.055120304642614,
+  latitude: -6.753416222980834,
+  longitude: -38.968368589297896,
 };
-const MAX_DIST = 2000;
+const MAX_DIST = 20000;
+
+//if  latitude: -6.60075173908146, longitude: -39.05512217154764
 
 export const isInCampus = (coords) => {
   console.log("Entrando na função isInCampus com coords:", coords);

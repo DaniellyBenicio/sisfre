@@ -37,10 +37,10 @@ export default (sequelize) => {
         type: DataTypes.DATEONLY,
         allowNull: false,
       },
-      attended: {
-        type: DataTypes.BOOLEAN,
+      status: {
+        type: DataTypes.ENUM("presença", "falta", "abonada"),
         allowNull: false,
-        defaultValue: true,
+        defaultValue: "presença",
       },
       registeredBy: {
         type: DataTypes.INTEGER,
@@ -58,6 +58,10 @@ export default (sequelize) => {
       },
       longitude: {
         type: DataTypes.DECIMAL(9, 6),
+        allowNull: true,
+      },
+      justification: {
+        type: DataTypes.TEXT("medium"),
         allowNull: true,
       },
     },

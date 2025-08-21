@@ -4,7 +4,7 @@ import { isTeacher } from '../../middlewares/isTeacher.js';
 import { getProfessorDisciplines } from '../../controllers/teacher/teacherDisciplinesController.js';
 import { getProfessorClasses } from '../../controllers/teacher/teacherClassesController.js';
 import { getTeacherSchedules } from '../../controllers/teacher/teacherSchedulesController.js';
-import { registerAttendanceByTurn, getAttendanceByTurn } from '../../controllers/teacher/AttendanceController.js';
+import { registerAttendanceByTurn, getAttendanceByTurn, justifyAbsenceByTurn, getJustificationByTurn } from '../../controllers/teacher/AttendanceController.js';
 import { autoAbsenceAttendance } from "../../tasks/autoAbsenceAttendance.js";
 
 const router = express.Router();
@@ -16,6 +16,11 @@ router.get("/teacher-classes", autenticarToken, isTeacher(), getProfessorClasses
 router.get("/teacher-schedules", autenticarToken, isTeacher(), getTeacherSchedules);
 router.post("/register-by-turn", autenticarToken, isTeacher(), registerAttendanceByTurn);
 router.get("/register-by-turn", autenticarToken, isTeacher(), getAttendanceByTurn);
+router.post("/attendance/justify-turn", autenticarToken, isTeacher(), justifyAbsenceByTurn);
+router.get("/justifications-by-turn", autenticarToken, getJustificationByTurn);
+
+
+
 router.post("/attendance/auto-absence", autenticarToken, async (req, res) => {
   try {
     await autoAbsenceAttendance(); // Não passa mais o turno

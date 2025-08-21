@@ -159,11 +159,11 @@ export async function autoAbsenceAttendance(turno) {
           {
             classScheduleDetailId,
             date: dateStr,
-            attended: false,
+            status: "falta",
+            justification: null,
             registeredBy: userId,
             createdAt: new Date(),
             updatedAt: new Date(),
-            notes: `Falta automática registrada para o turno ${turnoToProcess} (aula ${hourStart}-${hourEnd})`,
           },
           { transaction }
         );
@@ -173,7 +173,7 @@ export async function autoAbsenceAttendance(turno) {
         faltasRegistradas++;
       } else {
         console.log(
-          `Presença já registrada para aula ${classScheduleDetailId} em ${dateStr}. Pulando.`
+          `Frequência já registrada para aula ${classScheduleDetailId} em ${dateStr}. Pulando.`
         );
       }
     }

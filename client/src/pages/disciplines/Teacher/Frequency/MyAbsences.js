@@ -111,13 +111,11 @@ const MyAbsences = () => {
       const groupedAbsences = (Array.isArray(response.data.attendances) ? response.data.attendances : [])
         .filter((freq) => !freq.attendance.attended)
         .reduce((acc, freq) => {
-          // Usamos 'freq.course_acronym' para agrupar por turma, se for o campo correto
           const key = `${freq.course_acronym}-${freq.disciplineId}`;
           if (!acc[key]) {
             acc[key] = {
               id: key,
               course: freq.course_acronym,
-              class: freq.course_acronym, // Usando course_acronym como turma
               discipline: freq.discipline,
               count: 0,
               dates: [],
@@ -235,9 +233,8 @@ const MyAbsences = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell align="center" sx={tableHeadStyle}>Curso</TableCell>
+              <TableCell align="center" sx={tableHeadStyle}>Curso/Turma</TableCell>
               <TableCell align="center" sx={tableHeadStyle}>Disciplina</TableCell>
-              <TableCell align="center" sx={tableHeadStyle}>Turma</TableCell> {/* Nova coluna */}
               <TableCell align="center" sx={tableHeadStyle}>Quantidade de Faltas</TableCell>
             </TableRow>
           </TableHead>
@@ -247,13 +244,12 @@ const MyAbsences = () => {
                 <TableRow key={absence.id}>
                   <TableCell align="center" sx={tableBodyCellStyle}>{absence.course}</TableCell>
                   <TableCell align="center" sx={tableBodyCellStyle}>{absence.discipline}</TableCell>
-                  <TableCell align="center" sx={tableBodyCellStyle}>{absence.class}</TableCell> {/* Nova célula */}
                   <TableCell align="center" sx={tableBodyCellStyle}>{absence.count}</TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={4} align="center" sx={tableBodyCellStyle}>
+                <TableCell colSpan={3} align="center" sx={tableBodyCellStyle}>
                   Você não tem faltas registradas com base nos filtros.
                 </TableCell>
               </TableRow>

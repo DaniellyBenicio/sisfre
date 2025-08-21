@@ -130,7 +130,6 @@ export const updateAbsenceByTurn = async (req, res) => {
   const { date, turno, newStatus, professorId } = req.body;
   const loggedUserId = req.userId;
 
-
   try {
     if (!loggedUserId) {
       return res.status(401).json({
@@ -148,13 +147,11 @@ export const updateAbsenceByTurn = async (req, res) => {
     }
 
     const accessType = user.accessType;
-    const validAccessTypes = ["Coordenador", "Admin"];
-
-
+    const validAccessTypes = ["Admin"];
     if (!validAccessTypes.includes(accessType)) {
       return res.status(403).json({
         error:
-          "Acesso negado. Apenas Coordenadores ou Admins podem atualizar faltas.",
+          "Acesso negado. Apenas a Diretoria pode alterar o status das faltas.",
       });
     }
 
@@ -171,16 +168,10 @@ export const updateAbsenceByTurn = async (req, res) => {
       });
     }
 
-    const validStatuses =
-      accessType === "Coordenador"
-        ? ["falta", "presença"]
-        : ["falta", "abonada"];
-
+    const validStatuses = ["abonada", "presença"];
     if (!validStatuses.includes(newStatus)) {
       return res.status(400).json({
-        error: `Novo status inválido. Use ${validStatuses.join(
-          " ou "
-        )} para ${accessType}.`,
+        error: `Novo status inválido. Use ${validStatuses.join(" ou ")}.`,
       });
     }
 
@@ -202,26 +193,6 @@ export const updateAbsenceByTurn = async (req, res) => {
       date,
       status: "falta",
     };
-
-    let courseIds = [];
-    if (accessType === "Coordenador") {
-      const coordinatedCourses = await db.Course.findAll({
-        where: { coordinatorId: loggedUserId },
-        attributes: ["id"],
-      });
-
-      if (!coordinatedCourses.length) {
-        return res
-          .status(403)
-          .json({ error: "Nenhum curso associado ao coordenador." });
-      }
-
-      courseIds = coordinatedCourses.map((course) => course.id);
-    }
-
-    if (accessType === "Coordenador") {
-      console.log(`  - Cursos Coordenados: ${courseIds.join(", ")}`);
-    }
 
     const attendances = await db.Attendance.findAll({
       where: {
@@ -246,84 +217,44 @@ export const updateAbsenceByTurn = async (req, res) => {
               required: true,
               include: [
                 { model: db.Class, as: "class" },
-                {
-                  model: db.Course,
-                  as: "course",
-                  where:
-                    accessType === "Coordenador"
-                      ? { id: { [Op.in]: courseIds } }
-                      : {},
-                  required: accessType === "Coordenador",
-                },
+                { model: db.Course, as: "course" },
               ],
             },
-            {
-              model: db.Discipline,
-              as: "discipline",
-            },
-            {
-              model: db.Hour,
-              as: "hour",
-            },
+            { model: db.Discipline, as: "discipline" },
+            { model: db.Hour, as: "hour" },
           ],
         },
       ],
     });
 
     if (!attendances.length) {
-
       return res.status(404).json({
         error:
-          accessType === "Coordenador"
-            ? "Nenhuma falta encontrada para os cursos coordenados no turno e data especificados."
-            : "Nenhuma falta encontrada para o professor no turno e data especificados.",
+          "Nenhuma falta encontrada para o professor no turno e data especificados.",
       });
     }
 
-    const hasDiseaseJustification = attendances.some(
-      (attendance) =>
-        attendance.justification &&
-        typeof attendance.justification === "string" &&
-        /doença|doente|medica|atestado/i.test(attendance.justification)
+    const isMedicalJustification = (justification) =>
+      justification &&
+      typeof justification === "string" &&
+      /doença|doente|medica|atestado/i.test(justification);
+    const allHaveMedicalJustification = attendances.every((att) =>
+      isMedicalJustification(att.justification)
     );
-
-    if (accessType === "Coordenador" && hasDiseaseJustification) {
-
+    const allHaveNonMedicalJustification = attendances.every(
+      (att) => !isMedicalJustification(att.justification)
+    );
+    if (newStatus === "abonada" && !allHaveMedicalJustification) {
       return res.status(403).json({
         error:
-          "A justificativa indica motivo de doença. Apenas a diretoria pode alterar este status.",
+          "A diretoria só pode abonar faltas com justificativa de doença (doença, doente, médica ou atestado).",
       });
     }
 
-    if (accessType === "Admin" && newStatus === "abonada") {
-      const allHaveDiseaseJustification = attendances.every(
-        (attendance) =>
-          attendance.justification &&
-          typeof attendance.justification === "string" &&
-          /doença|doente|medica|atestado/i.test(attendance.justification)
-      );
-      if (!allHaveDiseaseJustification) {
-        return res.status(403).json({
-          error:
-            "A diretoria só pode abonar faltas com justificativa de doença (doença, doente, médica ou atestado).",
-        });
-      }
-    }
-
-    if (
-      accessType === "Coordenador" &&
-      newStatus === "presença" &&
-      !attendances.every(
-        (attendance) =>
-          !attendance.justification ||
-          (typeof attendance.justification === "string" &&
-            !/doença|doente|medica|atestado/i.test(attendance.justification))
-      )
-    ) {
-
+    if (newStatus === "presença" && !allHaveNonMedicalJustification) {
       return res.status(403).json({
         error:
-          "Não é possível mudar para presença com justificativa de doença. Apenas a diretoria pode alterar.",
+          "Não é possível mudar para 'presença' uma falta com justificativa de doença. Use 'abonada' ou verifique a justificativa.",
       });
     }
 

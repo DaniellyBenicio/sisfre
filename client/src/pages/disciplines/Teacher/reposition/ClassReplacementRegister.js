@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Paper, Button, TextField, Stack, InputAdornment, IconButton, CssBaseline, FormControl, InputLabel, Select, MenuItem, Chip } from '@mui/material';
+import { Box, Typography, Paper, Button, TextField, Stack, InputAdornment, IconButton, CssBaseline, FormControl, InputLabel, Select, MenuItem, Checkbox, ListItemText } from '@mui/material';
 import { Close, Save, CloudUpload, ArrowBack } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -77,8 +77,10 @@ const selectStyles = {
 const menuProps = {
   PaperProps: {
     sx: {
-      maxHeight: "200px",
+      maxHeight: "150px", // Reduz a altura máxima do menu
       "& .MuiMenuItem-root": {
+        fontSize: '0.875rem', // Reduz o tamanho da fonte dos itens do menu
+        minHeight: 'auto', // Ajusta a altura mínima
         "&:hover": { backgroundColor: "#D5FFDB" },
         "&.Mui-selected": { backgroundColor: "#E8F5E9", "&:hover": { backgroundColor: "#D5FFDB" } },
       },
@@ -96,7 +98,7 @@ const ClassReplacementRegister = ({ setAlert }) => {
   const [scheduleDetails, setScheduleDetails] = useState([]);
   const [selectedClassLabel, setSelectedClassLabel] = useState('');
   const [localAlert, setLocalAlert] = useState(null);
-  const [availableDates] = useState(['2025-08-15', '2025-08-18', '2025-08-20', '2025-08-22', '2025-08-25', '2025-08-27']); // Datas fictícias para teste
+  const [availableDates] = useState(['2025-08-15', '2025-08-18', '2025-08-20', '2025-08-22', '2025-08-25', '2025-08-27']);
   const [selectedDates, setSelectedDates] = useState([]);
   const navigate = useNavigate();
 
@@ -146,10 +148,7 @@ const ClassReplacementRegister = ({ setAlert }) => {
     const {
       target: { value },
     } = event;
-    setSelectedDates(
-      // On autofill we get a stringified value.
-      typeof value === 'string' ? value.split(',') : value,
-    );
+    setSelectedDates(typeof value === 'string' ? value.split(',') : value);
   };
 
   const handleSubmit = async () => {
@@ -316,18 +315,13 @@ const ClassReplacementRegister = ({ setAlert }) => {
                     value={selectedDates}
                     onChange={handleDateChange}
                     label="Referente a"
-                    renderValue={(selected) => (
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {selected.map((value) => (
-                          <Chip key={value} label={value} />
-                        ))}
-                      </Box>
-                    )}
+                    renderValue={(selected) => selected.join(', ')}
                     MenuProps={menuProps}
                   >
                     {availableDates.map((date) => (
                       <MenuItem key={date} value={date}>
-                        {date}
+                        <Checkbox checked={selectedDates.includes(date)} />
+                        <ListItemText primary={date} />
                       </MenuItem>
                     ))}
                   </Select>

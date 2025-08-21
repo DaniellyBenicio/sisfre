@@ -1,9 +1,10 @@
 import haversine from "haversine-distance";
 
 const CAMPUS_COORDS = {
-  latitude: -6.753416222980834,
-  longitude: -38.968368589297896,
+  latitude: -6.75329902464083,
+  longitude: -38.96845441998467,
 };
+
 const MAX_DIST = 20000;
 
 //if  latitude: -6.60075173908146, longitude: -39.05512217154764

@@ -311,8 +311,9 @@ export const getAttendanceByTurn = async (req, res) => {
         },
       ],
       order: [
-        ["date", "DESC"], 
-        [{ model: db.ClassScheduleDetail, as: "detail" }, { model: db.Hour, as: "hour" }, "hourStart", "DESC"],
+        ["date", "DESC"],
+        [{ model: db.ClassScheduleDetail, as: "detail" }, "turn", "ASC"],
+        [{ model: db.ClassScheduleDetail, as: "detail" }, { model: db.Hour, as: "hour" }, "hourStart", "ASC"],
       ],
     });
 
@@ -322,21 +323,33 @@ export const getAttendanceByTurn = async (req, res) => {
         .json({ error: "Nenhuma frequência encontrada para o professor." });
     }
 
-    const formattedAttendances = attendances.map((attendance) => ({
-      attendance: {
-        id: attendance.id,
-        date: attendance.date,
-        status: attendance.status,
-        justification: attendance.justification,
-        registeredBy: attendance.registeredBy,
-      },
-      class: attendance.detail.schedule.class.semester,
-      course_name: attendance.detail.schedule.course.name,
-      course_acronym: attendance.detail.schedule.course.acronym,
-      discipline: attendance.detail.discipline.name,
-      discipline_acronym: attendance.detail.discipline.acronym,
-      hour: `${attendance.detail.hour.hourStart} - ${attendance.detail.hour.hourEnd}`,
-    }));
+    const groupedAttendances = attendances.reduce((acc, attendance) => {
+      const date = new Date(attendance.date).toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+      const turn = attendance.detail.turn.toLowerCase();
+      const key = `${date}_${turn}`;
+
+      if (!acc[key]) {
+        acc[key] = {
+          date,
+          turn: turn.charAt(0).toUpperCase() + turn.slice(1), 
+          status: attendance.status,
+        };
+      }
+
+      return acc;
+    }, {});
+
+    const formattedAttendances = Object.values(groupedAttendances).sort((a, b) => {
+      const dateA = new Date(a.date.split("/").reverse().join("-"));
+      const dateB = new Date(b.date.split("/").reverse().join("-"));
+      if (dateA !== dateB) return dateB - dateA; 
+      const turnOrder = ["Matutino", "Vespertino", "Noturno"];
+      return turnOrder.indexOf(a.turn) - turnOrder.indexOf(b.turn); 
+    });
 
     return res.status(200).json({
       message: "Frequências recuperadas com sucesso.",
@@ -344,6 +357,99 @@ export const getAttendanceByTurn = async (req, res) => {
     });
   } catch (error) {
     console.error("Erro ao consultar frequência por turno:", error);
+    return res
+      .status(500)
+      .json({ error: "Erro interno do servidor.", details: error.message });
+  }
+};
+
+export const getTeacherAbsences = async (req, res) => {
+  const { courseAcronym, disciplineName } = req.query;
+  const loggedUserId = req.user?.id;
+
+  try {
+    if (!loggedUserId) {
+      return res.status(401).json({ error: "Usuário não autenticado." });
+    }
+    if (req.user.accessType !== "Professor") {
+      return res.status(403).json({
+        error: "Acesso negado. Apenas Professores podem consultar faltas.",
+      });
+    }
+
+    const courseFilter = courseAcronym && courseAcronym !== "all" ? { acronym: courseAcronym } : {};
+    const disciplineFilter = disciplineName && disciplineName !== "all" ? { name: disciplineName } : {};
+
+    const absences = await db.ClassScheduleDetail.findAll({
+      where: {
+        userId: loggedUserId,
+      },
+      attributes: [
+        [db.sequelize.fn("COUNT", db.sequelize.col("attendances.id")), "absences_count"],
+        [db.sequelize.col("schedule->course.acronym"), "course_acronym"],
+        [db.sequelize.col("schedule->class.semester"), "semester"],
+        [db.sequelize.col("discipline.name"), "discipline_name"],
+      ],
+      include: [
+        {
+          model: db.ClassSchedule,
+          as: "schedule",
+          attributes: [],
+          where: { isActive: true },
+          include: [
+            {
+              model: db.Class,
+              as: "class",
+              attributes: [],
+            },
+            {
+              model: db.Course,
+              as: "course",
+              attributes: [],
+              where: courseFilter,
+            },
+          ],
+        },
+        {
+          model: db.Discipline,
+          as: "discipline",
+          attributes: [],
+          where: disciplineFilter,
+        },
+        {
+          model: db.Attendance,
+          as: "attendances",
+          attributes: [],
+          where: { status: "falta" },
+          required: true,
+        },
+      ],
+      group: [
+        "schedule.course.acronym",
+        "schedule.class.semester",
+        "discipline.name",
+      ],
+      raw: true,
+      subQuery: false,
+    });
+
+    if (!absences.length) {
+      return res.status(404).json({ error: "Nenhuma falta encontrada para o professor." });
+    }
+
+    const formattedAbsences = absences.map((item) => ({
+      course_acronym: item.course_acronym,
+      semester: item.semester,
+      discipline_name: item.discipline_name,
+      absences_count: parseInt(item.absences_count, 10) || 0,
+    }));
+
+    return res.status(200).json({
+      message: "Faltas recuperadas com sucesso.",
+      absences: formattedAbsences,
+    });
+  } catch (error) {
+    console.error("Erro ao consultar faltas do professor:", error);
     return res
       .status(500)
       .json({ error: "Erro interno do servidor.", details: error.message });

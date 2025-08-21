@@ -22,6 +22,11 @@ export default (sequelize) => {
         foreignKey: "hourId",
         as: "hour",
       });
+
+      ClassScheduleDetail.hasMany(models.Attendance, {
+        foreignKey: "classScheduleDetailId",
+        as: "attendances",
+      });
     }
   }
 

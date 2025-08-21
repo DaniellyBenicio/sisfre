@@ -23,12 +23,11 @@ const MyAbsences = () => {
   const [absences, setAbsences] = useState([]);
   const [courses, setCourses] = useState([]);
   const [disciplines, setDisciplines] = useState([]);
-  const [filterCourse, setFilterCourse] = useState("all");
-  const [filterDiscipline, setFilterDiscipline] = useState("all");
+  const [filterCourseAcronym, setFilterCourseAcronym] = useState("all");
+  const [filterDisciplineName, setFilterDisciplineName] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Estilos de tabela copiados de FrequenciesTable.js
   const tableHeadStyle = {
     fontWeight: "bold",
     backgroundColor: "#087619",
@@ -101,64 +100,42 @@ const MyAbsences = () => {
     try {
       setLoading(true);
       const params = {
-        attended: false,
-        courseId: filterCourse !== "all" ? filterCourse : undefined,
-        disciplineId: filterDiscipline !== "all" ? filterDiscipline : undefined,
+        courseAcronym:
+          filterCourseAcronym !== "all" ? filterCourseAcronym : undefined,
+        disciplineName:
+          filterDisciplineName !== "all" ? filterDisciplineName : undefined,
       };
 
-      const response = await api.get("/register-by-turn", { params });
-
-      const groupedAbsences = (Array.isArray(response.data.attendances) ? response.data.attendances : [])
-        .filter((freq) => !freq.attendance.attended)
-        .reduce((acc, freq) => {
-          const key = `${freq.course_acronym}-${freq.disciplineId}`;
-          if (!acc[key]) {
-            acc[key] = {
-              id: key,
-              course: freq.course_acronym,
-              discipline: freq.discipline,
-              count: 0,
-              dates: [],
-            };
-          }
-          acc[key].count += 1;
-          acc[key].dates.push(new Date(freq.attendance.date + "T00:00:00").toLocaleDateString("pt-BR"));
-          return acc;
-        }, {});
-
-      setAbsences(Object.values(groupedAbsences));
+      const response = await api.get("/teacher-absences", { params });
+      const absencesData = response.data.absences || [];
+      setAbsences(absencesData);
       setError(null);
+
+      const uniqueCourses = Array.from(
+        new Set(absencesData.map((absence) => absence.course_acronym))
+      ).map((acronym) => ({ acronym }));
+      setCourses(uniqueCourses);
+
+      const uniqueDisciplines = Array.from(
+        new Set(absencesData.map((absence) => absence.discipline_name))
+      ).map((name) => ({ name }));
+      setDisciplines(uniqueDisciplines);
     } catch (err) {
       console.error("Erro ao buscar faltas:", err);
-      setError("Não foi possível carregar suas faltas.");
+      setError(
+        err.response?.data?.error || "Não foi possível carregar suas faltas."
+      );
       setAbsences([]);
+      setCourses([]);
+      setDisciplines([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchCoursesAndDisciplines = async () => {
-    try {
-      const coursesResponse = await api.get("/courses");
-      setCourses(Array.isArray(coursesResponse.data) ? coursesResponse.data : []);
-
-      const disciplinesResponse = await api.get("/disciplines");
-      setDisciplines(Array.isArray(disciplinesResponse.data) ? disciplinesResponse.data : []);
-    } catch (error) {
-      console.error("Erro ao buscar cursos e disciplinas:", error);
-      setError("Não foi possível carregar as opções de filtro.");
-      setCourses([]);
-      setDisciplines([]);
-    }
-  };
-
-  useEffect(() => {
-    fetchCoursesAndDisciplines();
-  }, []);
-
   useEffect(() => {
     fetchAbsences();
-  }, [filterCourse, filterDiscipline]);
+  }, [filterCourseAcronym, filterDisciplineName]);
 
   if (loading) {
     return (
@@ -190,20 +167,22 @@ const MyAbsences = () => {
           <StyledSelect
             labelId="filter-course-label"
             id="filter-course"
-            value={filterCourse}
+            value={filterCourseAcronym}
             label="Curso"
-            onChange={(e) => setFilterCourse(e.target.value)}
+            onChange={(e) => setFilterCourseAcronym(e.target.value)}
             sx={commonSelectSx}
             MenuProps={commonMenuProps}
           >
             <MenuItem value="all">Todos os Cursos</MenuItem>
             {Array.isArray(courses) && courses.length > 0 ? (
-              courses.map((course) => (
-                <MenuItem key={course.id} value={course.id}>
+              courses.map((course, index) => (
+                <MenuItem key={index} value={course.acronym}>
                   {course.acronym}
                 </MenuItem>
               ))
-            ) : null}
+            ) : (
+              <MenuItem disabled>Nenhum curso disponível</MenuItem>
+            )}
           </StyledSelect>
         </FormControl>
 
@@ -212,20 +191,22 @@ const MyAbsences = () => {
           <StyledSelect
             labelId="filter-discipline-label"
             id="filter-discipline"
-            value={filterDiscipline}
+            value={filterDisciplineName}
             label="Disciplina"
-            onChange={(e) => setFilterDiscipline(e.target.value)}
+            onChange={(e) => setFilterDisciplineName(e.target.value)}
             sx={commonSelectSx}
             MenuProps={commonMenuProps}
           >
             <MenuItem value="all">Todas as Disciplinas</MenuItem>
             {Array.isArray(disciplines) && disciplines.length > 0 ? (
-              disciplines.map((discipline) => (
-                <MenuItem key={discipline.id} value={discipline.id}>
+              disciplines.map((discipline, index) => (
+                <MenuItem key={index} value={discipline.name}>
                   {discipline.name}
                 </MenuItem>
               ))
-            ) : null}
+            ) : (
+              <MenuItem disabled>Nenhuma disciplina disponível</MenuItem>
+            )}
           </StyledSelect>
         </FormControl>
       </Stack>
@@ -233,24 +214,36 @@ const MyAbsences = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell align="center" sx={tableHeadStyle}>Curso/Turma</TableCell>
-              <TableCell align="center" sx={tableHeadStyle}>Disciplina</TableCell>
-              <TableCell align="center" sx={tableHeadStyle}>Quantidade de Faltas</TableCell>
+              <TableCell align="center" sx={tableHeadStyle}>
+                Curso/Turma
+              </TableCell>
+              <TableCell align="center" sx={tableHeadStyle}>
+                Disciplina
+              </TableCell>
+              <TableCell align="center" sx={tableHeadStyle}>
+                Quantidade de Faltas
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {absences.length > 0 ? (
-              absences.map((absence) => (
-                <TableRow key={absence.id}>
-                  <TableCell align="center" sx={tableBodyCellStyle}>{absence.course}</TableCell>
-                  <TableCell align="center" sx={tableBodyCellStyle}>{absence.discipline}</TableCell>
-                  <TableCell align="center" sx={tableBodyCellStyle}>{absence.count}</TableCell>
+              absences.map((absence, index) => (
+                <TableRow key={index}>
+                  <TableCell align="center" sx={tableBodyCellStyle}>
+                    {absence.course_acronym} - {absence.semester}
+                  </TableCell>
+                  <TableCell align="center" sx={tableBodyCellStyle}>
+                    {absence.discipline_name}
+                  </TableCell>
+                  <TableCell align="center" sx={tableBodyCellStyle}>
+                    {absence.absences_count}
+                  </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
                 <TableCell colSpan={3} align="center" sx={tableBodyCellStyle}>
-                  Você não tem faltas registradas com base nos filtros.
+                  Não foram encontradas faltas para este professor.
                 </TableCell>
               </TableRow>
             )}

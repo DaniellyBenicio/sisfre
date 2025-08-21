@@ -31,13 +31,12 @@ const StyledButton = styled(Button)(() => ({
   "&:hover": { backgroundColor: "#26692b" },
 }));
 
-// Estilos para as abas
 const StyledTabs = styled(Tabs)({
   borderBottom: "1px solid #e8e8e8",
   "& .MuiTabs-indicator": {
     backgroundColor: INSTITUTIONAL_COLOR,
   },
-  justifyContent: "center", // Centraliza as abas
+  justifyContent: "center",
 });
 
 const StyledTab = styled((props) => <Tab disableRipple {...props} />)(
@@ -47,8 +46,8 @@ const StyledTab = styled((props) => <Tab disableRipple {...props} />)(
     [theme.breakpoints.up("sm")]: {
       minWidth: 0,
     },
-    fontWeight: "bold", // Adiciona negrito ao texto da aba
-    fontSize: "1rem", // Aumenta o tamanho da fonte para destacar os nomes
+    fontWeight: "bold",
+    fontSize: "1rem",
     marginRight: theme.spacing(1),
     color: "rgba(0, 0, 0, 0.85)",
     "&:hover": {
@@ -89,12 +88,7 @@ const FrequencyList = () => {
     try {
       setLoading(true);
       const params = {
-        attended:
-          filterStatus === "Presença"
-            ? true
-            : filterStatus === "Falta"
-            ? false
-            : undefined,
+        status: filterStatus === "all" ? undefined : filterStatus.toLowerCase(),
         startDate:
           filterPeriod === "custom" && customStartDate
             ? customStartDate
@@ -111,27 +105,12 @@ const FrequencyList = () => {
         response.data
       );
       const formattedData = Array.isArray(response.data.attendances)
-        ? response.data.attendances
-            .map((freq) => ({
-              id: freq.attendance.id,
-              date: freq.attendance.date,
-              displayDate: freq.attendance.date
-                ? new Date(
-                    freq.attendance.date + "T00:00:00"
-                  ).toLocaleDateString("pt-BR")
-                : "N/A",
-              class: `${freq.course_acronym || "N/A"} - ${
-                freq.class || "N/A"
-              }`,
-              discipline: freq.discipline || "N/A",
-              time: freq.hour || "N/A",
-              status: freq.attendance.attended ? "Presença" : "Falta",
-              courseId: freq.courseId || "N/A",
-              disciplineId: freq.disciplineId || "N/A",
-            }))
-            .sort((a, b) =>
-              a.class.toLowerCase().localeCompare(b.class.toLowerCase())
-            )
+        ? response.data.attendances.map((freq, index) => ({
+            id: index.toString(), 
+            date: freq.date,
+            turn: freq.turn,
+            status: freq.status.charAt(0).toUpperCase() + freq.status.slice(1), 
+          }))
         : [];
       setFrequencies(formattedData);
       console.log("Frequências formatadas:", formattedData);
@@ -167,7 +146,7 @@ const FrequencyList = () => {
 
     filtered = filtered.filter((freq) => {
       if (!freq.date) return false;
-      const freqDate = new Date(freq.date + "T00:00:00");
+      const freqDate = new Date(freq.date.split("/").reverse().join("-"));
       switch (filterPeriod) {
         case "yesterday":
           const yesterday = new Date(today);
@@ -267,8 +246,8 @@ const FrequencyList = () => {
     try {
       const now = new Date();
       const response = await api.post("/frequency/absence-credit", {
-        courseId: frequencyItem.courseId,
-        disciplineId: frequencyItem.disciplineId,
+        courseId: frequencyItem.courseId || null, 
+        disciplineId: frequencyItem.disciplineId || null, 
         date: now.toISOString().split("T")[0],
         time: now.toTimeString().split(" ")[0],
         useCredit: true,
@@ -384,7 +363,6 @@ const FrequencyList = () => {
         </StyledTabs>
       </Box>
 
-      {/* Conteúdo da aba de Frequências */}
       {tabIndex === 0 && (
         <Box>
           <Stack
@@ -496,7 +474,8 @@ const FrequencyList = () => {
               isFiltered={
                 filterStatus !== "all" ||
                 filterPeriod !== "all" ||
-                (filterPeriod === "custom" && (customStartDate || customEndDate))
+                (filterPeriod === "custom" &&
+                  (customStartDate || customEndDate))
               }
             />
           )}
@@ -514,7 +493,6 @@ const FrequencyList = () => {
         </Box>
       )}
 
-      {/* Conteúdo da aba de Faltas */}
       {tabIndex === 1 && (
         <Box>
           <MyAbsences />

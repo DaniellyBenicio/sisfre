@@ -6,7 +6,7 @@ const CAMPUS_COORDS = {
 };
 
 const MAX_DIST = 20000;
-
+ 
 //if  latitude: -6.60075173908146, longitude: -39.05512217154764
 
 export const isInCampus = (coords) => {

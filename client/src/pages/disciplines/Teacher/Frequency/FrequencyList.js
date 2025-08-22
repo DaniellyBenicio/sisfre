@@ -394,6 +394,7 @@ const FrequencyList = () => {
                   <MenuItem value="all">Todas</MenuItem>
                   <MenuItem value="Presença">Presenças</MenuItem>
                   <MenuItem value="Falta">Faltas</MenuItem>
+                  <MenuItem value="Abonada">Abonadas</MenuItem>
                 </StyledSelect>
               </FormControl>
 

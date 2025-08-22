@@ -129,14 +129,15 @@ export const getAbsencesByDiscipline = async (req, res) => {
 export const getTotalAbsencesByTeacher = async (req, res) => {
   try {
     const user = await db.User.findByPk(req.userId);
-    const searchTerm = req.query.search || '';
+    const searchTerm = req.query.search || "";
 
     if (!user) {
       return res.status(401).json({ error: "Usuário não autenticado." });
     }
     if (user.accessType !== "Admin") {
       return res.status(403).json({
-        error: "Acesso negado. Apenas administradores podem visualizar estes dados.",
+        error:
+          "Acesso negado. Apenas administradores podem visualizar estes dados.",
       });
     }
 
@@ -228,6 +229,7 @@ export const getProfessorAbsenceDetails = async (req, res) => {
   try {
     const user = await db.User.findByPk(req.userId);
     const professorId = req.params.professorId;
+    const { status: statusFilter, course: courseFilter } = req.query;
 
     if (!user) {
       return res.status(401).json({ error: "Usuário não autenticado." });
@@ -237,11 +239,19 @@ export const getProfessorAbsenceDetails = async (req, res) => {
         error: "Acesso negado. Apenas administradores podem visualizar estes dados.",
       });
     }
+    
+    const attendanceWhere = {};
+    if (statusFilter && statusFilter.toLowerCase() !== "todos") {
+      attendanceWhere.status = statusFilter;
+    }
+    
+    const courseWhere = {};
+    if (courseFilter && courseFilter.toLowerCase() !== "todos") {
+      courseWhere.acronym = courseFilter;
+    }
 
     const attendances = await db.Attendance.findAll({
-      where: {
-        status: "Falta",
-      },
+      where: attendanceWhere, 
       include: [
         {
           model: db.ClassScheduleDetail,
@@ -260,7 +270,11 @@ export const getProfessorAbsenceDetails = async (req, res) => {
               required: true,
               include: [
                 { model: db.Class, as: "class" },
-                { model: db.Course, as: "course" },
+                {
+                  model: db.Course,
+                  as: "course",
+                  where: courseWhere 
+                },
               ],
             },
           ],
@@ -270,7 +284,7 @@ export const getProfessorAbsenceDetails = async (req, res) => {
 
     if (!attendances.length) {
       return res.status(404).json({
-        error: "Nenhuma falta encontrada para este professor.",
+        error: "Nenhuma falta encontrada para este professor com os filtros aplicados.",
       });
     }
 

@@ -239,19 +239,20 @@ export const getProfessorAbsenceDetails = async (req, res) => {
         error: "Acesso negado. Apenas administradores podem visualizar estes dados.",
       });
     }
-    
+
     const attendanceWhere = {};
     if (statusFilter && statusFilter.toLowerCase() !== "todos") {
       attendanceWhere.status = statusFilter;
     }
-    
+
     const courseWhere = {};
     if (courseFilter && courseFilter.toLowerCase() !== "todos") {
       courseWhere.acronym = courseFilter;
     }
 
     const attendances = await db.Attendance.findAll({
-      where: attendanceWhere, 
+      where: attendanceWhere,
+      attributes: ["date", "status"], 
       include: [
         {
           model: db.ClassScheduleDetail,
@@ -269,13 +270,20 @@ export const getProfessorAbsenceDetails = async (req, res) => {
               as: "schedule",
               required: true,
               include: [
-                { model: db.Class, as: "class" },
+                { model: db.Class, as: "class", attributes: ["semester"] },
                 {
                   model: db.Course,
                   as: "course",
-                  where: courseWhere 
+                  attributes: ["acronym"],
+                  where: courseWhere,
                 },
               ],
+            },
+            {
+              model: db.Discipline,
+              as: "discipline",
+              attributes: ["name"],
+              required: true,
             },
           ],
         },
@@ -290,10 +298,13 @@ export const getProfessorAbsenceDetails = async (req, res) => {
 
     const absenceDetails = attendances.map((attendance) => {
       const classSchedule = attendance.detail.schedule;
+      const discipline = attendance.detail.discipline;
       return {
+        data: attendance.date, 
+        disciplina: discipline.name, 
         "curso-turma": `${classSchedule.course.acronym} - ${classSchedule.class.semester}`,
-        "turno": attendance.detail.turn,
-        "status": attendance.status,
+        turno: attendance.detail.turn,
+        status: attendance.status,
       };
     });
 

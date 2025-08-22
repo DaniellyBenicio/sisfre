@@ -372,7 +372,6 @@ export const getAttendanceByTurn = async (req, res) => {
 export const getTeacherAbsences = async (req, res) => {
   const { courseAcronym, disciplineName } = req.query;
 
-  // 1. Lógica inicial de autenticação e segurança
   if (req.user && req.user.dataValues) {
     delete req.user.dataValues.password;
   }
@@ -398,9 +397,6 @@ export const getTeacherAbsences = async (req, res) => {
         ? { name: disciplineName }
         : {};
 
-    // --- Nova lógica de consulta simplificada ---
-
-    // Etapa 1: Encontrar os IDs de agendamento do professor com base nos filtros
     const relevantDetails = await db.ClassScheduleDetail.findAll({
       attributes: [
         "id",
@@ -448,7 +444,6 @@ export const getTeacherAbsences = async (req, res) => {
           required: true,
         },
       ],
-      // Adicionando ordenação aqui para facilitar o próximo passo
       order: [
         [
           { model: db.ClassSchedule, as: "schedule" },
@@ -477,10 +472,8 @@ export const getTeacherAbsences = async (req, res) => {
         });
     }
 
-    // Cria um array com os IDs dos agendamentos encontrados
     const detailIds = relevantDetails.map((detail) => detail.id);
 
-    // Etapa 2: Buscar as faltas usando os IDs
     const absences = await db.Attendance.findAll({
       where: {
         status: "falta",
@@ -491,14 +484,12 @@ export const getTeacherAbsences = async (req, res) => {
       raw: true,
     });
 
-    // Se não houver faltas, retorne um 404
     if (!absences.length) {
       return res
         .status(404)
         .json({ error: "Nenhuma falta encontrada para o professor." });
     }
 
-    // --- O restante do código de processamento de dados ---
     const absencesByDate = {};
     absences.forEach((absence) => {
       const date = absence.date;

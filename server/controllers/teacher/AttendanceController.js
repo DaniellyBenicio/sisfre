@@ -313,7 +313,12 @@ export const getAttendanceByTurn = async (req, res) => {
       order: [
         ["date", "DESC"],
         [{ model: db.ClassScheduleDetail, as: "detail" }, "turn", "ASC"],
-        [{ model: db.ClassScheduleDetail, as: "detail" }, { model: db.Hour, as: "hour" }, "hourStart", "ASC"],
+        [
+          { model: db.ClassScheduleDetail, as: "detail" },
+          { model: db.Hour, as: "hour" },
+          "hourStart",
+          "ASC",
+        ],
       ],
     });
 
@@ -335,7 +340,7 @@ export const getAttendanceByTurn = async (req, res) => {
       if (!acc[key]) {
         acc[key] = {
           date,
-          turn: turn.charAt(0).toUpperCase() + turn.slice(1), 
+          turn: turn.charAt(0).toUpperCase() + turn.slice(1),
           status: attendance.status,
         };
       }
@@ -343,13 +348,15 @@ export const getAttendanceByTurn = async (req, res) => {
       return acc;
     }, {});
 
-    const formattedAttendances = Object.values(groupedAttendances).sort((a, b) => {
-      const dateA = new Date(a.date.split("/").reverse().join("-"));
-      const dateB = new Date(b.date.split("/").reverse().join("-"));
-      if (dateA !== dateB) return dateB - dateA; 
-      const turnOrder = ["Matutino", "Vespertino", "Noturno"];
-      return turnOrder.indexOf(a.turn) - turnOrder.indexOf(b.turn); 
-    });
+    const formattedAttendances = Object.values(groupedAttendances).sort(
+      (a, b) => {
+        const dateA = new Date(a.date.split("/").reverse().join("-"));
+        const dateB = new Date(b.date.split("/").reverse().join("-"));
+        if (dateA !== dateB) return dateB - dateA;
+        const turnOrder = ["Matutino", "Vespertino", "Noturno"];
+        return turnOrder.indexOf(a.turn) - turnOrder.indexOf(b.turn);
+      }
+    );
 
     return res.status(200).json({
       message: "Frequências recuperadas com sucesso.",
@@ -377,15 +384,24 @@ export const getTeacherAbsences = async (req, res) => {
       });
     }
 
-    const courseFilter = courseAcronym && courseAcronym !== "all" ? { acronym: courseAcronym } : {};
-    const disciplineFilter = disciplineName && disciplineName !== "all" ? { name: disciplineName } : {};
+    const courseFilter =
+      courseAcronym && courseAcronym !== "all"
+        ? { acronym: courseAcronym }
+        : {};
+    const disciplineFilter =
+      disciplineName && disciplineName !== "all"
+        ? { name: disciplineName }
+        : {};
 
     const absences = await db.ClassScheduleDetail.findAll({
       where: {
         userId: loggedUserId,
       },
       attributes: [
-        [db.sequelize.fn("COUNT", db.sequelize.col("attendances.id")), "absences_count"],
+        [
+          db.sequelize.fn("COUNT", db.sequelize.col("attendances.id")),
+          "absences_count",
+        ],
         [db.sequelize.col("schedule->course.acronym"), "course_acronym"],
         [db.sequelize.col("schedule->class.semester"), "semester"],
         [db.sequelize.col("discipline.name"), "discipline_name"],
@@ -434,7 +450,9 @@ export const getTeacherAbsences = async (req, res) => {
     });
 
     if (!absences.length) {
-      return res.status(404).json({ error: "Nenhuma falta encontrada para o professor." });
+      return res
+        .status(404)
+        .json({ error: "Nenhuma falta encontrada para o professor." });
     }
 
     const formattedAbsences = absences.map((item) => ({
@@ -547,7 +565,7 @@ export const justifyAbsenceByTurn = async (req, res) => {
 
 export const getJustificationByTurn = async (req, res) => {
   const { date, turno, professorId } = req.query;
-  const loggedUserId = req.userId; 
+  const loggedUserId = req.userId;
   const currentDateTime = new Date(
     new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })
   );
@@ -624,7 +642,11 @@ export const getJustificationByTurn = async (req, res) => {
       courseFilter = { "$detail.schedule.course.id$": { [Op.in]: courseIds } };
     }
 
-    if (accessType === "Professor" && professorId && professorId !== loggedUserId) {
+    if (
+      accessType === "Professor" &&
+      professorId &&
+      professorId !== loggedUserId
+    ) {
       return res.status(403).json({
         error: "Professores só podem visualizar suas próprias justificativas.",
       });
@@ -658,13 +680,13 @@ export const getJustificationByTurn = async (req, res) => {
         },
       ],
       order: [
-        ["date", "DESC"], 
+        ["date", "DESC"],
         [
           { model: db.ClassScheduleDetail, as: "detail" },
           { model: db.Hour, as: "hour" },
           "hourStart",
           "DESC",
-        ], 
+        ],
       ],
     });
 

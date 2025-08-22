@@ -28,6 +28,7 @@ import {
   EventAvailable,
   EventNote,
   Group,
+  EventBusy,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useMediaQuery } from "@mui/material";
@@ -59,7 +60,7 @@ const Sidebar = ({ setAuthenticated }) => {
     else if (path === "/classes") setSelectedItem("classes");
     else if (path === "/class-schedule/options") setSelectedItem("class-schedule");
     else if (path === "/frequency") setSelectedItem("frequency");
-    else if (path === "/class-reschedule-options") setSelectedItem("class-reschedule"); // Atualizado para novo componente
+    else if (path === "/class-reschedule-options") setSelectedItem("class-reschedule");
     else if (path === "/teachers-management/options") setSelectedItem("teachers-management/options");
   }, [location.pathname]);
 
@@ -177,6 +178,16 @@ const Sidebar = ({ setAuthenticated }) => {
               >
                 <Schedule sx={{ mr: 1 }} />
                 <ListItemText primary="Grade de Turmas" />
+              </ListItem>
+              <ListItem
+                button
+                onClick={() =>
+                  handleItemClick("/teacher-absences/options", "teacher-absences")
+                }
+                sx={getListItemStyle(selectedItem, "teacher-absences")}
+              >
+                <EventBusy sx={{ mr: 1 }} />
+                <ListItemText primary="Gestão de Faltas" />
               </ListItem>
             </>
           )}

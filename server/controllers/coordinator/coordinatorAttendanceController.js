@@ -53,7 +53,7 @@ export const getAbsencesByDiscipline = async (req, res) => {
     const attendances = await db.Attendance.findAll({
       where: {
         ...dateWhere,
-        attended: false,
+        status: "Falta",
       },
       include: [
         {
@@ -123,6 +123,98 @@ export const getAbsencesByDiscipline = async (req, res) => {
     return res
       .status(500)
       .json({ error: "Erro interno do servidor.", details: error.message });
+  }
+};
+
+export const TotalAbsencesByTeacher = async (req, res) => {
+  try {
+    const user = await db.User.findByPk(req.userId);
+
+    if (!user) {
+      return res.status(401).json({ error: "Usuário não autenticado." });
+    }
+    if (user.accessType !== "Admin") {
+      return res.status(403).json({
+        error:
+          "Acesso negado. Apenas administradores podem visualizar estes dados.",
+      });
+    }
+
+    const currentDateTime = new Date(
+      new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })
+    );
+    const currentDate = currentDateTime.toISOString().split("T")[0];
+
+    const calendar = await db.Calendar.findOne({
+      where: {
+        startDate: { [Op.lte]: currentDate },
+        endDate: { [Op.gte]: currentDate },
+      },
+    });
+    if (!calendar) {
+      return res
+        .status(404)
+        .json({ error: "Nenhum calendário ativo encontrado para o período." });
+    }
+
+    const attendances = await db.Attendance.findAll({
+      where: {
+        status: "Falta",
+      },
+      include: [
+        {
+          model: db.ClassScheduleDetail,
+          as: "detail",
+          include: [
+            {
+              model: db.User,
+              as: "professor",
+              where: { accessType: "Professor" },
+            },
+            {
+              model: db.ClassSchedule,
+              as: "schedule",
+              where: { calendarId: calendar.id, isActive: true },
+            },
+          ],
+        },
+      ],
+    });
+
+    if (!attendances.length) {
+      return res
+        .status(404)
+        .json({ error: "Nenhuma falta encontrada para nenhum professor." });
+    }
+
+    const professorAbsencesMap = new Map();
+    for (const attendance of attendances) {
+      const professor = attendance.detail.professor;
+      if (!professor) continue;
+
+      const key = professor.id;
+      if (!professorAbsencesMap.has(key)) {
+        professorAbsencesMap.set(key, {
+          professor_name: professor.username,
+          count: 0,
+        });
+      }
+      const entry = professorAbsencesMap.get(key);
+      entry.count += 1;
+    }
+
+    const formattedAbsences = Array.from(professorAbsencesMap.values());
+
+    return res.status(200).json({
+      message: "Total de faltas por professor recuperado com sucesso.",
+      total_absences: formattedAbsences,
+    });
+  } catch (error) {
+    console.error("Erro ao consultar total de faltas por professor:", error);
+    return res.status(500).json({
+      error: "Erro interno do servidor.",
+      details: error.message,
+    });
   }
 };
 

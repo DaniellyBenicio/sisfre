@@ -369,16 +369,21 @@ export const getAttendanceByTurn = async (req, res) => {
       .json({ error: "Erro interno do servidor.", details: error.message });
   }
 };
-
 export const getTeacherAbsences = async (req, res) => {
   const { courseAcronym, disciplineName } = req.query;
+
+  // 1. Lógica inicial de autenticação e segurança
+  if (req.user && req.user.dataValues) {
+    delete req.user.dataValues.password;
+  }
   const loggedUserId = req.user?.id;
+  const accessType = req.user?.accessType;
 
   try {
-    if (!loggedUserId) {
+    if (!req.user || !loggedUserId) {
       return res.status(401).json({ error: "Usuário não autenticado." });
     }
-    if (req.user.accessType !== "Professor") {
+    if (accessType !== "Professor") {
       return res.status(403).json({
         error: "Acesso negado. Apenas Professores podem consultar faltas.",
       });
@@ -393,79 +398,136 @@ export const getTeacherAbsences = async (req, res) => {
         ? { name: disciplineName }
         : {};
 
-    const absences = await db.ClassScheduleDetail.findAll({
-      where: {
-        userId: loggedUserId,
-      },
+    // --- Nova lógica de consulta simplificada ---
+
+    // Etapa 1: Encontrar os IDs de agendamento do professor com base nos filtros
+    const relevantDetails = await db.ClassScheduleDetail.findAll({
       attributes: [
-        [
-          db.sequelize.fn("COUNT", db.sequelize.col("attendances.id")),
-          "absences_count",
-        ],
-        [db.sequelize.col("schedule->course.acronym"), "course_acronym"],
-        [db.sequelize.col("schedule->class.semester"), "semester"],
-        [db.sequelize.col("discipline.name"), "discipline_name"],
+        "id",
+        "dayOfWeek",
+        "classScheduleId",
+        "disciplineId",
+        "hourId",
       ],
+      where: { userId: loggedUserId },
+      required: true,
       include: [
         {
           model: db.ClassSchedule,
           as: "schedule",
-          attributes: [],
+          attributes: ["classId", "courseId"],
           where: { isActive: true },
+          required: true,
           include: [
-            {
-              model: db.Class,
-              as: "class",
-              attributes: [],
-            },
             {
               model: db.Course,
               as: "course",
-              attributes: [],
+              attributes: ["acronym"],
               where: courseFilter,
+              required: true,
+            },
+            {
+              model: db.Class,
+              as: "class",
+              attributes: ["semester"],
+              required: true,
             },
           ],
         },
         {
           model: db.Discipline,
           as: "discipline",
-          attributes: [],
+          attributes: ["name"],
           where: disciplineFilter,
+          required: true,
         },
         {
-          model: db.Attendance,
-          as: "attendances",
-          attributes: [],
-          where: { status: "falta" },
+          model: db.Hour,
+          as: "hour",
+          attributes: ["hourStart", "hourEnd"],
           required: true,
         },
       ],
-      group: [
-        "schedule.course.acronym",
-        "schedule.class.semester",
-        "discipline.name",
+      // Adicionando ordenação aqui para facilitar o próximo passo
+      order: [
+        [
+          { model: db.ClassSchedule, as: "schedule" },
+          { model: db.Course, as: "course" },
+          "acronym",
+          "ASC",
+        ],
+        [
+          { model: db.ClassSchedule, as: "schedule" },
+          { model: db.Class, as: "class" },
+          "semester",
+          "ASC",
+        ],
+        [{ model: db.Discipline, as: "discipline" }, "name", "ASC"],
+        [{ model: db.Hour, as: "hour" }, "hourStart", "ASC"],
       ],
       raw: true,
-      subQuery: false,
     });
 
+    if (!relevantDetails.length) {
+      return res
+        .status(404)
+        .json({
+          error:
+            "Nenhum agendamento encontrado para o professor com os filtros fornecidos.",
+        });
+    }
+
+    // Cria um array com os IDs dos agendamentos encontrados
+    const detailIds = relevantDetails.map((detail) => detail.id);
+
+    // Etapa 2: Buscar as faltas usando os IDs
+    const absences = await db.Attendance.findAll({
+      where: {
+        status: "falta",
+        classScheduleDetailId: { [Op.in]: detailIds },
+      },
+      attributes: ["date", "classScheduleDetailId"],
+      order: [["date", "ASC"]],
+      raw: true,
+    });
+
+    // Se não houver faltas, retorne um 404
     if (!absences.length) {
       return res
         .status(404)
         .json({ error: "Nenhuma falta encontrada para o professor." });
     }
 
-    const formattedAbsences = absences.map((item) => ({
-      course_acronym: item.course_acronym,
-      semester: item.semester,
-      discipline_name: item.discipline_name,
-      absences_count: parseInt(item.absences_count, 10) || 0,
-    }));
-
-    return res.status(200).json({
-      message: "Faltas recuperadas com sucesso.",
-      absences: formattedAbsences,
+    // --- O restante do código de processamento de dados ---
+    const absencesByDate = {};
+    absences.forEach((absence) => {
+      const date = absence.date;
+      if (!absencesByDate[date]) {
+        absencesByDate[date] = [];
+      }
+      absencesByDate[date].push(absence.classScheduleDetailId);
     });
+
+    const result = Object.entries(absencesByDate).map(([date, details]) => {
+      const uniqueDetails = [...new Set(details)];
+      const formattedAbsences = uniqueDetails.map((detailId) => {
+        const detailInfo = relevantDetails.find((d) => d.id === detailId);
+        return {
+          dayOfWeek: detailInfo["dayOfWeek"],
+          course: detailInfo["schedule.course.acronym"],
+          semester: detailInfo["schedule.class.semester"],
+          discipline: detailInfo["discipline.name"],
+          hourStart: detailInfo["hour.hourStart"],
+          hourEnd: detailInfo["hour.hourEnd"],
+        };
+      });
+      return {
+        date,
+        details: formattedAbsences,
+      };
+    });
+
+    return res.status(200).json(result);
   } catch (error) {
     console.error("Erro ao consultar faltas do professor:", error);
     return res
@@ -730,21 +792,19 @@ export const getJustificationByTurn = async (req, res) => {
 };
 
 export const getAbsencesAndDisciplinesByTeacher = async (req, res) => {
-  const { userId } = req.query; 
+  const { userId } = req.query;
   const coordinatorId = req.user?.id;
 
   if (!userId || !coordinatorId) {
-    return res
-      .status(400)
-      .json({
-        error:
-          "O userId do professor e o ID do coordenador logado são obrigatórios.",
-      });
+    return res.status(400).json({
+      error:
+        "O userId do professor e o ID do coordenador logado são obrigatórios.",
+    });
   }
 
   try {
     const course = await db.Course.findOne({
-      where: { coordinatorId }, 
+      where: { coordinatorId },
     });
 
     if (!course) {
@@ -767,7 +827,7 @@ export const getAbsencesAndDisciplinesByTeacher = async (req, res) => {
           model: db.ClassSchedule,
           as: "schedule",
           attributes: [],
-          where: { courseId }, 
+          where: { courseId },
         },
       ],
     });
@@ -784,7 +844,7 @@ export const getAbsencesAndDisciplinesByTeacher = async (req, res) => {
     const absences = await db.Attendance.findAll({
       where: {
         status: "falta",
-        "$detail.schedule.courseId$": courseId, 
+        "$detail.schedule.courseId$": courseId,
       },
       include: [
         {

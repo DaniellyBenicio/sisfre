@@ -85,7 +85,7 @@ const JustificationForm = ({ setAuthenticated }) => {
         formattedDate = formattedDate.split("/").reverse().join("-");
       }
 
-      const response = await api.post("/attendance/justify-turn", {
+      const response = await api.put("/attendance/justify-turn", {
         date: formattedDate,
         turno: frequencyItem.turn ? frequencyItem.turn.toUpperCase() : "",
         justification,

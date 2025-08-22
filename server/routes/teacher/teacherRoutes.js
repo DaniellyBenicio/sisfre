@@ -16,7 +16,7 @@ router.get("/teacher-classes", autenticarToken, isTeacher(), getProfessorClasses
 router.get("/teacher-schedules", autenticarToken, isTeacher(), getTeacherSchedules);
 router.post("/register-by-turn", autenticarToken, isTeacher(), registerAttendanceByTurn);
 router.get("/register-by-turn", autenticarToken, isTeacher(), getAttendanceByTurn);
-router.post("/attendance/justify-turn", autenticarToken, isTeacher(), justifyAbsenceByTurn);
+router.put("/attendance/justify-turn", autenticarToken, isTeacher(), justifyAbsenceByTurn);
 router.get("/justifications-by-turn", autenticarToken, getJustificationByTurn);
 router.get("/teacher-absences", autenticarToken, isTeacher(), getTeacherAbsences);
 

@@ -37,6 +37,7 @@ import AntepositionPage from "../pages/disciplines/Teacher/Anteposition/Anteposi
 import TeacherSchedule from "../pages/Coordinator/TeacherManagement/TeacherSchedule.js";
 import TeacherClassReschedules from "../pages/Coordinator/TeacherManagement/TeacherClassReschedules.js";
 import JustificationForm from "../pages/disciplines/Teacher/Frequency/JustificationForm.js";
+import TeachersAbsencesOptions from "../pages/admin/TeachersAbsences/TeachersAbsencesOptions.js";
 
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
@@ -435,6 +436,17 @@ const AppRoutes = () => {
             )
           }
         />
+        <Route
+          path="/teacher-absences/options"
+          element={
+            isAuthenticated && accessType === "Admin" ? (
+              <TeachersAbsencesOptions setAuthenticated={handleLogout} />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+
         <Route
           path="/MainScreen"
           element={

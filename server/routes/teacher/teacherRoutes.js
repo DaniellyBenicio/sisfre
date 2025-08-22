@@ -1,11 +1,13 @@
 import express from 'express';
 import autenticarToken from '../../middlewares/authMiddleware.js';
 import { isTeacher } from '../../middlewares/isTeacher.js';
+import {isCoordinator } from '../../middlewares/isCoordinator.js';
 import { getProfessorDisciplines } from '../../controllers/teacher/teacherDisciplinesController.js';
 import { getProfessorClasses } from '../../controllers/teacher/teacherClassesController.js';
 import { getTeacherSchedules } from '../../controllers/teacher/teacherSchedulesController.js';
-import { registerAttendanceByTurn, getAttendanceByTurn, justifyAbsenceByTurn, getJustificationByTurn, getTeacherAbsences } from '../../controllers/teacher/AttendanceController.js';
+import { registerAttendanceByTurn, getAttendanceByTurn, justifyAbsenceByTurn, getJustificationByTurn, getTeacherAbsences, getAbsencesAndDisciplinesByTeacher } from '../../controllers/teacher/AttendanceController.js';
 import { autoAbsenceAttendance } from "../../tasks/autoAbsenceAttendance.js";
+
 
 const router = express.Router();
 router.get("/teacher-disciplines", autenticarToken, isTeacher(), getProfessorDisciplines);
@@ -19,6 +21,8 @@ router.get("/register-by-turn", autenticarToken, isTeacher(), getAttendanceByTur
 router.put("/attendance/justify-turn", autenticarToken, isTeacher(), justifyAbsenceByTurn);
 router.get("/justifications-by-turn", autenticarToken, getJustificationByTurn);
 router.get("/teacher-absences", autenticarToken, isTeacher(), getTeacherAbsences);
+router.get("/absences/by-teacher", autenticarToken, isCoordinator(), getAbsencesAndDisciplinesByTeacher);
+
 
 
 

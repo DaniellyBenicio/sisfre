@@ -728,3 +728,108 @@ export const getJustificationByTurn = async (req, res) => {
       .json({ error: "Erro interno do servidor.", details: error.message });
   }
 };
+
+export const getAbsencesAndDisciplinesByTeacher = async (req, res) => {
+  const { userId } = req.query; 
+  const coordinatorId = req.user?.id;
+
+  if (!userId || !coordinatorId) {
+    return res
+      .status(400)
+      .json({
+        error:
+          "O userId do professor e o ID do coordenador logado são obrigatórios.",
+      });
+  }
+
+  try {
+    const course = await db.Course.findOne({
+      where: { coordinatorId }, 
+    });
+
+    if (!course) {
+      return res
+        .status(404)
+        .json({ error: "Curso não encontrado para o coordenador logado." });
+    }
+
+    const courseId = course.id;
+
+    const scheduleDetails = await db.ClassScheduleDetail.findAll({
+      where: { userId },
+      include: [
+        {
+          model: db.Discipline,
+          as: "discipline",
+          attributes: ["id", "name"],
+        },
+        {
+          model: db.ClassSchedule,
+          as: "schedule",
+          attributes: [],
+          where: { courseId }, 
+        },
+      ],
+    });
+
+    const disciplines = [
+      ...new Map(
+        scheduleDetails.map((detail) => [
+          detail.discipline?.id,
+          detail.discipline,
+        ])
+      ).values(),
+    ].filter(Boolean);
+
+    const absences = await db.Attendance.findAll({
+      where: {
+        status: "falta",
+        "$detail.schedule.courseId$": courseId, 
+      },
+      include: [
+        {
+          model: db.ClassScheduleDetail,
+          as: "detail",
+          attributes: [],
+          include: [
+            {
+              model: db.Discipline,
+              as: "discipline",
+              attributes: [],
+            },
+            {
+              model: db.ClassSchedule,
+              as: "schedule",
+              attributes: [],
+            },
+          ],
+        },
+      ],
+      attributes: [
+        [db.Sequelize.col("detail.discipline.id"), "disciplineId"],
+        [
+          db.Sequelize.fn("COUNT", db.Sequelize.col("detail.discipline.id")),
+          "absenceCount",
+        ],
+      ],
+      group: [db.Sequelize.col("detail.discipline.id")],
+      raw: true,
+    });
+
+    const result = disciplines.map((discipline) => {
+      const absence = absences.find((a) => a.disciplineId === discipline.id);
+      return {
+        disciplineId: discipline.id,
+        disciplineName: discipline.name,
+        absenceCount: absence ? parseInt(absence.absenceCount) : 0,
+      };
+    });
+
+    return res.status(200).json({ disciplines: result });
+  } catch (error) {
+    console.error("Erro ao buscar disciplinas e faltas:", error);
+    return res
+      .status(500)
+      .json({ error: "Erro ao buscar dados.", details: error.message });
+  }
+};

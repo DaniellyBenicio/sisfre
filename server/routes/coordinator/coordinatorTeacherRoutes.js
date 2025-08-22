@@ -4,7 +4,7 @@ import { isCoordinator } from '../../middlewares/isCoordinator.js';
 import isAdmin from '../../middlewares/isAdmin.js';
 import { isAdminOrCoordinator} from '../../middlewares/isAdminOrCoordinator.js';
 import { getCourseTeachersSchedules } from '../../controllers/coordinator/coordinatorTeacherController.js';
-import { getAbsencesByDiscipline, updateAbsenceByTurn, getTotalAbsencesByTeacher } from "../../controllers/coordinator/coordinatorAttendanceController.js";
+import { getAbsencesByDiscipline, updateAbsenceByTurn, getTotalAbsencesByTeacher, getProfessorAbsenceDetails } from "../../controllers/coordinator/coordinatorAttendanceController.js";
 
 
 const router = express.Router();
@@ -13,5 +13,6 @@ router.get('/teachers-by-course', autenticarToken, isCoordinator(), getCourseTea
 router.get("/absences-by-discipline", autenticarToken, isAdminOrCoordinator(), getAbsencesByDiscipline);
 router.put('/absences/turn', autenticarToken, isAdmin, updateAbsenceByTurn);
 router.get("/total-absences-by-teacher", autenticarToken, isAdmin, getTotalAbsencesByTeacher);
+router.get("/absences/professor/:professorId", autenticarToken, isAdmin, getProfessorAbsenceDetails);
 
 export default router;

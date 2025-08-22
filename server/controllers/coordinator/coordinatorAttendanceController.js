@@ -224,6 +224,78 @@ export const getTotalAbsencesByTeacher = async (req, res) => {
   }
 };
 
+export const getProfessorAbsenceDetails = async (req, res) => {
+  try {
+    const user = await db.User.findByPk(req.userId);
+    const professorId = req.params.professorId;
+
+    if (!user) {
+      return res.status(401).json({ error: "Usuário não autenticado." });
+    }
+    if (user.accessType !== "Admin") {
+      return res.status(403).json({
+        error: "Acesso negado. Apenas administradores podem visualizar estes dados.",
+      });
+    }
+
+    const attendances = await db.Attendance.findAll({
+      where: {
+        status: "Falta",
+      },
+      include: [
+        {
+          model: db.ClassScheduleDetail,
+          as: "detail",
+          required: true,
+          include: [
+            {
+              model: db.User,
+              as: "professor",
+              required: true,
+              where: { id: professorId, accessType: "Professor" },
+            },
+            {
+              model: db.ClassSchedule,
+              as: "schedule",
+              required: true,
+              include: [
+                { model: db.Class, as: "class" },
+                { model: db.Course, as: "course" },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    if (!attendances.length) {
+      return res.status(404).json({
+        error: "Nenhuma falta encontrada para este professor.",
+      });
+    }
+
+    const absenceDetails = attendances.map((attendance) => {
+      const classSchedule = attendance.detail.schedule;
+      return {
+        "curso-turma": `${classSchedule.course.acronym} - ${classSchedule.class.semester}`,
+        "turno": attendance.detail.turn,
+        "status": attendance.status,
+      };
+    });
+
+    return res.status(200).json({
+      message: "Detalhes das faltas do professor recuperados com sucesso.",
+      absence_details: absenceDetails,
+    });
+  } catch (error) {
+    console.error("Erro ao consultar detalhes de faltas por professor:", error);
+    return res.status(500).json({
+      error: "Erro interno do servidor.",
+      details: error.message,
+    });
+  }
+};
+
 export const updateAbsenceByTurn = async (req, res) => {
   const { date, turno, newStatus, professorId } = req.body;
   const loggedUserId = req.userId;

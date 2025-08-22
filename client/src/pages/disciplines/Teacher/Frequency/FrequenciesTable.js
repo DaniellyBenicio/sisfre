@@ -107,11 +107,18 @@ const FrequenciesTable = ({ frequencies, search, isFiltered, setAlert }) => {
                     key={header.key}
                     sx={{
                       color:
-                        header.key === "status" && item[header.key] === "Falta"
-                          ? "red"
+                        header.key === "status"
+                          ? item[header.key] === "Falta"
+                            ? "red"
+                            : item[header.key] === "Presença"
+                            ? "green"
+                            : item[header.key] === "Abonada"
+                            ? "orange"
+                            : "inherit"
                           : "inherit",
                       fontWeight:
-                        header.key === "status" && item[header.key] === "Falta"
+                        header.key === "status" &&
+                        ["Falta", "Presença", "Abonada"].includes(item[header.key])
                           ? "bold"
                           : "normal",
                     }}
@@ -200,13 +207,18 @@ const FrequenciesTable = ({ frequencies, search, isFiltered, setAlert }) => {
                       sx={{
                         ...tableBodyCellStyle,
                         color:
-                          header.key === "status" &&
-                          item[header.key] === "Falta"
-                            ? "red"
+                          header.key === "status"
+                            ? item[header.key] === "Falta"
+                              ? "red"
+                              : item[header.key] === "Presença"
+                              ? "green"
+                              : item[header.key] === "Abonada"
+                              ? "orange"
+                              : "inherit"
                             : "inherit",
                         fontWeight:
                           header.key === "status" &&
-                          item[header.key] === "Falta"
+                          ["Falta", "Presença", "Abonada"].includes(item[header.key])
                             ? "bold"
                             : "normal",
                       }}

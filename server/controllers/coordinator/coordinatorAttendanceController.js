@@ -126,17 +126,17 @@ export const getAbsencesByDiscipline = async (req, res) => {
   }
 };
 
-export const TotalAbsencesByTeacher = async (req, res) => {
+export const getTotalAbsencesByTeacher = async (req, res) => {
   try {
     const user = await db.User.findByPk(req.userId);
+    const searchTerm = req.query.search || '';
 
     if (!user) {
       return res.status(401).json({ error: "Usuário não autenticado." });
     }
     if (user.accessType !== "Admin") {
       return res.status(403).json({
-        error:
-          "Acesso negado. Apenas administradores podem visualizar estes dados.",
+        error: "Acesso negado. Apenas administradores podem visualizar estes dados.",
       });
     }
 
@@ -157,6 +157,11 @@ export const TotalAbsencesByTeacher = async (req, res) => {
         .json({ error: "Nenhum calendário ativo encontrado para o período." });
     }
 
+    const professorWhere = { accessType: "Professor" };
+    if (searchTerm) {
+      professorWhere.username = { [Op.like]: `%${searchTerm}%` };
+    }
+
     const attendances = await db.Attendance.findAll({
       where: {
         status: "Falta",
@@ -165,11 +170,12 @@ export const TotalAbsencesByTeacher = async (req, res) => {
         {
           model: db.ClassScheduleDetail,
           as: "detail",
+          required: true,
           include: [
             {
               model: db.User,
               as: "professor",
-              where: { accessType: "Professor" },
+              where: professorWhere,
             },
             {
               model: db.ClassSchedule,
@@ -184,7 +190,7 @@ export const TotalAbsencesByTeacher = async (req, res) => {
     if (!attendances.length) {
       return res
         .status(404)
-        .json({ error: "Nenhuma falta encontrada para nenhum professor." });
+        .json({ error: "Nenhuma falta encontrada para o professor." });
     }
 
     const professorAbsencesMap = new Map();

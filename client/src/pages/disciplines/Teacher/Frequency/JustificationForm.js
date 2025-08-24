@@ -20,19 +20,19 @@ const INSTITUTIONAL_COLOR = "#307c34";
 
 const StyledButton = styled(Button)(({ theme }) => ({
   borderRadius: "8px",
-  padding: theme.spacing(0.8, 1.5),
+  padding: theme.spacing(1, 2),
   textTransform: "none",
   fontWeight: "bold",
-  fontSize: theme.typography.pxToRem(12),
+  fontSize: theme.typography.pxToRem(14),
   display: "flex",
   alignItems: "center",
-  gap: theme.spacing(0.5),
+  gap: theme.spacing(0.75),
   width: "fit-content",
-  minWidth: "80px",
+  minWidth: "100px",
   [theme.breakpoints.down("xs")]: {
-    fontSize: theme.typography.pxToRem(10),
-    padding: theme.spacing(0.5, 1),
-    minWidth: "70px",
+    fontSize: theme.typography.pxToRem(12),
+    padding: theme.spacing(0.75, 1.5),
+    minWidth: "90px",
   },
 }));
 
@@ -47,7 +47,7 @@ const inputStyles = {
     },
   },
   "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(0, 0, 0, 0.23)",
+    borderColor: "rgba(0, 0, 0, 0.6)",
     borderWidth: "1px",
   },
   "&:hover .MuiOutlinedInput-notchedOutline": {
@@ -60,12 +60,13 @@ const inputStyles = {
   },
   "& .MuiInputLabel-root": {
     transform: "translate(10px, 6px) scale(1)",
-    fontSize: { xs: "0.75rem", sm: "0.85rem" },
+    fontSize: { xs: "0.875rem", sm: "1rem" },
     color: "rgba(0, 0, 0, 0.6)",
   },
   "& .MuiInputLabel-root.Mui-focused, & .MuiInputLabel-shrink": {
-    transform: "translate(10px, -8px) scale(0.7)",
+    transform: "translate(10px, -6px) scale(1)", // Remove a escala para manter o tamanho original
     color: "#000000",
+    fontSize: { xs: "0.75rem", sm: "0.85rem" }, // Igual ao tamanho do texto de entrada
   },
 };
 
@@ -233,7 +234,7 @@ const JustificationForm = ({ setAuthenticated }) => {
             maxWidth: { xs: "100%", sm: "700px", md: "900px" },
           }}
         >
-          <Stack direction="row" spacing={{ xs: 1, sm: 1.5 }}>
+          <Stack direction="row" spacing={2}>
             <StyledButton
               onClick={handleGoBack}
               variant="contained"
@@ -242,7 +243,7 @@ const JustificationForm = ({ setAuthenticated }) => {
                 "&:hover": { backgroundColor: "#D4000F" },
               }}
             >
-              <Close sx={{ fontSize: { xs: 16, sm: 18, md: 20 } }} />
+              <Close sx={{ fontSize: 22 }} />
               Cancelar
             </StyledButton>
             <StyledButton
@@ -254,7 +255,7 @@ const JustificationForm = ({ setAuthenticated }) => {
                 "&:hover": { backgroundColor: "#26692b" },
               }}
             >
-              <Save sx={{ fontSize: { xs: 16, sm: 18, md: 20 } }} />
+              <Save sx={{ fontSize: 22 }} />
               Enviar Justificativa
             </StyledButton>
           </Stack>

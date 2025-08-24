@@ -177,6 +177,7 @@ export const getTotalAbsencesByTeacher = async (req, res) => {
               model: db.User,
               as: "professor",
               where: professorWhere,
+              attributes: ["id", "username"],
             },
             {
               model: db.ClassSchedule,
@@ -202,6 +203,7 @@ export const getTotalAbsencesByTeacher = async (req, res) => {
       const key = professor.id;
       if (!professorAbsencesMap.has(key)) {
         professorAbsencesMap.set(key, {
+          professor_id: professor.id,
           professor_name: professor.username,
           count: 0,
         });

@@ -42,6 +42,7 @@ const TeacherAbsences = ({ setAuthenticated }) => {
       const response = await api.get("/total-absences-by-teacher", { params });
       const formattedData = Array.isArray(response.data.total_absences)
         ? response.data.total_absences.map((item) => ({
+            professor_id: item.professor_id,
             teacher: item.professor_name,
             count: item.count,
           }))

@@ -11,11 +11,16 @@ const TeacherAbsencesTable = ({ frequencies, search, isFiltered }) => {
   const formattedFrequencies = frequencies;
 
   const handleView = (item) => {
-    navigate("/view-absence", { state: { frequencyItem: item } });
+    console.log("Item selecionado:", item);
+    if (!item.professor_id) {
+      console.error("professor_id não encontrado no item:", item);
+      return;
+    }
+    navigate(`/teacher-absences/details/${item.professor_id}`);
   };
 
   const headers = [
-    { key: "teacher", label: "Professor" },
+    { key: "teacher", label: "Professor(a)" },
     { key: "count", label: "Faltas" },
   ];
 

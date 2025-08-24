@@ -42,8 +42,18 @@ const inputStyles = {
     height: { xs: "auto", sm: 48 },
     minHeight: { xs: "100px", sm: "120px" },
     "& .MuiOutlinedInput-input": {
-      padding: { xs: "6px", sm: "8px" },
+      // Ajusta o padding para dar mais espaço no topo
+      padding: { xs: "20px 12px 6px", sm: "24px 14px 8px" },
       fontSize: { xs: "0.75rem", sm: "0.85rem" },
+      // Estilo para o placeholder
+      "&::placeholder": {
+        opacity: 1, // Torna o placeholder visível
+        color: "rgba(0, 0, 0, 0.6)",
+        // Remove qualquer centralização e garante que ele comece do topo
+        position: "relative",
+        top: "auto",
+        transform: "none",
+      },
     },
   },
   "& .MuiOutlinedInput-notchedOutline": {
@@ -64,9 +74,9 @@ const inputStyles = {
     color: "rgba(0, 0, 0, 0.6)",
   },
   "& .MuiInputLabel-root.Mui-focused, & .MuiInputLabel-shrink": {
-    transform: "translate(10px, -6px) scale(1)", // Remove a escala para manter o tamanho original
+    transform: "translate(10px, -6px) scale(1)",
     color: "#000000",
-    fontSize: { xs: "0.75rem", sm: "0.85rem" }, // Igual ao tamanho do texto de entrada
+    fontSize: { xs: "0.75rem", sm: "0.85rem" },
   },
 };
 

@@ -107,18 +107,62 @@ const MyAbsences = () => {
       };
 
       const response = await api.get("/teacher-absences", { params });
-      const absencesData = response.data.absences || [];
-      setAbsences(absencesData);
+      const absencesData = response.data || [];
       setError(null);
 
+      // Usar `flatMap` para criar uma única lista de todos os detalhes
+      const allDetails = absencesData.flatMap((absence) =>
+        absence.details.map(detail => ({
+            ...detail,
+            date: absence.date,
+        }))
+      );
+
+      // Agrupar faltas por curso e disciplina
+      const groupedAbsences = allDetails.reduce((acc, detail) => {
+        const key = `${detail.course}-${detail.semester}-${detail.discipline}`;
+        if (!acc[key]) {
+          acc[key] = {
+            course: detail.course,
+            semester: detail.semester,
+            discipline: detail.discipline,
+            absenceCount: 0,
+            dates: new Set(),
+          };
+        }
+        acc[key].absenceCount += 1;
+        // Adiciona a data original ao conjunto
+        const formattedDate = new Date(detail.date + 'T00:00:00')
+          .toLocaleDateString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          });
+        acc[key].dates.add(formattedDate);
+        return acc;
+      }, {});
+
+      const processedAbsences = Object.values(groupedAbsences).map((group) => ({
+        ...group,
+        // Converte o conjunto de datas para uma string separada por vírgulas
+        dates: Array.from(group.dates).join(", "),
+      }));
+
+      setAbsences(processedAbsences);
+
       const uniqueCourses = Array.from(
-        new Set(absencesData.map((absence) => absence.course_acronym))
-      ).map((acronym) => ({ acronym }));
-      setCourses(uniqueCourses);
+        new Set(allDetails.map((detail) => detail.course))
+      )
+        .filter(Boolean)
+        .map((acronym) => ({ acronym }));
 
       const uniqueDisciplines = Array.from(
-        new Set(absencesData.map((absence) => absence.discipline_name))
-      ).map((name) => ({ name }));
+        new Set(allDetails.map((detail) => detail.discipline))
+      )
+        .filter(Boolean)
+        .map((name) => ({ name }));
+
+      setCourses(uniqueCourses);
       setDisciplines(uniqueDisciplines);
     } catch (err) {
       console.error("Erro ao buscar faltas:", err);
@@ -215,6 +259,9 @@ const MyAbsences = () => {
           <TableHead>
             <TableRow>
               <TableCell align="center" sx={tableHeadStyle}>
+                Datas
+              </TableCell>
+              <TableCell align="center" sx={tableHeadStyle}>
                 Curso/Turma
               </TableCell>
               <TableCell align="center" sx={tableHeadStyle}>
@@ -230,19 +277,22 @@ const MyAbsences = () => {
               absences.map((absence, index) => (
                 <TableRow key={index}>
                   <TableCell align="center" sx={tableBodyCellStyle}>
-                    {absence.course_acronym} - {absence.semester}
+                    {absence.dates}
                   </TableCell>
                   <TableCell align="center" sx={tableBodyCellStyle}>
-                    {absence.discipline_name}
+                    {absence.course} - {absence.semester}
                   </TableCell>
                   <TableCell align="center" sx={tableBodyCellStyle}>
-                    {absence.absences_count}
+                    {absence.discipline}
+                  </TableCell>
+                  <TableCell align="center" sx={tableBodyCellStyle}>
+                    {absence.absenceCount}
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={3} align="center" sx={tableBodyCellStyle}>
+                <TableCell colSpan={4} align="center" sx={tableBodyCellStyle}>
                   Não foram encontradas faltas para este professor.
                 </TableCell>
               </TableRow>

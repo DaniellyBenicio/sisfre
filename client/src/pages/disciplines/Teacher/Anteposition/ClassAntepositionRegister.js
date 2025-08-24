@@ -26,8 +26,24 @@ import { jwtDecode } from "jwt-decode";
 const INSTITUTIONAL_COLOR = "#307c34";
 
 const StyledButton = styled(Button)(() => ({
-  textTransform: "none",
-  fontWeight: "bold",
+  borderRadius: '8px',
+  padding: '8px 28px',
+  textTransform: 'none',
+  fontWeight: 'bold',
+  fontSize: '0.875rem',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  width: 'fit-content',
+  minWidth: 100,
+  '@media (max-width: 600px)': {
+    fontSize: '0.7rem',
+    padding: '4px 8px',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    maxWidth: '120px',
+  },
 }));
 
 const createLocalDate = (dateString) => {
@@ -417,7 +433,13 @@ const ClassAntepositionRegister = ({ setAlert }) => {
             </Box>
           </Box>
         </Paper>
-        <Box sx={{ display: "flex", justifyContent: "center", p: 2, mt: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            p: 3,
+          }}
+        >
           <Stack direction="row" spacing={2}>
             <StyledButton
               onClick={handleGoBack}
@@ -427,7 +449,7 @@ const ClassAntepositionRegister = ({ setAlert }) => {
                 "&:hover": { backgroundColor: "#D4000F" },
               }}
             >
-              <Close sx={{ fontSize: 20 }} />
+              <Close sx={{ fontSize: { xs: 20, sm: 24 } }} />
               Cancelar
             </StyledButton>
             <StyledButton
@@ -438,7 +460,7 @@ const ClassAntepositionRegister = ({ setAlert }) => {
                 "&:hover": { backgroundColor: "#26692b" },
               }}
             >
-              <Save sx={{ fontSize: 20 }} />
+              <Save sx={{ fontSize: { xs: 20, sm: 24 } }} />
               Solicitar
             </StyledButton>
           </Stack>

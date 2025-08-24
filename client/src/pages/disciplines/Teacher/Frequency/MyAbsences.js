@@ -2,22 +2,20 @@ import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   CircularProgress,
   Stack,
   FormControl,
   InputLabel,
   MenuItem,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Chip,
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { StyledSelect } from "../../../../components/inputs/Input";
 import api from "../../../../service/api";
+import SchoolIcon from "@mui/icons-material/School";
 
 const MyAbsences = () => {
   const [absences, setAbsences] = useState([]);
@@ -27,23 +25,6 @@ const MyAbsences = () => {
   const [filterDisciplineName, setFilterDisciplineName] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const tableHeadStyle = {
-    fontWeight: "bold",
-    backgroundColor: "#087619",
-    color: "#fff",
-    borderRight: "1px solid #fff",
-    padding: { xs: "4px", sm: "6px" },
-    height: "30px",
-    lineHeight: "30px",
-  };
-
-  const tableBodyCellStyle = {
-    borderRight: "1px solid #e0e0e0",
-    padding: { xs: "4px", sm: "6px" },
-    height: "30px",
-    lineHeight: "30px",
-  };
 
   const commonFormControlSx = {
     width: { xs: "100%", sm: "200px" },
@@ -110,15 +91,13 @@ const MyAbsences = () => {
       const absencesData = response.data || [];
       setError(null);
 
-      // Usar `flatMap` para criar uma única lista de todos os detalhes
       const allDetails = absencesData.flatMap((absence) =>
-        absence.details.map(detail => ({
-            ...detail,
-            date: absence.date,
+        absence.details.map((detail) => ({
+          ...detail,
+          date: absence.date,
         }))
       );
 
-      // Agrupar faltas por curso e disciplina
       const groupedAbsences = allDetails.reduce((acc, detail) => {
         const key = `${detail.course}-${detail.semester}-${detail.discipline}`;
         if (!acc[key]) {
@@ -131,21 +110,18 @@ const MyAbsences = () => {
           };
         }
         acc[key].absenceCount += 1;
-        // Adiciona a data original ao conjunto
-        const formattedDate = new Date(detail.date + 'T00:00:00')
-          .toLocaleDateString("pt-BR", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          });
+        const formattedDate = new Date(detail.date + "T00:00:00").toLocaleDateString("pt-BR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
         acc[key].dates.add(formattedDate);
         return acc;
       }, {});
 
       const processedAbsences = Object.values(groupedAbsences).map((group) => ({
         ...group,
-        // Converte o conjunto de datas para uma string separada por vírgulas
-        dates: Array.from(group.dates).join(", "),
+        dates: Array.from(group.dates),
       }));
 
       setAbsences(processedAbsences);
@@ -204,7 +180,7 @@ const MyAbsences = () => {
         spacing={2}
         alignItems="center"
         justifyContent="flex-start"
-        sx={{ mb: 2 }}
+        sx={{ mb: 4 }}
       >
         <FormControl sx={commonFormControlSx}>
           <InputLabel id="filter-course-label">Curso</InputLabel>
@@ -254,52 +230,67 @@ const MyAbsences = () => {
           </StyledSelect>
         </FormControl>
       </Stack>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell align="center" sx={tableHeadStyle}>
-                Datas
-              </TableCell>
-              <TableCell align="center" sx={tableHeadStyle}>
-                Curso/Turma
-              </TableCell>
-              <TableCell align="center" sx={tableHeadStyle}>
-                Disciplina
-              </TableCell>
-              <TableCell align="center" sx={tableHeadStyle}>
-                Quantidade de Faltas
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {absences.length > 0 ? (
-              absences.map((absence, index) => (
-                <TableRow key={index}>
-                  <TableCell align="center" sx={tableBodyCellStyle}>
-                    {absence.dates}
-                  </TableCell>
-                  <TableCell align="center" sx={tableBodyCellStyle}>
-                    {absence.course} - {absence.semester}
-                  </TableCell>
-                  <TableCell align="center" sx={tableBodyCellStyle}>
-                    {absence.discipline}
-                  </TableCell>
-                  <TableCell align="center" sx={tableBodyCellStyle}>
-                    {absence.absenceCount}
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={4} align="center" sx={tableBodyCellStyle}>
-                  Não foram encontradas faltas para este professor.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+
+      <Stack spacing={2}>
+        {absences.length > 0 ? (
+          absences.map((absence, index) => (
+            <Accordion key={`${absence.course}-${absence.discipline}-${index}`} elevation={3}>
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls={`panel-${index}-content`}
+                id={`panel-${index}-header`}
+              >
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  width="100%"
+                >
+                  <Box display="flex" alignItems="center">
+                    <SchoolIcon sx={{ mr: 1, fontSize: 32, color: "#087619" }} />
+                    <Typography fontWeight="bold">
+                      {absence.course} - {absence.semester} ({absence.discipline})
+                    </Typography>
+                  </Box>
+                  <Chip
+                    label={`${absence.absenceCount} faltas`}
+                    color="error"
+                  />
+                </Box>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Typography variant="subtitle2" gutterBottom>
+                  Datas das faltas:
+                </Typography>
+                <Stack direction="row" flexWrap="wrap" spacing={1}>
+                  {Array.isArray(absence.dates) && absence.dates.length > 0 ? (
+                    absence.dates.map((date, dateIndex) => (
+                      <Chip
+                        key={dateIndex}
+                        label={date}
+                        size="small"
+                        variant="outlined"
+                      />
+                    ))
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      Nenhuma data de falta encontrada.
+                    </Typography>
+                  )}
+                </Stack>
+              </AccordionDetails>
+            </Accordion>
+          ))
+        ) : (
+          <Typography
+            variant="body1"
+            color="text.secondary"
+            align="center"
+          >
+            Não foram encontradas faltas para este professor.
+          </Typography>
+        )}
+      </Stack>
     </Box>
   );
 };

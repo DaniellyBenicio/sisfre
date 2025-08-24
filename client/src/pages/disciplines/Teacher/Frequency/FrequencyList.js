@@ -47,7 +47,7 @@ const StyledTab = styled((props) => <Tab disableRipple {...props} />)(
       minWidth: 0,
     },
     fontWeight: "bold",
-    fontSize: "1rem",
+    fontSize: "1.03rem",
     marginRight: theme.spacing(1),
     color: "rgba(0, 0, 0, 0.85)",
     "&:hover": {

@@ -29,11 +29,6 @@ module.exports = {
         allowNull: false,
       },
 
-      turn: {
-        type: Sequelize.ENUM("MATUTINO", "VESPERTINO", "NOTURNO"),
-        allowNull: false,
-      },
-
       type: {
         type: Sequelize.ENUM("anteposicao", "reposicao"),
         allowNull: false,

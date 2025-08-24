@@ -252,7 +252,6 @@ export const updateRequest = async (req, res) => {
     userId,
     course,
     discipline,
-    turn,
     type,
     quantity,
     date,
@@ -333,7 +332,6 @@ export const updateRequest = async (req, res) => {
       userId: newUserId,
       course: newCourse,
       discipline,
-      turn,
       type: newType,
       quantity: newQuantity,
       date: newDate,
@@ -424,14 +422,40 @@ export const getProfessorScheduleDetails = async (req, res) => {
         )
     );
 
-    const cleanResult = filtered.map((d) => ({
-      day: d.dayOfWeek,
-      turn: d.turn,
-      discipline: d.discipline.name,
-      professor: d.professor.username,
-      course: d.schedule.course.name,
-      acronym: d.schedule.course.acronym,
-      semester: d.schedule.class.semester,
+    // Para cada disciplina, buscar as datas de falta
+    const cleanResult = await Promise.all(filtered.map(async (d) => {
+      // Busca todos os detalhes de horário dessa disciplina para o professor
+      const details = await db.ClassScheduleDetail.findAll({
+        where: {
+          userId: d.userId,
+          disciplineId: d.disciplineId,
+        },
+        attributes: ["id"],
+      });
+      const detailIds = details.map(det => det.id);
+      let absenceDates = [];
+      if (detailIds.length > 0) {
+        const attendances = await db.Attendance.findAll({
+          where: {
+            classScheduleDetailId: detailIds,
+            status: "falta",
+          },
+          attributes: ["date"],
+          order: [["date", "ASC"]],
+          group: ["date"],
+        });
+        absenceDates = attendances.map(a => a.date);
+      }
+      return {
+        day: d.dayOfWeek,
+        turn: d.turn,
+        discipline: d.discipline.name,
+        professor: d.professor.username,
+        course: d.schedule.course.name,
+        acronym: d.schedule.course.acronym,
+        semester: d.schedule.class.semester,
+        absenceDates,
+      };
     }));
 
     const seen = new Set();
@@ -507,13 +531,45 @@ export const approveReposition = async (req, res) => {
         professor.absenceCredits += Number(request.quantity) || 1;
         await professor.save();
       }
+
+      // Remover falta em Attendance
+      // Buscar o ClassScheduleDetail correspondente
+      const classDetail = await db.ClassScheduleDetail.findOne({
+        where: {
+          userId: request.userId,
+          turn: request.turn,
+        },
+        include: [
+          {
+            model: db.Discipline,
+            as: "discipline",
+            where: { name: request.discipline },
+          },
+        ],
+      });
+
+      if (classDetail) {
+        // Buscar falta na tabela Attendance
+        const attendance = await db.Attendance.findOne({
+          where: {
+            classScheduleDetailId: classDetail.id,
+            date: request.date,
+            status: "falta",
+          },
+        });
+        if (attendance) {
+          // Atualiza o status da falta para "presença"
+          attendance.status = "presença";
+          await attendance.save();
+        }
+      }
     }
 
     request.validated = 1;
     await request.save();
 
     return res.status(200).json({
-      message: "Reposição aprovada e créditos concedidos ao professor.",
+      message: "Reposição aprovada, créditos concedidos e falta removida.",
     });
   } catch (err) {
     console.error("Erro ao aprovar reposição:", err);

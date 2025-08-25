@@ -22,74 +22,60 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { ptBR } from "date-fns/locale";
 import api from "../../../../service/api";
 import { jwtDecode } from "jwt-decode";
+import { CustomAlert } from "../../../../components/alert/CustomAlert";
 
 const INSTITUTIONAL_COLOR = "#307c34";
 
 const StyledButton = styled(Button)(() => ({
-  borderRadius: '8px',
-  padding: '8px 28px',
-  textTransform: 'none',
-  fontWeight: 'bold',
-  fontSize: '0.875rem',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  width: 'fit-content',
+  borderRadius: "8px",
+  padding: "8px 28px",
+  textTransform: "none",
+  fontWeight: "bold",
+  fontSize: "0.875rem",
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+  width: "fit-content",
   minWidth: 100,
-  '@media (max-width: 600px)': {
-    fontSize: '0.7rem',
-    padding: '4px 8px',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    maxWidth: '120px',
+  "@media (max-width: 600px)": {
+    fontSize: "0.7rem",
+    padding: "4px 8px",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    maxWidth: "120px",
   },
 }));
 
-const createLocalDate = (dateString) => {
-  if (!dateString) return null;
-  try {
-    const parts = dateString.split('-');
-    const dateObject = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-    dateObject.setHours(0, 0, 0, 0);
-    return dateObject;
-  } catch (error) {
-    console.error("Erro ao criar data local:", error);
-    return null;
-  }
-};
-
-// Estilos reutilizáveis para os campos
 const inputStyles = {
   "& .MuiInputBase-root": {
-    height: { xs: 40, sm: 56 }, // Altura ajustada para responsividade
+    height: { xs: 40, sm: 56 },
   },
   "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(0, 0, 0, 0.23)", // Borda padrão
+    borderColor: "rgba(0, 0, 0, 0.23)",
     borderWidth: "1px",
   },
   "&:hover .MuiOutlinedInput-notchedOutline": {
-    borderColor: "#000000", // Borda preta ao passar o mouse
+    borderColor: "#000000",
     borderWidth: "1px",
   },
   "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
-    borderColor: "#000000", // Borda preta quando focado
+    borderColor: "#000000",
     borderWidth: "1px",
   },
   "& .MuiInputLabel-root": {
-    transform: "translate(14px, 7px) scale(1)", // Posição inicial do label
-    color: "rgba(0, 0, 0, 0.6)", // Cor padrão do label
+    transform: "translate(14px, 7px) scale(1)",
+    color: "rgba(0, 0, 0, 0.6)",
     "@media (max-width: 600px)": {
-      fontSize: "0.875rem", // Tamanho da fonte em telas menores
+      fontSize: "0.875rem",
     },
   },
   "& .MuiInputLabel-root.Mui-focused, & .MuiInputLabel-shrink": {
-    transform: "translate(14px, -9px) scale(0.75)", // Label "flutuando" quando focado ou preenchido
-    color: "#000000", // Label preto quando focado ou preenchido
+    transform: "translate(14px, -9px) scale(0.75)",
+    color: "#000000",
   },
 };
 
-// Estilos específicos para o Select (incluindo MenuProps)
 const selectStyles = {
   ...inputStyles,
   "& .MuiSelect-select": {
@@ -98,7 +84,6 @@ const selectStyles = {
   },
 };
 
-// Estilos para o Menu do Select
 const menuProps = {
   PaperProps: {
     sx: {
@@ -111,6 +96,23 @@ const menuProps = {
   },
 };
 
+const createLocalDate = (dateString) => {
+  if (!dateString) return null;
+  try {
+    const parts = dateString.split("-");
+    const dateObject = new Date(
+      parseInt(parts[0]),
+      parseInt(parts[1]) - 1,
+      parseInt(parts[2])
+    );
+    dateObject.setHours(0, 0, 0, 0);
+    return dateObject;
+  } catch (error) {
+    console.error("Erro ao criar data local:", error);
+    return null;
+  }
+};
+
 const ClassAntepositionRegister = ({ setAlert }) => {
   const professor = localStorage.getItem("username") || "";
   const [course, setCourse] = useState("");
@@ -120,34 +122,45 @@ const ClassAntepositionRegister = ({ setAlert }) => {
   const [file, setFile] = useState(null);
   const [observation, setObservation] = useState("");
   const [scheduleDetails, setScheduleDetails] = useState([]);
+  const [existingRequests, setExistingRequests] = useState([]);
   const [selectedClassLabel, setSelectedClassLabel] = useState("");
+  const [localAlert, setLocalAlert] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchSchedule = async () => {
+    const fetchScheduleAndRequests = async () => {
       try {
-        const response = await api.get("/professor/request");
-        const details = response.data.scheduleDetails || [];
+        // Busca todas as grades do professor usando a nova rota
+        const scheduleResponse = await api.get("/professor/request/anteposition");
+        const details = scheduleResponse.data.scheduleDetails || [];
         const validatedDetails = details.filter(
-          (sd) =>
-            sd.course && sd.discipline && sd.acronym && sd.semester
+          (sd) => sd.course && sd.discipline && sd.acronym && sd.semester
         );
         setScheduleDetails(validatedDetails);
+
+        // Busca solicitações de anteposição existentes
+        const requestsResponse = await api.get("/requests/only", {
+          params: { type: "anteposicao" },
+        });
+        setExistingRequests(requestsResponse.data.requests || []);
+
         if (validatedDetails.length === 0) {
-          setAlert({
-            message: "Nenhuma grade válida encontrada.",
+          (setAlert || setLocalAlert)({
+            message: "Nenhuma grade encontrada para o professor.",
             type: "error",
           });
         }
       } catch (error) {
-        setAlert({
+        console.error("Erro ao carregar grade ou solicitações:", error);
+        (setAlert || setLocalAlert)({
           message: "Erro ao carregar grade do professor.",
           type: "error",
         });
         setScheduleDetails([]);
+        setExistingRequests([]);
       }
     };
-    fetchSchedule();
+    fetchScheduleAndRequests();
   }, [setAlert]);
 
   const handleFileChange = (event) => {
@@ -172,22 +185,37 @@ const ClassAntepositionRegister = ({ setAlert }) => {
 
   const handleSubmit = async () => {
     if (!course || !discipline || !quantity || !date) {
-      setAlert({
+      (setAlert || setLocalAlert)({
         message: "Preencha todos os campos obrigatórios.",
         type: "error",
       });
       return;
     }
     if (isNaN(quantity) || parseInt(quantity) > 4 || parseInt(quantity) < 1) {
-      setAlert({ message: "Quantidade deve ser entre 1 e 4.", type: "error" });
+      (setAlert || setLocalAlert)({
+        message: "Quantidade deve ser entre 1 e 4.",
+        type: "error",
+      });
       return;
     }
     const selectedDate = createLocalDate(date);
     const todayLocalMidnight = new Date();
     todayLocalMidnight.setHours(0, 0, 0, 0);
     if (selectedDate < todayLocalMidnight) {
-      setAlert({
+      (setAlert || setLocalAlert)({
         message: "A data não pode ser anterior à atual.",
+        type: "error",
+      });
+      return;
+    }
+
+    // Verifica se já existe uma solicitação de anteposição para a mesma turma, disciplina e data
+    const existingRequest = existingRequests.find(
+      (req) => req.course === course && req.discipline === discipline && req.date === date
+    );
+    if (existingRequest) {
+      (setAlert || setLocalAlert)({
+        message: "Já existe uma solicitação de anteposição para esta turma, disciplina e data.",
         type: "error",
       });
       return;
@@ -195,7 +223,7 @@ const ClassAntepositionRegister = ({ setAlert }) => {
 
     const token = localStorage.getItem("token");
     if (!token) {
-      setAlert({
+      (setAlert || setLocalAlert)({
         message: "Token não encontrado. Faça login novamente.",
         type: "error",
       });
@@ -208,7 +236,7 @@ const ClassAntepositionRegister = ({ setAlert }) => {
       const userId = decoded.id;
 
       if (!userId || isNaN(userId)) {
-        setAlert({
+        (setAlert || setLocalAlert)({
           message: "ID do usuário inválido no token. Faça login novamente.",
           type: "error",
         });
@@ -229,14 +257,14 @@ const ClassAntepositionRegister = ({ setAlert }) => {
       await api.post("/request", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setAlert({
+      (setAlert || setLocalAlert)({
         message: "Anteposição cadastrada com sucesso!",
         type: "success",
       });
       navigate("/class-anteposition");
     } catch (error) {
       console.error("Erro ao enviar requisição:", error);
-      setAlert({
+      (setAlert || setLocalAlert)({
         message:
           error.response?.data?.error ||
           "Erro ao cadastrar. Verifique os dados ou tente novamente.",
@@ -250,6 +278,10 @@ const ClassAntepositionRegister = ({ setAlert }) => {
 
   const handleGoBack = () => {
     navigate("/class-anteposition");
+  };
+
+  const handleAlertClose = () => {
+    (setAlert || setLocalAlert)(null);
   };
 
   return (
@@ -292,20 +324,16 @@ const ClassAntepositionRegister = ({ setAlert }) => {
                 fullWidth
                 disabled
                 variant="outlined"
-                sx={inputStyles} // Aplicar estilos
+                sx={inputStyles}
               />
               <FormControl fullWidth variant="outlined" required sx={inputStyles}>
                 <InputLabel>Selecionar da Grade</InputLabel>
                 <Select
-                  value={
-                    course && discipline
-                      ? `${course}|${discipline}`
-                      : ""
-                  }
+                  value={course && discipline ? `${course}|${discipline}` : ""}
                   onChange={handleScheduleChange}
                   label="Selecionar da Grade"
-                  sx={selectStyles} // Estilos específicos para Select
-                  MenuProps={menuProps} // Estilos para o menu
+                  sx={selectStyles}
+                  MenuProps={menuProps}
                 >
                   <MenuItem value="">Selecione</MenuItem>
                   {scheduleDetails.map((sd) => (
@@ -326,7 +354,7 @@ const ClassAntepositionRegister = ({ setAlert }) => {
                 fullWidth
                 disabled
                 variant="outlined"
-                sx={inputStyles} // Aplicar estilos
+                sx={inputStyles}
               />
               <TextField
                 label="Disciplina"
@@ -334,7 +362,7 @@ const ClassAntepositionRegister = ({ setAlert }) => {
                 fullWidth
                 disabled
                 variant="outlined"
-                sx={inputStyles} // Aplicar estilos
+                sx={inputStyles}
               />
             </Box>
             <Box sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}>
@@ -346,7 +374,7 @@ const ClassAntepositionRegister = ({ setAlert }) => {
                 fullWidth
                 required
                 variant="outlined"
-                sx={inputStyles} // Aplicar estilos
+                sx={inputStyles}
               />
               <DatePicker
                 label="Data"
@@ -369,8 +397,8 @@ const ClassAntepositionRegister = ({ setAlert }) => {
                     required: true,
                     fullWidth: true,
                     sx: {
-                      ...inputStyles, // Aplicar estilos do token
-                      minWidth: 150, // Manter o minWidth do exemplo
+                      ...inputStyles,
+                      minWidth: 150,
                     },
                   },
                   popper: {
@@ -392,11 +420,9 @@ const ClassAntepositionRegister = ({ setAlert }) => {
                 value={file ? file.name : ""}
                 fullWidth
                 readOnly
-                onClick={() =>
-                  document.querySelector('input[type="file"]').click()
-                }
+                onClick={() => document.querySelector('input[type="file"]').click()}
                 variant="outlined"
-                sx={inputStyles} // Aplicar estilos
+                sx={inputStyles}
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
@@ -416,7 +442,7 @@ const ClassAntepositionRegister = ({ setAlert }) => {
                 multiline
                 rows={2}
                 variant="outlined"
-                sx={inputStyles} // Aplicar estilos
+                sx={inputStyles}
               />
             </Box>
           </Box>
@@ -453,6 +479,13 @@ const ClassAntepositionRegister = ({ setAlert }) => {
             </StyledButton>
           </Stack>
         </Box>
+        {localAlert && (
+          <CustomAlert
+            message={localAlert.message}
+            type={localAlert.type}
+            onClose={handleAlertClose}
+          />
+        )}
       </Box>
     </LocalizationProvider>
   );

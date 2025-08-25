@@ -208,11 +208,9 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
                   try {
                     annexArray = JSON.parse(cardData.annex);
                   } catch {
-                    // Se não for JSON, trata como string única
                     annexArray = [cardData.annex];
                   }
                   return annexArray.map((filePath, idx) => {
-                    // Extrai só o nome do arquivo para exibir
                     const fileName = filePath.split(/[\\/]/).pop();
                     return (
                       <div key={idx}>

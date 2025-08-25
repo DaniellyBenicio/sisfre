@@ -24,7 +24,7 @@ const TeachersAbsencesOptions = ({ setAuthenticated }) => {
     {
       title: "Justificativas de Faltas",
       icon: <ClipboardList size={60} color="#087619" />,
-      path: "/class-schedule/archived",
+      path: "/absences-justifications",
     },
   ];
 

@@ -366,10 +366,10 @@ export const updateAbsenceByTurn = async (req, res) => {
       });
     }
 
-    const validStatuses = ["abonada", "presença"];
+    const validStatuses = ["abonada", "presença", "falta"];
     if (!validStatuses.includes(newStatus)) {
       return res.status(400).json({
-        error: `Novo status inválido. Use ${validStatuses.join(" ou ")}.`,
+        error: `Novo status inválido. Use ${validStatuses.join(", ")}.`,
       });
     }
 
@@ -442,6 +442,7 @@ export const updateAbsenceByTurn = async (req, res) => {
     const allHaveNonMedicalJustification = attendances.every(
       (att) => !isMedicalJustification(att.justification)
     );
+
     if (newStatus === "abonada" && !allHaveMedicalJustification) {
       return res.status(403).json({
         error:
@@ -485,8 +486,13 @@ export const updateAbsenceByTurn = async (req, res) => {
       turn: attendance.detail.turn,
     }));
 
+    let message = `Status alterado para ${newStatus} com sucesso para ${attendances.length} faltas no turno ${turno}.`;
+    if (newStatus === "falta") {
+      message = `Justificativa recusada e status mantido como ${newStatus} para ${attendances.length} faltas no turno ${turno}.`;
+    }
+
     return res.status(200).json({
-      message: `Status alterado para ${newStatus} com sucesso para ${attendances.length} faltas no turno ${turno}.`,
+      message,
       affectedAttendances: formattedJustifications,
     });
   } catch (error) {

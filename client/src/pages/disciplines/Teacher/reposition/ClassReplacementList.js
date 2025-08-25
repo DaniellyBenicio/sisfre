@@ -1,20 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
+  Stack,
   FormControl,
   InputLabel,
   Button,
-  Stack,
-  MenuItem,
-  Pagination,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Chip,
   IconButton,
+  Pagination,
+  MenuItem,
 } from "@mui/material";
-import { ArrowBack } from "@mui/icons-material";
+import {
+  ArrowBack,
+  ExpandMore,
+  School,
+} from "@mui/icons-material"; // Removi Check e Close, pois não haverá aprovação/rejeição
 import { styled } from "@mui/material/styles";
-import DeleteConfirmationDialog from "../../../../components/DeleteConfirmationDialog";
-import ClassReplacementTable from "./ClassReplacementTable";
 import { CustomAlert } from "../../../../components/alert/CustomAlert";
 import { StyledSelect } from "../../../../components/inputs/Input";
 import api from "../../../../service/api";
@@ -29,20 +35,61 @@ const StyledButton = styled(Button)(() => ({
 }));
 
 const ClassReplacementList = () => {
-  const [replacements, setReplacements] = useState([]);
+  const [replacements, setReplacements] = useState([
+    {
+      id: 1,
+      professor: "Carlos Souza",
+      professorId: 201,
+      turma: "INF - 2025.2",
+      disciplina: "Estruturas de Dados",
+      turn: "Vespertino",
+      quantidade: "2",
+      data: "2025-08-25",
+      fileName: "ficha_reposicao1.pdf",
+      observacao: "Reposição devido a falta de energia.",
+      observationCoordinator: "N/A",
+      status: "Pendente",
+    },
+    {
+      id: 2,
+      professor: "Ana Pereira",
+      professorId: 202,
+      turma: "DIR - 2025.2",
+      disciplina: "Direito Constitucional",
+      turn: "Noturno",
+      quantidade: "1",
+      data: "2025-08-26",
+      fileName: "ficha_reposicao2.pdf",
+      observacao: "Ajuste por motivo de saúde.",
+      observationCoordinator: "Aprovado após análise.",
+      status: "Aprovado",
+    },
+    {
+      id: 3,
+      professor: "Carlos Souza",
+      professorId: 201,
+      turma: "INF - 2025.2",
+      disciplina: "Algoritmos",
+      turn: "Matutino",
+      quantidade: "1",
+      data: "2025-08-27",
+      fileName: "ficha_reposicao3.pdf",
+      observacao: "Reposição por evento institucional.",
+      observationCoordinator: "Rejeitado por falta de documentação.",
+      status: "Rejeitado",
+    },
+  ]);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
   const [filterTurma, setFilterTurma] = useState("all");
   const [filterDisciplina, setFilterDisciplina] = useState("all");
   const [filterPeriod, setFilterPeriod] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const [replacementToDelete, setReplacementToDelete] = useState(null);
   const [page, setPage] = useState(1);
   const rowsPerPage = 7;
   const navigate = useNavigate();
-  const location = useLocation();
-  const accessType = localStorage.getItem("accessType") || "Professor";
+  // Obtém o ID do professor logado (simulado via localStorage)
+  const currentProfessorId = localStorage.getItem("userId") || 201; // Exemplo: 201 para Carlos Souza
 
   const handleAlertClose = () => {
     setAlert(null);
@@ -78,6 +125,7 @@ const ClassReplacementList = () => {
                     ? "Rejeitado"
                     : "Pendente",
               }))
+              .filter((item) => item.professorId === parseInt(currentProfessorId)) // Filtra pelo ID do professor
               .sort((a, b) =>
                 a.turma.toLowerCase().localeCompare(b.turma.toLowerCase())
               )
@@ -86,185 +134,29 @@ const ClassReplacementList = () => {
       } catch (error) {
         console.error("Erro ao carregar reposições:", error);
         setAlert({ message: "Erro ao carregar reposições.", type: "error" });
-        setReplacements([]);
+        // Manter os dados fictícios filtrados em caso de erro
+        setReplacements(
+          replacements.filter(
+            (rep) => rep.professorId === parseInt(currentProfessorId)
+          )
+        );
       } finally {
         setLoading(false);
       }
     };
     fetchReplacements();
-  }, []);
+  }, [currentProfessorId]);
 
   useEffect(() => {
     setPage(1);
   }, [filterTurma, filterDisciplina, filterPeriod, filterStatus]);
-
-  const handleView = (id) => {
-    navigate(`/class-reposition/view/${id}`);
-  };
-
-  const handleApprove = async (id) => {
-    try {
-      // Adicionado body para garantir que validated seja setado para 1
-      await api.put(`/request/reposition/${id}`, { validated: 1 });
-      setAlert({
-        message: "Reposição aprovada com sucesso! Créditos atualizados.",
-        type: "success",
-      });
-      // Recarrega a lista
-      const response = await api.get("/request", {
-        params: { type: "reposicao" },
-      });
-      setReplacements(
-        Array.isArray(response.data.requests)
-          ? response.data.requests.map((item) => ({
-              id: item.id,
-              professor: item.professor?.username || "Desconhecido",
-              professorId: item.userId,
-              turma: item.acronym
-                ? `${item.acronym} - ${item.semester || "N/A"}`
-                : "Desconhecido",
-              disciplina: item.discipline || "Desconhecido",
-              turn: item.turn || "N/A",
-              quantidade: item.quantity.toString(),
-              data: item.date,
-              fileName: item.annex ? item.annex.split("/").pop() : "N/A",
-              observacao: item.observation || "N/A",
-              observationCoordinator: item.observationCoordinator || "N/A",
-              status:
-                item.validated === 1
-                  ? "Aprovado"
-                  : item.validated === 2
-                  ? "Rejeitado"
-                  : "Pendente",
-            }))
-          : []
-      );
-    } catch (error) {
-      console.error(
-        "Erro ao aprovar reposição:",
-        error.response?.data || error
-      );
-      setAlert({
-        message:
-          error.response?.data?.error ||
-          "Erro ao aprovar reposição. Verifique o backend.",
-        type: "error",
-      });
-    }
-  };
-
-  const handleReject = async (id) => {
-    try {
-      // Mudado o endpoint para um padrão (removido /negate/), e adicionado validated: 2 no body
-      await api.put(`/request/${id}`, {
-        validated: 2,
-        observationCoordinator: "Rejeitado pelo coordenador",
-      });
-      setAlert({
-        message: "Reposição rejeitada com sucesso!",
-        type: "success",
-      });
-      // Recarrega a lista
-      const response = await api.get("/request", {
-        params: { type: "reposicao" },
-      });
-      setReplacements(
-        Array.isArray(response.data.requests)
-          ? response.data.requests.map((item) => ({
-              id: item.id,
-              professor: item.professor?.username || "Desconhecido",
-              professorId: item.userId,
-              turma: item.acronym
-                ? `${item.acronym} - ${item.semester || "N/A"}`
-                : "Desconhecido",
-              disciplina: item.discipline || "Desconhecido",
-              turn: item.turn || "N/A",
-              quantidade: item.quantity.toString(),
-              data: item.date,
-              fileName: item.annex ? item.annex.split("/").pop() : "N/A",
-              observacao: item.observation || "N/A",
-              observationCoordinator: item.observationCoordinator || "N/A",
-              status:
-                item.validated === 1
-                  ? "Aprovado"
-                  : item.validated === 2
-                  ? "Rejeitado"
-                  : "Pendente",
-            }))
-          : []
-      );
-    } catch (error) {
-      console.error(
-        "Erro ao rejeitar reposição:",
-        error.response?.data || error
-      );
-      setAlert({
-        message:
-          error.response?.data?.error ||
-          "Erro ao rejeitar reposição. Verifique o backend.",
-        type: "error",
-      });
-    }
-  };
-
-  const handleDeleteClick = (replacement) => {
-    setReplacementToDelete(replacement);
-    setOpenDeleteDialog(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    try {
-      await api.delete(`/request/${replacementToDelete.id}`);
-      setAlert({
-        message: `Reposição para ${replacementToDelete.turma} deletada com sucesso!`,
-        type: "success",
-      });
-      const response = await api.get("/request", {
-        params: { type: "reposicao" },
-      });
-      setReplacements(
-        Array.isArray(response.data.requests)
-          ? response.data.requests.map((item) => ({
-              id: item.id,
-              professor: item.professor?.username || "Desconhecido",
-              professorId: item.userId,
-              turma: item.acronym
-                ? `${item.acronym} - ${item.semester || "N/A"}`
-                : "Desconhecido",
-              disciplina: item.discipline || "Desconhecido",
-              turn: item.turn || "N/A",
-              quantidade: item.quantity.toString(),
-              data: item.date,
-              fileName: item.annex ? item.annex.split("/").pop() : "N/A",
-              observacao: item.observation || "N/A",
-              observationCoordinator: item.observationCoordinator || "N/A",
-              status:
-                item.validated === 1
-                  ? "Aprovado"
-                  : item.validated === 2
-                  ? "Rejeitado"
-                  : "Pendente",
-            }))
-          : []
-      );
-      setPage(1);
-    } catch (error) {
-      console.error("Erro ao deletar reposição:", error);
-      setAlert({ message: "Erro ao deletar reposição.", type: "error" });
-    } finally {
-      setOpenDeleteDialog(false);
-      setReplacementToDelete(null);
-    }
-  };
 
   const handleGoBack = () => {
     navigate("/class-reschedule-options");
   };
 
   const turmas = [...new Set(replacements.map((a) => a.turma))].sort();
-  const disciplinas = [
-    ...new Set(replacements.map((a) => a.disciplina)),
-  ].sort();
+  const disciplinas = [...new Set(replacements.map((a) => a.disciplina))].sort();
 
   const applyFilters = (data) => {
     let filtered = Array.isArray(data) ? [...data] : [];
@@ -309,9 +201,29 @@ const ClassReplacementList = () => {
     return filtered;
   };
 
+  const groupReplacements = (data) => {
+    const grouped = data.reduce((acc, replacement) => {
+      const key = `${replacement.turma}-${replacement.disciplina}-${replacement.status}`;
+      if (!acc[key]) {
+        acc[key] = {
+          turma: replacement.turma,
+          disciplina: replacement.disciplina,
+          status: replacement.status,
+          replacements: [],
+        };
+      }
+      acc[key].replacements.push(replacement);
+      return acc;
+    }, {});
+    return Object.values(grouped).sort((a, b) =>
+      a.turma.toLowerCase().localeCompare(b.turma.toLowerCase())
+    );
+  };
+
   const filteredReplacements = applyFilters(replacements);
-  const totalPages = Math.ceil(filteredReplacements.length / rowsPerPage);
-  const paginatedReplacements = filteredReplacements.slice(
+  const groupedReplacements = groupReplacements(filteredReplacements);
+  const totalPages = Math.ceil(groupedReplacements.length / rowsPerPage);
+  const paginatedReplacements = groupedReplacements.slice(
     (page - 1) * rowsPerPage,
     page * rowsPerPage
   );
@@ -367,6 +279,18 @@ const ClassReplacementList = () => {
     },
   };
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Aprovado":
+        return "success";
+      case "Rejeitado":
+        return "error";
+      case "Pendente":
+      default:
+        return "warning";
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -405,7 +329,7 @@ const ClassReplacementList = () => {
           gutterBottom
           sx={{ fontWeight: "bold", flexGrow: 1 }}
         >
-          Reposições de Aula
+          Minhas Reposições de Aula
         </Typography>
       </Box>
 
@@ -510,33 +434,130 @@ const ClassReplacementList = () => {
             whiteSpace: "nowrap",
           }}
         >
-          Cadastrar reposição
+          Cadastrar Reposição
         </StyledButton>
       </Stack>
 
       {loading ? (
         <Typography align="center">Carregando...</Typography>
+      ) : paginatedReplacements.length > 0 ? (
+        <Stack spacing={2}>
+          {paginatedReplacements.map((group, index) => (
+            <Accordion
+              key={`${group.turma}-${group.disciplina}-${index}`}
+              elevation={3}
+            >
+              <AccordionSummary
+                expandIcon={<ExpandMore />}
+                aria-controls={`panel-${index}-content`}
+                id={`panel-${index}-header`}
+              >
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  width="100%"
+                >
+                  <Box display="flex" alignItems="center">
+                    <School sx={{ mr: 1, fontSize: 32, color: "#087619" }} />
+                    <Typography fontWeight="bold">
+                      {group.turma} ({group.disciplina})
+                    </Typography>
+                  </Box>
+                  <Chip
+                    label={group.status}
+                    color={getStatusColor(group.status)}
+                  />
+                </Box>
+              </AccordionSummary>
+              <AccordionDetails>
+                {group.replacements.map((replacement, idx) => (
+                  <Box
+                    key={idx}
+                    sx={{
+                      mb: 2,
+                      p: 2,
+                      border: "1px solid #e0e0e0",
+                      borderRadius: 2,
+                      display: "grid",
+                      gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+                      gap: 2,
+                    }}
+                  >
+                    <Box>
+                      <Typography
+                        variant="subtitle2"
+                        gutterBottom
+                        sx={{ fontSize: "1rem" }}
+                      >
+                        <strong>Professor:</strong> {replacement.professor}
+                      </Typography>
+                      <Typography
+                        variant="subtitle2"
+                        gutterBottom
+                        sx={{ fontSize: "1rem" }}
+                      >
+                        <strong>Turno:</strong> {replacement.turn}
+                      </Typography>
+                      <Typography
+                        variant="subtitle2"
+                        gutterBottom
+                        sx={{ fontSize: "1rem" }}
+                      >
+                        <strong>Quantidade de Aulas:</strong>{" "}
+                        {replacement.quantidade}
+                      </Typography>
+                      <Typography
+                        variant="subtitle2"
+                        gutterBottom
+                        sx={{ fontSize: "1rem" }}
+                      >
+                        <strong>Data:</strong>{" "}
+                        {new Date(replacement.data + "T00:00:00").toLocaleDateString(
+                          "pt-BR",
+                          {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          }
+                        )}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography
+                        variant="subtitle2"
+                        gutterBottom
+                        sx={{ fontSize: "1rem" }}
+                      >
+                        <strong>Anexo:</strong> {replacement.fileName}
+                      </Typography>
+                      <Typography
+                        variant="subtitle2"
+                        gutterBottom
+                        sx={{ fontSize: "1rem" }}
+                      >
+                        <strong>Observação:</strong> {replacement.observacao}
+                      </Typography>
+                      <Typography
+                        variant="subtitle2"
+                        gutterBottom
+                        sx={{ fontSize: "1rem" }}
+                      >
+                        <strong>Observação do Coordenador:</strong>{" "}
+                        {replacement.observationCoordinator}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ))}
+              </AccordionDetails>
+            </Accordion>
+          ))}
+        </Stack>
       ) : (
-        <ClassReplacementTable
-          replacements={paginatedReplacements || []}
-          setAlert={setAlert}
-          onView={handleView}
-          onDelete={handleDeleteClick}
-          onApprove={accessType === "Coordenador" ? handleApprove : undefined}
-          onReject={accessType === "Coordenador" ? handleReject : undefined}
-          accessType={accessType}
-        />
+        <Typography variant="body1" color="text.secondary" align="center">
+          Não foram encontradas reposições.
+        </Typography>
       )}
-
-      <DeleteConfirmationDialog
-        open={openDeleteDialog}
-        onClose={() => {
-          setOpenDeleteDialog(false);
-          setReplacementToDelete(null);
-        }}
-        onConfirm={handleConfirmDelete}
-        message={`Deseja realmente deletar a reposição para "${replacementToDelete?.turma}"?`}
-      />
 
       {totalPages > 1 && (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>

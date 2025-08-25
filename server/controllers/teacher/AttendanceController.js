@@ -302,6 +302,7 @@ export const getAttendanceByTurn = async (req, res) => {
 
     const attendances = await db.Attendance.findAll({
       where: whereClause,
+      attributes: ["id", "date", "status", "justification"],
       include: [
         {
           model: db.ClassScheduleDetail,
@@ -345,6 +346,7 @@ export const getAttendanceByTurn = async (req, res) => {
           date,
           turn: turn.charAt(0).toUpperCase() + turn.slice(1),
           status: attendance.status,
+          justification: attendance.justification, 
         };
       }
 
@@ -530,7 +532,7 @@ export const getTeacherAbsences = async (req, res) => {
       .json({ error: "Erro interno do servidor.", details: error.message });
   }
 };
-
+ 
 export const justifyAbsenceByTurn = async (req, res) => {
   const { date, turno, justification } = req.body;
   const loggedUserId = req.user?.id;

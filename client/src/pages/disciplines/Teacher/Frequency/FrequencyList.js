@@ -106,14 +106,14 @@ const FrequencyList = () => {
       );
       const formattedData = Array.isArray(response.data.attendances)
         ? response.data.attendances.map((freq, index) => ({
-            id: index.toString(), 
+            id: index.toString(),
             date: freq.date,
             turn: freq.turn,
-            status: freq.status.charAt(0).toUpperCase() + freq.status.slice(1), 
+            status: freq.status.charAt(0).toUpperCase() + freq.status.slice(1),
+            justification: freq.justification,
           }))
         : [];
       setFrequencies(formattedData);
-      console.log("Frequências formatadas:", formattedData);
     } catch (error) {
       console.error("Erro ao buscar frequências:", error);
       setAlert({
@@ -188,8 +188,6 @@ const FrequencyList = () => {
       });
       const latitude = position.coords.latitude;
       const longitude = position.coords.longitude;
-      console.log("Geolocalização obtida:", { latitude, longitude });
-
       console.log("Chamando POST /register-by-turn com:", {
         latitude,
         longitude,
@@ -246,8 +244,8 @@ const FrequencyList = () => {
     try {
       const now = new Date();
       const response = await api.post("/frequency/absence-credit", {
-        courseId: frequencyItem.courseId || null, 
-        disciplineId: frequencyItem.disciplineId || null, 
+        courseId: frequencyItem.courseId || null,
+        disciplineId: frequencyItem.disciplineId || null,
         date: now.toISOString().split("T")[0],
         time: now.toTimeString().split(" ")[0],
         useCredit: true,
@@ -385,7 +383,6 @@ const FrequencyList = () => {
                   value={filterStatus}
                   label="Status"
                   onChange={(e) => {
-                    console.log("Status selecionado:", e.target.value);
                     setFilterStatus(e.target.value);
                   }}
                   sx={commonSelectSx}
@@ -406,7 +403,6 @@ const FrequencyList = () => {
                   value={filterPeriod}
                   label="Período"
                   onChange={(e) => {
-                    console.log("Período selecionado:", e.target.value);
                     setFilterPeriod(e.target.value);
                   }}
                   sx={commonSelectSx}
@@ -428,7 +424,6 @@ const FrequencyList = () => {
                     InputLabelProps={{ shrink: true }}
                     value={customStartDate}
                     onChange={(e) => {
-                      console.log("Data inicial selecionada:", e.target.value);
                       setCustomStartDate(e.target.value);
                     }}
                     sx={commonDateInputSx}
@@ -439,7 +434,6 @@ const FrequencyList = () => {
                     InputLabelProps={{ shrink: true }}
                     value={customEndDate}
                     onChange={(e) => {
-                      console.log("Data final selecionada:", e.target.value);
                       setCustomEndDate(e.target.value);
                     }}
                     sx={commonDateInputSx}

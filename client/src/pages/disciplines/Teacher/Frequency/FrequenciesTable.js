@@ -20,14 +20,21 @@ import PropTypes from "prop-types";
 const FrequenciesTable = ({ frequencies, search, isFiltered, setAlert }) => {
   const navigate = useNavigate();
 
-  const formattedFrequencies = frequencies;
+  const formattedFrequencies = frequencies.map((item) => ({
+    ...item,
+    turn: item.turn.charAt(0).toUpperCase() + item.turn.slice(1).toLowerCase(),
+    status:
+      item.status.charAt(0).toUpperCase() + item.status.slice(1).toLowerCase(),
+  }));
 
   const handleJustify = (item) => {
-    if (item.status === "Falta") {
+    if (item.status.toLowerCase() === "falta" && !item.justification) {
       navigate("/justify", { state: { frequencyItem: item } });
     } else {
       setAlert({
-        message: 'Justificativa disponível apenas para status "Falta".',
+        message: item.justification
+          ? "Esta falta já foi justificada."
+          : 'Justificativa disponível apenas para status "Falta".',
         type: "warning",
       });
     }
@@ -46,7 +53,6 @@ const FrequenciesTable = ({ frequencies, search, isFiltered, setAlert }) => {
   const safeData = Array.isArray(formattedFrequencies)
     ? formattedFrequencies
     : [];
-  console.log("SafeData in FrequenciesTable:", safeData);
 
   const visibleData = useMemo(() => {
     if (search && search.trim().length >= 2) {
@@ -55,14 +61,6 @@ const FrequenciesTable = ({ frequencies, search, isFiltered, setAlert }) => {
     const startIndex = (page - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
     const slicedData = safeData.slice(startIndex, endIndex);
-    console.log(
-      "VisibleData:",
-      slicedData,
-      "startIndex:",
-      startIndex,
-      "endIndex:",
-      endIndex
-    );
     return slicedData;
   }, [safeData, page, rowsPerPage, search]);
 
@@ -108,17 +106,17 @@ const FrequenciesTable = ({ frequencies, search, isFiltered, setAlert }) => {
                     sx={{
                       color:
                         header.key === "status"
-                          ? item[header.key] === "Falta"
+                          ? item.status.toLowerCase() === "falta"
                             ? "red"
-                            : item[header.key] === "Presença"
+                            : item.status.toLowerCase() === "presença"
                             ? "green"
-                            : item[header.key] === "Abonada"
+                            : item.status.toLowerCase() === "abonada"
                             ? "orange"
                             : "inherit"
                           : "inherit",
                       fontWeight:
                         header.key === "status" &&
-                        ["Falta", "Presença", "Abonada"].includes(item[header.key])
+                        ["Falta", "Presença", "Abonada"].includes(item.status)
                           ? "bold"
                           : "normal",
                     }}
@@ -129,15 +127,20 @@ const FrequenciesTable = ({ frequencies, search, isFiltered, setAlert }) => {
                 <Stack direction="row" spacing={1} justifyContent="center">
                   <IconButton
                     onClick={() => handleJustify(item)}
-                    disabled={item.status !== "Falta"}
+                    disabled={
+                      item.status.toLowerCase() !== "falta" ||
+                      !!item.justification
+                    }
                     sx={{
                       color:
-                        item.status !== "Falta"
+                        item.status.toLowerCase() !== "falta" ||
+                        !!item.justification
                           ? "rgba(0, 0, 0, 0.26)"
                           : "#087619",
                       "&:hover": {
                         color:
-                          item.status !== "Falta"
+                          item.status.toLowerCase() !== "falta" ||
+                          !!item.justification
                             ? "rgba(0, 0, 0, 0.26)"
                             : "#065412",
                         backgroundColor: "transparent",
@@ -208,17 +211,17 @@ const FrequenciesTable = ({ frequencies, search, isFiltered, setAlert }) => {
                         ...tableBodyCellStyle,
                         color:
                           header.key === "status"
-                            ? item[header.key] === "Falta"
+                            ? item.status.toLowerCase() === "falta"
                               ? "red"
-                              : item[header.key] === "Presença"
+                              : item.status.toLowerCase() === "presença"
                               ? "green"
-                              : item[header.key] === "Abonada"
+                              : item.status.toLowerCase() === "abonada"
                               ? "orange"
                               : "inherit"
                             : "inherit",
                         fontWeight:
                           header.key === "status" &&
-                          ["Falta", "Presença", "Abonada"].includes(item[header.key])
+                          ["Falta", "Presença", "Abonada"].includes(item.status)
                             ? "bold"
                             : "normal",
                       }}
@@ -229,15 +232,20 @@ const FrequenciesTable = ({ frequencies, search, isFiltered, setAlert }) => {
                   <TableCell align="center" sx={tableBodyCellStyle}>
                     <IconButton
                       onClick={() => handleJustify(item)}
-                      disabled={item.status !== "Falta"}
+                      disabled={
+                        item.status.toLowerCase() !== "falta" ||
+                        !!item.justification
+                      }
                       sx={{
                         color:
-                          item.status !== "Falta"
+                          item.status.toLowerCase() !== "falta" ||
+                          !!item.justification
                             ? "rgba(0, 0, 0, 0.26)"
                             : "#087619",
                         "&:hover": {
                           color:
-                            item.status !== "Falta"
+                            item.status.toLowerCase() !== "falta" ||
+                            !!item.justification
                               ? "rgba(0, 0, 0, 0.26)"
                               : "#065412",
                           backgroundColor: "transparent",

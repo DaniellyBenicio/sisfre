@@ -74,8 +74,10 @@ const ClassAntepositionList = () => {
                 discipline: item.discipline || "Desconhecido",
                 quantidade: item.quantity.toString(),
                 data: item.date,
-                fileName: item.annex 
-                  ? (JSON.parse(item.annex || "[]").length > 0 ? JSON.parse(item.annex)[0].split("/").pop() : "N/A")
+                fileName: item.annex
+                  ? JSON.parse(item.annex || "[]").length > 0
+                    ? JSON.parse(item.annex)[0].split("/").pop()
+                    : "N/A"
                   : "N/A",
                 observacao: item.observation || "N/A",
                 observationCoordinator: item.observationCoordinator || "N/A",
@@ -129,8 +131,10 @@ const ClassAntepositionList = () => {
               discipline: item.discipline || "Desconhecido",
               quantidade: item.quantity.toString(),
               data: item.date,
-              fileName: item.annex 
-                ? (JSON.parse(item.annex || "[]").length > 0 ? JSON.parse(item.annex)[0].split("/").pop() : "N/A")
+              fileName: item.annex
+                ? JSON.parse(item.annex || "[]").length > 0
+                  ? JSON.parse(item.annex)[0].split("/").pop()
+                  : "N/A"
                 : "N/A",
               observacao: item.observation || "N/A",
               observationCoordinator: item.observationCoordinator || "N/A",
@@ -175,8 +179,10 @@ const ClassAntepositionList = () => {
               discipline: item.discipline || "Desconhecido",
               quantidade: item.quantity.toString(),
               data: item.date,
-              fileName: item.annex 
-                ? (JSON.parse(item.annex || "[]").length > 0 ? JSON.parse(item.annex)[0].split("/").pop() : "N/A")
+              fileName: item.annex
+                ? JSON.parse(item.annex || "[]").length > 0
+                  ? JSON.parse(item.annex)[0].split("/").pop()
+                  : "N/A"
                 : "N/A",
               observacao: item.observation || "N/A",
               observationCoordinator: item.observationCoordinator || "N/A",
@@ -200,9 +206,7 @@ const ClassAntepositionList = () => {
   };
 
   const turmas = [...new Set(antepositions.map((a) => a.turma))].sort();
-  const disciplinas = [
-    ...new Set(antepositions.map((a) => a.discipline)),
-  ].sort();
+  const disciplinas = [...new Set(antepositions.map((a) => a.discipline))].sort();
 
   const applyFilters = (data) => {
     let filtered = Array.isArray(data) ? [...data] : [];
@@ -212,7 +216,7 @@ const ClassAntepositionList = () => {
     }
 
     if (filterDisciplina !== "all") {
-      filtered = filtered.filter((rep) => rep.disciplina === filterDisciplina);
+      filtered = filtered.filter((rep) => rep.discipline === filterDisciplina);
     }
 
     if (filterStatus !== "all") {
@@ -225,6 +229,7 @@ const ClassAntepositionList = () => {
     filtered = filtered.filter((rep) => {
       if (!rep.data) return false;
       const repDate = new Date(rep.data + "T00:00:00");
+      repDate.setHours(0, 0, 0, 0); // Reset time for accurate date comparison
 
       switch (filterPeriod) {
         case "yesterday":
@@ -247,15 +252,14 @@ const ClassAntepositionList = () => {
     return filtered;
   };
 
-  // Agrupar anteposições por turma, disciplina e status
   const groupAntepositions = (data) => {
     const grouped = data.reduce((acc, anteposition) => {
-      const key = `${anteposition.turma}-${anteposition.disciplina}-${anteposition.status}`;
+      const key = `${anteposition.turma}-${anteposition.discipline}-${anteposition.status}`;
       if (!acc[key]) {
         acc[key] = {
           turma: anteposition.turma,
           acronym: anteposition.acronym,
-          disciplina: anteposition.disciplina,
+          discipline: anteposition.discipline,
           status: anteposition.status,
           antepositions: [],
         };
@@ -492,7 +496,7 @@ const ClassAntepositionList = () => {
         <Stack spacing={2}>
           {paginatedAntepositions.map((group, index) => (
             <Accordion
-              key={`${group.turma}-${group.disciplina}-${index}`}
+              key={`${group.turma}-${group.discipline}-${index}`}
               elevation={3}
             >
               <AccordionSummary
@@ -509,7 +513,7 @@ const ClassAntepositionList = () => {
                   <Box display="flex" alignItems="center">
                     <School sx={{ mr: 1, fontSize: 32, color: "#087619" }} />
                     <Typography fontWeight="bold">
-                      {group.turma} ({group.disciplina})
+                      {group.turma} ({group.discipline})
                     </Typography>
                   </Box>
                   <Chip

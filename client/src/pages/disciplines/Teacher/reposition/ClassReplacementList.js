@@ -15,11 +15,7 @@ import {
   Pagination,
   MenuItem,
 } from "@mui/material";
-import {
-  ArrowBack,
-  ExpandMore,
-  School,
-} from "@mui/icons-material"; // Removi Check e Close, pois não haverá aprovação/rejeição
+import { ArrowBack, ExpandMore, School } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 import { CustomAlert } from "../../../../components/alert/CustomAlert";
 import { StyledSelect } from "../../../../components/inputs/Input";
@@ -35,50 +31,7 @@ const StyledButton = styled(Button)(() => ({
 }));
 
 const ClassReplacementList = () => {
-  const [replacements, setReplacements] = useState([
-    {
-      id: 1,
-      professor: "Carlos Souza",
-      professorId: 201,
-      turma: "INF - 2025.2",
-      disciplina: "Estruturas de Dados",
-      turn: "Vespertino",
-      quantidade: "2",
-      data: "2025-08-25",
-      fileName: "ficha_reposicao1.pdf",
-      observacao: "Reposição devido a falta de energia.",
-      observationCoordinator: "N/A",
-      status: "Pendente",
-    },
-    {
-      id: 2,
-      professor: "Ana Pereira",
-      professorId: 202,
-      turma: "DIR - 2025.2",
-      disciplina: "Direito Constitucional",
-      turn: "Noturno",
-      quantidade: "1",
-      data: "2025-08-26",
-      fileName: "ficha_reposicao2.pdf",
-      observacao: "Ajuste por motivo de saúde.",
-      observationCoordinator: "Aprovado após análise.",
-      status: "Aprovado",
-    },
-    {
-      id: 3,
-      professor: "Carlos Souza",
-      professorId: 201,
-      turma: "INF - 2025.2",
-      disciplina: "Algoritmos",
-      turn: "Matutino",
-      quantidade: "1",
-      data: "2025-08-27",
-      fileName: "ficha_reposicao3.pdf",
-      observacao: "Reposição por evento institucional.",
-      observationCoordinator: "Rejeitado por falta de documentação.",
-      status: "Rejeitado",
-    },
-  ]);
+  const [replacements, setReplacements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
   const [filterTurma, setFilterTurma] = useState("all");
@@ -88,11 +41,23 @@ const ClassReplacementList = () => {
   const [page, setPage] = useState(1);
   const rowsPerPage = 7;
   const navigate = useNavigate();
-  // Obtém o ID do professor logado (simulado via localStorage)
-  const currentProfessorId = localStorage.getItem("userId") || 201; // Exemplo: 201 para Carlos Souza
 
   const handleAlertClose = () => {
     setAlert(null);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    try {
+      const date = new Date(dateString + "T00:00:00");
+      return date.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    } catch {
+      return "N/A";
+    }
   };
 
   useEffect(() => {
@@ -107,15 +72,20 @@ const ClassReplacementList = () => {
               .map((item) => ({
                 id: item.id,
                 professor: item.professor?.username || "Desconhecido",
-                professorId: item.userId,
                 turma: item.acronym
                   ? `${item.acronym} - ${item.semester || "N/A"}`
                   : "Desconhecido",
+                acronym: item.acronym || "N/A",
+                semester: item.semester || "N/A",
                 disciplina: item.discipline || "Desconhecido",
-                turn: item.turn || "N/A",
                 quantidade: item.quantity.toString(),
-                data: item.date,
-                fileName: item.annex ? item.annex.split("/").pop() : "N/A",
+                data: formatDate(item.date),
+                dataAusencia: formatDate(item.dateAbsence),
+                fileName: item.annex
+                  ? JSON.parse(item.annex || "[]")
+                      .map((path) => path.split("/").pop())
+                      .join(", ")
+                  : "N/A",
                 observacao: item.observation || "N/A",
                 observationCoordinator: item.observationCoordinator || "N/A",
                 status:
@@ -125,7 +95,6 @@ const ClassReplacementList = () => {
                     ? "Rejeitado"
                     : "Pendente",
               }))
-              .filter((item) => item.professorId === parseInt(currentProfessorId)) // Filtra pelo ID do professor
               .sort((a, b) =>
                 a.turma.toLowerCase().localeCompare(b.turma.toLowerCase())
               )
@@ -134,18 +103,12 @@ const ClassReplacementList = () => {
       } catch (error) {
         console.error("Erro ao carregar reposições:", error);
         setAlert({ message: "Erro ao carregar reposições.", type: "error" });
-        // Manter os dados fictícios filtrados em caso de erro
-        setReplacements(
-          replacements.filter(
-            (rep) => rep.professorId === parseInt(currentProfessorId)
-          )
-        );
       } finally {
         setLoading(false);
       }
     };
     fetchReplacements();
-  }, [currentProfessorId]);
+  }, []);
 
   useEffect(() => {
     setPage(1);
@@ -179,12 +142,13 @@ const ClassReplacementList = () => {
     filtered = filtered.filter((rep) => {
       if (!rep.data) return false;
       const repDate = new Date(rep.data + "T00:00:00");
+      repDate.setHours(0, 0, 0, 0); // Reset time for accurate date comparison
 
       switch (filterPeriod) {
         case "yesterday":
           const yesterday = new Date(today);
           yesterday.setDate(today.getDate() - 1);
-          return repDate.toDateString() === yesterday.toDateString();
+          return repDate.getTime() === yesterday.getTime();
         case "lastWeek":
           const lastWeek = new Date(today);
           lastWeek.setDate(today.getDate() - 7);
@@ -497,13 +461,6 @@ const ClassReplacementList = () => {
                         gutterBottom
                         sx={{ fontSize: "1rem" }}
                       >
-                        <strong>Turno:</strong> {replacement.turn}
-                      </Typography>
-                      <Typography
-                        variant="subtitle2"
-                        gutterBottom
-                        sx={{ fontSize: "1rem" }}
-                      >
                         <strong>Quantidade de Aulas:</strong>{" "}
                         {replacement.quantidade}
                       </Typography>
@@ -512,15 +469,16 @@ const ClassReplacementList = () => {
                         gutterBottom
                         sx={{ fontSize: "1rem" }}
                       >
-                        <strong>Data:</strong>{" "}
-                        {new Date(replacement.data + "T00:00:00").toLocaleDateString(
-                          "pt-BR",
-                          {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          }
-                        )}
+                        <strong>Data da Reposição:</strong>{" "}
+                        {replacement.data}
+                      </Typography>
+                      <Typography
+                        variant="subtitle2"
+                        gutterBottom
+                        sx={{ fontSize: "1rem" }}
+                      >
+                        <strong>Data da Ausência:</strong>{" "}
+                        {replacement.dataAusencia}
                       </Typography>
                     </Box>
                     <Box>
@@ -529,7 +487,7 @@ const ClassReplacementList = () => {
                         gutterBottom
                         sx={{ fontSize: "1rem" }}
                       >
-                        <strong>Anexo:</strong> {replacement.fileName}
+                        <strong>Anexo(s):</strong> {replacement.fileName}
                       </Typography>
                       <Typography
                         variant="subtitle2"

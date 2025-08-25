@@ -299,7 +299,7 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
                 MenuProps={commonMenuProps}
               >
                 <MenuItem value="all">Todas</MenuItem>
-                <MenuItem value="Presença">Presenças</MenuItem>
+                <MenuItem value="Abonada">Abonadas</MenuItem>
                 <MenuItem value="Falta">Faltas</MenuItem>
               </StyledSelect>
             </FormControl>

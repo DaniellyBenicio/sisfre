@@ -254,7 +254,7 @@ export const getProfessorAbsenceDetails = async (req, res) => {
 
     const attendances = await db.Attendance.findAll({
       where: attendanceWhere,
-      attributes: ["date", "status"], 
+      attributes: ["date", "status", "justification"],
       include: [
         {
           model: db.ClassScheduleDetail,
@@ -302,11 +302,12 @@ export const getProfessorAbsenceDetails = async (req, res) => {
       const classSchedule = attendance.detail.schedule;
       const discipline = attendance.detail.discipline;
       return {
-        data: attendance.date, 
-        disciplina: discipline.name, 
+        data: attendance.date,
+        disciplina: discipline.name,
         "curso-turma": `${classSchedule.course.acronym} - ${classSchedule.class.semester}`,
         turno: attendance.detail.turn,
         status: attendance.status,
+        justificativa: attendance.justification || null,
       };
     });
 

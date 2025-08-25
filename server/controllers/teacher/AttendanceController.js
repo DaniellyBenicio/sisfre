@@ -680,6 +680,12 @@ export const getJustificationByTurn = async (req, res) => {
     let whereClause = {
       date: filterDate,
       status: "falta",
+      justification: { 
+        [Op.and]: [
+          { [Op.ne]: null },
+          { [Op.ne]: "" }
+        ]
+      }
     };
 
     if (accessType !== "Admin" || professorId) {

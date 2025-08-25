@@ -54,20 +54,29 @@ const JustificationsList = ({ setAuthenticated }) => {
     }
   };
 
+  const isMedicalJustification = (justification) =>
+    justification &&
+    typeof justification === "string" &&
+    /doença|doente|medica|atestado/i.test(justification);
+
   const handleAccept = async (justification) => {
     try {
       const token = localStorage.getItem("token");
+      const newStatus = isMedicalJustification(justification.attendance.justification)
+        ? "abonada"
+        : "presença";
       const payload = {
         date: justification.attendance.date,
         turno: justification.turn,
-        newStatus: "abonada",
+        newStatus,
         professorId: justification.attendance.registeredBy,
       };
-      console.log("Accept Payload:", payload);
+      console.log("Payload enviado:", payload);
+      console.log("Justificativa:", justification.attendance.justification);
       const response = await api.put("/absences/turn", payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("Accept Response:", response.data);
+      console.log("Resposta da API:", response.data);
       setJustifications((prev) =>
         prev.filter((j) => j.attendance.id !== justification.attendance.id)
       );
@@ -77,9 +86,9 @@ const JustificationsList = ({ setAuthenticated }) => {
       });
       setTimeout(() => setAlert(null), 3000);
     } catch (error) {
-      console.error("Erro ao aceitar justificativa:", error);
+      console.error(`Erro ao alterar status para ${newStatus}:`, error);
       setAlert({
-        message: error.response?.data?.error || "Erro ao aceitar justificativa. Verifique os dados e tente novamente.",
+        message: error.response?.data?.error || `Erro ao validar justificativa. Verifique a justificativa e tente novamente.`,
         type: "error",
       });
     }
@@ -199,10 +208,10 @@ const JustificationsList = ({ setAuthenticated }) => {
 
               {accessType === "Admin" && (
                 <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
-									<Button
+                  <Button
                     variant="contained"
                     onClick={() => handleReject(justification)}
-										startIcon={<Close />}
+                    startIcon={<Close />}
                     sx={{
                       width: "fit-content",
                       minWidth: 100,
@@ -220,7 +229,7 @@ const JustificationsList = ({ setAuthenticated }) => {
                   <Button
                     variant="contained"
                     onClick={() => handleAccept(justification)}
-										startIcon={<Check />}
+                    startIcon={<Check />}
                     sx={{
                       width: "fit-content",
                       minWidth: 100,

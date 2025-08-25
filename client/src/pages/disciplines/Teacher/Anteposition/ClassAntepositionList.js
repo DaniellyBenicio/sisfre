@@ -21,6 +21,7 @@ import {
   Check,
   Close,
   School,
+  Link,
 } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 import { CustomAlert } from "../../../../components/alert/CustomAlert";
@@ -35,6 +36,8 @@ const StyledButton = styled(Button)(() => ({
   backgroundColor: INSTITUTIONAL_COLOR,
   "&:hover": { backgroundColor: "#26692b" },
 }));
+
+const API_BASE_URL = "http://localhost:3333";
 
 const ClassAntepositionList = () => {
   const [antepositions, setAntepositions] = useState([]);
@@ -79,6 +82,11 @@ const ClassAntepositionList = () => {
                     ? JSON.parse(item.annex)[0].split("/").pop()
                     : "N/A"
                   : "N/A",
+                fileLink: item.annex
+                  ? JSON.parse(item.annex || "[]").length > 0
+                    ? `${API_BASE_URL}/${JSON.parse(item.annex)[0].replace(/\\/g, "/")}`
+                    : null
+                  : null,
                 observacao: item.observation || "N/A",
                 observationCoordinator: item.observationCoordinator || "N/A",
                 status:
@@ -136,6 +144,11 @@ const ClassAntepositionList = () => {
                   ? JSON.parse(item.annex)[0].split("/").pop()
                   : "N/A"
                 : "N/A",
+              fileLink: item.annex
+                ? JSON.parse(item.annex || "[]").length > 0
+                  ? `${API_BASE_URL}/${JSON.parse(item.annex)[0].replace(/\\/g, "/")}`
+                  : null
+                : null,
               observacao: item.observation || "N/A",
               observationCoordinator: item.observationCoordinator || "N/A",
               status:
@@ -184,6 +197,11 @@ const ClassAntepositionList = () => {
                   ? JSON.parse(item.annex)[0].split("/").pop()
                   : "N/A"
                 : "N/A",
+              fileLink: item.annex
+                ? JSON.parse(item.annex || "[]").length > 0
+                  ? `${API_BASE_URL}/${JSON.parse(item.annex)[0].replace(/\\/g, "/")}`
+                  : null
+                : null,
               observacao: item.observation || "N/A",
               observationCoordinator: item.observationCoordinator || "N/A",
               status:
@@ -229,7 +247,7 @@ const ClassAntepositionList = () => {
     filtered = filtered.filter((rep) => {
       if (!rep.data) return false;
       const repDate = new Date(rep.data + "T00:00:00");
-      repDate.setHours(0, 0, 0, 0); // Reset time for accurate date comparison
+      repDate.setHours(0, 0, 0, 0);
 
       switch (filterPeriod) {
         case "yesterday":
@@ -572,25 +590,43 @@ const ClassAntepositionList = () => {
                       <Typography
                         variant="subtitle2"
                         gutterBottom
-                        sx={{ fontSize: "1rem" }}
+                        sx={{
+                          fontSize: "1rem",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                        }}
                       >
-                        <strong>Anexo:</strong> {anteposition.fileName}
+                        <strong>Anexo:</strong>
+                        {anteposition.fileLink && (
+                          <IconButton
+                            size="small"
+                            onClick={() => window.open(anteposition.fileLink, "_blank")}
+                            sx={{ color: INSTITUTIONAL_COLOR }}
+                          >
+                            <Link fontSize="small" />
+                          </IconButton>
+                        )}
                       </Typography>
-                      <Typography
-                        variant="subtitle2"
-                        gutterBottom
-                        sx={{ fontSize: "1rem" }}
-                      >
-                        <strong>Observação:</strong> {anteposition.observacao}
-                      </Typography>
-                      <Typography
-                        variant="subtitle2"
-                        gutterBottom
-                        sx={{ fontSize: "1rem" }}
-                      >
-                        <strong>Observação do Coordenador:</strong>{" "}
-                        {anteposition.observationCoordinator}
-                      </Typography>
+                      {anteposition.observacao !== "N/A" && (
+                        <Typography
+                          variant="subtitle2"
+                          gutterBottom
+                          sx={{ fontSize: "1rem" }}
+                        >
+                          <strong>Observação:</strong> {anteposition.observacao}
+                        </Typography>
+                      )}
+                      {anteposition.observationCoordinator !== "N/A" && (
+                        <Typography
+                          variant="subtitle2"
+                          gutterBottom
+                          sx={{ fontSize: "1rem" }}
+                        >
+                          <strong>Justificativa:</strong>{" "}
+                          {anteposition.observationCoordinator}
+                        </Typography>
+                      )}
                     </Box>
                     {accessType === "Coordenador" && anteposition.status === "Pendente" && (
                       <Box sx={{ gridColumn: "1 / -1", mt: 2, display: "flex", gap: 1 }}>

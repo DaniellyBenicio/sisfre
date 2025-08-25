@@ -37,40 +37,7 @@ const StyledButton = styled(Button)(() => ({
 }));
 
 const ClassAntepositionList = () => {
-  const [antepositions, setAntepositions] = useState([
-    {
-      id: 1,
-      professor: "João Silva",
-      professorId: 101,
-      turma: "ENGCOMP - 2025.1",
-      acronym: "ENGCOMP",
-      semester: "2025.1",
-      disciplina: "Programação I",
-      turn: "Matutino",
-      quantidade: "2",
-      data: "2025-09-15",
-      fileName: "ficha_anteposicao1.pdf",
-      observacao: "Anteposição devido a evento acadêmico.",
-      observationCoordinator: "N/A",
-      status: "Pendente",
-    },
-    {
-      id: 2,
-      professor: "Maria Oliveira",
-      professorId: 102,
-      turma: "ADM - 2025.1",
-      acronym: "ADM",
-      semester: "2025.1",
-      disciplina: "Gestão Empresarial",
-      turn: "Noturno",
-      quantidade: "3",
-      data: "2025-09-20",
-      fileName: "ficha_anteposicao2.pdf",
-      observacao: "Anteposição solicitada para ajuste de cronograma.",
-      observationCoordinator: "Rejeitado devido a falta de justificativa suficiente.",
-      status: "Rejeitado",
-    },
-  ]);
+  const [antepositions, setAntepositions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
   const [filterTurma, setFilterTurma] = useState("all");
@@ -104,11 +71,12 @@ const ClassAntepositionList = () => {
                   : "Desconhecido",
                 acronym: item.acronym || "N/A",
                 semester: item.semester || "N/A",
-                disciplina: item.discipline || "Desconhecido",
-                turn: item.turn || "N/A",
+                discipline: item.discipline || "Desconhecido",
                 quantidade: item.quantity.toString(),
                 data: item.date,
-                fileName: item.annex ? item.annex.split("/").pop() : "N/A",
+                fileName: item.annex 
+                  ? (JSON.parse(item.annex || "[]").length > 0 ? JSON.parse(item.annex)[0].split("/").pop() : "N/A")
+                  : "N/A",
                 observacao: item.observation || "N/A",
                 observationCoordinator: item.observationCoordinator || "N/A",
                 status:
@@ -126,7 +94,6 @@ const ClassAntepositionList = () => {
       } catch (error) {
         console.error("Erro ao carregar anteposições:", error);
         setAlert({ message: "Erro ao carregar anteposições.", type: "error" });
-        // Manter os dados fictícios em caso de erro
       } finally {
         setLoading(false);
       }
@@ -159,11 +126,12 @@ const ClassAntepositionList = () => {
                 : "Desconhecido",
               acronym: item.acronym || "N/A",
               semester: item.semester || "N/A",
-              disciplina: item.discipline || "Desconhecido",
-              turn: item.turn || "N/A",
+              discipline: item.discipline || "Desconhecido",
               quantidade: item.quantity.toString(),
               data: item.date,
-              fileName: item.annex ? item.annex.split("/").pop() : "N/A",
+              fileName: item.annex 
+                ? (JSON.parse(item.annex || "[]").length > 0 ? JSON.parse(item.annex)[0].split("/").pop() : "N/A")
+                : "N/A",
               observacao: item.observation || "N/A",
               observationCoordinator: item.observationCoordinator || "N/A",
               status:
@@ -204,11 +172,12 @@ const ClassAntepositionList = () => {
                 : "Desconhecido",
               acronym: item.acronym || "N/A",
               semester: item.semester || "N/A",
-              disciplina: item.discipline || "Desconhecido",
-              turn: item.turn || "N/A",
+              discipline: item.discipline || "Desconhecido",
               quantidade: item.quantity.toString(),
               data: item.date,
-              fileName: item.annex ? item.annex.split("/").pop() : "N/A",
+              fileName: item.annex 
+                ? (JSON.parse(item.annex || "[]").length > 0 ? JSON.parse(item.annex)[0].split("/").pop() : "N/A")
+                : "N/A",
               observacao: item.observation || "N/A",
               observationCoordinator: item.observationCoordinator || "N/A",
               status:
@@ -232,7 +201,7 @@ const ClassAntepositionList = () => {
 
   const turmas = [...new Set(antepositions.map((a) => a.turma))].sort();
   const disciplinas = [
-    ...new Set(antepositions.map((a) => a.disciplina)),
+    ...new Set(antepositions.map((a) => a.discipline)),
   ].sort();
 
   const applyFilters = (data) => {
@@ -570,13 +539,6 @@ const ClassAntepositionList = () => {
                         sx={{ fontSize: "1rem" }}
                       >
                         <strong>Professor:</strong> {anteposition.professor}
-                      </Typography>
-                      <Typography
-                        variant="subtitle2"
-                        gutterBottom
-                        sx={{ fontSize: "1rem" }}
-                      >
-                        <strong>Turno:</strong> {anteposition.turn}
                       </Typography>
                       <Typography
                         variant="subtitle2"

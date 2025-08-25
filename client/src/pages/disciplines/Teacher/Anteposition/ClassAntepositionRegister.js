@@ -115,7 +115,6 @@ const ClassAntepositionRegister = ({ setAlert }) => {
   const professor = localStorage.getItem("username") || "";
   const [course, setCourse] = useState("");
   const [discipline, setDiscipline] = useState("");
-  const [turn, setTurn] = useState("");
   const [quantity, setQuantity] = useState("");
   const [date, setDate] = useState("");
   const [file, setFile] = useState(null);
@@ -131,7 +130,7 @@ const ClassAntepositionRegister = ({ setAlert }) => {
         const details = response.data.scheduleDetails || [];
         const validatedDetails = details.filter(
           (sd) =>
-            sd.course && sd.discipline && sd.turn && sd.acronym && sd.semester
+            sd.course && sd.discipline && sd.acronym && sd.semester
         );
         setScheduleDetails(validatedDetails);
         if (validatedDetails.length === 0) {
@@ -158,23 +157,21 @@ const ClassAntepositionRegister = ({ setAlert }) => {
   const handleScheduleChange = (event) => {
     const selectedValue = event.target.value;
     const selected = scheduleDetails.find(
-      (sd) => `${sd.course}|${sd.discipline}|${sd.turn}` === selectedValue
+      (sd) => `${sd.course}|${sd.discipline}` === selectedValue
     );
     if (selected) {
       setCourse(selected.course);
       setDiscipline(selected.discipline);
-      setTurn(selected.turn);
       setSelectedClassLabel(`${selected.acronym} - ${selected.semester}`);
     } else {
       setCourse("");
       setDiscipline("");
-      setTurn("");
       setSelectedClassLabel("");
     }
   };
 
   const handleSubmit = async () => {
-    if (!course || !discipline || !turn || !quantity || !date) {
+    if (!course || !discipline || !quantity || !date) {
       setAlert({
         message: "Preencha todos os campos obrigatórios.",
         type: "error",
@@ -223,7 +220,6 @@ const ClassAntepositionRegister = ({ setAlert }) => {
       formData.append("userId", userId);
       formData.append("course", course);
       formData.append("discipline", discipline);
-      formData.append("turn", turn);
       formData.append("type", "anteposicao");
       formData.append("quantity", parseInt(quantity));
       formData.append("date", date);
@@ -302,8 +298,8 @@ const ClassAntepositionRegister = ({ setAlert }) => {
                 <InputLabel>Selecionar da Grade</InputLabel>
                 <Select
                   value={
-                    course && discipline && turn
-                      ? `${course}|${discipline}|${turn}`
+                    course && discipline
+                      ? `${course}|${discipline}`
                       : ""
                   }
                   onChange={handleScheduleChange}
@@ -314,8 +310,8 @@ const ClassAntepositionRegister = ({ setAlert }) => {
                   <MenuItem value="">Selecione</MenuItem>
                   {scheduleDetails.map((sd) => (
                     <MenuItem
-                      key={`${sd.course}|${sd.discipline}|${sd.turn}`}
-                      value={`${sd.course}|${sd.discipline}|${sd.turn}`}
+                      key={`${sd.course}|${sd.discipline}`}
+                      value={`${sd.course}|${sd.discipline}`}
                     >
                       {`${sd.acronym} - ${sd.semester} - ${sd.discipline}`}
                     </MenuItem>
@@ -343,14 +339,6 @@ const ClassAntepositionRegister = ({ setAlert }) => {
             </Box>
             <Box sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}>
               <TextField
-                label="Turno"
-                value={turn}
-                fullWidth
-                disabled
-                variant="outlined"
-                sx={inputStyles} // Aplicar estilos
-              />
-              <TextField
                 label="Quantidade"
                 type="number"
                 value={quantity}
@@ -360,8 +348,6 @@ const ClassAntepositionRegister = ({ setAlert }) => {
                 variant="outlined"
                 sx={inputStyles} // Aplicar estilos
               />
-            </Box>
-            <Box sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}>
               <DatePicker
                 label="Data"
                 value={createLocalDate(date)}
@@ -399,6 +385,8 @@ const ClassAntepositionRegister = ({ setAlert }) => {
                   },
                 }}
               />
+            </Box>
+            <Box sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}>
               <TextField
                 label="Anexar Ficha"
                 value={file ? file.name : ""}

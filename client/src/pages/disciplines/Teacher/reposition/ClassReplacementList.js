@@ -15,13 +15,14 @@ import {
   Pagination,
   MenuItem,
 } from "@mui/material";
-import { ArrowBack, ExpandMore, School } from "@mui/icons-material";
+import { ArrowBack, ExpandMore, School, Link } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 import { CustomAlert } from "../../../../components/alert/CustomAlert";
 import { StyledSelect } from "../../../../components/inputs/Input";
 import api from "../../../../service/api";
 
 const INSTITUTIONAL_COLOR = "#307c34";
+const ATTACHMENTS_BASE_URL = "http://localhost:3000";
 
 const StyledButton = styled(Button)(() => ({
   textTransform: "none",
@@ -79,13 +80,16 @@ const ClassReplacementList = () => {
                 quantidade: item.quantity.toString(),
                 data: formatDate(item.date),
                 dataAusencia: formatDate(item.dateAbsence),
-                fileName: item.annex
+                fileNames: item.annex
                   ? JSON.parse(item.annex || "[]")
-                      .map((path) => path.split("/").pop())
-                      .join(", ")
-                  : "N/A",
+                  : [],
+                fileLinks: item.annex
+                  ? JSON.parse(item.annex || "[]").map(
+                      (path) => `${ATTACHMENTS_BASE_URL}/${path.replace(/\\/g, "/")}`
+                    )
+                  : [],
                 observacao: item.observation || "N/A",
-                observationCoordinator: item.observationCoordinator || "N/A",
+                justificativa: item.observationCoordinator || null,
                 status:
                   item.validated === 1
                     ? "Aprovado"
@@ -94,7 +98,7 @@ const ClassReplacementList = () => {
                     : "Pendente",
               }))
               .sort((a, b) =>
-                a.data.localeCompare(b.data) || a.id - b.id // Ordena por data e ID como fallback
+                a.data.localeCompare(b.data) || a.id - b.id
               )
           : [];
         setReplacements(replacementsArray);
@@ -400,8 +404,7 @@ const ClassReplacementList = () => {
                   <Box display="flex" alignItems="center">
                     <School sx={{ mr: 1, fontSize: 32, color: "#087619" }} />
                     <Typography fontWeight="bold">
-                      {replacement.turma} ({replacement.disciplina}) -{" "}
-                      {replacement.data}
+                      {replacement.turma} ({replacement.disciplina})
                     </Typography>
                   </Box>
                   <Chip
@@ -457,25 +460,43 @@ const ClassReplacementList = () => {
                     <Typography
                       variant="subtitle2"
                       gutterBottom
-                      sx={{ fontSize: "1rem" }}
+                      sx={{
+                        fontSize: "1rem",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                      }}
                     >
-                      <strong>Anexo(s):</strong> {replacement.fileName}
+                      <strong>Anexo(s):</strong>
+                      {replacement.fileLinks.map((link, index) => (
+                        <IconButton
+                          key={index}
+                          size="small"
+                          onClick={() => window.open(link, "_blank")}
+                          sx={{ color: INSTITUTIONAL_COLOR }}
+                        >
+                          <Link fontSize="small" />
+                        </IconButton>
+                      ))}
                     </Typography>
-                    <Typography
-                      variant="subtitle2"
-                      gutterBottom
-                      sx={{ fontSize: "1rem" }}
-                    >
-                      <strong>Observação:</strong> {replacement.observacao}
-                    </Typography>
-                    <Typography
-                      variant="subtitle2"
-                      gutterBottom
-                      sx={{ fontSize: "1rem" }}
-                    >
-                      <strong>Observação do Coordenador:</strong>{" "}
-                      {replacement.observationCoordinator}
-                    </Typography>
+                    {replacement.observacao !== "N/A" && (
+                      <Typography
+                        variant="subtitle2"
+                        gutterBottom
+                        sx={{ fontSize: "1rem" }}
+                      >
+                        <strong>Observação:</strong> {replacement.observacao}
+                      </Typography>
+                    )}
+                    {replacement.justificativa && (
+                      <Typography
+                        variant="subtitle2"
+                        gutterBottom
+                        sx={{ fontSize: "1rem" }}
+                      >
+                        <strong>Justificativa:</strong> {replacement.justificativa}
+                      </Typography>
+                    )}
                   </Box>
                 </Box>
               </AccordionDetails>

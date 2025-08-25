@@ -37,7 +37,11 @@ const StyledButton = styled(Button)(() => ({
   "&:hover": { backgroundColor: "#26692b" },
 }));
 
+// Endereço base do servidor backend
 const API_BASE_URL = "http://localhost:3333";
+
+// Novo endereço para os arquivos estáticos (anexos)
+const ATTACHMENTS_BASE_URL = "http://localhost:3000";
 
 const ClassAntepositionList = () => {
   const [antepositions, setAntepositions] = useState([]);
@@ -82,9 +86,10 @@ const ClassAntepositionList = () => {
                     ? JSON.parse(item.annex)[0].split("/").pop()
                     : "N/A"
                   : "N/A",
+                // Corrigido para usar ATTACHMENTS_BASE_URL
                 fileLink: item.annex
                   ? JSON.parse(item.annex || "[]").length > 0
-                    ? `${API_BASE_URL}/${JSON.parse(item.annex)[0].replace(/\\/g, "/")}`
+                    ? `${ATTACHMENTS_BASE_URL}/${JSON.parse(item.annex)[0].replace(/\\/g, "/")}`
                     : null
                   : null,
                 observacao: item.observation || "N/A",
@@ -146,7 +151,7 @@ const ClassAntepositionList = () => {
                 : "N/A",
               fileLink: item.annex
                 ? JSON.parse(item.annex || "[]").length > 0
-                  ? `${API_BASE_URL}/${JSON.parse(item.annex)[0].replace(/\\/g, "/")}`
+                  ? `${ATTACHMENTS_BASE_URL}/${JSON.parse(item.annex)[0].replace(/\\/g, "/")}`
                   : null
                 : null,
               observacao: item.observation || "N/A",
@@ -199,7 +204,7 @@ const ClassAntepositionList = () => {
                 : "N/A",
               fileLink: item.annex
                 ? JSON.parse(item.annex || "[]").length > 0
-                  ? `${API_BASE_URL}/${JSON.parse(item.annex)[0].replace(/\\/g, "/")}`
+                  ? `${ATTACHMENTS_BASE_URL}/${JSON.parse(item.annex)[0].replace(/\\/g, "/")}`
                   : null
                 : null,
               observacao: item.observation || "N/A",

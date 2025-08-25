@@ -127,35 +127,46 @@ const ClassReplacementRegister = ({ setAlert }) => {
   const [files, setFiles] = useState([]);
   const [observation, setObservation] = useState("");
   const [scheduleDetails, setScheduleDetails] = useState([]);
+  const [existingRequests, setExistingRequests] = useState([]);
   const [selectedClassLabel, setSelectedClassLabel] = useState("");
   const [localAlert, setLocalAlert] = useState(null);
   const [availableDates, setAvailableDates] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchSchedule = async () => {
+    const fetchScheduleAndRequests = async () => {
       try {
-        const response = await api.get("/professor/request");
-        const details = response.data.scheduleDetails || [];
+        // Busca a grade com faltas
+        const scheduleResponse = await api.get("/professor/request");
+        const details = scheduleResponse.data.scheduleDetails || [];
         const validatedDetails = details.filter(
-          (sd) => sd.course && sd.discipline && sd.acronym && sd.semester
+          (sd) => sd.course && sd.discipline && sd.acronym && sd.semester && sd.absenceDates?.length > 0
         );
         setScheduleDetails(validatedDetails);
+
+        // Busca as solicitações existentes do professor
+        const requestsResponse = await api.get("/requests/only", {
+          params: { type: "reposicao" },
+        });
+        setExistingRequests(requestsResponse.data.requests || []);
+
         if (validatedDetails.length === 0) {
           (setAlert || setLocalAlert)({
-            message: "Nenhuma grade válida encontrada.",
+            message: "Nenhuma turma com faltas encontrada.",
             type: "error",
           });
         }
       } catch (error) {
+        console.error("Erro ao carregar dados:", error);
         (setAlert || setLocalAlert)({
-          message: "Erro ao carregar grade do professor.",
+          message: "Erro ao carregar grade ou solicitações do professor.",
           type: "error",
         });
         setScheduleDetails([]);
+        setExistingRequests([]);
       }
     };
-    fetchSchedule();
+    fetchScheduleAndRequests();
   }, [setAlert]);
 
   useEffect(() => {
@@ -170,7 +181,13 @@ const ClassReplacementRegister = ({ setAlert }) => {
           (sd) => sd.course === course && sd.discipline === discipline
         );
         if (selectedSchedule && selectedSchedule.absenceDates) {
-          setAvailableDates(selectedSchedule.absenceDates);
+          // Filtra datas de ausência que não possuem solicitações associadas
+          const filteredDates = selectedSchedule.absenceDates.filter((date) => {
+            return !existingRequests.some(
+              (req) => req.course === course && req.discipline === discipline && req.dateAbsence === date
+            );
+          });
+          setAvailableDates(filteredDates);
         } else {
           setAvailableDates([]);
         }
@@ -184,7 +201,7 @@ const ClassReplacementRegister = ({ setAlert }) => {
       }
     };
     fetchAbsenceDates();
-  }, [course, discipline, scheduleDetails, setAlert]);
+  }, [course, discipline, scheduleDetails, existingRequests, setAlert]);
 
   const handleFilesChange = (event) => {
     setFiles(Array.from(event.target.files));
@@ -199,7 +216,7 @@ const ClassReplacementRegister = ({ setAlert }) => {
       setCourse(selected.course);
       setDiscipline(selected.discipline);
       setSelectedClassLabel(`${selected.acronym} - ${selected.semester}`);
-      setSelectedDateAbsence(""); // Limpa a data selecionada ao mudar a grade
+      setSelectedDateAbsence("");
     } else {
       setCourse("");
       setDiscipline("");

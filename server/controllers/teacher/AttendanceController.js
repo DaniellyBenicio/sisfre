@@ -747,7 +747,7 @@ export const getJustificationByTurn = async (req, res) => {
           { model: db.ClassScheduleDetail, as: "detail" },
           { model: db.Hour, as: "hour" },
           "hourStart",
-          "DESC",
+          "ASC",
         ],
       ],
     });
@@ -770,11 +770,11 @@ export const getJustificationByTurn = async (req, res) => {
           professor_name: attendance.registrar?.username || "Desconhecido",
           turn: attendance.detail.turn,
           date: attendance.date,
-          justifications: new Set(), 
+          justifications: new Set(),
           classes: new Set(),
           courses: new Set(),
           disciplines: new Set(),
-          hours: new Set(),
+          hours: [],
         };
       }
 
@@ -794,23 +794,50 @@ export const getJustificationByTurn = async (req, res) => {
           acronym: attendance.detail.discipline.acronym,
         })
       );
-      groupedJustifications[key].hours.add(
-        `${attendance.detail.hour.hourStart} - ${attendance.detail.hour.hourEnd}`
-      );
+      groupedJustifications[key].hours.push({
+        start: attendance.detail.hour.hourStart,
+        end: attendance.detail.hour.hourEnd,
+      });
     });
 
     const formattedJustifications = Object.values(groupedJustifications).map(
-      (group) => ({
-        professor_id: group.professor_id,
-        professor_name: group.professor_name,
-        turn: group.turn,
-        date: group.date,
-        justifications: [...group.justifications], 
-        classes: [...group.classes],
-        courses: [...group.courses].map((c) => JSON.parse(c)),
-        disciplines: [...group.disciplines].map((d) => JSON.parse(d)),
-        hours: [...group.hours].sort(), 
-      })
+      (group) => {
+        const sortedHours = group.hours.sort((a, b) =>
+          a.start.localeCompare(b.start)
+        );
+        const unifiedHours = [];
+        let currentStart = null;
+        let currentEnd = null;
+
+        sortedHours.forEach((hour, index) => {
+          if (!currentStart) {
+            currentStart = hour.start;
+            currentEnd = hour.end;
+          } else if (currentEnd === hour.start) {
+            currentEnd = hour.end;
+          } else {
+            unifiedHours.push(`${currentStart} - ${currentEnd}`);
+            currentStart = hour.start;
+            currentEnd = hour.end;
+          }
+
+          if (index === sortedHours.length - 1) {
+            unifiedHours.push(`${currentStart} - ${currentEnd}`);
+          }
+        });
+
+        return {
+          professor_id: group.professor_id,
+          professor_name: group.professor_name,
+          turn: group.turn,
+          date: group.date,
+          justifications: [...group.justifications],
+          classes: [...group.classes],
+          courses: [...group.courses].map((c) => JSON.parse(c)),
+          disciplines: [...group.disciplines].map((d) => JSON.parse(d)),
+          hours: unifiedHours,
+        };
+      }
     );
 
     return res.status(200).json({

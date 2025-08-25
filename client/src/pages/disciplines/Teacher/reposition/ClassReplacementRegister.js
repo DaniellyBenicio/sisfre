@@ -1,41 +1,54 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Typography, Paper, Button, TextField, Stack, InputAdornment, IconButton, CssBaseline, FormControl, InputLabel, Select, MenuItem, Checkbox, ListItemText } from '@mui/material';
-import { Close, Save, CloudUpload, ArrowBack } from '@mui/icons-material';
-import { styled } from '@mui/material/styles';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import {
+  Box,
+  Typography,
+  Paper,
+  Button,
+  TextField,
+  Stack,
+  InputAdornment,
+  IconButton,
+  CssBaseline,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from "@mui/material";
+import { Close, Save, CloudUpload, ArrowBack } from "@mui/icons-material";
+import { styled } from "@mui/material/styles";
+import { useNavigate } from "react-router-dom";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { ptBR } from "date-fns/locale";
-import SideBar from '../../../../components/SideBar';
-import api from '../../../../service/api';
-import { jwtDecode } from 'jwt-decode';
-import { CustomAlert } from '../../../../components/alert/CustomAlert';
+import SideBar from "../../../../components/SideBar";
+import api from "../../../../service/api";
+import { jwtDecode } from "jwt-decode";
+import { CustomAlert } from "../../../../components/alert/CustomAlert";
 
 const INSTITUTIONAL_COLOR = "#307c34";
 
 const StyledButton = styled(Button)(() => ({
-  borderRadius: '8px',
-  padding: '8px 28px',
-  textTransform: 'none',
-  fontWeight: 'bold',
-  fontSize: '0.875rem',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  width: 'fit-content',
+  borderRadius: "8px",
+  padding: "8px 28px",
+  textTransform: "none",
+  fontWeight: "bold",
+  fontSize: "0.875rem",
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+  width: "fit-content",
   minWidth: 100,
-  '@media (max-width: 600px)': {
-    fontSize: '0.7rem',
-    padding: '4px 8px',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    maxWidth: '120px',
+  "@media (max-width: 600px)": {
+    fontSize: "0.7rem",
+    padding: "4px 8px",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    maxWidth: "120px",
   },
 }));
 
-// Estilos reutilizáveis para os campos
 const inputStyles = {
   "& .MuiInputBase-root": {
     height: { xs: 40, sm: 56 },
@@ -65,7 +78,6 @@ const inputStyles = {
   },
 };
 
-// Estilos específicos para o Select
 const selectStyles = {
   ...inputStyles,
   "& .MuiSelect-select": {
@@ -74,14 +86,13 @@ const selectStyles = {
   },
 };
 
-// Estilos para o Menu do Select
 const menuProps = {
   PaperProps: {
     sx: {
       maxHeight: "150px",
       "& .MuiMenuItem-root": {
-        fontSize: '0.875rem',
-        minHeight: 'auto',
+        fontSize: "0.875rem",
+        minHeight: "auto",
         "&:hover": { backgroundColor: "#D5FFDB" },
         "&.Mui-selected": { backgroundColor: "#E8F5E9", "&:hover": { backgroundColor: "#D5FFDB" } },
       },
@@ -92,8 +103,12 @@ const menuProps = {
 const createLocalDate = (dateString) => {
   if (!dateString) return null;
   try {
-    const parts = dateString.split('-');
-    const dateObject = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    const parts = dateString.split("-");
+    const dateObject = new Date(
+      parseInt(parts[0]),
+      parseInt(parts[1]) - 1,
+      parseInt(parts[2])
+    );
     dateObject.setHours(0, 0, 0, 0);
     return dateObject;
   } catch (error) {
@@ -103,88 +118,130 @@ const createLocalDate = (dateString) => {
 };
 
 const ClassReplacementRegister = ({ setAlert }) => {
-  const professor = localStorage.getItem('username') || '';
-  const [course, setCourse] = useState('');
-  const [discipline, setDiscipline] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [file, setFile] = useState(null);
-  const [observation, setObservation] = useState('');
+  const professor = localStorage.getItem("username") || "";
+  const [course, setCourse] = useState("");
+  const [discipline, setDiscipline] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [date, setDate] = useState("");
+  const [selectedDateAbsence, setSelectedDateAbsence] = useState("");
+  const [files, setFiles] = useState([]);
+  const [observation, setObservation] = useState("");
   const [scheduleDetails, setScheduleDetails] = useState([]);
-  const [selectedClassLabel, setSelectedClassLabel] = useState('');
+  const [selectedClassLabel, setSelectedClassLabel] = useState("");
   const [localAlert, setLocalAlert] = useState(null);
-  const [availableDates] = useState(['2025-08-15', '2025-08-18', '2025-08-20', '2025-08-22', '2025-08-25', '2025-08-27']);
-  const [selectedDates, setSelectedDates] = useState([]);
-  const [repositionDate, setRepositionDate] = useState(null);
+  const [availableDates, setAvailableDates] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchSchedule = async () => {
       try {
-        const response = await api.get('/professor/request');
+        const response = await api.get("/professor/request");
         const details = response.data.scheduleDetails || [];
         const validatedDetails = details.filter(
-          (sd) => sd.course && sd.discipline && sd.turn && sd.acronym && sd.semester
+          (sd) => sd.course && sd.discipline && sd.acronym && sd.semester
         );
         setScheduleDetails(validatedDetails);
         if (validatedDetails.length === 0) {
-          (setAlert || setLocalAlert)({ message: 'Nenhuma grade válida encontrada.', type: 'error' });
+          (setAlert || setLocalAlert)({
+            message: "Nenhuma grade válida encontrada.",
+            type: "error",
+          });
         }
       } catch (error) {
-        (setAlert || setLocalAlert)({ message: 'Erro ao carregar grade do professor.', type: 'error' });
+        (setAlert || setLocalAlert)({
+          message: "Erro ao carregar grade do professor.",
+          type: "error",
+        });
         setScheduleDetails([]);
       }
     };
     fetchSchedule();
   }, [setAlert]);
 
-  const handleFileChange = (event) => {
-    setFile(event.target.files[0]);
+  useEffect(() => {
+    const fetchAbsenceDates = async () => {
+      if (!course || !discipline) {
+        setAvailableDates([]);
+        setSelectedDateAbsence("");
+        return;
+      }
+      try {
+        const selectedSchedule = scheduleDetails.find(
+          (sd) => sd.course === course && sd.discipline === discipline
+        );
+        if (selectedSchedule && selectedSchedule.absenceDates) {
+          setAvailableDates(selectedSchedule.absenceDates);
+        } else {
+          setAvailableDates([]);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar datas de ausência:", error);
+        setAvailableDates([]);
+        (setAlert || setLocalAlert)({
+          message: "Erro ao carregar datas de ausência.",
+          type: "error",
+        });
+      }
+    };
+    fetchAbsenceDates();
+  }, [course, discipline, scheduleDetails, setAlert]);
+
+  const handleFilesChange = (event) => {
+    setFiles(Array.from(event.target.files));
   };
 
   const handleScheduleChange = (event) => {
     const selectedValue = event.target.value;
     const selected = scheduleDetails.find(
-      (sd) => `${sd.course}|${sd.discipline}|${sd.turn}` === selectedValue
+      (sd) => `${sd.course}|${sd.discipline}` === selectedValue
     );
     if (selected) {
       setCourse(selected.course);
       setDiscipline(selected.discipline);
       setSelectedClassLabel(`${selected.acronym} - ${selected.semester}`);
-      setSelectedDates([]);
+      setSelectedDateAbsence(""); // Limpa a data selecionada ao mudar a grade
     } else {
-      setCourse('');
-      setDiscipline('');
-      setSelectedClassLabel('');
-      setSelectedDates([]);
+      setCourse("");
+      setDiscipline("");
+      setSelectedClassLabel("");
+      setSelectedDateAbsence("");
     }
-  };
-
-  const handleDateChange = (event) => {
-    const { target: { value } } = event;
-    setSelectedDates(typeof value === 'string' ? value.split(',') : value);
   };
 
   const handleSubmit = async () => {
-    if (!course || !discipline || !quantity || selectedDates.length === 0 || !repositionDate) {
-      (setAlert || setLocalAlert)({ message: "Preencha todos os campos obrigatórios, incluindo a data da reposição.", type: "error" });
+    if (!course || !discipline || !quantity || !date || !selectedDateAbsence || files.length === 0) {
+      (setAlert || setLocalAlert)({
+        message:
+          "Preencha todos os campos obrigatórios, incluindo anexo(s) e uma data de ausência.",
+        type: "error",
+      });
       return;
     }
     if (isNaN(quantity) || parseInt(quantity) > 4 || parseInt(quantity) < 1) {
-      (setAlert || setLocalAlert)({ message: "Quantidade deve ser entre 1 e 4.", type: "error" });
+      (setAlert || setLocalAlert)({
+        message: "Quantidade deve ser entre 1 e 4.",
+        type: "error",
+      });
       return;
     }
-    const selectedDate = createLocalDate(repositionDate.toISOString().split('T')[0]);
+    const selectedDate = createLocalDate(date);
     const todayLocalMidnight = new Date();
     todayLocalMidnight.setHours(0, 0, 0, 0);
     if (selectedDate < todayLocalMidnight) {
-      (setAlert || setLocalAlert)({ message: "A data da reposição não pode ser anterior à atual.", type: "error" });
+      (setAlert || setLocalAlert)({
+        message: "A data da reposição não pode ser anterior à atual.",
+        type: "error",
+      });
       return;
     }
 
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      (setAlert || setLocalAlert)({ message: "Token não encontrado. Faça login novamente.", type: "error" });
-      navigate('/login');
+      (setAlert || setLocalAlert)({
+        message: "Token não encontrado. Faça login novamente.",
+        type: "error",
+      });
+      navigate("/login");
       return;
     }
 
@@ -193,51 +250,72 @@ const ClassReplacementRegister = ({ setAlert }) => {
       const userId = decoded.id;
 
       if (!userId || isNaN(userId)) {
-        (setAlert || setLocalAlert)({ message: "ID do usuário inválido no token. Faça login novamente.", type: "error" });
-        navigate('/login');
+        (setAlert || setLocalAlert)({
+          message: "ID do usuário inválido no token. Faça login novamente.",
+          type: "error",
+        });
+        navigate("/login");
         return;
       }
 
-      const selectedSchedule = scheduleDetails.find(
-        (sd) => sd.course === course && sd.discipline === discipline
-      );
-      const turn = selectedSchedule ? selectedSchedule.turn : '';
-
       const formData = new FormData();
-      formData.append('userId', userId);
-      formData.append('course', course);
-      formData.append('discipline', discipline);
-      formData.append('turn', turn);
-      formData.append('type', 'reposicao');
-      formData.append('quantity', parseInt(quantity));
-      formData.append('date', repositionDate.toISOString().split('T')[0]);
-      formData.append('missedDates', JSON.stringify(selectedDates));
-      if (file) formData.append('annex', file);
-      formData.append('observation', observation);
+      formData.append("userId", userId);
+      formData.append("course", course);
+      formData.append("discipline", discipline);
+      formData.append("type", "reposicao");
+      formData.append("quantity", parseInt(quantity));
+      formData.append("date", date);
+      formData.append("dateAbsence", selectedDateAbsence);
+      files.forEach((file) => formData.append("annex", file));
+      formData.append("observation", observation);
 
-      await api.post('/request', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-      (setAlert || setLocalAlert)({ message: "Reposição cadastrada com sucesso!", type: "success" });
-      navigate('/class-reposition');
+      await api.post("/request", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      (setAlert || setLocalAlert)({
+        message: "Reposição cadastrada com sucesso!",
+        type: "success",
+      });
+      navigate("/class-reposition");
     } catch (error) {
-      console.error('Erro ao enviar requisição:', error);
-      (setAlert || setLocalAlert)({ message: error.response?.data?.error || "Erro ao cadastrar. Verifique os dados ou tente novamente.", type: "error" });
+      console.error("Erro ao enviar requisição:", error);
+      (setAlert || setLocalAlert)({
+        message:
+          error.response?.data?.error ||
+          "Erro ao cadastrar. Verifique os dados ou tente novamente.",
+        type: "error",
+      });
       if (error.response?.status === 401) {
-        navigate('/login');
+        navigate("/login");
       }
     }
   };
 
   const handleGoBack = () => {
-    navigate('/class-reposition');
+    navigate("/class-reposition");
   };
 
   const handleAlertClose = () => {
     (setAlert || setLocalAlert)(null);
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    try {
+      const date = new Date(dateString + "T00:00:00");
+      return date.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
-      <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+      <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
         <CssBaseline />
         <SideBar setAuthenticated={() => {}} />
         <Box
@@ -245,22 +323,22 @@ const ClassReplacementRegister = ({ setAlert }) => {
           sx={{
             flexGrow: 1,
             p: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            overflowY: 'auto',
-            backgroundColor: '#f5f5f5',
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            overflowY: "auto",
+            backgroundColor: "#f5f5f5",
             py: { xs: 2, md: 4 },
           }}
         >
           <Box
             sx={{
-              width: '100%',
-              maxWidth: '1000px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              position: 'relative',
+              width: "100%",
+              maxWidth: "1000px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              position: "relative",
               mb: 3,
               mt: 2,
             }}
@@ -268,24 +346,27 @@ const ClassReplacementRegister = ({ setAlert }) => {
             <IconButton
               onClick={handleGoBack}
               sx={{
-                position: 'absolute',
+                position: "absolute",
                 left: 0,
                 color: INSTITUTIONAL_COLOR,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                '&:hover': { backgroundColor: 'transparent' },
+                top: "50%",
+                transform: "translateY(-50%)",
+                "&:hover": { backgroundColor: "transparent" },
               }}
             >
               <ArrowBack sx={{ fontSize: 35 }} />
             </IconButton>
-            <Typography variant="h5" sx={{ fontWeight: 'bold', textAlign: 'center', flexGrow: 1 }}>
+            <Typography
+              variant="h5"
+              sx={{ fontWeight: "bold", textAlign: "center", flexGrow: 1 }}
+            >
               Cadastrar Reposição
             </Typography>
           </Box>
 
-          <Paper elevation={3} sx={{ p: 4, mt: 2, width: '100%', maxWidth: '1000px' }}>
+          <Paper elevation={3} sx={{ p: 4, mt: 2, width: "100%", maxWidth: "1000px" }}>
             <Box component="form">
-              <Box sx={{ display: 'flex', gap: 2, my: 1.5, alignItems: 'center' }}>
+              <Box sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}>
                 <TextField
                   label="Professor"
                   value={professor}
@@ -297,7 +378,7 @@ const ClassReplacementRegister = ({ setAlert }) => {
                 <FormControl fullWidth variant="outlined" required sx={inputStyles}>
                   <InputLabel>Selecionar da Grade</InputLabel>
                   <Select
-                    value={course && discipline ? `${course}|${discipline}|${scheduleDetails.find(sd => sd.course === course && sd.discipline === discipline)?.turn || ''}` : ''}
+                    value={course && discipline ? `${course}|${discipline}` : ""}
                     onChange={handleScheduleChange}
                     label="Selecionar da Grade"
                     sx={selectStyles}
@@ -306,8 +387,8 @@ const ClassReplacementRegister = ({ setAlert }) => {
                     <MenuItem value="">Selecione</MenuItem>
                     {scheduleDetails.map((sd) => (
                       <MenuItem
-                        key={`${sd.course}|${sd.discipline}|${sd.turn}`}
-                        value={`${sd.course}|${sd.discipline}|${sd.turn}`}
+                        key={`${sd.course}|${sd.discipline}`}
+                        value={`${sd.course}|${sd.discipline}`}
                       >
                         {`${sd.acronym} - ${sd.semester} - ${sd.discipline}`}
                       </MenuItem>
@@ -315,7 +396,7 @@ const ClassReplacementRegister = ({ setAlert }) => {
                   </Select>
                 </FormControl>
               </Box>
-              <Box sx={{ display: 'flex', gap: 2, my: 1.5, alignItems: 'center' }}>
+              <Box sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}>
                 <TextField
                   label="Turma"
                   value={selectedClassLabel}
@@ -333,22 +414,20 @@ const ClassReplacementRegister = ({ setAlert }) => {
                   sx={inputStyles}
                 />
               </Box>
-              <Box sx={{ display: 'flex', gap: 2, my: 1.5, alignItems: 'center' }}>
+              <Box sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}>
                 <FormControl fullWidth variant="outlined" required sx={inputStyles}>
                   <InputLabel id="referente-a-label">Referente a</InputLabel>
                   <Select
                     labelId="referente-a-label"
-                    multiple
-                    value={selectedDates}
-                    onChange={handleDateChange}
+                    value={selectedDateAbsence}
+                    onChange={(e) => setSelectedDateAbsence(e.target.value)}
                     label="Referente a"
-                    renderValue={(selected) => selected.join(', ')}
                     MenuProps={menuProps}
                   >
+                    <MenuItem value="">Selecione</MenuItem>
                     {availableDates.map((date) => (
                       <MenuItem key={date} value={date}>
-                        <Checkbox checked={selectedDates.includes(date)} />
-                        <ListItemText primary={date} />
+                        {formatDate(date)}
                       </MenuItem>
                     ))}
                   </Select>
@@ -364,20 +443,28 @@ const ClassReplacementRegister = ({ setAlert }) => {
                   sx={inputStyles}
                 />
               </Box>
-              <Box sx={{ display: 'flex', gap: 2, my: 1.5, alignItems: 'center' }}>
+              <Box sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}>
                 <DatePicker
-                  label="Data "
-                  value={repositionDate}
-                  onChange={(newValue) => setRepositionDate(newValue)}
+                  label="Data da Reposição"
+                  value={createLocalDate(date)}
+                  onChange={(newValue) => {
+                    let formattedDate = "";
+                    if (newValue) {
+                      const year = newValue.getFullYear();
+                      const month = String(newValue.getMonth() + 1).padStart(2, "0");
+                      const day = String(newValue.getDate()).padStart(2, "0");
+                      formattedDate = `${year}-${month}-${day}`;
+                    }
+                    setDate(formattedDate);
+                  }}
                   minDate={new Date()}
-                  format="dd/MM/yyyy"
                   slotProps={{
                     textField: {
-                      id: "reposition-date-input",
-                      name: "repositionDate",
+                      id: "date-input",
+                      name: "date",
                       required: true,
                       fullWidth: true,
-                      sx: { ...inputStyles, width: '50%' },
+                      sx: { ...inputStyles, width: "50%" },
                     },
                     popper: {
                       sx: {
@@ -392,16 +479,22 @@ const ClassReplacementRegister = ({ setAlert }) => {
                   }}
                 />
                 <TextField
-                  label="Anexar Ficha"
-                  value={file ? file.name : ''}
+                  label="Anexar Ficha(s)"
+                  value={files.map((f) => f.name).join(", ")}
                   fullWidth
                   readOnly
                   onClick={() => document.querySelector('input[type="file"]').click()}
                   variant="outlined"
-                  sx={{ ...inputStyles, width: '50%' }}
-                  InputProps={{ endAdornment: <InputAdornment position="end"><CloudUpload sx={{ color: '#087619' }} /></InputAdornment> }}
+                  sx={{ ...inputStyles, width: "50%" }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <CloudUpload sx={{ color: "#087619" }} />
+                      </InputAdornment>
+                    ),
+                  }}
                 />
-                <input type="file" hidden onChange={handleFileChange} />
+                <input type="file" multiple hidden onChange={handleFilesChange} />
               </Box>
               <Box sx={{ my: 1.5 }}>
                 <TextField
@@ -419,8 +512,8 @@ const ClassReplacementRegister = ({ setAlert }) => {
           </Paper>
           <Box
             sx={{
-              display: 'flex',
-              justifyContent: 'center',
+              display: "flex",
+              justifyContent: "center",
               p: 3,
             }}
           >
@@ -429,8 +522,8 @@ const ClassReplacementRegister = ({ setAlert }) => {
                 onClick={handleGoBack}
                 variant="contained"
                 sx={{
-                  backgroundColor: '#F01424',
-                  '&:hover': { backgroundColor: '#D4000F' },
+                  backgroundColor: "#F01424",
+                  "&:hover": { backgroundColor: "#D4000F" },
                 }}
               >
                 <Close sx={{ fontSize: { xs: 20, sm: 24 } }} />
@@ -441,7 +534,7 @@ const ClassReplacementRegister = ({ setAlert }) => {
                 variant="contained"
                 sx={{
                   backgroundColor: INSTITUTIONAL_COLOR,
-                  '&:hover': { backgroundColor: '#26692b' },
+                  "&:hover": { backgroundColor: "#26692b" },
                 }}
               >
                 <Save sx={{ fontSize: { xs: 20, sm: 24 } }} />

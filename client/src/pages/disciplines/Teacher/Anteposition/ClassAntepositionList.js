@@ -21,6 +21,7 @@ import {
   Check,
   Close,
   School,
+  Link,
 } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 import { CustomAlert } from "../../../../components/alert/CustomAlert";
@@ -36,41 +37,14 @@ const StyledButton = styled(Button)(() => ({
   "&:hover": { backgroundColor: "#26692b" },
 }));
 
+// Endereço base do servidor backend
+const API_BASE_URL = "http://localhost:3333";
+
+// Novo endereço para os arquivos estáticos (anexos)
+const ATTACHMENTS_BASE_URL = "http://localhost:3000";
+
 const ClassAntepositionList = () => {
-  const [antepositions, setAntepositions] = useState([
-    {
-      id: 1,
-      professor: "João Silva",
-      professorId: 101,
-      turma: "ENGCOMP - 2025.1",
-      acronym: "ENGCOMP",
-      semester: "2025.1",
-      disciplina: "Programação I",
-      turn: "Matutino",
-      quantidade: "2",
-      data: "2025-09-15",
-      fileName: "ficha_anteposicao1.pdf",
-      observacao: "Anteposição devido a evento acadêmico.",
-      observationCoordinator: "N/A",
-      status: "Pendente",
-    },
-    {
-      id: 2,
-      professor: "Maria Oliveira",
-      professorId: 102,
-      turma: "ADM - 2025.1",
-      acronym: "ADM",
-      semester: "2025.1",
-      disciplina: "Gestão Empresarial",
-      turn: "Noturno",
-      quantidade: "3",
-      data: "2025-09-20",
-      fileName: "ficha_anteposicao2.pdf",
-      observacao: "Anteposição solicitada para ajuste de cronograma.",
-      observationCoordinator: "Rejeitado devido a falta de justificativa suficiente.",
-      status: "Rejeitado",
-    },
-  ]);
+  const [antepositions, setAntepositions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
   const [filterTurma, setFilterTurma] = useState("all");
@@ -104,11 +78,20 @@ const ClassAntepositionList = () => {
                   : "Desconhecido",
                 acronym: item.acronym || "N/A",
                 semester: item.semester || "N/A",
-                disciplina: item.discipline || "Desconhecido",
-                turn: item.turn || "N/A",
+                discipline: item.discipline || "Desconhecido",
                 quantidade: item.quantity.toString(),
                 data: item.date,
-                fileName: item.annex ? item.annex.split("/").pop() : "N/A",
+                fileName: item.annex
+                  ? JSON.parse(item.annex || "[]").length > 0
+                    ? JSON.parse(item.annex)[0].split("/").pop()
+                    : "N/A"
+                  : "N/A",
+                // Corrigido para usar ATTACHMENTS_BASE_URL
+                fileLink: item.annex
+                  ? JSON.parse(item.annex || "[]").length > 0
+                    ? `${ATTACHMENTS_BASE_URL}/${JSON.parse(item.annex)[0].replace(/\\/g, "/")}`
+                    : null
+                  : null,
                 observacao: item.observation || "N/A",
                 observationCoordinator: item.observationCoordinator || "N/A",
                 status:
@@ -126,7 +109,6 @@ const ClassAntepositionList = () => {
       } catch (error) {
         console.error("Erro ao carregar anteposições:", error);
         setAlert({ message: "Erro ao carregar anteposições.", type: "error" });
-        // Manter os dados fictícios em caso de erro
       } finally {
         setLoading(false);
       }
@@ -159,11 +141,19 @@ const ClassAntepositionList = () => {
                 : "Desconhecido",
               acronym: item.acronym || "N/A",
               semester: item.semester || "N/A",
-              disciplina: item.discipline || "Desconhecido",
-              turn: item.turn || "N/A",
+              discipline: item.discipline || "Desconhecido",
               quantidade: item.quantity.toString(),
               data: item.date,
-              fileName: item.annex ? item.annex.split("/").pop() : "N/A",
+              fileName: item.annex
+                ? JSON.parse(item.annex || "[]").length > 0
+                  ? JSON.parse(item.annex)[0].split("/").pop()
+                  : "N/A"
+                : "N/A",
+              fileLink: item.annex
+                ? JSON.parse(item.annex || "[]").length > 0
+                  ? `${ATTACHMENTS_BASE_URL}/${JSON.parse(item.annex)[0].replace(/\\/g, "/")}`
+                  : null
+                : null,
               observacao: item.observation || "N/A",
               observationCoordinator: item.observationCoordinator || "N/A",
               status:
@@ -204,11 +194,19 @@ const ClassAntepositionList = () => {
                 : "Desconhecido",
               acronym: item.acronym || "N/A",
               semester: item.semester || "N/A",
-              disciplina: item.discipline || "Desconhecido",
-              turn: item.turn || "N/A",
+              discipline: item.discipline || "Desconhecido",
               quantidade: item.quantity.toString(),
               data: item.date,
-              fileName: item.annex ? item.annex.split("/").pop() : "N/A",
+              fileName: item.annex
+                ? JSON.parse(item.annex || "[]").length > 0
+                  ? JSON.parse(item.annex)[0].split("/").pop()
+                  : "N/A"
+                : "N/A",
+              fileLink: item.annex
+                ? JSON.parse(item.annex || "[]").length > 0
+                  ? `${ATTACHMENTS_BASE_URL}/${JSON.parse(item.annex)[0].replace(/\\/g, "/")}`
+                  : null
+                : null,
               observacao: item.observation || "N/A",
               observationCoordinator: item.observationCoordinator || "N/A",
               status:
@@ -231,9 +229,7 @@ const ClassAntepositionList = () => {
   };
 
   const turmas = [...new Set(antepositions.map((a) => a.turma))].sort();
-  const disciplinas = [
-    ...new Set(antepositions.map((a) => a.disciplina)),
-  ].sort();
+  const disciplinas = [...new Set(antepositions.map((a) => a.discipline))].sort();
 
   const applyFilters = (data) => {
     let filtered = Array.isArray(data) ? [...data] : [];
@@ -243,7 +239,7 @@ const ClassAntepositionList = () => {
     }
 
     if (filterDisciplina !== "all") {
-      filtered = filtered.filter((rep) => rep.disciplina === filterDisciplina);
+      filtered = filtered.filter((rep) => rep.discipline === filterDisciplina);
     }
 
     if (filterStatus !== "all") {
@@ -256,6 +252,7 @@ const ClassAntepositionList = () => {
     filtered = filtered.filter((rep) => {
       if (!rep.data) return false;
       const repDate = new Date(rep.data + "T00:00:00");
+      repDate.setHours(0, 0, 0, 0);
 
       switch (filterPeriod) {
         case "yesterday":
@@ -278,15 +275,14 @@ const ClassAntepositionList = () => {
     return filtered;
   };
 
-  // Agrupar anteposições por turma, disciplina e status
   const groupAntepositions = (data) => {
     const grouped = data.reduce((acc, anteposition) => {
-      const key = `${anteposition.turma}-${anteposition.disciplina}-${anteposition.status}`;
+      const key = `${anteposition.turma}-${anteposition.discipline}-${anteposition.status}`;
       if (!acc[key]) {
         acc[key] = {
           turma: anteposition.turma,
           acronym: anteposition.acronym,
-          disciplina: anteposition.disciplina,
+          discipline: anteposition.discipline,
           status: anteposition.status,
           antepositions: [],
         };
@@ -523,7 +519,7 @@ const ClassAntepositionList = () => {
         <Stack spacing={2}>
           {paginatedAntepositions.map((group, index) => (
             <Accordion
-              key={`${group.turma}-${group.disciplina}-${index}`}
+              key={`${group.turma}-${group.discipline}-${index}`}
               elevation={3}
             >
               <AccordionSummary
@@ -540,7 +536,7 @@ const ClassAntepositionList = () => {
                   <Box display="flex" alignItems="center">
                     <School sx={{ mr: 1, fontSize: 32, color: "#087619" }} />
                     <Typography fontWeight="bold">
-                      {group.turma} ({group.disciplina})
+                      {group.turma} ({group.discipline})
                     </Typography>
                   </Box>
                   <Chip
@@ -576,13 +572,6 @@ const ClassAntepositionList = () => {
                         gutterBottom
                         sx={{ fontSize: "1rem" }}
                       >
-                        <strong>Turno:</strong> {anteposition.turn}
-                      </Typography>
-                      <Typography
-                        variant="subtitle2"
-                        gutterBottom
-                        sx={{ fontSize: "1rem" }}
-                      >
                         <strong>Quantidade de Aulas:</strong>{" "}
                         {anteposition.quantidade}
                       </Typography>
@@ -606,25 +595,43 @@ const ClassAntepositionList = () => {
                       <Typography
                         variant="subtitle2"
                         gutterBottom
-                        sx={{ fontSize: "1rem" }}
+                        sx={{
+                          fontSize: "1rem",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                        }}
                       >
-                        <strong>Anexo:</strong> {anteposition.fileName}
+                        <strong>Anexo:</strong>
+                        {anteposition.fileLink && (
+                          <IconButton
+                            size="small"
+                            onClick={() => window.open(anteposition.fileLink, "_blank")}
+                            sx={{ color: INSTITUTIONAL_COLOR }}
+                          >
+                            <Link fontSize="small" />
+                          </IconButton>
+                        )}
                       </Typography>
-                      <Typography
-                        variant="subtitle2"
-                        gutterBottom
-                        sx={{ fontSize: "1rem" }}
-                      >
-                        <strong>Observação:</strong> {anteposition.observacao}
-                      </Typography>
-                      <Typography
-                        variant="subtitle2"
-                        gutterBottom
-                        sx={{ fontSize: "1rem" }}
-                      >
-                        <strong>Observação do Coordenador:</strong>{" "}
-                        {anteposition.observationCoordinator}
-                      </Typography>
+                      {anteposition.observacao !== "N/A" && (
+                        <Typography
+                          variant="subtitle2"
+                          gutterBottom
+                          sx={{ fontSize: "1rem" }}
+                        >
+                          <strong>Observação:</strong> {anteposition.observacao}
+                        </Typography>
+                      )}
+                      {anteposition.observationCoordinator !== "N/A" && (
+                        <Typography
+                          variant="subtitle2"
+                          gutterBottom
+                          sx={{ fontSize: "1rem" }}
+                        >
+                          <strong>Justificativa:</strong>{" "}
+                          {anteposition.observationCoordinator}
+                        </Typography>
+                      )}
                     </Box>
                     {accessType === "Coordenador" && anteposition.status === "Pendente" && (
                       <Box sx={{ gridColumn: "1 / -1", mt: 2, display: "flex", gap: 1 }}>

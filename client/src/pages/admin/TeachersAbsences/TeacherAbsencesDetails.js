@@ -13,6 +13,7 @@ import {
   CssBaseline,
   useTheme,
   useMediaQuery,
+  Button,
 } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { CustomAlert } from "../../../components/alert/CustomAlert";
@@ -58,27 +59,60 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
         return;
       }
 
-      // Opcional: Buscar o nome do professor via API
-      let fetchedProfessorName = "Professor";
-      try {
-        const professorResponse = await api.get(`/users/${professorId}`);
-        fetchedProfessorName = professorResponse.data.name || "Professor";
-      } catch (error) {
-        console.warn("Erro ao buscar nome do professor:", error);
-      }
-      setProfessorName(fetchedProfessorName);
-
       const params = {
         status: filterStatus !== "all" ? filterStatus : undefined,
-        startDate:
-          filterPeriod === "custom" && customStartDate ? customStartDate : undefined,
-        endDate:
-          filterPeriod === "custom" && customEndDate ? customEndDate : undefined,
       };
+
+      if (filterPeriod !== "all") {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (filterPeriod === "yesterday") {
+          const yesterday = new Date(today);
+          yesterday.setDate(today.getDate() - 1);
+          params.startDate = yesterday.toISOString().split("T")[0];
+          params.endDate = yesterday.toISOString().split("T")[0];
+        } else if (filterPeriod === "lastWeek") {
+          const lastWeek = new Date(today);
+          lastWeek.setDate(today.getDate() - 7);
+          params.startDate = lastWeek.toISOString().split("T")[0];
+          params.endDate = today.toISOString().split("T")[0];
+        } else if (filterPeriod === "lastMonth") {
+          const lastMonth = new Date(today);
+          lastMonth.setMonth(today.getMonth() - 1);
+          params.startDate = lastMonth.toISOString().split("T")[0];
+          params.endDate = today.toISOString().split("T")[0];
+        } else if (filterPeriod === "custom") {
+          if (!customStartDate || !customEndDate) {
+            setAlert({
+              message: "Por favor, selecione datas inicial e final válidas para o período personalizado.",
+              type: "error",
+            });
+            setFrequencies([]);
+            setLoading(false);
+            return;
+          }
+          const start = new Date(customStartDate);
+          const end = new Date(customEndDate);
+          if (isNaN(start) || isNaN(end) || start > end) {
+            setAlert({
+              message: "Datas inválidas. A data inicial deve ser anterior ou igual à data final.",
+              type: "error",
+            });
+            setFrequencies([]);
+            setLoading(false);
+            return;
+          }
+          params.startDate = customStartDate;
+          params.endDate = customEndDate;
+        }
+      }
+
+      console.log("Parâmetros enviados à API:", params);
 
       const response = await api.get(`/absences/professor/${professorId}`, { params });
 
-      const formattedData = Array.isArray(response.data.absence_details)
+      let formattedData = Array.isArray(response.data.absence_details)
         ? response.data.absence_details.map((item, idx) => ({
             id: idx,
             date: item.data,
@@ -91,6 +125,18 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
             justification: item.justificativa || "N/A",
           }))
         : [];
+
+      if (filterPeriod === "custom" && customStartDate && customEndDate) {
+        const start = new Date(customStartDate + "T00:00:00");
+        const end = new Date(customEndDate + "T23:59:59");
+        formattedData = formattedData.filter((item) => {
+          if (!item.date) return false;
+          const itemDate = new Date(item.date + "T00:00:00");
+          return itemDate >= start && itemDate <= end;
+        });
+      }
+
+      console.log("Dados formatados após filtragem:", formattedData);
 
       setFrequencies(formattedData);
     } catch (error) {
@@ -110,6 +156,16 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
   };
 
   useEffect(() => {
+    if (filterPeriod !== "custom") {
+      setCustomStartDate("");
+      setCustomEndDate("");
+    }
+  }, [filterPeriod]);
+
+  useEffect(() => {
+    if (filterPeriod === "custom" && (!customStartDate || !customEndDate)) {
+      return;
+    }
     fetchFrequencies();
   }, [filterStatus, filterPeriod, customStartDate, customEndDate, professorId]);
 
@@ -117,50 +173,19 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
     setPage(1);
   }, [filterStatus, filterPeriod, customStartDate, customEndDate]);
 
-  const applyFilters = (data) => {
-    let filtered = Array.isArray(data) ? [...data] : [];
-
-    if (filterStatus !== "all") {
-      filtered = filtered.filter((freq) => freq.status === filterStatus);
+  const handleApplyCustomFilter = () => {
+    if (!customStartDate || !customEndDate) {
+      setAlert({
+        message: "Por favor, selecione datas inicial e final válidas.",
+        type: "error",
+      });
+      return;
     }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    filtered = filtered.filter((freq) => {
-      if (!freq.date) return false;
-      const freqDate = new Date(freq.date + "T00:00:00");
-      switch (filterPeriod) {
-        case "yesterday":
-          const yesterday = new Date(today);
-          yesterday.setDate(today.getDate() - 1);
-          return freqDate.toDateString() === yesterday.toDateString();
-        case "lastWeek":
-          const lastWeek = new Date(today);
-          lastWeek.setDate(today.getDate() - 7);
-          return freqDate >= lastWeek && freqDate <= today;
-        case "lastMonth":
-          const lastMonth = new Date(today);
-          lastMonth.setMonth(today.getMonth() - 1);
-          return freqDate >= lastMonth && freqDate <= today;
-        case "custom":
-          if (customStartDate && customEndDate) {
-            const start = new Date(customStartDate + "T00:00:00");
-            const end = new Date(customEndDate + "T23:59:59");
-            return freqDate >= start && freqDate <= end;
-          }
-          return true;
-        default:
-          return true;
-      }
-    });
-
-    return filtered;
+    fetchFrequencies();
   };
 
-  const filteredFrequencies = applyFilters(frequencies);
-  const totalPages = Math.ceil(filteredFrequencies.length / rowsPerPage);
-  const paginatedFrequencies = filteredFrequencies.slice(
+  const totalPages = Math.ceil(frequencies.length / rowsPerPage);
+  const paginatedFrequencies = frequencies.slice(
     (page - 1) * rowsPerPage,
     page * rowsPerPage
   );
@@ -249,6 +274,7 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
             justifyContent: "center",
             position: "relative",
             mb: 3,
+            mt: 5,
           }}
         >
           <IconButton
@@ -268,7 +294,7 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
             gutterBottom
             sx={{ fontWeight: "bold", flexGrow: 1 }}
           >
-            Faltas de {professorName}
+            Faltas
           </Typography>
         </Box>
 
@@ -291,10 +317,7 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
                 id="filter-status"
                 value={filterStatus}
                 label="Status"
-                onChange={(e) => {
-                  console.log("Status selecionado:", e.target.value);
-                  setFilterStatus(e.target.value);
-                }}
+                onChange={(e) => setFilterStatus(e.target.value)}
                 sx={commonSelectSx}
                 MenuProps={commonMenuProps}
               >
@@ -311,10 +334,7 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
                 id="filter-period"
                 value={filterPeriod}
                 label="Período"
-                onChange={(e) => {
-                  console.log("Período selecionado:", e.target.value);
-                  setFilterPeriod(e.target.value);
-                }}
+                onChange={(e) => setFilterPeriod(e.target.value)}
                 sx={commonSelectSx}
                 MenuProps={commonMenuProps}
               >
@@ -327,16 +347,13 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
             </FormControl>
 
             {filterPeriod === "custom" && (
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="center">
                 <TextField
                   label="Data Inicial"
                   type="date"
                   InputLabelProps={{ shrink: true }}
                   value={customStartDate}
-                  onChange={(e) => {
-                    console.log("Data inicial selecionada:", e.target.value);
-                    setCustomStartDate(e.target.value);
-                  }}
+                  onChange={(e) => setCustomStartDate(e.target.value)}
                   sx={commonDateInputSx}
                 />
                 <TextField
@@ -344,10 +361,7 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
                   type="date"
                   InputLabelProps={{ shrink: true }}
                   value={customEndDate}
-                  onChange={(e) => {
-                    console.log("Data final selecionada:", e.target.value);
-                    setCustomEndDate(e.target.value);
-                  }}
+                  onChange={(e) => setCustomEndDate(e.target.value)}
                   sx={commonDateInputSx}
                 />
               </Stack>
@@ -363,7 +377,7 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
             isFiltered={
               filterStatus !== "all" ||
               filterPeriod !== "all" ||
-              (filterPeriod === "custom" && (customStartDate || customEndDate))
+              (filterPeriod === "custom" && customStartDate && customEndDate)
             }
             setAlert={setAlert}
           />

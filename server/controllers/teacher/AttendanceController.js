@@ -65,7 +65,7 @@ export const registerAttendanceByTurn = async (req, res) => {
   const loggedUserId = req.user?.id;
 
   const currentDateTime = new Date();
-  const offset = -3 * 60; 
+  const offset = -3 * 60;
   const localDateTime = new Date(
     currentDateTime.getTime() +
       (offset + currentDateTime.getTimezoneOffset()) * 60 * 1000
@@ -247,7 +247,7 @@ export const getAttendanceByTurn = async (req, res) => {
   const { turno, date, status } = req.query;
   const loggedUserId = req.user?.id;
   const currentDateTime = new Date();
-  const offset = -3 * 60; 
+  const offset = -3 * 60;
   const localDateTime = new Date(
     currentDateTime.getTime() +
       (offset + currentDateTime.getTimezoneOffset()) * 60 * 1000
@@ -346,7 +346,7 @@ export const getAttendanceByTurn = async (req, res) => {
           date,
           turn: turn.charAt(0).toUpperCase() + turn.slice(1),
           status: attendance.status,
-          justification: attendance.justification, 
+          justification: attendance.justification,
         };
       }
 
@@ -532,7 +532,7 @@ export const getTeacherAbsences = async (req, res) => {
       .json({ error: "Erro interno do servidor.", details: error.message });
   }
 };
- 
+
 export const justifyAbsenceByTurn = async (req, res) => {
   const { date, turno, justification } = req.body;
   const loggedUserId = req.user?.id;
@@ -680,12 +680,9 @@ export const getJustificationByTurn = async (req, res) => {
     let whereClause = {
       date: filterDate,
       status: "falta",
-      justification: { 
-        [Op.and]: [
-          { [Op.ne]: null },
-          { [Op.ne]: "" }
-        ]
-      }
+      justification: {
+        [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: "" }],
+      },
     };
 
     if (accessType !== "Admin" || professorId) {
@@ -764,23 +761,57 @@ export const getJustificationByTurn = async (req, res) => {
       });
     }
 
-    const formattedJustifications = attendances.map((attendance) => ({
-      attendance: {
-        id: attendance.id,
-        date: attendance.date,
-        status: attendance.status,
-        justification: attendance.justification,
-        registeredBy: attendance.registeredBy,
-      },
-      professor_name: attendance.registrar?.username || "Desconhecido",
-      class: attendance.detail.schedule.class.semester,
-      course_name: attendance.detail.schedule.course.name,
-      course_acronym: attendance.detail.schedule.course.acronym,
-      discipline: attendance.detail.discipline.name,
-      discipline_acronym: attendance.detail.discipline.acronym,
-      hour: `${attendance.detail.hour.hourStart} - ${attendance.detail.hour.hourEnd}`,
-      turn: attendance.detail.turn,
-    }));
+    const groupedJustifications = {};
+    attendances.forEach((attendance) => {
+      const key = `${attendance.registeredBy}_${attendance.detail.turn}`;
+      if (!groupedJustifications[key]) {
+        groupedJustifications[key] = {
+          professor_id: attendance.registeredBy,
+          professor_name: attendance.registrar?.username || "Desconhecido",
+          turn: attendance.detail.turn,
+          date: attendance.date,
+          justifications: new Set(), 
+          classes: new Set(),
+          courses: new Set(),
+          disciplines: new Set(),
+          hours: new Set(),
+        };
+      }
+
+      groupedJustifications[key].justifications.add(attendance.justification);
+      groupedJustifications[key].classes.add(
+        attendance.detail.schedule.class.semester
+      );
+      groupedJustifications[key].courses.add(
+        JSON.stringify({
+          name: attendance.detail.schedule.course.name,
+          acronym: attendance.detail.schedule.course.acronym,
+        })
+      );
+      groupedJustifications[key].disciplines.add(
+        JSON.stringify({
+          name: attendance.detail.discipline.name,
+          acronym: attendance.detail.discipline.acronym,
+        })
+      );
+      groupedJustifications[key].hours.add(
+        `${attendance.detail.hour.hourStart} - ${attendance.detail.hour.hourEnd}`
+      );
+    });
+
+    const formattedJustifications = Object.values(groupedJustifications).map(
+      (group) => ({
+        professor_id: group.professor_id,
+        professor_name: group.professor_name,
+        turn: group.turn,
+        date: group.date,
+        justifications: [...group.justifications], 
+        classes: [...group.classes],
+        courses: [...group.courses].map((c) => JSON.parse(c)),
+        disciplines: [...group.disciplines].map((d) => JSON.parse(d)),
+        hours: [...group.hours].sort(), 
+      })
+    );
 
     return res.status(200).json({
       message: "Justificativas recuperadas com sucesso.",

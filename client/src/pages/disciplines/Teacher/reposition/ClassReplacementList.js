@@ -275,7 +275,7 @@ const ClassReplacementList = () => {
           gutterBottom
           sx={{ fontWeight: "bold", flexGrow: 1 }}
         >
-          Minhas Reposições de Aula
+        Reposições de Aula
         </Typography>
       </Box>
 

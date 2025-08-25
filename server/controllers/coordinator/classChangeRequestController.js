@@ -432,7 +432,7 @@ export const getProfessorScheduleDetails = async (req, res) => {
         });
         absenceDates = attendances.map(a => a.date);
       }
-      return {
+      return absenceDates.length > 0 ? {
         day: d.dayOfWeek,
         discipline: d.discipline.name,
         professor: d.professor.username,
@@ -440,7 +440,74 @@ export const getProfessorScheduleDetails = async (req, res) => {
         acronym: d.schedule.course.acronym,
         semester: d.schedule.class.semester,
         absenceDates,
-      };
+      } : null;
+    }));
+
+    // Filtra apenas disciplinas com falta
+    const filteredResult = cleanResult.filter(item => item !== null);
+
+    const seen = new Set();
+    const uniqueResult = filteredResult.filter((item) => {
+      const key = `${item.discipline}|${item.professor}|${item.course}|${item.semester}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    return res.status(200).json({ scheduleDetails: uniqueResult });
+  } catch (error) {
+    console.error("Erro ao buscar os detalhes da grade do professor:", error);
+    return res
+      .status(500)
+      .json({ error: "Erro ao buscar os detalhes da grade." });
+  }
+};
+
+export const getProfessorScheduleDetailsAnteposition = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const scheduleDetails = await db.ClassScheduleDetail.findAll({
+      where: { userId },
+      include: [
+        {
+          model: db.ClassSchedule,
+          as: "schedule",
+          include: [
+            {
+              model: db.Course,
+              as: "course",
+              attributes: ["id", "name", "acronym"],
+            },
+            { model: db.Class, as: "class", attributes: ["id", "semester"] },
+          ],
+        },
+        { model: db.Discipline, as: "discipline", attributes: ["id", "name"] },
+        { model: db.Hour, as: "hour", attributes: ["id", "hourStart"] },
+        { model: db.User, as: "professor", attributes: ["id", "username"] },
+      ],
+      order: [["hourId", "ASC"]],
+    });
+
+    const filtered = scheduleDetails.filter(
+      (detail, index, self) =>
+        !self.some(
+          (other, otherIndex) =>
+            otherIndex < index &&
+            other.dayOfWeek === detail.dayOfWeek &&
+            other.disciplineId === detail.disciplineId &&
+            other.schedule.classId === detail.schedule.classId &&
+            Math.abs(other.hourId - detail.hourId) === 1
+        )
+    );
+
+    const cleanResult = filtered.map((d) => ({
+      day: d.dayOfWeek,
+      discipline: d.discipline.name,
+      professor: d.professor.username,
+      course: d.schedule.course.name,
+      acronym: d.schedule.course.acronym,
+      semester: d.schedule.class.semester,
     }));
 
     const seen = new Set();

@@ -44,6 +44,11 @@ module.exports = {
         allowNull: false,
       },
 
+      dateAbsence: {
+        type: Sequelize.DATEONLY,
+        allowNull: true,
+      },
+
       annex: {
         type: Sequelize.STRING,
         allowNull: true,

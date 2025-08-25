@@ -8,40 +8,28 @@ export const createRequest = async (req, res) => {
     userId,
     course,
     discipline,
-    turn,
     quantity,
     date,
     observation,
     type,
+    dateAbsence,
   } = req.body;
 
   // Validação dos campos obrigatórios
-  if (
-    !userId ||
-    !course ||
-    !discipline ||
-    !turn ||
-    !quantity ||
-    !date ||
-    !type
-    // NÃO exige annex aqui!
-  ) {
-    // Descobre quais campos estão faltando
-    const missingFields = [];
-    if (!userId) missingFields.push("userId");
-    if (!course) missingFields.push("course");
-    if (!discipline) missingFields.push("discipline");
-    if (!turn) missingFields.push("turn");
-    if (!quantity) missingFields.push("quantity");
-    if (!date) missingFields.push("date");
-    if (!type) missingFields.push("type");
+  const missingFields = [];
+  if (!userId) missingFields.push("userId");
+  if (!course) missingFields.push("course");
+  if (!discipline) missingFields.push("discipline");
+  if (!quantity) missingFields.push("quantity");
+  if (!date) missingFields.push("date");
+  if (!type) missingFields.push("type");
+  if (type === "reposicao" && !dateAbsence) missingFields.push("dateAbsence");
 
-    return res
-      .status(400)
-      .json({
+  if (missingFields.length > 0) {
+    return res.status(400).json({
       error: "Todos os campos obrigatórios devem ser preenchidos.",
       missingFields,
-      });
+    });
   }
 
   // Se não for anteposição, exige pelo menos um anexo
@@ -82,10 +70,10 @@ export const createRequest = async (req, res) => {
       userId,
       course,
       discipline,
-      turn,
       type,
       quantity,
       date,
+      dateAbsence: type === "reposicao" ? dateAbsence : null,
       annex,
       observation,
     });

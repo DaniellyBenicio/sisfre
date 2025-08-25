@@ -270,12 +270,12 @@ export const getAttendanceByTurn = async (req, res) => {
       });
     }
 
-    const filterDate = date || currentDate;
+    const filterDate = date; 
 
     const calendar = await db.Calendar.findOne({
       where: {
-        startDate: { [Op.lte]: filterDate },
-        endDate: { [Op.gte]: filterDate },
+        startDate: { [Op.lte]: filterDate || currentDate }, 
+        endDate: { [Op.gte]: filterDate || currentDate },
       },
     });
     if (!calendar) {
@@ -284,12 +284,14 @@ export const getAttendanceByTurn = async (req, res) => {
         .json({ error: "Nenhum calendário ativo encontrado para a data." });
     }
 
+    const whereClause = {
+      registeredBy: loggedUserId,
+      ...(date && { date: filterDate }), 
+      ...(status !== undefined && { status }), 
+    };
+
     const attendances = await db.Attendance.findAll({
-      where: {
-        registeredBy: loggedUserId,
-        date: date ? filterDate : { [Op.gte]: currentDate },
-        ...(status !== undefined && { status }),
-      },
+      where: whereClause,
       include: [
         {
           model: db.ClassScheduleDetail,
@@ -321,8 +323,6 @@ export const getAttendanceByTurn = async (req, res) => {
         ],
       ],
     });
-
-    
 
     const groupedAttendances = attendances.reduce((acc, attendance) => {
       const date = new Date(attendance.date).toLocaleDateString("pt-BR", {
@@ -365,6 +365,7 @@ export const getAttendanceByTurn = async (req, res) => {
       .json({ error: "Erro interno do servidor.", details: error.message });
   }
 };
+
 export const getTeacherAbsences = async (req, res) => {
   const { courseAcronym, disciplineName } = req.query;
 

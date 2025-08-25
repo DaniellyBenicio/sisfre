@@ -15,12 +15,11 @@ import Sidebar from "../../../../components/SideBar";
 import api from "../../../../service/api";
 import { CustomAlert } from "../../../../components/alert/CustomAlert";
 
-const JustificationList = ({ setAuthenticated }) => {
+const JustificationsList = ({ setAuthenticated }) => {
   const navigate = useNavigate();
   const [justifications, setJustifications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-	const [alert, setAlert] = useState(null);
+  const [alert, setAlert] = useState(null);
   const accessType = localStorage.getItem("accessType") || "";
 
   const greenPrimary = "#087619";
@@ -42,69 +41,63 @@ const JustificationList = ({ setAuthenticated }) => {
       console.log("API Response:", response.data);
 
       setJustifications(response.data.justifications || []);
-      setError(null);
+      setAlert(null);
     } catch (error) {
       console.error("Erro ao buscar justificativas:", error);
-      setError(
-        error.response?.data?.error || "Erro ao carregar justificativas."
-      );
+      setAlert({
+        message: error.response?.data?.error || "Erro ao carregar justificativas.",
+        type: "error",
+      });
       setJustifications([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAccept = async (attendanceId) => {
+  const handleAccept = async (justification) => {
     try {
       const token = localStorage.getItem("token");
-      await api.put(
-        `/attendance/update-status/${attendanceId}`,
-        { status: "Abonada" },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const payload = {
+        date: justification.attendance.date,
+        turno: justification.turn,
+        newStatus: "abonada",
+        professorId: justification.attendance.registeredBy,
+      };
+      console.log("Accept Payload:", payload);
+      const response = await api.put("/absences/turn", payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log("Accept Response:", response.data);
       setJustifications((prev) =>
-        prev.filter((j) => j.attendance.id !== attendanceId)
+        prev.filter((j) => j.attendance.id !== justification.attendance.id)
       );
       setAlert({
-        message: "Justificativa aceita com sucesso.",
+        message: response.data.message,
         type: "success",
       });
-      setTimeout(() => setAlert(null), 3000); // Auto-dismiss after 3 seconds
+      setTimeout(() => setAlert(null), 3000);
     } catch (error) {
       console.error("Erro ao aceitar justificativa:", error);
       setAlert({
-        message: error.response?.data?.error || "Erro ao aceitar justificativa.",
+        message: error.response?.data?.error || "Erro ao aceitar justificativa. Verifique os dados e tente novamente.",
         type: "error",
       });
     }
   };
 
-  const handleReject = async (attendanceId) => {
-    try {
-      const token = localStorage.getItem("token");
-      await api.put(
-        `/attendance/update-status/${attendanceId}`,
-        { status: "Rejeitada" },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setJustifications((prev) =>
-        prev.filter((j) => j.attendance.id !== attendanceId)
-      );
-      setAlert({
-        message: "Justificativa rejeitada com sucesso.",
-        type: "success",
-      });
-      setTimeout(() => setAlert(null), 3000); // Auto-dismiss after 3 seconds
-    } catch (error) {
-      console.error("Erro ao rejeitar justificativa:", error);
-      setAlert({
-        message: error.response?.data?.error || "Erro ao rejeitar justificativa.",
-        type: "error",
-      });
-    }
+  const handleReject = (justification) => {
+    console.log("Rejected Justification ID:", justification.attendance.id);
+    setJustifications((prev) =>
+      prev.filter((j) => j.attendance.id !== justification.attendance.id)
+    );
+    setAlert({
+      message: "Justificativa rejeitada com sucesso.",
+      type: "success",
+    });
+    setTimeout(() => setAlert(null), 3000);
   };
 
-	const handleAlertClose = () => {
+  const handleAlertClose = () => {
     setAlert(null);
   };
 
@@ -150,10 +143,6 @@ const JustificationList = ({ setAuthenticated }) => {
           <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
             <CircularProgress sx={{ color: greenPrimary }} />
           </Box>
-        ) : error ? (
-          <Typography variant="body1" color="error" align="center">
-            {error}
-          </Typography>
         ) : justifications.length === 0 ? (
           <Typography variant="body1" color="text.secondary" align="center">
             Nenhuma justificativa encontrada.
@@ -208,11 +197,11 @@ const JustificationList = ({ setAuthenticated }) => {
                 <strong>Motivo:</strong> {justification.attendance.justification || "N/A"}
               </Typography>
 
-              {accessType !== "Professor" && (
+              {accessType === "Admin" && (
                 <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
-                  <Button
+									<Button
                     variant="contained"
-                    onClick={() => handleReject(justification.attendance.id)}
+                    onClick={() => handleReject(justification)}
 										startIcon={<Close />}
                     sx={{
                       width: "fit-content",
@@ -228,9 +217,9 @@ const JustificationList = ({ setAuthenticated }) => {
                   >
                     Rejeitar
                   </Button>
-									<Button
+                  <Button
                     variant="contained"
-                    onClick={() => handleAccept(justification.attendance.id)}
+                    onClick={() => handleAccept(justification)}
 										startIcon={<Check />}
                     sx={{
                       width: "fit-content",
@@ -251,7 +240,8 @@ const JustificationList = ({ setAuthenticated }) => {
             </Box>
           ))
         )}
-				{alert && (
+
+        {alert && (
           <CustomAlert
             message={alert.message}
             type={alert.type}
@@ -263,4 +253,4 @@ const JustificationList = ({ setAuthenticated }) => {
   );
 };
 
-export default JustificationList;
+export default JustificationsList;

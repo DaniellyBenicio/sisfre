@@ -64,12 +64,17 @@ export const registerAttendanceByTurn = async (req, res) => {
   const { latitude, longitude } = req.body;
   const loggedUserId = req.user?.id;
 
-  const currentDateTime = new Date(
-    new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })
+  const currentDateTime = new Date();
+  const offset = -3 * 60; 
+  const localDateTime = new Date(
+    currentDateTime.getTime() +
+      (offset + currentDateTime.getTimezoneOffset()) * 60 * 1000
   );
-  const currentDate = currentDateTime.toISOString().split("T")[0];
-  const currentTime = currentDateTime;
 
+  const currentDate = localDateTime.toLocaleDateString("en-CA", {
+    timeZone: "America/Sao_Paulo",
+  });
+  const currentTime = localDateTime;
   try {
     if (!loggedUserId) {
       return res.status(401).json({ error: "Usuário não autenticado." });
@@ -241,10 +246,15 @@ export const registerAttendanceByTurn = async (req, res) => {
 export const getAttendanceByTurn = async (req, res) => {
   const { turno, date, status } = req.query;
   const loggedUserId = req.user?.id;
-  const currentDateTime = new Date(
-    new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })
+  const currentDateTime = new Date();
+  const offset = -3 * 60; 
+  const localDateTime = new Date(
+    currentDateTime.getTime() +
+      (offset + currentDateTime.getTimezoneOffset()) * 60 * 1000
   );
-  const currentDate = currentDateTime.toISOString().split("T")[0];
+  const currentDate = localDateTime.toLocaleDateString("en-CA", {
+    timeZone: "America/Sao_Paulo",
+  });
 
   try {
     if (!loggedUserId) {
@@ -270,12 +280,12 @@ export const getAttendanceByTurn = async (req, res) => {
       });
     }
 
-    const filterDate = date; 
+    const filterDate = date || currentDate;
 
     const calendar = await db.Calendar.findOne({
       where: {
-        startDate: { [Op.lte]: filterDate || currentDate }, 
-        endDate: { [Op.gte]: filterDate || currentDate },
+        startDate: { [Op.lte]: filterDate },
+        endDate: { [Op.gte]: filterDate },
       },
     });
     if (!calendar) {
@@ -286,8 +296,8 @@ export const getAttendanceByTurn = async (req, res) => {
 
     const whereClause = {
       registeredBy: loggedUserId,
-      ...(date && { date: filterDate }), 
-      ...(status !== undefined && { status }), 
+      ...(date && { date: filterDate }),
+      ...(status !== undefined && { status }),
     };
 
     const attendances = await db.Attendance.findAll({
@@ -325,11 +335,8 @@ export const getAttendanceByTurn = async (req, res) => {
     });
 
     const groupedAttendances = attendances.reduce((acc, attendance) => {
-      const date = new Date(attendance.date).toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
+      const [year, month, day] = attendance.date.split("-");
+      const date = `${day}/${month}/${year}`;
       const turn = attendance.detail.turn.toLowerCase();
       const key = `${date}_${turn}`;
 
@@ -346,8 +353,10 @@ export const getAttendanceByTurn = async (req, res) => {
 
     const formattedAttendances = Object.values(groupedAttendances).sort(
       (a, b) => {
-        const dateA = new Date(a.date.split("/").reverse().join("-"));
-        const dateB = new Date(b.date.split("/").reverse().join("-"));
+        const [dayA, monthA, yearA] = a.date.split("/");
+        const [dayB, monthB, yearB] = b.date.split("/");
+        const dateA = new Date(`${yearA}-${monthA}-${dayA}`);
+        const dateB = new Date(`${yearB}-${monthB}-${dayB}`);
         if (dateA !== dateB) return dateB - dateA;
         const turnOrder = ["Matutino", "Vespertino", "Noturno"];
         return turnOrder.indexOf(a.turn) - turnOrder.indexOf(b.turn);
@@ -461,12 +470,10 @@ export const getTeacherAbsences = async (req, res) => {
     });
 
     if (!relevantDetails.length) {
-      return res
-        .status(404)
-        .json({
-          error:
-            "Nenhum agendamento encontrado para o professor com os filtros fornecidos.",
-        });
+      return res.status(404).json({
+        error:
+          "Nenhum agendamento encontrado para o professor com os filtros fornecidos.",
+      });
     }
 
     const detailIds = relevantDetails.map((detail) => detail.id);

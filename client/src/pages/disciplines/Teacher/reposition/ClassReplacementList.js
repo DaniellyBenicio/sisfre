@@ -75,8 +75,6 @@ const ClassReplacementList = () => {
                 turma: item.acronym
                   ? `${item.acronym} - ${item.semester || "N/A"}`
                   : "Desconhecido",
-                acronym: item.acronym || "N/A",
-                semester: item.semester || "N/A",
                 disciplina: item.discipline || "Desconhecido",
                 quantidade: item.quantity.toString(),
                 data: formatDate(item.date),
@@ -96,7 +94,7 @@ const ClassReplacementList = () => {
                     : "Pendente",
               }))
               .sort((a, b) =>
-                a.turma.toLowerCase().localeCompare(b.turma.toLowerCase())
+                a.data.localeCompare(b.data) || a.id - b.id // Ordena por data e ID como fallback
               )
           : [];
         setReplacements(replacementsArray);
@@ -142,7 +140,7 @@ const ClassReplacementList = () => {
     filtered = filtered.filter((rep) => {
       if (!rep.data) return false;
       const repDate = new Date(rep.data + "T00:00:00");
-      repDate.setHours(0, 0, 0, 0); // Reset time for accurate date comparison
+      repDate.setHours(0, 0, 0, 0);
 
       switch (filterPeriod) {
         case "yesterday":
@@ -165,29 +163,9 @@ const ClassReplacementList = () => {
     return filtered;
   };
 
-  const groupReplacements = (data) => {
-    const grouped = data.reduce((acc, replacement) => {
-      const key = `${replacement.turma}-${replacement.disciplina}-${replacement.status}`;
-      if (!acc[key]) {
-        acc[key] = {
-          turma: replacement.turma,
-          disciplina: replacement.disciplina,
-          status: replacement.status,
-          replacements: [],
-        };
-      }
-      acc[key].replacements.push(replacement);
-      return acc;
-    }, {});
-    return Object.values(grouped).sort((a, b) =>
-      a.turma.toLowerCase().localeCompare(b.turma.toLowerCase())
-    );
-  };
-
   const filteredReplacements = applyFilters(replacements);
-  const groupedReplacements = groupReplacements(filteredReplacements);
-  const totalPages = Math.ceil(groupedReplacements.length / rowsPerPage);
-  const paginatedReplacements = groupedReplacements.slice(
+  const totalPages = Math.ceil(filteredReplacements.length / rowsPerPage);
+  const paginatedReplacements = filteredReplacements.slice(
     (page - 1) * rowsPerPage,
     page * rowsPerPage
   );
@@ -406,15 +384,12 @@ const ClassReplacementList = () => {
         <Typography align="center">Carregando...</Typography>
       ) : paginatedReplacements.length > 0 ? (
         <Stack spacing={2}>
-          {paginatedReplacements.map((group, index) => (
-            <Accordion
-              key={`${group.turma}-${group.disciplina}-${index}`}
-              elevation={3}
-            >
+          {paginatedReplacements.map((replacement) => (
+            <Accordion key={replacement.id} elevation={3}>
               <AccordionSummary
                 expandIcon={<ExpandMore />}
-                aria-controls={`panel-${index}-content`}
-                id={`panel-${index}-header`}
+                aria-controls={`panel-${replacement.id}-content`}
+                id={`panel-${replacement.id}-header`}
               >
                 <Box
                   display="flex"
@@ -425,88 +400,84 @@ const ClassReplacementList = () => {
                   <Box display="flex" alignItems="center">
                     <School sx={{ mr: 1, fontSize: 32, color: "#087619" }} />
                     <Typography fontWeight="bold">
-                      {group.turma} ({group.disciplina})
+                      {replacement.turma} ({replacement.disciplina}) -{" "}
+                      {replacement.data}
                     </Typography>
                   </Box>
                   <Chip
-                    label={group.status}
-                    color={getStatusColor(group.status)}
+                    label={replacement.status}
+                    color={getStatusColor(replacement.status)}
                   />
                 </Box>
               </AccordionSummary>
               <AccordionDetails>
-                {group.replacements.map((replacement, idx) => (
-                  <Box
-                    key={idx}
-                    sx={{
-                      mb: 2,
-                      p: 2,
-                      border: "1px solid #e0e0e0",
-                      borderRadius: 2,
-                      display: "grid",
-                      gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
-                      gap: 2,
-                    }}
-                  >
-                    <Box>
-                      <Typography
-                        variant="subtitle2"
-                        gutterBottom
-                        sx={{ fontSize: "1rem" }}
-                      >
-                        <strong>Professor:</strong> {replacement.professor}
-                      </Typography>
-                      <Typography
-                        variant="subtitle2"
-                        gutterBottom
-                        sx={{ fontSize: "1rem" }}
-                      >
-                        <strong>Quantidade de Aulas:</strong>{" "}
-                        {replacement.quantidade}
-                      </Typography>
-                      <Typography
-                        variant="subtitle2"
-                        gutterBottom
-                        sx={{ fontSize: "1rem" }}
-                      >
-                        <strong>Data da Reposição:</strong>{" "}
-                        {replacement.data}
-                      </Typography>
-                      <Typography
-                        variant="subtitle2"
-                        gutterBottom
-                        sx={{ fontSize: "1rem" }}
-                      >
-                        <strong>Data da Ausência:</strong>{" "}
-                        {replacement.dataAusencia}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography
-                        variant="subtitle2"
-                        gutterBottom
-                        sx={{ fontSize: "1rem" }}
-                      >
-                        <strong>Anexo(s):</strong> {replacement.fileName}
-                      </Typography>
-                      <Typography
-                        variant="subtitle2"
-                        gutterBottom
-                        sx={{ fontSize: "1rem" }}
-                      >
-                        <strong>Observação:</strong> {replacement.observacao}
-                      </Typography>
-                      <Typography
-                        variant="subtitle2"
-                        gutterBottom
-                        sx={{ fontSize: "1rem" }}
-                      >
-                        <strong>Observação do Coordenador:</strong>{" "}
-                        {replacement.observationCoordinator}
-                      </Typography>
-                    </Box>
+                <Box
+                  sx={{
+                    mb: 2,
+                    p: 2,
+                    border: "1px solid #e0e0e0",
+                    borderRadius: 2,
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+                    gap: 2,
+                  }}
+                >
+                  <Box>
+                    <Typography
+                      variant="subtitle2"
+                      gutterBottom
+                      sx={{ fontSize: "1rem" }}
+                    >
+                      <strong>Professor:</strong> {replacement.professor}
+                    </Typography>
+                    <Typography
+                      variant="subtitle2"
+                      gutterBottom
+                      sx={{ fontSize: "1rem" }}
+                    >
+                      <strong>Quantidade de Aulas:</strong>{" "}
+                      {replacement.quantidade}
+                    </Typography>
+                    <Typography
+                      variant="subtitle2"
+                      gutterBottom
+                      sx={{ fontSize: "1rem" }}
+                    >
+                      <strong>Data da Reposição:</strong> {replacement.data}
+                    </Typography>
+                    <Typography
+                      variant="subtitle2"
+                      gutterBottom
+                      sx={{ fontSize: "1rem" }}
+                    >
+                      <strong>Data da Ausência:</strong> {replacement.dataAusencia}
+                    </Typography>
                   </Box>
-                ))}
+                  <Box>
+                    <Typography
+                      variant="subtitle2"
+                      gutterBottom
+                      sx={{ fontSize: "1rem" }}
+                    >
+                      <strong>Anexo(s):</strong> {replacement.fileName}
+                    </Typography>
+                    <Typography
+                      variant="subtitle2"
+                      gutterBottom
+                      sx={{ fontSize: "1rem" }}
+                    >
+                      <strong>Observação:</strong> {replacement.observacao}
+                    </Typography>
+                    <Typography
+                      variant="subtitle2"
+                      gutterBottom
+                      sx={{ fontSize: "1rem" }}
+                    >
+                      <strong>Observação do Coordenador:</strong>{" "}
+                      {replacement.observationCoordinator}
+                    </Typography>
+                  </Box>
+                </Box>
               </AccordionDetails>
             </Accordion>
           ))}

@@ -366,7 +366,7 @@ const ClassReplacementRegister = ({ setAlert }) => {
               </Box>
               <Box sx={{ display: 'flex', gap: 2, my: 1.5, alignItems: 'center' }}>
                 <DatePicker
-                  label="Data da Reposição"
+                  label="Data "
                   value={repositionDate}
                   onChange={(newValue) => setRepositionDate(newValue)}
                   minDate={new Date()}

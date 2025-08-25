@@ -322,11 +322,7 @@ export const getAttendanceByTurn = async (req, res) => {
       ],
     });
 
-    if (!attendances.length) {
-      return res
-        .status(404)
-        .json({ error: "Nenhuma frequência encontrada para o professor." });
-    }
+    
 
     const groupedAttendances = attendances.reduce((acc, attendance) => {
       const date = new Date(attendance.date).toLocaleDateString("pt-BR", {

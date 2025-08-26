@@ -184,7 +184,6 @@ export const getRequestById = async (req, res) => {
     const classDetail = await db.ClassScheduleDetail.findOne({
       where: {
         userId: request.userId,
-        turn: request.turn,
       },
       include: [
         {
@@ -435,7 +434,6 @@ export const getProfessorScheduleDetails = async (req, res) => {
       }
       return {
         day: d.dayOfWeek,
-        turn: d.turn,
         discipline: d.discipline.name,
         professor: d.professor.username,
         course: d.schedule.course.name,
@@ -657,7 +655,6 @@ export const getRequestsByProfessor = async (req, res) => {
         const classDetail = await db.ClassScheduleDetail.findOne({
           where: {
             userId: plainRequest.userId,
-            turn: plainRequest.turn,
           },
           include: [
             {
@@ -735,7 +732,6 @@ export const getOwnRequests = async (req, res) => {
         const classDetail = await db.ClassScheduleDetail.findOne({
           where: {
             userId: plainRequest.userId,
-            turn: plainRequest.turn,
           },
           include: [
             {

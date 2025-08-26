@@ -526,28 +526,48 @@ const TeacherClassReschedulesList = ({ setAuthenticated }) => {
                         >
                           <strong>Quantidade de Aulas:</strong> {request.quantidade}
                         </Typography>
-                        <Typography
-                          variant="subtitle2"
-                          gutterBottom
-                          sx={{ fontSize: "1rem" }}
-                        >
-                          <strong>Data de Reposição:</strong>{" "}
-                          {new Date(`${request.data}T00:00:00`).toLocaleDateString(
-                            "pt-BR",
-                            {
-                              day: "2-digit",
-                              month: "2-digit",
-                              year: "numeric",
-                            }
-                          )}
-                        </Typography>
-                        <Typography
-                          variant="subtitle2"
-                          gutterBottom
-                          sx={{ fontSize: "1rem" }}
-                        >
-                          <strong>Data da Ausência:</strong> {request.dataAusencia}
-                        </Typography>
+                        {request.tipo === "Reposição" && request.referenteData !== "N/A" ? (
+                          <Typography
+                            variant="subtitle2"
+                            gutterBottom
+                            sx={{ fontSize: "1rem" }}
+                          >
+                            <strong>Data de Reposição:</strong>{" "}
+                            {new Date(`${request.data}T00:00:00`).toLocaleDateString(
+                              "pt-BR",
+                              {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                              }
+                            )}
+                          </Typography>
+                        ) : (
+                          <Typography
+                            variant="subtitle2"
+                            gutterBottom
+                            sx={{ fontSize: "1rem" }}
+                          >
+                            <strong>Data:</strong>{" "}
+                            {new Date(`${request.data}T00:00:00`).toLocaleDateString(
+                              "pt-BR",
+                              {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                              }
+                            )}
+                          </Typography>
+                        )}
+                        {request.tipo === "Reposição" && request.referenteData !== "N/A" && (
+                          <Typography
+                            variant="subtitle2"
+                            gutterBottom
+                            sx={{ fontSize: "1rem" }}
+                          >
+                            <strong>Data da Ausência:</strong> {request.dataAusencia}
+                          </Typography>
+                        )}
                       </Box>
                       <Box>
                         <Typography

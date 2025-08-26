@@ -238,7 +238,8 @@ export const getProfessorAbsenceDetails = async (req, res) => {
     }
     if (user.accessType !== "Admin") {
       return res.status(403).json({
-        error: "Acesso negado. Apenas administradores podem visualizar estes dados.",
+        error:
+          "Acesso negado. Apenas administradores podem visualizar estes dados.",
       });
     }
 
@@ -294,7 +295,8 @@ export const getProfessorAbsenceDetails = async (req, res) => {
 
     if (!attendances.length) {
       return res.status(404).json({
-        error: "Nenhuma falta encontrada para este professor com os filtros aplicados.",
+        error:
+          "Nenhuma falta encontrada para este professor com os filtros aplicados.",
       });
     }
 
@@ -330,6 +332,7 @@ export const updateAbsenceByTurn = async (req, res) => {
 
   try {
     if (!loggedUserId) {
+      console.log("Erro: Usuário não autenticado.");
       return res.status(401).json({
         error: "Usuário não autenticado. Verifique o token de autenticação.",
       });
@@ -345,6 +348,7 @@ export const updateAbsenceByTurn = async (req, res) => {
     }
 
     const accessType = user.accessType;
+
     const validAccessTypes = ["Admin"];
     if (!validAccessTypes.includes(accessType)) {
       return res.status(403).json({
@@ -386,22 +390,19 @@ export const updateAbsenceByTurn = async (req, res) => {
         .json({ error: "Nenhum calendário ativo encontrado para a data." });
     }
 
-    let whereClause = {
+    const whereClause = {
       registeredBy: professorId,
       date,
       status: "falta",
+      justification: {
+        [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: "" }, { [Op.ne]: "REJEITADA" }],
+      },
     };
 
     const attendances = await db.Attendance.findAll({
-      where: {
-        ...whereClause,
-      },
+      where: { ...whereClause },
       include: [
-        {
-          model: db.User,
-          as: "registrar",
-          attributes: ["username"],
-        },
+        { model: db.User, as: "registrar", attributes: ["username"] },
         {
           model: db.ClassScheduleDetail,
           as: "detail",
@@ -425,17 +426,19 @@ export const updateAbsenceByTurn = async (req, res) => {
       ],
     });
 
+
     if (!attendances.length) {
       return res.status(404).json({
         error:
-          "Nenhuma falta encontrada para o professor no turno e data especificados.",
+          "Nenhuma falta com justificativa pendente encontrada para o professor no turno e data especificados.",
       });
     }
 
     const isMedicalJustification = (justification) =>
       justification &&
       typeof justification === "string" &&
-      /doença|doente|medica|atestado/i.test(justification);
+      /doença|doente|medica|saude|saúde|atestado/i.test(justification);
+    
     const allHaveMedicalJustification = attendances.every((att) =>
       isMedicalJustification(att.justification)
     );
@@ -445,33 +448,39 @@ export const updateAbsenceByTurn = async (req, res) => {
 
     if (newStatus === "abonada" && !allHaveMedicalJustification) {
       return res.status(403).json({
-        error:
-          "A diretoria só pode abonar faltas com justificativa de doença (doença, doente, médica ou atestado).",
+        error: "A diretoria só pode abonar faltas com justificativa de doença (doença, doente, médica ou atestado).",
       });
     }
 
     if (newStatus === "presença" && !allHaveNonMedicalJustification) {
       return res.status(403).json({
-        error:
-          "Não é possível mudar para 'presença' uma falta com justificativa de doença. Use 'abonada' ou verifique a justificativa.",
+        error: "Não é possível mudar para 'presença' uma falta com justificativa de doença. Use 'abonada' ou verifique a justificativa.",
       });
     }
 
-    await db.Attendance.update(
-      { status: newStatus },
-      {
-        where: {
-          id: { [Op.in]: attendances.map((att) => att.id) },
-        },
-      }
-    );
+    const updateFields = { status: newStatus };
+    if (newStatus === "falta") {
+      updateFields.justification = "REJEITADA";
+    }
+
+
+    const [affectedRows] = await db.Attendance.update(updateFields, {
+      where: {
+        id: { [Op.in]: attendances.map((att) => att.id) },
+      },
+    });
+
+
+    if (affectedRows === 0) {
+      console.log("Aviso: Nenhuma linha foi atualizada, possivelmente devido a um problema na busca de IDs.");
+    }
 
     const formattedJustifications = attendances.map((attendance) => ({
       attendance: {
         id: attendance.id,
         date: attendance.date,
         status: newStatus,
-        justification: attendance.justification,
+        justification: newStatus === "falta" ? "REJEITADA" : attendance.justification,
         registeredBy: attendance.registeredBy,
       },
       professor_name: attendance.registrar?.username || "Desconhecido",
@@ -486,9 +495,9 @@ export const updateAbsenceByTurn = async (req, res) => {
       turn: attendance.detail.turn,
     }));
 
-    let message = `Status alterado para ${newStatus} com sucesso para ${attendances.length} faltas no turno ${turno}.`;
+    let message = `Status alterado para ${newStatus} com sucesso!`;
     if (newStatus === "falta") {
-      message = `Justificativa recusada e status mantido como ${newStatus} para ${attendances.length} faltas no turno ${turno}.`;
+      message = `Justificativa recusada e status mantido como falta!`;
     }
 
     return res.status(200).json({

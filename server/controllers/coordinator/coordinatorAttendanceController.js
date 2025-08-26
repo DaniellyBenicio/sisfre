@@ -230,7 +230,7 @@ export const getTotalAbsencesByTeacher = async (req, res) => {
 export const getProfessorAbsenceDetails = async (req, res) => {
   try {
     const user = await db.User.findByPk(req.userId);
-    const professorId = req.params.professorId;
+    const { professorId } = req.params;
     const { status: statusFilter, course: courseFilter } = req.query;
 
     if (!user) {
@@ -246,6 +246,8 @@ export const getProfessorAbsenceDetails = async (req, res) => {
     const attendanceWhere = {};
     if (statusFilter && statusFilter.toLowerCase() !== "todos") {
       attendanceWhere.status = statusFilter;
+    } else {
+      attendanceWhere.status = { [Op.in]: ["falta", "abonada"] };
     }
 
     const courseWhere = {};
@@ -332,7 +334,6 @@ export const updateAbsenceByTurn = async (req, res) => {
 
   try {
     if (!loggedUserId) {
-      console.log("Erro: Usuário não autenticado.");
       return res.status(401).json({
         error: "Usuário não autenticado. Verifique o token de autenticação.",
       });
@@ -395,7 +396,11 @@ export const updateAbsenceByTurn = async (req, res) => {
       date,
       status: "falta",
       justification: {
-        [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: "" }, { [Op.ne]: "REJEITADA" }],
+        [Op.and]: [
+          { [Op.ne]: null },
+          { [Op.ne]: "" },
+          { [Op.ne]: "REJEITADA" },
+        ],
       },
     };
 
@@ -426,7 +431,6 @@ export const updateAbsenceByTurn = async (req, res) => {
       ],
     });
 
-
     if (!attendances.length) {
       return res.status(404).json({
         error:
@@ -438,7 +442,7 @@ export const updateAbsenceByTurn = async (req, res) => {
       justification &&
       typeof justification === "string" &&
       /doença|doente|medica|saude|saúde|atestado/i.test(justification);
-    
+
     const allHaveMedicalJustification = attendances.every((att) =>
       isMedicalJustification(att.justification)
     );
@@ -448,13 +452,15 @@ export const updateAbsenceByTurn = async (req, res) => {
 
     if (newStatus === "abonada" && !allHaveMedicalJustification) {
       return res.status(403).json({
-        error: "A diretoria só pode abonar faltas com justificativa de doença (doença, doente, médica ou atestado).",
+        error:
+          "A diretoria só pode abonar faltas com justificativa de doença (doença, doente, médica ou atestado).",
       });
     }
 
     if (newStatus === "presença" && !allHaveNonMedicalJustification) {
       return res.status(403).json({
-        error: "Não é possível mudar para 'presença' uma falta com justificativa de doença. Use 'abonada' ou verifique a justificativa.",
+        error:
+          "Não é possível mudar para 'presença' uma falta com justificativa de doença. Use 'abonada' ou verifique a justificativa.",
       });
     }
 
@@ -463,24 +469,19 @@ export const updateAbsenceByTurn = async (req, res) => {
       updateFields.justification = "REJEITADA";
     }
 
-
     const [affectedRows] = await db.Attendance.update(updateFields, {
       where: {
         id: { [Op.in]: attendances.map((att) => att.id) },
       },
     });
 
-
-    if (affectedRows === 0) {
-      console.log("Aviso: Nenhuma linha foi atualizada, possivelmente devido a um problema na busca de IDs.");
-    }
-
     const formattedJustifications = attendances.map((attendance) => ({
       attendance: {
         id: attendance.id,
         date: attendance.date,
         status: newStatus,
-        justification: newStatus === "falta" ? "REJEITADA" : attendance.justification,
+        justification:
+          newStatus === "falta" ? "REJEITADA" : attendance.justification,
         registeredBy: attendance.registeredBy,
       },
       professor_name: attendance.registrar?.username || "Desconhecido",

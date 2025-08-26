@@ -111,7 +111,6 @@ export const getRequest = async (req, res) => {
         const classDetail = await db.ClassScheduleDetail.findOne({
           where: {
             userId: plainRequest.userId,
-            turn: plainRequest.turn,
           },
           include: [
             {

@@ -54,31 +54,42 @@ const JustificationsList = ({ setAuthenticated }) => {
     }
   };
 
-  const isMedicalJustification = (justification) =>
-    justification &&
-    typeof justification === "string" &&
-    /doença|doente|medica|atestado/i.test(justification);
+  const isMedicalJustification = (justifications) =>
+    justifications.some(
+      (justification) =>
+        justification &&
+        typeof justification === "string" &&
+        /doença|doente|medica|atestado/i.test(justification)
+    );
 
   const handleAccept = async (justification) => {
+    let newStatus;
     try {
       const token = localStorage.getItem("token");
-      const newStatus = isMedicalJustification(justification.attendance.justification)
+      const newStatus = isMedicalJustification(justification.justifications)
         ? "abonada"
         : "presença";
       const payload = {
-        date: justification.attendance.date,
+        date: justification.date,
         turno: justification.turn,
         newStatus,
-        professorId: justification.attendance.registeredBy,
+        professorId: justification.professor_id,
       };
       console.log("Payload enviado:", payload);
-      console.log("Justificativa:", justification.attendance.justification);
+      console.log("Justificativas:", justification.justifications);
       const response = await api.put("/absences/turn", payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log("Resposta da API:", response.data);
       setJustifications((prev) =>
-        prev.filter((j) => j.attendance.id !== justification.attendance.id)
+        prev.filter(
+          (j) =>
+            !(
+              j.professor_id === justification.professor_id &&
+              j.turn === justification.turn &&
+              j.date === justification.date
+            )
+        )
       );
       setAlert({
         message: response.data.message,
@@ -88,16 +99,30 @@ const JustificationsList = ({ setAuthenticated }) => {
     } catch (error) {
       console.error(`Erro ao alterar status para ${newStatus}:`, error);
       setAlert({
-        message: error.response?.data?.error || `Erro ao validar justificativa. Verifique a justificativa e tente novamente.`,
+        message:
+          error.response?.data?.error ||
+          `Erro ao validar justificativa. Verifique a justificativa e tente novamente.`,
         type: "error",
       });
     }
   };
 
   const handleReject = (justification) => {
-    console.log("Rejected Justification ID:", justification.attendance.id);
+    console.log(
+      "Rejected Justification:",
+      justification.professor_id,
+      justification.turn,
+      justification.date
+    );
     setJustifications((prev) =>
-      prev.filter((j) => j.attendance.id !== justification.attendance.id)
+      prev.filter(
+        (j) =>
+          !(
+            j.professor_id === justification.professor_id &&
+            j.turn === justification.turn &&
+            j.date === justification.date
+          )
+      )
     );
     setAlert({
       message: "Justificativa rejeitada com sucesso.",
@@ -157,9 +182,9 @@ const JustificationsList = ({ setAuthenticated }) => {
             Nenhuma justificativa encontrada.
           </Typography>
         ) : (
-          justifications.map((justification) => (
+          justifications.map((justification, index) => (
             <Box
-              key={justification.attendance.id}
+              key={`${justification.professor_id}_${justification.turn}_${justification.date}_${index}`}
               component={Paper}
               elevation={3}
               sx={{ p: 5, m: 4, borderRadius: 3 }}
@@ -178,7 +203,12 @@ const JustificationsList = ({ setAuthenticated }) => {
                 >
                   <Typography
                     component="span"
-                    sx={{ color: "#fff", fontSize: "24px", fontWeight: "bold", lineHeight: 0.7 }}
+                    sx={{
+                      color: "#fff",
+                      fontSize: "24px",
+                      fontWeight: "bold",
+                      lineHeight: 0.7,
+                    }}
                   >
                     !
                   </Typography>
@@ -194,16 +224,34 @@ const JustificationsList = ({ setAuthenticated }) => {
                 <strong>Professor(a):</strong> {justification.professor_name}
               </Typography>
               <Typography variant="body1" sx={{ mb: 1, color: "#333" }}>
+                <strong>Curso:</strong>{" "}
+                {justification.courses
+                  .map((course) => `${course.name} (${course.acronym})`)
+                  .join(", ") || "N/A"}
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 1, color: "#333" }}>
+                <strong>Disciplina:</strong>{" "}
+                {justification.disciplines
+                  .map((discipline) => `${discipline.name} (${discipline.acronym})`)
+                  .join(", ") || "N/A"}
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 1, color: "#333" }}>
                 <strong>Data:</strong>{" "}
-                {justification.attendance.date
-                  ? new Date(justification.attendance.date + "T00:00:00").toLocaleDateString("pt-BR")
+                {justification.date
+                  ? new Date(justification.date + "T00:00:00").toLocaleDateString(
+                      "pt-BR"
+                    )
                   : "N/A"}
               </Typography>
               <Typography variant="body1" sx={{ mb: 1, color: "#333" }}>
                 <strong>Turno:</strong> {justification.turn || "N/A"}
               </Typography>
               <Typography variant="body1" sx={{ mb: 2, color: "#333" }}>
-                <strong>Motivo:</strong> {justification.attendance.justification || "N/A"}
+                <strong>Horário:</strong> {justification.hours.join(", ") || "N/A"}
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 1, color: "#333" }}>
+                <strong>Motivo:</strong>{" "}
+                {justification.justifications.join(", ") || "N/A"}
               </Typography>
 
               {accessType === "Admin" && (

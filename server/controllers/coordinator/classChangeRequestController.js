@@ -589,7 +589,6 @@ export const approveReposition = async (req, res) => {
       const classDetail = await db.ClassScheduleDetail.findOne({
         where: {
           userId: request.userId,
-          turn: request.turn,
         },
         include: [
           {

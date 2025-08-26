@@ -112,7 +112,6 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
       class: requestData.acronym && requestData.semester ? `${requestData.acronym} - ${requestData.semester}` : "N/A",
       quantity: requestData.quantity || "N/A",
       time: requestData.hour || "N/A",
-      turn: requestData.turn || "N/A",
       observations: requestData.observation || "",
       observationCoordinator: requestData.observationCoordinator || "",
       validated: requestData.validated,
@@ -126,7 +125,6 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
       class: "N/A",
       quantity: "N/A",
       time: "N/A",
-      turn: "N/A",
       observations: "",
       observationCoordinator: "",
       validated: null,
@@ -173,9 +171,6 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
             </Typography>
             <Typography variant="body1" sx={{ mb: 1 }}>
               <strong>Data:</strong> {cardData.date}
-            </Typography>
-            <Typography variant="body1" sx={{ mb: 1 }}>
-              <strong>Turno:</strong> {cardData.turn}
             </Typography>
           </Box>
         </Box>

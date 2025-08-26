@@ -44,10 +44,6 @@ const JustificationsList = ({ setAuthenticated }) => {
       setAlert(null);
     } catch (error) {
       console.error("Erro ao buscar justificativas:", error);
-      setAlert({
-        message: error.response?.data?.error || "Erro ao carregar justificativas.",
-        type: "error",
-      });
       setJustifications([]);
     } finally {
       setLoading(false);
@@ -178,7 +174,7 @@ const JustificationsList = ({ setAuthenticated }) => {
             <CircularProgress sx={{ color: greenPrimary }} />
           </Box>
         ) : justifications.length === 0 ? (
-          <Typography variant="body1" color="text.secondary" align="center">
+          <Typography variant="h6" color="text.secondary" align="center" mt={25}>
             Nenhuma justificativa encontrada.
           </Typography>
         ) : (

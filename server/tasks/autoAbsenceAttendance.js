@@ -154,6 +154,26 @@ export async function autoAbsenceAttendance(turno) {
         transaction,
       });
 
+      // Verifica se existe anteposição aprovada para esta falta
+      const detailDiscipline = detail.discipline?.name || detail.disciplineId;
+      const detailCourse = detail.schedule?.course?.name || detail.schedule?.courseId;
+      const anteposicao = await db.ClassChangeRequest.findOne({
+        where: {
+          type: "anteposicao",
+          validated: 1,
+          userId,
+          discipline: detailDiscipline,
+          course: detailCourse,
+          date: dateStr,
+        },
+        transaction,
+      });
+
+      if (anteposicao) {
+        console.log(`Anteposição aprovada encontrada para professor ${userId}, disciplina ${detailDiscipline}, curso ${detailCourse} em ${dateStr}. Não registra falta.`);
+        continue;
+      }
+
       if (!attendance) {
         await db.Attendance.create(
           {

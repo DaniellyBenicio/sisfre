@@ -52,6 +52,11 @@ export default (sequelize) => {
         allowNull: false,
       },
 
+      dateAbsence: {
+        type: DataTypes.DATEONLY,
+        allowNull: true,
+      },
+
       annex: {
         type: DataTypes.STRING,
         allowNull: true,

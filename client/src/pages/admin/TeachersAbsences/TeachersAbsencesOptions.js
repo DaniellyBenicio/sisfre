@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -6,14 +7,17 @@ import {
   CardContent,
   CardActionArea,
   CssBaseline,
+  Badge,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../../components/SideBar";
 import { EventBusy } from "@mui/icons-material";
 import { ClipboardList } from "lucide-react";
+import api from "../../../service/api";
 
 const TeachersAbsencesOptions = ({ setAuthenticated }) => {
   const navigate = useNavigate();
+  const [pendingJustificationsCount, setPendingJustificationsCount] = useState(0);
 
   const calendarOptions = [
     {
@@ -27,6 +31,33 @@ const TeachersAbsencesOptions = ({ setAuthenticated }) => {
       path: "/absences-justifications",
     },
   ];
+
+  const fetchPendingJustifications = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("Usuário não autenticado.");
+        return;
+      }
+
+      const response = await api.get("/justifications-by-turn", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const justifications = response.data.justifications || [];
+      console.log("Justificativas retornadas:", justifications);
+      setPendingJustificationsCount(justifications.length);
+    } catch (error) {
+      console.error("Erro ao buscar justificativas pendentes:", error.response?.data || error.message);
+      setPendingJustificationsCount(0);
+    }
+  };
+
+  useEffect(() => {
+    const accessType = localStorage.getItem("accessType");
+    if (accessType === "Admin") {
+      fetchPendingJustifications();
+    }
+  }, []);
 
   const handleCardClick = (path) => {
     navigate(path);
@@ -55,7 +86,7 @@ const TeachersAbsencesOptions = ({ setAuthenticated }) => {
             mt: "40px",
           }}
         >
-          Opções de Grade de Turmas
+          Opções de Gestão de Faltas
         </Typography>
 
         <Grid
@@ -85,6 +116,7 @@ const TeachersAbsencesOptions = ({ setAuthenticated }) => {
                   borderRadius: 3,
                   border: "2px solid #087619",
                   position: "relative",
+                  overflow: "visible",
                   transition: "all 0.4s ease-in-out",
                   "&:hover": {
                     transform: "translateY(-10px)",
@@ -110,8 +142,28 @@ const TeachersAbsencesOptions = ({ setAuthenticated }) => {
                     },
                   }}
                 />
+                {option.title === "Justificativas de Faltas" && pendingJustificationsCount > 0 && (
+                  <Badge
+                    badgeContent={pendingJustificationsCount}
+                    color="error"
+                    sx={{
+                      position: "absolute",
+                      top: -1,
+                      right: 3,
+                      zIndex: 1000,
+                      "& .MuiBadge-badge": {
+                        minWidth: 30,
+                        height: 30,
+                        borderRadius: "50%",
+                        fontSize: "0.75rem",
+                        padding: "0 4px",
+                        border: "2px solid #FFFFFF",
+                      },
+                    }}
+                  />
+                )}
                 <CardActionArea
-                  onClick={() => handleCardClick(option.path)} // Fix: Pass option.path instead of option
+                  onClick={() => handleCardClick(option.path)}
                   sx={{
                     height: "100%",
                     width: "100%",

@@ -14,6 +14,7 @@ import {
   Toolbar,
   AppBar,
   Box,
+  Badge,
 } from "@mui/material";
 import {
   Menu,
@@ -34,11 +35,13 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useMediaQuery } from "@mui/material";
 import LogoMenu from "../assets/LogoMenu.svg";
 import { logout } from "../service/Auth.js";
+import api from "../service/api";
 
 const Sidebar = ({ setAuthenticated }) => {
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [pendingJustificationsCount, setPendingJustificationsCount] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
   const [username, setUsername] = useState("");
@@ -62,7 +65,33 @@ const Sidebar = ({ setAuthenticated }) => {
     else if (path === "/frequency") setSelectedItem("frequency");
     else if (path === "/class-reschedule-options") setSelectedItem("class-reschedule");
     else if (path === "/teachers-management/options") setSelectedItem("teachers-management/options");
+    else if (path === "/teacher-absences/options" || path === "/justifications-list") setSelectedItem("teacher-absences");
   }, [location.pathname]);
+
+  const fetchPendingJustifications = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("Usuário não autenticado.");
+        return;
+      }
+
+      const response = await api.get("/justifications-by-turn", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const justifications = response.data.justifications || [];
+      setPendingJustificationsCount(justifications.length);
+    } catch (error) {
+      console.error("Erro ao buscar justificativas pendentes:", error);
+      setPendingJustificationsCount(0);
+    }
+  };
+
+  useEffect(() => {
+    if (accessType === "Admin") {
+      fetchPendingJustifications();
+    }
+  }, [accessType]);
 
   const handleOpenConfirmDialog = () => setOpenConfirmDialog(true);
   const handleCloseConfirmDialog = () => setOpenConfirmDialog(false);
@@ -187,7 +216,24 @@ const Sidebar = ({ setAuthenticated }) => {
                 sx={getListItemStyle(selectedItem, "teacher-absences")}
               >
                 <EventBusy sx={{ mr: 1 }} />
-                <ListItemText primary="Gestão de Faltas" />
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <ListItemText primary="Gestão de Faltas" />
+                  {pendingJustificationsCount > 0 && (
+                    <Badge
+                      badgeContent={""}
+                      color="error"
+                      sx={{
+                        "& .MuiBadge-badge": {
+                          width: 10,
+                          height: 10,
+                          borderRadius: "50%",
+                          minWidth: 0,
+                          padding: 0,
+                        },
+                      }}
+                    />
+                  )}
+                </Box>
               </ListItem>
             </>
           )}

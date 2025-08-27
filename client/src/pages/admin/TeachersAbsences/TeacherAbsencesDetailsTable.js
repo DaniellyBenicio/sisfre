@@ -11,9 +11,8 @@ import {
   Typography,
   Modal,
   Box,
-  Button,
 } from "@mui/material";
-import { Note } from "@mui/icons-material";
+import { Note, Close } from "@mui/icons-material";
 import PropTypes from "prop-types";
 
 const TeacherAbsencesDetailsTable = ({ frequencies, search, isFiltered, setAlert }) => {
@@ -77,6 +76,7 @@ const TeacherAbsencesDetailsTable = ({ frequencies, search, isFiltered, setAlert
     boxShadow: 24,
     p: 4,
     borderRadius: 2,
+    position: "relative",
   };
 
   const safeData = Array.isArray(frequencies) ? frequencies : [];
@@ -196,8 +196,33 @@ const TeacherAbsencesDetailsTable = ({ frequencies, search, isFiltered, setAlert
         aria-labelledby="justification-modal-title"
         aria-describedby="justification-modal-description"
       >
-        <Box sx={modalStyle}>
-          <Typography id="justification-modal-title" variant="h6" component="h2">
+         <Box sx={modalStyle}>
+          <IconButton
+            onClick={handleCloseModal}
+            sx={{
+              position: "absolute",
+              top: 8,
+              right: 8,
+              color: "#808080",
+              "&:hover": {
+                color: "#606060",
+                backgroundColor: "transparent",
+              },
+              padding: { xs: 0.5, sm: 1 },
+            }}
+          >
+            <Close sx={{ fontSize: { xs: "1.25rem", sm: "1.5rem" } }} />
+          </IconButton>
+          <Typography
+            id="justification-modal-title"
+            variant="h6"
+            component="h2"
+            sx={{
+              textAlign: "center",
+              fontSize: { xs: "1rem", sm: "1.25rem" },
+              color: "#087619",
+            }}
+          >
             Justificativa
           </Typography>
           <Typography
@@ -209,16 +234,6 @@ const TeacherAbsencesDetailsTable = ({ frequencies, search, isFiltered, setAlert
           >
             {selectedJustification}
           </Typography>
-          <Button
-            onClick={handleCloseModal}
-            sx={{
-              mt: 2,
-              fontSize: { xs: "0.875rem", sm: "1rem" },
-            }}
-            variant="contained"
-          >
-            Fechar
-          </Button>
         </Box>
       </Modal>
     </>

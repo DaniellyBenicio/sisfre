@@ -104,7 +104,6 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
             return;
           }
           params.startDate = customStartDate;
-          // Ajustar endDate para incluir o dia inteiro
           params.endDate = customEndDate;
         }
       }
@@ -127,7 +126,6 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
           }))
         : [];
 
-      // Validação adicional no frontend para período personalizado
       if (filterPeriod === "custom" && customStartDate && customEndDate) {
         const start = new Date(customStartDate + "T00:00:00");
         const end = new Date(customEndDate + "T23:59:59");

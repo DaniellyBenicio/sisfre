@@ -40,6 +40,7 @@ import JustificationForm from "../pages/disciplines/Teacher/Frequency/Justificat
 import TeacherAbsences from "../pages/admin/TeachersAbsences/TeacherAbsences.js";
 import TeachersAbsencesOptions from "../pages/admin/TeachersAbsences/TeachersAbsencesOptions.js";
 import TeacherAbsencesDetails from "../pages/admin/TeachersAbsences/TeacherAbsencesDetails.js";
+import JustificationList from "../pages/admin/TeachersAbsences/Justifications/JustificationsList.js";
 
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
@@ -463,6 +464,16 @@ const AppRoutes = () => {
           element={
             isAuthenticated && accessType === "Admin" ? (
               <TeacherAbsencesDetails setAuthenticated={handleLogout} />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+        <Route
+          path="/absences-justifications"
+          element={
+            isAuthenticated && accessType === "Admin" ? (
+              <JustificationList setAuthenticated={handleLogout} />
             ) : (
               <Navigate to="/login" />
             )

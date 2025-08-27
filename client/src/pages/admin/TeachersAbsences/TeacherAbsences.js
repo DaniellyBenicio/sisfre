@@ -38,7 +38,7 @@ const TeacherAbsences = ({ setAuthenticated }) => {
   const fetchAbsences = async () => {
     try {
       setLoading(true);
-      const params = { search: search || undefined };
+      const params = { search: search || undefined, status: "all", };
       const response = await api.get("/total-absences-by-teacher", { params });
       const formattedData = Array.isArray(response.data.total_absences)
         ? response.data.total_absences.map((item) => ({
@@ -104,7 +104,7 @@ const TeacherAbsences = ({ setAuthenticated }) => {
           }}
         >
           <IconButton
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate("/teacher-absences/options")}
             sx={{
               position: "absolute",
               left: 0,

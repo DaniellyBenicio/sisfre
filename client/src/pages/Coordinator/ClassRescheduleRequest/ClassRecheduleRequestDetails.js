@@ -221,7 +221,7 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
                             marginBottom: 4,
                           }}
                         >
-                          {fileName}
+                          Abrir Anexo
                         </a>
                       </div>
                     );

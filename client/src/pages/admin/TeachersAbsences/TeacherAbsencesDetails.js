@@ -28,8 +28,8 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
   const [frequencies, setFrequencies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
-  const [filterStatus, setFilterStatus] = useState("all");
-  const [filterPeriod, setFilterPeriod] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterPeriod, setFilterPeriod] = useState("");
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
   const [page, setPage] = useState(1);
@@ -60,7 +60,7 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
       }
 
       const params = {
-        status: filterStatus !== "all" ? filterStatus : undefined,
+        status: filterStatus !== "" ? filterStatus : undefined,
       };
 
       if (filterPeriod !== "all") {
@@ -227,15 +227,18 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
         overflowY: "auto",
         width: "auto",
         "& .MuiMenuItem-root": {
+          minHeight: "36px",
+          display: "flex",
+          alignItems: "center",
+        },
+        "& .MuiMenuItem-root.Mui-selected": {
+          backgroundColor: "#D5FFDB",
           "&:hover": {
-            backgroundColor: "#D5FFDB",
+            backgroundColor: "#C5F5CB",
           },
-          "&.Mui-selected": {
-            backgroundColor: "#E8F5E9",
-            "&:hover": {
-              backgroundColor: "#D5FFDB",
-            },
-          },
+        },
+        "& .MuiMenuItem-root:hover": {
+          backgroundColor: "#D5FFDB",
         },
       },
     },
@@ -321,7 +324,7 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
                 sx={commonSelectSx}
                 MenuProps={commonMenuProps}
               >
-                <MenuItem value="all">Todas</MenuItem>
+                <MenuItem value="">Todas</MenuItem>
                 <MenuItem value="Abonada">Abonadas</MenuItem>
                 <MenuItem value="Falta">Faltas</MenuItem>
               </StyledSelect>
@@ -338,7 +341,7 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
                 sx={commonSelectSx}
                 MenuProps={commonMenuProps}
               >
-                <MenuItem value="all">Todas</MenuItem>
+                <MenuItem value="">Todos</MenuItem>
                 <MenuItem value="yesterday">Dia Anterior</MenuItem>
                 <MenuItem value="lastWeek">Última Semana</MenuItem>
                 <MenuItem value="lastMonth">Último Mês</MenuItem>

@@ -21,8 +21,6 @@ import {
 import {
   ArrowBack,
   ExpandMore,
-  Check,
-  Close,
   School,
   Link,
 } from "@mui/icons-material";
@@ -34,13 +32,6 @@ import Sidebar from "../../../components/SideBar";
 
 const INSTITUTIONAL_COLOR = "#307c34";
 
-const StyledButton = styled(Button)(() => ({
-  textTransform: "none",
-  fontWeight: "bold",
-  backgroundColor: INSTITUTIONAL_COLOR,
-  "&:hover": { backgroundColor: "#26692b" },
-}));
-
 const API_BASE_URL = "http://localhost:3333";
 const ATTACHMENTS_BASE_URL = "http://localhost:3000";
 
@@ -48,11 +39,11 @@ const TeacherClassReschedulesList = ({ setAuthenticated }) => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
-  const [filterTurma, setFilterTurma] = useState("all");
-  const [filterDisciplina, setFilterDisciplina] = useState("all");
-  const [filterPeriod, setFilterPeriod] = useState("all");
-  const [filterStatus, setFilterStatus] = useState("all");
-  const [filterType, setFilterType] = useState("all");
+  const [filterTurma, setFilterTurma] = useState("");
+  const [filterDisciplina, setFilterDisciplina] = useState("");
+  const [filterPeriod, setFilterPeriod] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterType, setFilterType] = useState("");
   const [page, setPage] = useState(1);
   const [professorName, setProfessorName] = useState("Desconhecido");
   const rowsPerPage = 7;
@@ -174,23 +165,23 @@ const TeacherClassReschedulesList = ({ setAuthenticated }) => {
   const applyFilters = (data) => {
     let filtered = Array.isArray(data) ? [...data] : [];
 
-    if (filterTurma !== "all") {
+    if (filterTurma !== "") {
       filtered = filtered.filter((rep) => rep.turma === filterTurma);
     }
 
-    if (filterDisciplina !== "all") {
+    if (filterDisciplina !== "") {
       filtered = filtered.filter((rep) => rep.disciplina === filterDisciplina);
     }
 
-    if (filterStatus !== "all") {
+    if (filterStatus !== "") {
       filtered = filtered.filter((rep) => rep.status === filterStatus);
     }
 
-    if (filterType !== "all") {
+    if (filterType !== "") {
       filtered = filtered.filter((rep) => rep.tipo === filterType);
     }
 
-    if (filterPeriod !== "all") {
+    if (filterPeriod !== "") {
       filtered = filtered.filter((rep) => {
         if (!rep.data) return false;
         const repDate = new Date(`${rep.data}T00:00:00`);
@@ -284,15 +275,18 @@ const TeacherClassReschedulesList = ({ setAuthenticated }) => {
         overflowY: "auto",
         width: "auto",
         "& .MuiMenuItem-root": {
+          minHeight: "36px",
+          display: "flex",
+          alignItems: "center",
+        },
+        "& .MuiMenuItem-root.Mui-selected": {
+          backgroundColor: "#D5FFDB",
           "&:hover": {
-            backgroundColor: "#D5FFDB",
+            backgroundColor: "#C5F5CB",
           },
-          "&.Mui-selected": {
-            backgroundColor: "#E8F5E9",
-            "&:hover": {
-              backgroundColor: "#D5FFDB",
-            },
-          },
+        },
+        "& .MuiMenuItem-root:hover": {
+          backgroundColor: "#D5FFDB",
         },
       },
     },
@@ -381,7 +375,7 @@ const TeacherClassReschedulesList = ({ setAuthenticated }) => {
                 sx={commonSelectSx}
                 MenuProps={commonMenuProps}
               >
-                <MenuItem value="all">Todas</MenuItem>
+                <MenuItem value="">Todas</MenuItem>
                 {turmas.map((turma) => (
                   <MenuItem key={turma} value={turma}>
                     {turma}
@@ -401,7 +395,7 @@ const TeacherClassReschedulesList = ({ setAuthenticated }) => {
                 sx={commonSelectSx}
                 MenuProps={commonMenuProps}
               >
-                <MenuItem value="all">Todas</MenuItem>
+                <MenuItem value="">Todas</MenuItem>
                 {disciplinas.map((disciplina) => (
                   <MenuItem key={disciplina} value={disciplina}>
                     {disciplina}
@@ -421,7 +415,7 @@ const TeacherClassReschedulesList = ({ setAuthenticated }) => {
                 sx={commonSelectSx}
                 MenuProps={commonMenuProps}
               >
-                <MenuItem value="all">Todos</MenuItem>
+                <MenuItem value="">Todos</MenuItem>
                 <MenuItem value="Pendente">Pendente</MenuItem>
                 <MenuItem value="Aprovado">Aprovado</MenuItem>
                 <MenuItem value="Rejeitado">Rejeitado</MenuItem>
@@ -439,7 +433,7 @@ const TeacherClassReschedulesList = ({ setAuthenticated }) => {
                 sx={commonSelectSx}
                 MenuProps={commonMenuProps}
               >
-                <MenuItem value="all">Todos</MenuItem>
+                <MenuItem value="">Todos</MenuItem>
                 <MenuItem value="Anteposição">Anteposição</MenuItem>
                 <MenuItem value="Reposição">Reposição</MenuItem>
               </StyledSelect>
@@ -456,7 +450,7 @@ const TeacherClassReschedulesList = ({ setAuthenticated }) => {
                 sx={commonSelectSx}
                 MenuProps={commonMenuProps}
               >
-                <MenuItem value="all">Todas</MenuItem>
+                <MenuItem value="">Todas</MenuItem>
                 <MenuItem value="yesterday">Dia Anterior</MenuItem>
                 <MenuItem value="lastWeek">Última Semana</MenuItem>
                 <MenuItem value="lastMonth">Último Mês</MenuItem>
@@ -618,7 +612,7 @@ const TeacherClassReschedulesList = ({ setAuthenticated }) => {
             ))}
           </Stack>
         ) : (
-          <Typography variant="body1" color="text.secondary" align="center">
+          <Typography variant="h6" color="text.secondary" align="center" mt={15}>
             Não foram encontradas solicitações.
           </Typography>
         )}

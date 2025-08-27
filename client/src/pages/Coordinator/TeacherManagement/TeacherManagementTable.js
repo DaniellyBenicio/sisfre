@@ -59,7 +59,6 @@ const TeacherManagementTable = ({
       </Tooltip>
 
       <Tooltip title="Ver Anteposições/Reposições">
-        {/* CORREÇÃO AQUI: Passe o ID do professor no estado da navegação */}
         <IconButton
           onClick={() =>
             navigate("/class-reschedules", { state: { userId: teacher.id } })

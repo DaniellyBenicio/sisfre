@@ -1,21 +1,37 @@
 import React, { useState } from "react";
-import { IconButton, Stack, Typography, Modal, Box, Button } from "@mui/material";
+import {
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+  Modal,
+  Box,
+  Button,
+} from "@mui/material";
 import { Note } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
-import Tables from "../../../components/homeScreen/Tables";
+import PropTypes from "prop-types";
 
 const TeacherAbsencesDetailsTable = ({ frequencies, search, isFiltered, setAlert }) => {
-  const navigate = useNavigate();
   const [openModal, setOpenModal] = useState(false);
   const [selectedJustification, setSelectedJustification] = useState("");
 
   const handleJustifyClick = (item) => {
-    if (item.justification?.trim() && (item.status?.toLowerCase() === "falta" || item.status?.toLowerCase() === "abonada")) {
+    if (
+      item.justification &&
+      item.justification.trim() &&
+      item.justification !== "N/A" &&
+      (item.status?.toLowerCase() === "falta" || item.status?.toLowerCase() === "abonada")
+    ) {
       setSelectedJustification(item.justification);
       setOpenModal(true);
     } else {
       setAlert({
-        message: 'Justificativa disponível apenas para status "Falta".',
+        message: 'Justificativa disponível apenas para status "Falta" ou "Abonada" com justificativa válida.',
         type: "warning",
       });
     }
@@ -34,6 +50,23 @@ const TeacherAbsencesDetailsTable = ({ frequencies, search, isFiltered, setAlert
     { key: "justification", label: "Justificativa" },
   ];
 
+  const tableHeadStyle = {
+    fontWeight: "bold",
+    backgroundColor: "#087619",
+    color: "#fff",
+    borderRight: "1px solid #fff",
+    padding: { xs: "4px", sm: "6px" },
+    height: "30px",
+    lineHeight: "30px",
+  };
+
+  const tableBodyCellStyle = {
+    borderRight: "1px solid #e0e0e0",
+    padding: { xs: "4px", sm: "8px" },
+    height: "30px",
+    lineHeight: "30px",
+  };
+
   const modalStyle = {
     position: "absolute",
     top: "50%",
@@ -46,68 +79,117 @@ const TeacherAbsencesDetailsTable = ({ frequencies, search, isFiltered, setAlert
     borderRadius: 2,
   };
 
+  const safeData = Array.isArray(frequencies) ? frequencies : [];
+  const showNoItemsFound = safeData.length === 0 || (isFiltered && safeData.length === 0);
+
   return (
     <>
-      <Tables
-        data={Array.isArray(frequencies) ? frequencies : []}
-        headers={headers}
-        search={search}
-        isFiltered={isFiltered}
-        showActions={false}
-        renderRowCell={(item, header) => (
-          <Typography
-            sx={{
-              color:
-                header.key === "status" && item[header.key]?.toLowerCase() === "falta"
-                  ? "red !important"
-                  : header.key === "status" && item[header.key]?.toLowerCase() === "abonada"
-                  ? "#FFA500 !important"
-                  : "inherit",
-              fontWeight:
-                header.key === "status" && item[header.key]?.toLowerCase() === "falta"
-                  ? "bold"
-                  : "normal",
-              display: "flex",
-              alignItems: "center",
-              flexWrap: "wrap",
-              fontSize: { xs: "0.875rem", sm: "1rem" }, // Responsivo para tamanhos de tela
-              padding: { xs: "4px 0", sm: "8px" }, // Ajuste de padding para mobile
-            }}
-          >
-            {header.key === "justification" ? (
-              item.justification?.trim() ? (
-                <IconButton
-                  onClick={() => handleJustifyClick(item)}
-                  sx={{
-                    color:
-                      item.status?.toLowerCase() === "falta"
-                        ? "#087619"
-                        : item.status?.toLowerCase() === "abonada"
-                        ? "gray"
-                        : "rgba(0, 0, 0, 0.26)",
-                    "&:hover": {
-                      color:
-                        item.status?.toLowerCase() === "falta"
-                          ? "#065412"
-                          : item.status?.toLowerCase() === "abonada"
-                          ? "gray"
-                          : "rgba(0, 0, 0, 0.26)",
-                      backgroundColor: "transparent",
-                    },
-                    padding: { xs: 0.5, sm: 1 }, // Menor padding em mobile
-                  }}
+      <TableContainer
+        component={Paper}
+        sx={{
+          width: "100%",
+          maxWidth: "1200px",
+          margin: "0 auto",
+        }}
+      >
+        <Table>
+          <TableHead>
+            <TableRow>
+              {headers.map((header) => (
+                <TableCell key={header.key} align="center" sx={tableHeadStyle}>
+                  <Typography
+                    sx={{
+                      fontSize: { xs: "0.875rem", sm: "1rem" },
+                      fontWeight: "bold",
+                      color: "#fff",
+                    }}
+                  >
+                    {header.label}
+                  </Typography>
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {showNoItemsFound ? (
+              <TableRow>
+                <TableCell
+                  colSpan={headers.length}
+                  align="center"
+                  sx={tableBodyCellStyle}
                 >
-                  <Note fontSize="small" />
-                </IconButton>
-              ) : (
-                "N/A"
-              )
+                  <Typography
+                    sx={{
+                      fontSize: { xs: "0.875rem", sm: "1rem" },
+                    }}
+                  >
+                    Nenhum item encontrado
+                  </Typography>
+                </TableCell>
+              </TableRow>
             ) : (
-              item[header.key] || "N/A"
+              safeData.map((item) => (
+                <TableRow key={item?.id || Math.random()}>
+                  {headers.map((header) => (
+                    <TableCell
+                      key={header.key}
+                      align="center"
+                      sx={tableBodyCellStyle}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: { xs: "0.875rem", sm: "1rem" },
+                          color:
+                            header.key === "status"
+                              ? item[header.key]?.toLowerCase() === "falta"
+                                ? "#FF0000"
+                                : item[header.key]?.toLowerCase() === "abonada"
+                                ? "#FFA500"
+                                : "inherit"
+                              : "inherit",
+                          fontWeight:
+                            header.key === "status" &&
+                            ["falta", "abonada"].includes(item[header.key]?.toLowerCase())
+                              ? "bold"
+                              : "normal",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        {header.key === "justification" ? (
+                          item.justification &&
+                          item.justification.trim() &&
+                          item.justification !== "N/A" ? (
+                            <IconButton
+                              onClick={() => handleJustifyClick(item)}
+                              sx={{
+                                color: "#087619",
+                                "&:hover": {
+                                  color: "#065412",
+                                  backgroundColor: "transparent",
+                                },
+                                padding: { xs: 0.5, sm: 1 },
+                              }}
+                            >
+                              <Note fontSize="small" />
+                            </IconButton>
+                          ) : (
+                            "N/A"
+                          )
+                        ) : (
+                          item[header.key] || "N/A"
+                        )}
+                      </Typography>
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
             )}
-          </Typography>
-        )}
-      />
+          </TableBody>
+        </Table>
+      </TableContainer>
       <Modal
         open={openModal}
         onClose={handleCloseModal}
@@ -118,16 +200,36 @@ const TeacherAbsencesDetailsTable = ({ frequencies, search, isFiltered, setAlert
           <Typography id="justification-modal-title" variant="h6" component="h2">
             Justificativa
           </Typography>
-          <Typography id="justification-modal-description" sx={{ mt: 2 }}>
+          <Typography
+            id="justification-modal-description"
+            sx={{
+              mt: 2,
+              fontSize: { xs: "0.875rem", sm: "1rem" },
+            }}
+          >
             {selectedJustification}
           </Typography>
-          <Button onClick={handleCloseModal} sx={{ mt: 2 }} variant="contained">
+          <Button
+            onClick={handleCloseModal}
+            sx={{
+              mt: 2,
+              fontSize: { xs: "0.875rem", sm: "1rem" },
+            }}
+            variant="contained"
+          >
             Fechar
           </Button>
         </Box>
       </Modal>
     </>
   );
+};
+
+TeacherAbsencesDetailsTable.propTypes = {
+  frequencies: PropTypes.array.isRequired,
+  search: PropTypes.string,
+  isFiltered: PropTypes.bool,
+  setAlert: PropTypes.func,
 };
 
 export default TeacherAbsencesDetailsTable;

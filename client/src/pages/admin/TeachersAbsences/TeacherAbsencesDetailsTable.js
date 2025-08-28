@@ -79,6 +79,11 @@ const TeacherAbsencesDetailsTable = ({ frequencies, search, isFiltered, setAlert
     position: "relative",
   };
 
+  const capitalizeFirstLetter = (str) => {
+    if (!str) return "N/A";
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  };
+
   const safeData = Array.isArray(frequencies) ? frequencies : [];
   const showNoItemsFound = safeData.length === 0 || (isFiltered && safeData.length === 0);
 
@@ -164,6 +169,7 @@ const TeacherAbsencesDetailsTable = ({ frequencies, search, isFiltered, setAlert
                           item.justification !== "N/A" ? (
                             <IconButton
                               onClick={() => handleJustifyClick(item)}
+                              disabled={item.justification?.toUpperCase() === "REJEITADA"}
                               sx={{
                                 color: "#087619",
                                 "&:hover": {
@@ -178,6 +184,12 @@ const TeacherAbsencesDetailsTable = ({ frequencies, search, isFiltered, setAlert
                           ) : (
                             "N/A"
                           )
+                        ) : header.key === "status" ? (
+                          item[header.key]?.toLowerCase() === "falta"
+                            ? "Falta"
+                            : item[header.key] || "N/A"
+                        ) : header.key === "turno" ? (
+                          capitalizeFirstLetter(item[header.key])
                         ) : (
                           item[header.key] || "N/A"
                         )}

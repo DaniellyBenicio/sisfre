@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -33,15 +33,39 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
   const [page, setPage] = useState(1);
-  const [professorName, setProfessorName] = useState("Professor");
+  const [professorName, setProfessorName] = useState("");
   const rowsPerPage = 7;
   const navigate = useNavigate();
   const { professorId } = useParams();
+  const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
+  const { userId: userIdFromState } = location.state || {};
+  const userId = userIdFromState ? Number(userIdFromState) : (professorId ? Number(professorId) : null);
+
   const handleAlertClose = () => {
     setAlert(null);
+  };
+
+  const fetchProfessorName = async () => {
+    if (!userId) {
+      console.log("No userId or professorId provided");
+      setProfessorName("Desconhecido");
+      return;
+    }
+    try {
+      const response = await api.get(`/users/${userId}`);
+      const name = response.data.user?.username || "Desconhecido";
+      setProfessorName(name);
+    } catch (error) {
+      console.error("Erro ao carregar nome do professor:", error.response?.data || error.message);
+      setAlert({ 
+        message: error.response?.data?.error || "Erro ao carregar nome do professor. Verifique se o ID do professor é válido.", 
+        type: "error" 
+      });
+      setProfessorName("Desconhecido");
+    }
   };
 
   const fetchFrequencies = async () => {
@@ -55,7 +79,7 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
         });
         setFrequencies([]);
         setLoading(false);
-        navigate("/professor-absences");
+        navigate("/teacher-absences");
         return;
       }
 
@@ -63,7 +87,7 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
         status: filterStatus !== "" ? filterStatus : undefined,
       };
 
-      if (filterPeriod !== "all") {
+      if (filterPeriod !== "") {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -161,6 +185,13 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
       setCustomEndDate("");
     }
   }, [filterPeriod]);
+
+  useEffect(() => {
+    if (userId || professorId) {
+      fetchProfessorName();
+    }
+    fetchFrequencies();
+  }, [userId, professorId]);
 
   useEffect(() => {
     if (filterPeriod === "custom" && (!customStartDate || !customEndDate)) {
@@ -297,7 +328,7 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
             gutterBottom
             sx={{ fontWeight: "bold", flexGrow: 1 }}
           >
-            Faltas
+            Faltas de {professorName}
           </Typography>
         </Box>
 
@@ -367,6 +398,17 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
                   onChange={(e) => setCustomEndDate(e.target.value)}
                   sx={commonDateInputSx}
                 />
+                <Button
+                  variant="contained"
+                  onClick={handleApplyCustomFilter}
+                  sx={{
+                    height: { xs: 40, sm: 36 },
+                    backgroundColor: INSTITUTIONAL_COLOR,
+                    "&:hover": { backgroundColor: "#265628" },
+                  }}
+                >
+                  Aplicar
+                </Button>
               </Stack>
             )}
           </Stack>
@@ -378,8 +420,8 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
           <TeacherAbsencesDetailsTable
             frequencies={paginatedFrequencies || []}
             isFiltered={
-              filterStatus !== "all" ||
-              filterPeriod !== "all" ||
+              filterStatus !== "" ||
+              filterPeriod !== "" ||
               (filterPeriod === "custom" && customStartDate && customEndDate)
             }
             setAlert={setAlert}

@@ -38,7 +38,7 @@ const TeacherAbsences = ({ setAuthenticated }) => {
   const fetchAbsences = async () => {
     try {
       setLoading(true);
-      const params = { search: search || undefined, status: "all", };
+      const params = { search: search || undefined, status: "all" };
       const response = await api.get("/total-absences-by-teacher", { params });
       const formattedData = Array.isArray(response.data.total_absences)
         ? response.data.total_absences.map((item) => ({
@@ -62,6 +62,10 @@ const TeacherAbsences = ({ setAuthenticated }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleViewDetails = (professorId) => {
+    navigate(`/teacher-absences/${professorId}`, { state: { userId: professorId } });
   };
 
   useEffect(() => {
@@ -136,6 +140,7 @@ const TeacherAbsences = ({ setAuthenticated }) => {
             frequencies={paginatedFrequencies || []}
             search={search}
             isFiltered={!!search}
+            onViewDetails={handleViewDetails}
           />
         )}
 

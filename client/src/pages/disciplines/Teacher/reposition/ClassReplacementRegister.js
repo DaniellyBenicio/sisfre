@@ -244,13 +244,6 @@ const ClassReplacementRegister = ({ setAlert }) => {
     const selectedDate = createLocalDate(date);
     const todayLocalMidnight = new Date();
     todayLocalMidnight.setHours(0, 0, 0, 0);
-    if (selectedDate < todayLocalMidnight) {
-      (setAlert || setLocalAlert)({
-        message: "A data da reposição não pode ser anterior à atual.",
-        type: "error",
-      });
-      return;
-    }
 
     const token = localStorage.getItem("token");
     if (!token) {
@@ -474,7 +467,7 @@ const ClassReplacementRegister = ({ setAlert }) => {
                     }
                     setDate(formattedDate);
                   }}
-                  minDate={new Date()}
+
                   slotProps={{
                     textField: {
                       id: "date-input",

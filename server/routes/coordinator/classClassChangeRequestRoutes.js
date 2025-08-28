@@ -23,8 +23,38 @@ import {
 
 const router = express.Router();
 
-router.post("/request", autenticarToken, isTeacherOrCoordinator(), upload.array("annex", 10), createRequest);
-router.put("/request/:id", autenticarToken, isTeacherOrCoordinator(), upload.array("annex", 10), updateRequest);
+router.post(
+  "/request",
+  autenticarToken,
+  isTeacherOrCoordinator(),
+  (req, res, next) => {
+    upload.array("annex", 10)(req, res, function (err) {
+      if (err && err.code === "LIMIT_FILE_SIZE") {
+        return res.status(413).json({ error: "O arquivo enviado excede o limite de 5MB." });
+      } else if (err) {
+        return res.status(400).json({ error: err.message });
+      }
+      next();
+    });
+  },
+  createRequest
+);
+router.put(
+  "/request/:id",
+  autenticarToken,
+  isTeacherOrCoordinator(),
+  (req, res, next) => {
+    upload.array("annex", 10)(req, res, function (err) {
+      if (err && err.code === "LIMIT_FILE_SIZE") {
+        return res.status(413).json({ error: "O arquivo enviado excede o limite de 5MB." });
+      } else if (err) {
+        return res.status(400).json({ error: err.message });
+      }
+      next();
+    });
+  },
+  updateRequest
+);
 router.get("/request", autenticarToken, isTeacherOrCoordinator(), getRequest);
 router.get("/request/:id", autenticarToken, isTeacherOrCoordinator(), getRequestById);
 router.delete("/request/:id", autenticarToken, isTeacherOrCoordinator(), deleteRequest);

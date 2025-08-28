@@ -644,10 +644,12 @@ export const negateReposition = async (req, res) => {
       return res.status(400).json({ error: "Esta reposição já foi negada." });
     }
 
-    request.validated = 2;
-    request.observationCoordinator =
-      observationCoordinator || request.observationCoordinator; // Usa o novo se enviado
-    await request.save();
+
+  request.validated = 2;
+  request.observationCoordinator = observationCoordinator || request.observationCoordinator; // Usa o novo se enviado
+  // Limpa o campo dateAbsence ao rejeitar para permitir nova solicitação
+  request.dateAbsence = null;
+  await request.save();
 
     return res.status(200).json({
       message: "Reposição negada ao professor, créditos não serão adicionados.",

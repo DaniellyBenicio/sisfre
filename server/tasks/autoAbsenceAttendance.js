@@ -8,12 +8,10 @@ import {
 export async function autoAbsenceAttendance(turno) {
   const transaction = await db.sequelize.transaction();
   try {
-    const hoje = new Date().toLocaleString("en-US", {
-      timeZone: "America/Sao_Paulo",
-    });
-    const dateStr = hoje.split("T")[0];
-    const diaSemanaAtual = getDayOfWeek(new Date(hoje));
-
+    // Garante data no formato YYYY-MM-DD (ISO)
+    const hoje = new Date();
+    const dateStr = hoje.toISOString().slice(0, 10);
+    const diaSemanaAtual = getDayOfWeek(hoje);
     const isHoliday = await db.Holiday.findOne({
       where: { date: dateStr },
       transaction,
@@ -107,6 +105,18 @@ export async function autoAbsenceAttendance(turno) {
           model: db.ClassSchedule,
           as: "schedule",
           where: { calendarId: calendar.id, isActive: true },
+          include: [
+            {
+              model: db.Course,
+              as: "course",
+              attributes: ["id", "name"],
+            },
+          ],
+        },
+        {
+          model: db.Discipline,
+          as: "discipline",
+          attributes: ["id", "name"],
         },
         {
           model: db.Hour,
@@ -153,24 +163,73 @@ export async function autoAbsenceAttendance(turno) {
         },
         transaction,
       });
-
       // Verifica se existe anteposição aprovada para esta falta
-      const detailDiscipline = detail.discipline?.name || detail.disciplineId;
-      const detailCourse = detail.schedule?.course?.name || detail.schedule?.courseId;
+      const detailDisciplineId = String(detail.disciplineId);
+      const detailDisciplineName = detail.discipline?.name;
+      const detailCourseId = String(detail.schedule?.courseId);
+      const detailCourseName = detail.schedule?.course?.name;
+      console.log('[DEBUG anteposicao]', {
+        userId,
+        discipline: [detailDisciplineId, detailDisciplineName],
+        course: [detailCourseId, detailCourseName],
+        date: dateStr
+      });
+
+      // Busca qualquer anteposição aprovada para o professor/disciplina/curso
       const anteposicao = await db.ClassChangeRequest.findOne({
         where: {
           type: "anteposicao",
           validated: 1,
           userId,
-          discipline: detailDiscipline,
-          course: detailCourse,
-          date: dateStr,
+          [Op.and]: [
+            {
+              [Op.or]: [
+                ...[detailDisciplineId, detailDisciplineName].filter(Boolean).map(val => ({ discipline: { [Op.like]: val } })),
+              ]
+            },
+            {
+              [Op.or]: [
+                ...[detailCourseId, detailCourseName].filter(Boolean).map(val => ({ course: { [Op.like]: val } })),
+              ]
+            }
+          ]
         },
         transaction,
       });
 
       if (anteposicao) {
-        console.log(`Anteposição aprovada encontrada para professor ${userId}, disciplina ${detailDiscipline}, curso ${detailCourse} em ${dateStr}. Não registra falta.`);
+        if (!attendance) {
+          await db.Attendance.create(
+            {
+              classScheduleDetailId,
+              date: dateStr,
+              status: "presenca",
+              justification: "Anteposição aprovada",
+              registeredBy: userId,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+            { transaction }
+          );
+          // Decrementa o quantity da anteposição
+          if (typeof anteposicao.quantity === 'number' && anteposicao.quantity > 1) {
+            anteposicao.quantity -= 1;
+            await anteposicao.save({ transaction });
+            console.log(
+              `Presença automática registrada por anteposição para professor ${userId} em ${dateStr} (${turnoToProcess}, aula ${hourStart}-${hourEnd}). Anteposição quantity agora: ${anteposicao.quantity}`
+            );
+          } else {
+            // Se quantity chega a 1, após uso zera e marca como usada
+            anteposicao.quantity = 0;
+            anteposicao.validated = 4;
+            await anteposicao.save({ transaction });
+            console.log(
+              `Presença automática registrada por anteposição para professor ${userId} em ${dateStr} (${turnoToProcess}, aula ${hourStart}-${hourEnd}). Anteposição marcada como usada (quantity esgotado).`
+            );
+          }
+        } else {
+          console.log(`Anteposição aprovada encontrada para professor ${userId}, disciplina ${detailDiscipline}, curso ${detailCourse} em ${dateStr}. Frequência já registrada.`);
+        }
         continue;
       }
 

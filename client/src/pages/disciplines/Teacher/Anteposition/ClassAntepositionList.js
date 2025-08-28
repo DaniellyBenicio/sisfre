@@ -95,7 +95,7 @@ const ClassAntepositionList = () => {
                 observacao: item.observation || "N/A",
                 observationCoordinator: item.observationCoordinator || "N/A",
                 status:
-                  item.validated === 1
+                  item.validated === 1 || item.validated === 4
                     ? "Aprovado"
                     : item.validated === 2
                     ? "Rejeitado"

@@ -91,7 +91,7 @@ const ClassReplacementList = () => {
                 observacao: item.observation || "N/A",
                 justificativa: item.observationCoordinator || null,
                 status:
-                  item.validated === 1
+                  item.validated === 1 || item.validated === 4
                     ? "Aprovado"
                     : item.validated === 2
                     ? "Rejeitado"

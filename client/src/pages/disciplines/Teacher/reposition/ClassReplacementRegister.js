@@ -5,6 +5,7 @@ import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { ptBR } from "date-fns/locale";
 import SideBar from '../../../../components/SideBar';
 import api from '../../../../service/api';
@@ -77,15 +78,28 @@ const selectStyles = {
 const menuProps = {
   PaperProps: {
     sx: {
-      maxHeight: "150px", // Reduz a altura máxima do menu
+      maxHeight: "150px",
       "& .MuiMenuItem-root": {
-        fontSize: '0.875rem', // Reduz o tamanho da fonte dos itens do menu
-        minHeight: 'auto', // Ajusta a altura mínima
+        fontSize: '0.875rem',
+        minHeight: 'auto',
         "&:hover": { backgroundColor: "#D5FFDB" },
         "&.Mui-selected": { backgroundColor: "#E8F5E9", "&:hover": { backgroundColor: "#D5FFDB" } },
       },
     },
   },
+};
+
+const createLocalDate = (dateString) => {
+  if (!dateString) return null;
+  try {
+    const parts = dateString.split('-');
+    const dateObject = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    dateObject.setHours(0, 0, 0, 0);
+    return dateObject;
+  } catch (error) {
+    console.error("Erro ao criar data local:", error);
+    return null;
+  }
 };
 
 const ClassReplacementRegister = ({ setAlert }) => {
@@ -100,6 +114,7 @@ const ClassReplacementRegister = ({ setAlert }) => {
   const [localAlert, setLocalAlert] = useState(null);
   const [availableDates] = useState(['2025-08-15', '2025-08-18', '2025-08-20', '2025-08-22', '2025-08-25', '2025-08-27']);
   const [selectedDates, setSelectedDates] = useState([]);
+  const [repositionDate, setRepositionDate] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -145,19 +160,24 @@ const ClassReplacementRegister = ({ setAlert }) => {
   };
 
   const handleDateChange = (event) => {
-    const {
-      target: { value },
-    } = event;
+    const { target: { value } } = event;
     setSelectedDates(typeof value === 'string' ? value.split(',') : value);
   };
 
   const handleSubmit = async () => {
-    if (!course || !discipline || !quantity || selectedDates.length === 0) {
-      (setAlert || setLocalAlert)({ message: "Preencha todos os campos obrigatórios.", type: "error" });
+    if (!course || !discipline || !quantity || selectedDates.length === 0 || !repositionDate) {
+      (setAlert || setLocalAlert)({ message: "Preencha todos os campos obrigatórios, incluindo a data da reposição.", type: "error" });
       return;
     }
     if (isNaN(quantity) || parseInt(quantity) > 4 || parseInt(quantity) < 1) {
       (setAlert || setLocalAlert)({ message: "Quantidade deve ser entre 1 e 4.", type: "error" });
+      return;
+    }
+    const selectedDate = createLocalDate(repositionDate.toISOString().split('T')[0]);
+    const todayLocalMidnight = new Date();
+    todayLocalMidnight.setHours(0, 0, 0, 0);
+    if (selectedDate < todayLocalMidnight) {
+      (setAlert || setLocalAlert)({ message: "A data da reposição não pode ser anterior à atual.", type: "error" });
       return;
     }
 
@@ -178,12 +198,19 @@ const ClassReplacementRegister = ({ setAlert }) => {
         return;
       }
 
+      const selectedSchedule = scheduleDetails.find(
+        (sd) => sd.course === course && sd.discipline === discipline
+      );
+      const turn = selectedSchedule ? selectedSchedule.turn : '';
+
       const formData = new FormData();
       formData.append('userId', userId);
       formData.append('course', course);
       formData.append('discipline', discipline);
+      formData.append('turn', turn);
       formData.append('type', 'reposicao');
       formData.append('quantity', parseInt(quantity));
+      formData.append('date', repositionDate.toISOString().split('T')[0]);
       formData.append('missedDates', JSON.stringify(selectedDates));
       if (file) formData.append('annex', file);
       formData.append('observation', observation);
@@ -270,7 +297,7 @@ const ClassReplacementRegister = ({ setAlert }) => {
                 <FormControl fullWidth variant="outlined" required sx={inputStyles}>
                   <InputLabel>Selecionar da Grade</InputLabel>
                   <Select
-                    value={course && discipline ? `${course}|${discipline}` : ''}
+                    value={course && discipline ? `${course}|${discipline}|${scheduleDetails.find(sd => sd.course === course && sd.discipline === discipline)?.turn || ''}` : ''}
                     onChange={handleScheduleChange}
                     label="Selecionar da Grade"
                     sx={selectStyles}
@@ -279,8 +306,8 @@ const ClassReplacementRegister = ({ setAlert }) => {
                     <MenuItem value="">Selecione</MenuItem>
                     {scheduleDetails.map((sd) => (
                       <MenuItem
-                        key={`${sd.course}|${sd.discipline}`}
-                        value={`${sd.course}|${sd.discipline}`}
+                        key={`${sd.course}|${sd.discipline}|${sd.turn}`}
+                        value={`${sd.course}|${sd.discipline}|${sd.turn}`}
                       >
                         {`${sd.acronym} - ${sd.semester} - ${sd.discipline}`}
                       </MenuItem>
@@ -337,7 +364,33 @@ const ClassReplacementRegister = ({ setAlert }) => {
                   sx={inputStyles}
                 />
               </Box>
-              <Box sx={{ my: 1.5 }}>
+              <Box sx={{ display: 'flex', gap: 2, my: 1.5, alignItems: 'center' }}>
+                <DatePicker
+                  label="Data da Reposição"
+                  value={repositionDate}
+                  onChange={(newValue) => setRepositionDate(newValue)}
+                  minDate={new Date()}
+                  format="dd/MM/yyyy"
+                  slotProps={{
+                    textField: {
+                      id: "reposition-date-input",
+                      name: "repositionDate",
+                      required: true,
+                      fullWidth: true,
+                      sx: { ...inputStyles, width: '50%' },
+                    },
+                    popper: {
+                      sx: {
+                        zIndex: 1500,
+                        "& .MuiPickerStaticWrapper-root": {
+                          maxWidth: { xs: "200px", sm: "250px" },
+                          maxHeight: { xs: "250px", sm: "300px" },
+                        },
+                      },
+                      placement: "top-start",
+                    },
+                  }}
+                />
                 <TextField
                   label="Anexar Ficha"
                   value={file ? file.name : ''}
@@ -345,7 +398,7 @@ const ClassReplacementRegister = ({ setAlert }) => {
                   readOnly
                   onClick={() => document.querySelector('input[type="file"]').click()}
                   variant="outlined"
-                  sx={inputStyles}
+                  sx={{ ...inputStyles, width: '50%' }}
                   InputProps={{ endAdornment: <InputAdornment position="end"><CloudUpload sx={{ color: '#087619' }} /></InputAdornment> }}
                 />
                 <input type="file" hidden onChange={handleFileChange} />

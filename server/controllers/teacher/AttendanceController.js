@@ -681,13 +681,18 @@ export const getJustificationByTurn = async (req, res) => {
       date: filterDate,
       status: "falta",
       justification: {
-        [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: "" }],
+        [Op.and]: [
+          { [Op.ne]: null },
+          { [Op.ne]: "" },
+          { [Op.ne]: "REJEITADA" },
+        ],
       },
     };
 
     if (accessType !== "Admin" || professorId) {
       whereClause.registeredBy = professorId || loggedUserId;
     }
+
 
     let courseFilter = {};
     if (accessType === "Coordenador") {
@@ -751,13 +756,13 @@ export const getJustificationByTurn = async (req, res) => {
         ],
       ],
     });
-
+    
     if (!attendances.length) {
       return res.status(404).json({
         error:
           accessType === "Coordenador"
-            ? "Nenhuma falta encontrada para os cursos coordenados nos critérios especificados."
-            : "Nenhuma falta encontrada para os critérios especificados.",
+            ? "Nenhuma falta com justificativa pendente encontrada para os cursos coordenados nos critérios especificados."
+            : "Nenhuma falta com justificativa pendente encontrada para os critérios especificados.",
       });
     }
 
@@ -841,7 +846,7 @@ export const getJustificationByTurn = async (req, res) => {
     );
 
     return res.status(200).json({
-      message: "Justificativas recuperadas com sucesso.",
+      message: "Justificativas pendentes recuperadas com sucesso.",
       justifications: formattedJustifications,
     });
   } catch (error) {

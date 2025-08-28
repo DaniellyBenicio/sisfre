@@ -58,25 +58,22 @@ const JustificationsList = ({ setAuthenticated }) => {
         /doença|doente|medica|atestado/i.test(justification)
     );
 
-  const handleAccept = async (justification) => {
-    let newStatus;
+  const handleUpdate = async (justification, newStatus) => {
     try {
       const token = localStorage.getItem("token");
-      const newStatus = isMedicalJustification(justification.justifications)
-        ? "abonada"
-        : "presença";
       const payload = {
         date: justification.date,
         turno: justification.turn,
         newStatus,
         professorId: justification.professor_id,
       };
-      console.log("Payload enviado:", payload);
-      console.log("Justificativas:", justification.justifications);
+      console.log("Payload enviado para atualização:", payload);
+
       const response = await api.put("/absences/turn", payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log("Resposta da API:", response.data);
+
       setJustifications((prev) =>
         prev.filter(
           (j) =>
@@ -87,6 +84,7 @@ const JustificationsList = ({ setAuthenticated }) => {
             )
         )
       );
+
       setAlert({
         message: response.data.message,
         type: "success",
@@ -103,28 +101,15 @@ const JustificationsList = ({ setAuthenticated }) => {
     }
   };
 
+  const handleAccept = (justification) => {
+    const newStatus = isMedicalJustification(justification.justifications)
+      ? "abonada"
+      : "presença";
+    handleUpdate(justification, newStatus);
+  };
+
   const handleReject = (justification) => {
-    console.log(
-      "Rejected Justification:",
-      justification.professor_id,
-      justification.turn,
-      justification.date
-    );
-    setJustifications((prev) =>
-      prev.filter(
-        (j) =>
-          !(
-            j.professor_id === justification.professor_id &&
-            j.turn === justification.turn &&
-            j.date === justification.date
-          )
-      )
-    );
-    setAlert({
-      message: "Justificativa rejeitada com sucesso.",
-      type: "success",
-    });
-    setTimeout(() => setAlert(null), 3000);
+    handleUpdate(justification, "falta");
   };
 
   const handleAlertClose = () => {
@@ -169,12 +154,25 @@ const JustificationsList = ({ setAuthenticated }) => {
           </Typography>
         </Box>
 
+        {alert && (
+          <CustomAlert
+            message={alert.message}
+            type={alert.type}
+            onClose={handleAlertClose}
+          />
+        )}
+
         {loading ? (
           <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
             <CircularProgress sx={{ color: greenPrimary }} />
           </Box>
         ) : justifications.length === 0 ? (
-          <Typography variant="h6" color="text.secondary" align="center" mt={25}>
+          <Typography
+            variant="h6"
+            color="text.secondary"
+            align="center"
+            mt={25}
+          >
             Nenhuma justificativa encontrada.
           </Typography>
         ) : (
@@ -185,7 +183,9 @@ const JustificationsList = ({ setAuthenticated }) => {
               elevation={3}
               sx={{ p: 5, m: 4, borderRadius: 3 }}
             >
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}
+              >
                 <Box
                   sx={{
                     backgroundColor: greenPrimary,
@@ -228,22 +228,25 @@ const JustificationsList = ({ setAuthenticated }) => {
               <Typography variant="body1" sx={{ mb: 1, color: "#333" }}>
                 <strong>Disciplina:</strong>{" "}
                 {justification.disciplines
-                  .map((discipline) => `${discipline.name} (${discipline.acronym})`)
+                  .map(
+                    (discipline) => `${discipline.name} (${discipline.acronym})`
+                  )
                   .join(", ") || "N/A"}
               </Typography>
               <Typography variant="body1" sx={{ mb: 1, color: "#333" }}>
                 <strong>Data:</strong>{" "}
                 {justification.date
-                  ? new Date(justification.date + "T00:00:00").toLocaleDateString(
-                      "pt-BR"
-                    )
+                  ? new Date(
+                      justification.date + "T00:00:00"
+                    ).toLocaleDateString("pt-BR")
                   : "N/A"}
               </Typography>
               <Typography variant="body1" sx={{ mb: 1, color: "#333" }}>
                 <strong>Turno:</strong> {justification.turn || "N/A"}
               </Typography>
               <Typography variant="body1" sx={{ mb: 2, color: "#333" }}>
-                <strong>Horário:</strong> {justification.hours.join(", ") || "N/A"}
+                <strong>Horário:</strong>{" "}
+                {justification.hours.join(", ") || "N/A"}
               </Typography>
               <Typography variant="body1" sx={{ mb: 1, color: "#333" }}>
                 <strong>Motivo:</strong>{" "}
@@ -251,7 +254,9 @@ const JustificationsList = ({ setAuthenticated }) => {
               </Typography>
 
               {accessType === "Admin" && (
-                <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
+                <Box
+                  sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}
+                >
                   <Button
                     variant="contained"
                     onClick={() => handleReject(justification)}
@@ -292,14 +297,6 @@ const JustificationsList = ({ setAuthenticated }) => {
               )}
             </Box>
           ))
-        )}
-
-        {alert && (
-          <CustomAlert
-            message={alert.message}
-            type={alert.type}
-            onClose={handleAlertClose}
-          />
         )}
       </Box>
     </Box>

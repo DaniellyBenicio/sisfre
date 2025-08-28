@@ -358,7 +358,7 @@ export const updateAbsenceByTurn = async (req, res) => {
       });
     }
 
-    if (!date || !turno || !newStatus || !professorId) {
+    if (!turno || !newStatus || !professorId) {
       return res.status(400).json({
         error: "Data, turno, novo status e ID do professor são obrigatórios.",
       });

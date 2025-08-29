@@ -9,15 +9,6 @@ export const registerUser = async (req, res) => {
       error: "Email, nome e tipo de acesso são obrigatórios",
     });
   }
-  if (
-    !email.endsWith("@ifce.edu.br") &&
-    !email.endsWith("@aluno.ifce.edu.br")
-  ) {
-    return res.status(400).json({
-      error:
-        "Apenas e-mails institucionais (@ifce.edu.br ou @aluno.ifce.edu.br) são permitidos",
-    });
-  }
 
   if (!/^[a-zA-ZÀ-ÿ\s]+$/.test(username)) {
     return res.status(400).json({
@@ -83,13 +74,10 @@ export const updateUser = async (req, res) => {
     }
 
     if (email && email !== user.email) {
-      if (
-        !email.endsWith("@ifce.edu.br") &&
-        !email.endsWith("@aluno.ifce.edu.br")
-      ) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
         return res.status(400).json({
-          error:
-            "Apenas e-mails institucionais (@ifce.edu.br ou @aluno.ifce.edu.br) são permitidos",
+          error: "Formato de email inválido",
         });
       }
 

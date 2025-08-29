@@ -151,8 +151,8 @@ const UserFormDialog = ({
       setError(
         errorMessage.includes("E-mail já cadastrado")
           ? "Este e-mail já está cadastrado. Use um e-mail diferente."
-          : errorMessage.includes("Apenas e-mails institucionais")
-          ? "Use um e-mail institucional (@ifce.edu.br)."
+          : errorMessage.includes("Formato de email inválido")
+          ? "O e-mail informado possui um formato inválido."
           : errorMessage.includes("Não é possível editar um usuário inativo")
           ? "Não é possível editar um usuário inativo."
           : errorMessage

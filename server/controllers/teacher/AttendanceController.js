@@ -625,10 +625,6 @@ export const justifyAbsenceByTurn = async (req, res) => {
 export const getJustificationByTurn = async (req, res) => {
   const { date, turno, professorId } = req.query;
   const loggedUserId = req.userId;
-  const currentDateTime = new Date(
-    new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })
-  );
-  const currentDate = currentDateTime.toISOString().split("T")[0];
 
   try {
     if (!loggedUserId) {
@@ -647,7 +643,6 @@ export const getJustificationByTurn = async (req, res) => {
     }
 
     const accessType = user.accessType;
-
     const validAccessTypes = ["Professor", "Coordenador", "Admin"];
     if (!validAccessTypes.includes(accessType)) {
       return res.status(403).json({
@@ -656,29 +651,7 @@ export const getJustificationByTurn = async (req, res) => {
       });
     }
 
-    const filterDate = date || currentDate;
-
-    const validTurns = ["MATUTINO", "VESPERTINO", "NOTURNO"];
-    if (turno && !validTurns.includes(turno.toUpperCase())) {
-      return res.status(400).json({
-        error: "Turno inválido. Use MATUTINO, VESPERTINO ou NOTURNO.",
-      });
-    }
-
-    const calendar = await db.Calendar.findOne({
-      where: {
-        startDate: { [Op.lte]: filterDate },
-        endDate: { [Op.gte]: filterDate },
-      },
-    });
-    if (!calendar) {
-      return res
-        .status(404)
-        .json({ error: "Nenhum calendário ativo encontrado para a data." });
-    }
-
     let whereClause = {
-      date: filterDate,
       status: "falta",
       justification: {
         [Op.and]: [
@@ -689,10 +662,13 @@ export const getJustificationByTurn = async (req, res) => {
       },
     };
 
+    if (date) {
+      whereClause.date = date;
+    }
+
     if (accessType !== "Admin" || professorId) {
       whereClause.registeredBy = professorId || loggedUserId;
     }
-
 
     let courseFilter = {};
     if (accessType === "Coordenador") {
@@ -735,7 +711,7 @@ export const getJustificationByTurn = async (req, res) => {
             {
               model: db.ClassSchedule,
               as: "schedule",
-              where: { calendarId: calendar.id, isActive: true },
+              where: { isActive: true }, 
               include: [
                 { model: db.Class, as: "class" },
                 { model: db.Course, as: "course" },
@@ -756,7 +732,7 @@ export const getJustificationByTurn = async (req, res) => {
         ],
       ],
     });
-    
+
     if (!attendances.length) {
       return res.status(404).json({
         error:
@@ -768,7 +744,7 @@ export const getJustificationByTurn = async (req, res) => {
 
     const groupedJustifications = {};
     attendances.forEach((attendance) => {
-      const key = `${attendance.registeredBy}_${attendance.detail.turn}`;
+      const key = `${attendance.registeredBy}_${attendance.detail.turn}_${attendance.date}`;
       if (!groupedJustifications[key]) {
         groupedJustifications[key] = {
           professor_id: attendance.registeredBy,

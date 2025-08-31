@@ -420,7 +420,7 @@ export const getTeacherAbsences = async (req, res) => {
           model: db.ClassSchedule,
           as: "schedule",
           attributes: ["classId", "courseId"],
-          where: { isActive: true },
+          where: { isActive: false },
           required: true,
           include: [
             {
@@ -711,7 +711,7 @@ export const getJustificationByTurn = async (req, res) => {
             {
               model: db.ClassSchedule,
               as: "schedule",
-              where: { isActive: true }, 
+              where: { isActive: true },
               include: [
                 { model: db.Class, as: "class" },
                 { model: db.Course, as: "course" },

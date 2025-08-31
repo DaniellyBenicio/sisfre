@@ -42,6 +42,7 @@ const Sidebar = ({ setAuthenticated }) => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [pendingJustificationsCount, setPendingJustificationsCount] = useState(0);
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
   const [username, setUsername] = useState("");
@@ -87,9 +88,30 @@ const Sidebar = ({ setAuthenticated }) => {
     }
   };
 
+  const fetchPendingRescheduleRequest = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("Usuário não autenticado.");
+        return;
+      }
+
+      const response = await api.get("/request", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const requests = response.data.requests || [];
+      setPendingRequestsCount(requests.length);
+    } catch (error) {
+      console.error("Erro ao buscar solicitações pendentes:", error);
+      setPendingRequestsCount(0);
+    }
+  };
+
   useEffect(() => {
     if (accessType === "Admin") {
       fetchPendingJustifications();
+    } else if (accessType === "Coordenador") {
+      fetchPendingRescheduleRequest();
     }
   }, [accessType]);
 
@@ -260,11 +282,30 @@ const Sidebar = ({ setAuthenticated }) => {
               </ListItem>
               <ListItem
                 button
-                onClick={() => handleItemClick("/teachers-management/options", "teachers-management/options")}
+                onClick={() =>
+                  handleItemClick("/teachers-management/options", "teachers-management/options")
+                }
                 sx={getListItemStyle(selectedItem, "teachers-management/options")}
               >
-                <Group sx={{ mr: 1 }} />
-                <ListItemText primary="Gestão de Docentes" />
+                <EventBusy sx={{ mr: 1 }} />
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <ListItemText primary="Gestão de Docentes" />
+                  {pendingRequestsCount > 0 && (
+                    <Badge
+                      badgeContent={""}
+                      color="error"
+                      sx={{
+                        "& .MuiBadge-badge": {
+                          width: 10,
+                          height: 10,
+                          borderRadius: "50%",
+                          minWidth: 0,
+                          padding: 0,
+                        },
+                      }}
+                    />
+                  )}
+                </Box>
               </ListItem>
             </>
           )}

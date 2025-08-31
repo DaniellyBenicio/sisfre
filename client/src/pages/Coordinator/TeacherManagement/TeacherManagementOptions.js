@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import {
 	Box,
 	Typography,
@@ -5,15 +6,18 @@ import {
 	Card,
 	CardContent,
 	CardActionArea,
-	CssBaseline
+	CssBaseline,
+	Badge,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../../components/SideBar";
 import { Folder, Group } from "@mui/icons-material";
+import api from "../../../service/api";
 
 const TeacherManagementOptions = ({ setAuthenticated }) => {
 	const navigate = useNavigate();
 	const accessType = localStorage.getItem("accessType") || "";
+	const [pendingRquestsCount, setPendingRequestsCount] = useState(0);
 
 	const calendarOptions = [
 		{
@@ -32,6 +36,47 @@ const TeacherManagementOptions = ({ setAuthenticated }) => {
 		const targetPath = accessType === "Admin" && option.adminPath ? option.adminPath : option.path;
 		navigate(targetPath);
 	};
+
+	const fetchPendingRequests = async () => {
+		try {
+			const token = localStorage.getItem("token");
+			if (!token) {
+				console.error("Usuário não autenticado.");
+				return;
+			}
+
+			const response = await api.get("/request", {
+				params: {
+					validated: false,
+					observationCoordinator: null,
+				},
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Cache-Control": "no-cache",
+				},
+			});
+
+			const requests = response.data.requests || [];
+
+			const pendingRequests = requests.filter(
+				(request) =>
+					!request.validated &&
+					(!request.observationCoordinator || request.observationCoordinator.trim() === "")
+			);
+			console.log("Requisições pendentes:", pendingRequests);
+			setPendingRequestsCount(pendingRequests.length);
+		} catch (error) {
+			console.error("Erro ao buscar justificativas pendentes:", error.response?.data || error.message);
+			setPendingRequestsCount(0);
+		}
+	};
+
+		useEffect(() => {
+				const accessType = localStorage.getItem("accessType");
+				if (accessType === "Coordenador") {
+					fetchPendingRequests();
+				}
+		}, []);
 
 	return (
 		<Box sx={{ display: "flex" }}>
@@ -115,6 +160,27 @@ const TeacherManagementOptions = ({ setAuthenticated }) => {
 										},
 									}}
 								/>
+
+								{option.title === "Solicitações de Reposição e Anteposição" && pendingRquestsCount > 0 && (
+									<Badge
+										badgeContent={pendingRquestsCount}
+										color="error"
+										sx={{
+											position: "absolute",
+											top: -1,
+											right: 3,
+											zIndex: 1000,
+											"& .MuiBadge-badge": {
+												minWidth: 30,
+												height: 30,
+												borderRadius: "50%",
+												fontSize: "0.75rem",
+												padding: "0 4px",
+												border: "2px solid #FFFFFF",
+											},
+										}}
+									/>
+								)}
 
 								<CardActionArea
 									onClick={() => handleCardClick(option)}

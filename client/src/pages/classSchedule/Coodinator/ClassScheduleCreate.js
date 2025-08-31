@@ -551,7 +551,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
     Noite: confirmedDetails.filter((detail) => detail.turn === "Noite"),
   };
 
-  const daysOfWeek = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+  const daysOfWeek = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta",];
 
   const getScheduleMatrix = (details) => {
     const groupedByDayAndDiscipline = details.reduce((acc, detail) => {
@@ -797,7 +797,6 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
                     <MenuItem value="Quarta-feira">Quarta-feira</MenuItem>
                     <MenuItem value="Quinta-feira">Quinta-feira</MenuItem>
                     <MenuItem value="Sexta-feira">Sexta-feira</MenuItem>
-                    <MenuItem value="Sábado">Sábado</MenuItem>
                   </CustomSelect>
                   <CustomSelect
                     label="Turno"

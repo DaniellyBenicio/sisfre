@@ -81,7 +81,6 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
       quarta: "Quarta-feira",
       quinta: "Quinta-feira",
       sexta: "Sexta-feira",
-      sábado: "Sábado",
     };
     const dayLower = day.toLowerCase();
     return (
@@ -722,7 +721,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
     Tarde: confirmedDetails.filter((detail) => detail.turn === "Tarde"),
     Noite: confirmedDetails.filter((detail) => detail.turn === "Noite"),
   };
-  const daysOfWeek = [ "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", ];
+  const daysOfWeek = [ "Segunda", "Terça", "Quarta", "Quinta", "Sexta", ];
 
   const getScheduleMatrix = (details) => {
     const groupedByDayAndDiscipline = details.reduce((acc, detail) => {
@@ -994,7 +993,6 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                     <MenuItem value="Quarta-feira">Quarta-feira</MenuItem>
                     <MenuItem value="Quinta-feira">Quinta-feira</MenuItem>
                     <MenuItem value="Sexta-feira">Sexta-feira</MenuItem>
-                    <MenuItem value="Sábado">Sábado</MenuItem>
                   </CustomSelect>
 
                   <CustomSelect

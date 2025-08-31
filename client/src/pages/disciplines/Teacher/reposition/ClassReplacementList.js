@@ -275,7 +275,7 @@ const ClassReplacementList = () => {
           gutterBottom
           sx={{ fontWeight: "bold", flexGrow: 1 }}
         >
-        Reposições de Aula
+          Reposições de Aula
         </Typography>
       </Box>
 
@@ -504,7 +504,12 @@ const ClassReplacementList = () => {
           ))}
         </Stack>
       ) : (
-        <Typography variant="body1" color="text.secondary" align="center">
+        <Typography 
+          variant="body" 
+          color="text.secondary" 
+          align="center" 
+          sx={{ mt: 20, mb: 4, fontSize: '1.2rem' }}
+        >
           Não foram encontradas reposições.
         </Typography>
       )}

@@ -668,9 +668,14 @@ const ClassAntepositionList = () => {
           ))}
         </Stack>
       ) : (
-        <Typography variant="body1" color="text.secondary" align="center">
-          Não foram encontradas anteposições.
-        </Typography>
+        <Typography 
+                  variant="body" 
+                  color="text.secondary" 
+                  align="center" 
+                  sx={{ mt: 20, mb: 4, fontSize: '1.2rem' }}
+                >
+                  Não foram encontradas anteposições.
+                </Typography>
       )}
 
       {totalPages > 1 && (

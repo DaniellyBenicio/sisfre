@@ -31,7 +31,7 @@ const StyledButton = styled(Button)(({ theme }) => ({
   minWidth: "100px",
   [theme.breakpoints.down("xs")]: {
     fontSize: theme.typography.pxToRem(12),
-    padding: theme.spacing(0.75, 1.5),
+    padding: theme.spacing(0.75, 2.0),
     minWidth: "90px",
   },
 }));
@@ -42,14 +42,11 @@ const inputStyles = {
     height: { xs: "auto", sm: 48 },
     minHeight: { xs: "100px", sm: "120px" },
     "& .MuiOutlinedInput-input": {
-      // Ajusta o padding para dar mais espaço no topo
       padding: { xs: "20px 12px 6px", sm: "24px 14px 8px" },
       fontSize: { xs: "0.75rem", sm: "0.85rem" },
-      // Estilo para o placeholder
       "&::placeholder": {
-        opacity: 1, // Torna o placeholder visível
+        opacity: 1,
         color: "rgba(0, 0, 0, 0.6)",
-        // Remove qualquer centralização e garante que ele comece do topo
         position: "relative",
         top: "auto",
         transform: "none",
@@ -87,9 +84,12 @@ const JustificationForm = ({ setAuthenticated }) => {
   const frequencyItem = state?.frequencyItem || {};
   const [justification, setJustification] = useState("");
   const [alert, setAlert] = useState(null);
+  const [isSubmitted, setIsSubmitted] = useState(false); // Estado para rastrear envio
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitted) return; // Impede envio duplicado
+
     try {
       let formattedDate = frequencyItem.date;
       if (formattedDate && formattedDate.includes("/")) {
@@ -105,7 +105,11 @@ const JustificationForm = ({ setAuthenticated }) => {
         message: response.data.message || "Justificativa enviada com sucesso!",
         type: "success",
       });
-      setTimeout(() => navigate("/frequency"), 2000);
+      setIsSubmitted(true); // Marca como enviado
+      // Aguarda 1.5 segundos para exibir a mensagem antes de redirecionar
+      setTimeout(() => {
+        navigate("/frequency");
+      }, 1500);
     } catch (error) {
       console.error("Erro ao enviar justificativa:", error);
       setAlert({
@@ -259,7 +263,7 @@ const JustificationForm = ({ setAuthenticated }) => {
             <StyledButton
               onClick={handleSubmit}
               variant="contained"
-              disabled={!justification.trim()}
+              disabled={!justification.trim() || isSubmitted} // Desabilita se já enviado ou campo vazio
               sx={{
                 backgroundColor: INSTITUTIONAL_COLOR,
                 "&:hover": { backgroundColor: "#26692b" },

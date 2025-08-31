@@ -403,13 +403,13 @@ const ClassAntepositionRegister = ({ setAlert }) => {
                   },
                   popper: {
                     sx: {
-                      zIndex: 1500,
+                      zIndex: 2000,
                       "& .MuiPickerStaticWrapper-root": {
-                        maxWidth: { xs: "200px", sm: "250px" },
-                        maxHeight: { xs: "250px", sm: "300px" },
+                        maxWidth: { xs: 300, sm: 350 },
+                        maxHeight: { xs: 300, sm: 350 },
                       },
                     },
-                    placement: "top-start",
+                    placement: "bottom-start",
                   },
                 }}
               />

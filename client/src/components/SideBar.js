@@ -336,7 +336,7 @@ const Sidebar = ({ setAuthenticated }) => {
                 sx={getListItemStyle(selectedItem, "class-reschedule")}
               >
                 <EventNote sx={{ mr: 1 }} />
-                <ListItemText primary="Reorganização de Aulas" />
+                <ListItemText primary="Organização de Aulas" />
               </ListItem>
               <ListItem
                 button

@@ -368,46 +368,56 @@ const ClassAntepositionList = () => {
 
   return (
     <Box
-      sx={{
-        p: 3,
-        width: "100%",
-        maxWidth: "1200px",
-        margin: "0 auto",
-        display: "flex",
-        flexDirection: "column",
-        gap: 2,
-      }}
+  sx={{
+    p: 3,
+    width: "100%",
+    maxWidth: "1200px",
+    margin: "0 auto",
+    display: "flex",
+    flexDirection: "column",
+    gap: 2,
+  }}
+>
+  {/* Box para a seta de voltar, posicionada no canto superior esquerdo */}
+  <Box sx={{ position: "absolute", top: 16, left: 16 }}>
+    <IconButton
+      onClick={handleGoBack}
+      sx={{ color: INSTITUTIONAL_COLOR }}
     >
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          position: "relative",
-          mb: 3,
-        }}
-      >
-        <IconButton
-          onClick={handleGoBack}
-          sx={{
-            position: "absolute",
-            left: 0,
-            color: INSTITUTIONAL_COLOR,
-            "&:hover": { backgroundColor: "transparent" },
-          }}
-        >
-          <ArrowBack sx={{ fontSize: 35 }} />
-        </IconButton>
-        <Typography
-          variant="h5"
-          align="center"
-          gutterBottom
-          sx={{ fontWeight: "bold", flexGrow: 1 }}
-        >
-          Anteposições de Aula
-        </Typography>
-      </Box>
+      <ArrowBack sx={{ fontSize: 35 }} />
+    </IconButton>
+  </Box>
 
+  {/* Box para o título, centralizado e com margem superior ajustada */}
+  <Box
+  sx={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+    mb: 3,
+  }}
+>
+  <IconButton
+    onClick={handleGoBack}
+    sx={{
+      position: "absolute",
+      left: 0,
+      color: INSTITUTIONAL_COLOR,
+      "&:hover": { backgroundColor: "transparent" },
+    }}
+  >
+    <ArrowBack sx={{ fontSize: 35 }} />
+  </IconButton>
+  <Typography
+    variant="h5"
+    align="center"
+    gutterBottom
+    sx={{ fontWeight: "bold", flexGrow: 1 }}
+  >
+    Anteposições de Aula
+  </Typography>
+</Box>
       <Stack
         direction={{ xs: "column", sm: "row" }}
         spacing={2}

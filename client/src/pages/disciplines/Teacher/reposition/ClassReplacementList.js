@@ -14,6 +14,8 @@ import {
   IconButton,
   Pagination,
   MenuItem,
+  useMediaQuery, // Adicionado para a lógica responsiva
+  useTheme, // Adicionado para acessar os temas de breakpoints
 } from "@mui/material";
 import { ArrowBack, ExpandMore, School, Link } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
@@ -42,6 +44,10 @@ const ClassReplacementList = () => {
   const [page, setPage] = useState(1);
   const rowsPerPage = 7;
   const navigate = useNavigate();
+
+  // Usando useMediaQuery para detectar o tamanho da tela
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const handleAlertClose = () => {
     setAlert(null);
@@ -80,9 +86,7 @@ const ClassReplacementList = () => {
                 quantidade: item.quantity.toString(),
                 data: formatDate(item.date),
                 dataAusencia: formatDate(item.dateAbsence),
-                fileNames: item.annex
-                  ? JSON.parse(item.annex || "[]")
-                  : [],
+                fileNames: item.annex ? JSON.parse(item.annex || "[]") : [],
                 fileLinks: item.annex
                   ? JSON.parse(item.annex || "[]").map(
                       (path) => `${ATTACHMENTS_BASE_URL}/${path.replace(/\\/g, "/")}`
@@ -97,9 +101,7 @@ const ClassReplacementList = () => {
                     ? "Rejeitado"
                     : "Pendente",
               }))
-              .sort((a, b) =>
-                a.data.localeCompare(b.data) || a.id - b.id
-              )
+              .sort((a, b) => a.data.localeCompare(b.data) || a.id - b.id)
           : [];
         setReplacements(replacementsArray);
       } catch (error) {
@@ -258,17 +260,20 @@ const ClassReplacementList = () => {
           mb: 3,
         }}
       >
-        <IconButton
-          onClick={handleGoBack}
-          sx={{
-            position: "absolute",
-            left: 0,
-            color: INSTITUTIONAL_COLOR,
-            "&:hover": { backgroundColor: "transparent" },
-          }}
-        >
-          <ArrowBack sx={{ fontSize: 35 }} />
-        </IconButton>
+        {/* Lógica para esconder o botão em telas móveis */}
+        {!isMobile && (
+          <IconButton
+            onClick={handleGoBack}
+            sx={{
+              position: "absolute",
+              left: 0,
+              color: INSTITUTIONAL_COLOR,
+              "&:hover": { backgroundColor: "transparent" },
+            }}
+          >
+            <ArrowBack sx={{ fontSize: 35 }} />
+          </IconButton>
+        )}
         <Typography
           variant="h5"
           align="center"
@@ -504,11 +509,11 @@ const ClassReplacementList = () => {
           ))}
         </Stack>
       ) : (
-        <Typography 
-          variant="body" 
-          color="text.secondary" 
-          align="center" 
-          sx={{ mt: 20, mb: 4, fontSize: '1.2rem' }}
+        <Typography
+          variant="body"
+          color="text.secondary"
+          align="center"
+          sx={{ mt: 20, mb: 4, fontSize: "1.2rem" }}
         >
           Não foram encontradas reposições.
         </Typography>

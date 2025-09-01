@@ -14,6 +14,8 @@ import {
   IconButton,
   Pagination,
   MenuItem,
+  useMediaQuery, // Adicionado para a lógica responsiva
+  useTheme, // Adicionado para acessar os temas de breakpoints
 } from "@mui/material";
 import {
   ArrowBack,
@@ -56,6 +58,10 @@ const ClassAntepositionList = () => {
   const navigate = useNavigate();
   const accessType = localStorage.getItem("accessType") || "Professor";
 
+  // Usando useMediaQuery para detectar o tamanho da tela
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const handleAlertClose = () => {
     setAlert(null);
   };
@@ -86,7 +92,6 @@ const ClassAntepositionList = () => {
                     ? JSON.parse(item.annex)[0].split("/").pop()
                     : "N/A"
                   : "N/A",
-                // Corrigido para usar ATTACHMENTS_BASE_URL
                 fileLink: item.annex
                   ? JSON.parse(item.annex || "[]").length > 0
                     ? `${ATTACHMENTS_BASE_URL}/${JSON.parse(item.annex)[0].replace(/\\/g, "/")}`
@@ -368,56 +373,49 @@ const ClassAntepositionList = () => {
 
   return (
     <Box
-  sx={{
-    p: 3,
-    width: "100%",
-    maxWidth: "1200px",
-    margin: "0 auto",
-    display: "flex",
-    flexDirection: "column",
-    gap: 2,
-  }}
->
-  {/* Box para a seta de voltar, posicionada no canto superior esquerdo */}
-  <Box sx={{ position: "absolute", top: 16, left: 16 }}>
-    <IconButton
-      onClick={handleGoBack}
-      sx={{ color: INSTITUTIONAL_COLOR }}
+      sx={{
+        p: 3,
+        width: "100%",
+        maxWidth: "1200px",
+        margin: "0 auto",
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+      }}
     >
-      <ArrowBack sx={{ fontSize: 35 }} />
-    </IconButton>
-  </Box>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "relative",
+          mb: 3,
+        }}
+      >
+        {/* Lógica para esconder o botão em telas móveis */}
+        {!isMobile && (
+          <IconButton
+            onClick={handleGoBack}
+            sx={{
+              position: "absolute",
+              left: 0,
+              color: INSTITUTIONAL_COLOR,
+              "&:hover": { backgroundColor: "transparent" },
+            }}
+          >
+            <ArrowBack sx={{ fontSize: 35 }} />
+          </IconButton>
+        )}
+        <Typography
+          variant="h5"
+          align="center"
+          gutterBottom
+          sx={{ fontWeight: "bold", flexGrow: 1 }}
+        >
+          Anteposições de Aula
+        </Typography>
+      </Box>
 
-  {/* Box para o título, centralizado e com margem superior ajustada */}
-  <Box
-  sx={{
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-    mb: 3,
-  }}
->
-  <IconButton
-    onClick={handleGoBack}
-    sx={{
-      position: "absolute",
-      left: 0,
-      color: INSTITUTIONAL_COLOR,
-      "&:hover": { backgroundColor: "transparent" },
-    }}
-  >
-    <ArrowBack sx={{ fontSize: 35 }} />
-  </IconButton>
-  <Typography
-    variant="h5"
-    align="center"
-    gutterBottom
-    sx={{ fontWeight: "bold", flexGrow: 1 }}
-  >
-    Anteposições de Aula
-  </Typography>
-</Box>
       <Stack
         direction={{ xs: "column", sm: "row" }}
         spacing={2}
@@ -679,13 +677,13 @@ const ClassAntepositionList = () => {
         </Stack>
       ) : (
         <Typography 
-                  variant="body" 
-                  color="text.secondary" 
-                  align="center" 
-                  sx={{ mt: 20, mb: 4, fontSize: '1.2rem' }}
-                >
-                  Não foram encontradas anteposições.
-                </Typography>
+          variant="body" 
+          color="text.secondary" 
+          align="center" 
+          sx={{ mt: 20, mb: 4, fontSize: '1.2rem' }}
+        >
+          Não foram encontradas anteposições.
+        </Typography>
       )}
 
       {totalPages > 1 && (

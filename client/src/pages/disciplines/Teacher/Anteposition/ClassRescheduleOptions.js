@@ -51,7 +51,7 @@ const ClassRescheduleOptions = ({ setAuthenticated }) => {
             mt: '40px',
           }}
         >
-          Opções de Reorganização de Aulas
+          Opções de Organização de Aulas
         </Typography>
 
         <Grid

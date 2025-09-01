@@ -14,8 +14,8 @@ import {
   IconButton,
   Pagination,
   MenuItem,
-  useMediaQuery, // Adicionado para a lógica responsiva
-  useTheme, // Adicionado para acessar os temas de breakpoints
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { ArrowBack, ExpandMore, School, Link } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
@@ -45,7 +45,6 @@ const ClassReplacementList = () => {
   const rowsPerPage = 7;
   const navigate = useNavigate();
 
-  // Usando useMediaQuery para detectar o tamanho da tela
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -278,7 +277,11 @@ const ClassReplacementList = () => {
           variant="h5"
           align="center"
           gutterBottom
-          sx={{ fontWeight: "bold", flexGrow: 1 }}
+          sx={{
+            fontWeight: "bold",
+            flexGrow: 1,
+            mt: { xs: 3, sm: 0 }, 
+          }}
         >
           Reposições de Aula
         </Typography>

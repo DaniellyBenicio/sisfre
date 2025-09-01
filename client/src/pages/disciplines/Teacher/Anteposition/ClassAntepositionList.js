@@ -410,7 +410,11 @@ const ClassAntepositionList = () => {
           variant="h5"
           align="center"
           gutterBottom
-          sx={{ fontWeight: "bold", flexGrow: 1 }}
+          sx={{
+            fontWeight: "bold",
+            flexGrow: 1,
+            mt: { xs: 3, sm: 0 },
+          }}
         >
           Anteposições de Aula
         </Typography>
@@ -676,10 +680,10 @@ const ClassAntepositionList = () => {
           ))}
         </Stack>
       ) : (
-        <Typography 
-          variant="body" 
-          color="text.secondary" 
-          align="center" 
+        <Typography
+          variant="body"
+          color="text.secondary"
+          align="center"
           sx={{ mt: 20, mb: 4, fontSize: '1.2rem' }}
         >
           Não foram encontradas anteposições.

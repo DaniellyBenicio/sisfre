@@ -29,7 +29,12 @@ import { CustomAlert } from "../../../../components/alert/CustomAlert";
 const INSTITUTIONAL_COLOR = "#307c34";
 
 // Regras do Multer replicadas no frontend
-const ALLOWED_FILE_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
+const ALLOWED_FILE_TYPES = [
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/jpg",
+];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 const StyledButton = styled(Button)(() => ({
@@ -98,7 +103,10 @@ const menuProps = {
         fontSize: "0.875rem",
         minHeight: "auto",
         "&:hover": { backgroundColor: "#D5FFDB" },
-        "&.Mui-selected": { backgroundColor: "#E8F5E9", "&:hover": { backgroundColor: "#D5FFDB" } },
+        "&.Mui-selected": {
+          backgroundColor: "#E8F5E9",
+          "&:hover": { backgroundColor: "#D5FFDB" },
+        },
       },
     },
   },
@@ -143,7 +151,12 @@ const ClassReplacementRegister = ({ setAlert }) => {
         const scheduleResponse = await api.get("/professor/request");
         const details = scheduleResponse.data.scheduleDetails || [];
         const validatedDetails = details.filter(
-          (sd) => sd.course && sd.discipline && sd.acronym && sd.semester && sd.absenceDates?.length > 0
+          (sd) =>
+            sd.course &&
+            sd.discipline &&
+            sd.acronym &&
+            sd.semester &&
+            sd.absenceDates?.length > 0
         );
         setScheduleDetails(validatedDetails);
 
@@ -185,7 +198,10 @@ const ClassReplacementRegister = ({ setAlert }) => {
         if (selectedSchedule && selectedSchedule.absenceDates) {
           const filteredDates = selectedSchedule.absenceDates.filter((date) => {
             return !existingRequests.some(
-              (req) => req.course === course && req.discipline === discipline && req.dateAbsence === date
+              (req) =>
+                req.course === course &&
+                req.discipline === discipline &&
+                req.dateAbsence === date
             );
           });
           setAvailableDates(filteredDates);
@@ -210,14 +226,14 @@ const ClassReplacementRegister = ({ setAlert }) => {
     for (const file of selectedFiles) {
       if (!ALLOWED_FILE_TYPES.includes(file.type)) {
         (setAlert || setLocalAlert)({
-          message: `O arquivo ${file.name} não é permitido. Apenas arquivos PDF ou imagens (JPEG, PNG, JPG) são aceitos.`,
+          message: `O arquivo não é permitido. Apenas arquivos PDF ou imagens (JPEG, PNG, JPG) são aceitos.`,
           type: "error",
         });
         return;
       }
       if (file.size > MAX_FILE_SIZE) {
         (setAlert || setLocalAlert)({
-          message: `O arquivo ${file.name} excede o limite de 5MB.`,
+          message: `O arquivo excede o limite de 5MB.`,
           type: "error",
         });
         return;
@@ -245,9 +261,17 @@ const ClassReplacementRegister = ({ setAlert }) => {
   };
 
   const handleSubmit = async () => {
-    if (!course || !discipline || !quantity || !date || !selectedDateAbsence || files.length === 0) {
+    if (
+      !course ||
+      !discipline ||
+      !quantity ||
+      !date ||
+      !selectedDateAbsence ||
+      files.length === 0
+    ) {
       (setAlert || setLocalAlert)({
-        message: "Preencha todos os campos obrigatórios, incluindo anexo(s) e uma data de ausência.",
+        message:
+          "Preencha todos os campos obrigatórios, incluindo anexo(s) e uma data de ausência.",
         type: "error",
       });
       return;
@@ -304,10 +328,14 @@ const ClassReplacementRegister = ({ setAlert }) => {
       navigate("/class-reposition");
     } catch (error) {
       console.error("Erro ao enviar requisição:", error);
-      let errorMessage = "Erro ao cadastrar. Verifique os dados ou tente novamente.";
+      let errorMessage =
+        "Erro ao cadastrar. Verifique os dados ou tente novamente.";
       if (error.response?.data?.error) {
-        if (error.response.data.error.includes("Apenas arquivos PDF ou imagens")) {
-          errorMessage = "Apenas arquivos PDF ou imagens (JPEG, PNG, JPG) são permitidos.";
+        if (
+          error.response.data.error.includes("Apenas arquivos PDF ou imagens")
+        ) {
+          errorMessage =
+            "Apenas arquivos PDF ou imagens (JPEG, PNG, JPG) são permitidos.";
         } else if (error.response.data.error.includes("tamanho")) {
           errorMessage = "Um ou mais arquivos excedem o limite de 5MB.";
         } else {
@@ -397,9 +425,14 @@ const ClassReplacementRegister = ({ setAlert }) => {
             </Typography>
           </Box>
 
-          <Paper elevation={3} sx={{ p: 4, mt: 2, width: "100%", maxWidth: "1000px" }}>
+          <Paper
+            elevation={3}
+            sx={{ p: 4, mt: 2, width: "100%", maxWidth: "1000px" }}
+          >
             <Box component="form">
-              <Box sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}>
+              <Box
+                sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}
+              >
                 <TextField
                   label="Professor"
                   value={professor}
@@ -408,10 +441,17 @@ const ClassReplacementRegister = ({ setAlert }) => {
                   variant="outlined"
                   sx={inputStyles}
                 />
-                <FormControl fullWidth variant="outlined" required sx={inputStyles}>
+                <FormControl
+                  fullWidth
+                  variant="outlined"
+                  required
+                  sx={inputStyles}
+                >
                   <InputLabel>Selecionar da Grade</InputLabel>
                   <Select
-                    value={course && discipline ? `${course}|${discipline}` : ""}
+                    value={
+                      course && discipline ? `${course}|${discipline}` : ""
+                    }
                     onChange={handleScheduleChange}
                     label="Selecionar da Grade"
                     sx={selectStyles}
@@ -429,7 +469,9 @@ const ClassReplacementRegister = ({ setAlert }) => {
                   </Select>
                 </FormControl>
               </Box>
-              <Box sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}>
+              <Box
+                sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}
+              >
                 <TextField
                   label="Turma"
                   value={selectedClassLabel}
@@ -447,8 +489,15 @@ const ClassReplacementRegister = ({ setAlert }) => {
                   sx={inputStyles}
                 />
               </Box>
-              <Box sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}>
-                <FormControl fullWidth variant="outlined" required sx={inputStyles}>
+              <Box
+                sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}
+              >
+                <FormControl
+                  fullWidth
+                  variant="outlined"
+                  required
+                  sx={inputStyles}
+                >
                   <InputLabel id="referente-a-label">Referente a</InputLabel>
                   <Select
                     labelId="referente-a-label"
@@ -476,7 +525,9 @@ const ClassReplacementRegister = ({ setAlert }) => {
                   sx={inputStyles}
                 />
               </Box>
-              <Box sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}>
+              <Box
+                sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}
+              >
                 <DatePicker
                   label="Data da Reposição"
                   value={createLocalDate(date)}
@@ -484,7 +535,10 @@ const ClassReplacementRegister = ({ setAlert }) => {
                     let formattedDate = "";
                     if (newValue) {
                       const year = newValue.getFullYear();
-                      const month = String(newValue.getMonth() + 1).padStart(2, "0");
+                      const month = String(newValue.getMonth() + 1).padStart(
+                        2,
+                        "0"
+                      );
                       const day = String(newValue.getDate()).padStart(2, "0");
                       formattedDate = `${year}-${month}-${day}`;
                     }
@@ -515,7 +569,9 @@ const ClassReplacementRegister = ({ setAlert }) => {
                   value={files.map((f) => f.name).join(", ")}
                   fullWidth
                   readOnly
-                  onClick={() => document.querySelector('input[type="file"]').click()}
+                  onClick={() =>
+                    document.querySelector('input[type="file"]').click()
+                  }
                   variant="outlined"
                   sx={{ ...inputStyles, width: "50%" }}
                   InputProps={{

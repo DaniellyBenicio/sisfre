@@ -26,6 +26,10 @@ import { CustomAlert } from "../../../../components/alert/CustomAlert";
 
 const INSTITUTIONAL_COLOR = "#307c34";
 
+// Regras do Multer replicadas no frontend
+const ALLOWED_FILE_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
 const StyledButton = styled(Button)(() => ({
   borderRadius: "8px",
   padding: "8px 28px",
@@ -130,7 +134,6 @@ const ClassAntepositionRegister = ({ setAlert }) => {
   useEffect(() => {
     const fetchScheduleAndRequests = async () => {
       try {
-        // Busca todas as grades do professor usando a nova rota
         const scheduleResponse = await api.get("/professor/request/anteposition");
         const details = scheduleResponse.data.scheduleDetails || [];
         const validatedDetails = details.filter(
@@ -138,7 +141,6 @@ const ClassAntepositionRegister = ({ setAlert }) => {
         );
         setScheduleDetails(validatedDetails);
 
-        // Busca solicitações de anteposição existentes
         const requestsResponse = await api.get("/requests/only", {
           params: { type: "anteposicao" },
         });
@@ -164,7 +166,26 @@ const ClassAntepositionRegister = ({ setAlert }) => {
   }, [setAlert]);
 
   const handleFileChange = (event) => {
-    setFile(event.target.files[0]);
+    const selectedFile = event.target.files[0];
+    if (selectedFile) {
+      // Validação do tipo de arquivo
+      if (!ALLOWED_FILE_TYPES.includes(selectedFile.type)) {
+        (setAlert || setLocalAlert)({
+          message: "Apenas arquivos PDF ou imagens (JPEG, PNG, JPG) são permitidos.",
+          type: "error",
+        });
+        return;
+      }
+      // Validação do tamanho do arquivo
+      if (selectedFile.size > MAX_FILE_SIZE) {
+        (setAlert || setLocalAlert)({
+          message: "O arquivo excede o limite de 5MB.",
+          type: "error",
+        });
+        return;
+      }
+      setFile(selectedFile);
+    }
   };
 
   const handleScheduleChange = (event) => {
@@ -209,7 +230,6 @@ const ClassAntepositionRegister = ({ setAlert }) => {
       return;
     }
 
-    // Verifica se já existe uma solicitação de anteposição para a mesma turma, disciplina e data
     const existingRequest = existingRequests.find(
       (req) => req.course === course && req.discipline === discipline && req.date === date
     );
@@ -264,10 +284,19 @@ const ClassAntepositionRegister = ({ setAlert }) => {
       navigate("/class-anteposition");
     } catch (error) {
       console.error("Erro ao enviar requisição:", error);
+      let errorMessage = "Erro ao cadastrar. Verifique os dados ou tente novamente.";
+      if (error.response?.data?.error) {
+        // Mapeia mensagens de erro específicas do backend
+        if (error.response.data.error.includes("Apenas arquivos PDF ou imagens")) {
+          errorMessage = "Apenas arquivos PDF ou imagens (JPEG, PNG, JPG) são permitidos.";
+        } else if (error.response.data.error.includes("tamanho")) {
+          errorMessage = "O arquivo excede o limite de 5MB.";
+        } else {
+          errorMessage = error.response.data.error;
+        }
+      }
       (setAlert || setLocalAlert)({
-        message:
-          error.response?.data?.error ||
-          "Erro ao cadastrar. Verifique os dados ou tente novamente.",
+        message: errorMessage,
         type: "error",
       });
       if (error.response?.status === 401) {
@@ -431,7 +460,12 @@ const ClassAntepositionRegister = ({ setAlert }) => {
                   ),
                 }}
               />
-              <input type="file" hidden onChange={handleFileChange} />
+              <input
+                type="file"
+                hidden
+                onChange={handleFileChange}
+                accept="application/pdf,image/jpeg,image/png,image/jpg"
+              />
             </Box>
             <Box sx={{ my: 1.5 }}>
               <TextField

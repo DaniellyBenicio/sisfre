@@ -28,6 +28,10 @@ import { CustomAlert } from "../../../../components/alert/CustomAlert";
 
 const INSTITUTIONAL_COLOR = "#307c34";
 
+// Regras do Multer replicadas no frontend
+const ALLOWED_FILE_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
 const StyledButton = styled(Button)(() => ({
   borderRadius: "8px",
   padding: "8px 28px",
@@ -136,7 +140,6 @@ const ClassReplacementRegister = ({ setAlert }) => {
   useEffect(() => {
     const fetchScheduleAndRequests = async () => {
       try {
-        // Busca a grade com faltas
         const scheduleResponse = await api.get("/professor/request");
         const details = scheduleResponse.data.scheduleDetails || [];
         const validatedDetails = details.filter(
@@ -144,7 +147,6 @@ const ClassReplacementRegister = ({ setAlert }) => {
         );
         setScheduleDetails(validatedDetails);
 
-        // Busca as solicitações existentes do professor
         const requestsResponse = await api.get("/requests/only", {
           params: { type: "reposicao" },
         });
@@ -181,7 +183,6 @@ const ClassReplacementRegister = ({ setAlert }) => {
           (sd) => sd.course === course && sd.discipline === discipline
         );
         if (selectedSchedule && selectedSchedule.absenceDates) {
-          // Filtra datas de ausência que não possuem solicitações associadas
           const filteredDates = selectedSchedule.absenceDates.filter((date) => {
             return !existingRequests.some(
               (req) => req.course === course && req.discipline === discipline && req.dateAbsence === date
@@ -204,7 +205,25 @@ const ClassReplacementRegister = ({ setAlert }) => {
   }, [course, discipline, scheduleDetails, existingRequests, setAlert]);
 
   const handleFilesChange = (event) => {
-    setFiles(Array.from(event.target.files));
+    const selectedFiles = Array.from(event.target.files);
+    // Valida cada arquivo
+    for (const file of selectedFiles) {
+      if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+        (setAlert || setLocalAlert)({
+          message: `O arquivo ${file.name} não é permitido. Apenas arquivos PDF ou imagens (JPEG, PNG, JPG) são aceitos.`,
+          type: "error",
+        });
+        return;
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        (setAlert || setLocalAlert)({
+          message: `O arquivo ${file.name} excede o limite de 5MB.`,
+          type: "error",
+        });
+        return;
+      }
+    }
+    setFiles(selectedFiles);
   };
 
   const handleScheduleChange = (event) => {
@@ -228,8 +247,7 @@ const ClassReplacementRegister = ({ setAlert }) => {
   const handleSubmit = async () => {
     if (!course || !discipline || !quantity || !date || !selectedDateAbsence || files.length === 0) {
       (setAlert || setLocalAlert)({
-        message:
-          "Preencha todos os campos obrigatórios, incluindo anexo(s) e uma data de ausência.",
+        message: "Preencha todos os campos obrigatórios, incluindo anexo(s) e uma data de ausência.",
         type: "error",
       });
       return;
@@ -241,9 +259,6 @@ const ClassReplacementRegister = ({ setAlert }) => {
       });
       return;
     }
-    const selectedDate = createLocalDate(date);
-    const todayLocalMidnight = new Date();
-    todayLocalMidnight.setHours(0, 0, 0, 0);
 
     const token = localStorage.getItem("token");
     if (!token) {
@@ -289,10 +304,18 @@ const ClassReplacementRegister = ({ setAlert }) => {
       navigate("/class-reposition");
     } catch (error) {
       console.error("Erro ao enviar requisição:", error);
+      let errorMessage = "Erro ao cadastrar. Verifique os dados ou tente novamente.";
+      if (error.response?.data?.error) {
+        if (error.response.data.error.includes("Apenas arquivos PDF ou imagens")) {
+          errorMessage = "Apenas arquivos PDF ou imagens (JPEG, PNG, JPG) são permitidos.";
+        } else if (error.response.data.error.includes("tamanho")) {
+          errorMessage = "Um ou mais arquivos excedem o limite de 5MB.";
+        } else {
+          errorMessage = error.response.data.error;
+        }
+      }
       (setAlert || setLocalAlert)({
-        message:
-          error.response?.data?.error ||
-          "Erro ao cadastrar. Verifique os dados ou tente novamente.",
+        message: errorMessage,
         type: "error",
       });
       if (error.response?.status === 401) {
@@ -467,7 +490,6 @@ const ClassReplacementRegister = ({ setAlert }) => {
                     }
                     setDate(formattedDate);
                   }}
-
                   slotProps={{
                     textField: {
                       id: "date-input",
@@ -504,7 +526,13 @@ const ClassReplacementRegister = ({ setAlert }) => {
                     ),
                   }}
                 />
-                <input type="file" multiple hidden onChange={handleFilesChange} />
+                <input
+                  type="file"
+                  multiple
+                  hidden
+                  onChange={handleFilesChange}
+                  accept="application/pdf,image/jpeg,image/png,image/jpg"
+                />
               </Box>
               <Box sx={{ my: 1.5 }}>
                 <TextField

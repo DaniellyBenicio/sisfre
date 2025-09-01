@@ -41,6 +41,7 @@ import TeacherAbsences from "../pages/admin/TeachersAbsences/TeacherAbsences.js"
 import TeachersAbsencesOptions from "../pages/admin/TeachersAbsences/TeachersAbsencesOptions.js";
 import TeacherAbsencesDetails from "../pages/admin/TeachersAbsences/TeacherAbsencesDetails.js";
 import JustificationList from "../pages/admin/TeachersAbsences/Justifications/JustificationsList.js";
+import Reports from "../pages/admin/Reports/Reports.js";
 
 const AppRoutes = () => {
   const [isAuthenticated, setAuthenticated] = useState(() => {
@@ -474,6 +475,16 @@ const AppRoutes = () => {
           element={
             isAuthenticated && accessType === "Admin" ? (
               <JustificationList setAuthenticated={handleLogout} />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            isAuthenticated && accessType === "Admin" ? (
+              <Reports setAuthenticated={handleLogout} />
             ) : (
               <Navigate to="/login" />
             )

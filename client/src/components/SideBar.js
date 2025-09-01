@@ -30,6 +30,7 @@ import {
   EventNote,
   Group,
   EventBusy,
+  Assessment,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useMediaQuery } from "@mui/material";
@@ -256,6 +257,14 @@ const Sidebar = ({ setAuthenticated }) => {
                     />
                   )}
                 </Box>
+              </ListItem>
+              <ListItem
+                button
+                onClick={() => handleItemClick("/reports", "reports")}
+                sx={getListItemStyle(selectedItem, "reports")}
+              >
+                <Assessment sx={{ mr: 1 }} />
+                <ListItemText primary="Relatórios" />
               </ListItem>
             </>
           )}

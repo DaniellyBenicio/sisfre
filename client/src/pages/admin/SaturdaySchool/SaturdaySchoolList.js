@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, IconButton } from "@mui/material";
+import {
+  Box,
+  Typography,
+  IconButton,
+  useMediaQuery, // Adicionado para a lógica responsiva
+  useTheme, // Adicionado para acessar os temas de breakpoints
+} from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import SearchAndCreateBar from "../../../components/homeScreen/SearchAndCreateBar";
@@ -26,6 +32,10 @@ const SaturdaySchoolList = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Usando useMediaQuery para detectar o tamanho da tela
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const handleAlertClose = () => {
     setAlert(null);
   };
@@ -40,18 +50,26 @@ const SaturdaySchoolList = () => {
           throw new Error("Error fetching Saturday schools: Invalid data");
         }
         // Normaliza os dados para incluir o campo calendar
-        const normalizedSaturdaySchools = response.data.schoolSaturdays.map((item) => ({
-          ...item,
-          calendar: item.calendarSaturdays?.[0]
-            ? {
-                id: item.calendarSaturdays[0].id,
-                name: `${item.calendarSaturdays[0].year}.${item.calendarSaturdays[0].period} - ${formatCalendarType(item.calendarSaturdays[0].type)}`,
-              }
-            : { id: item.calendarId, name: "Desconhecido" },
-        }));
+        const normalizedSaturdaySchools = response.data.schoolSaturdays.map(
+          (item) => ({
+            ...item,
+            calendar: item.calendarSaturdays?.[0]
+              ? {
+                  id: item.calendarSaturdays[0].id,
+                  name: `${item.calendarSaturdays[0].year}.${
+                    item.calendarSaturdays[0].period
+                  } - ${formatCalendarType(item.calendarSaturdays[0].type)}`,
+                }
+              : { id: item.calendarId, name: "Desconhecido" },
+          })
+        );
         setSaturdaySchools(normalizedSaturdaySchools);
       } catch (error) {
-        console.error("Erro ao buscar sábados letivos:", error.message, error.response?.data);
+        console.error(
+          "Erro ao buscar sábados letivos:",
+          error.message,
+          error.response?.data
+        );
         setAlert({
           message: "Erro ao buscar sábados letivos.",
           type: "error",
@@ -68,16 +86,22 @@ const SaturdaySchoolList = () => {
     try {
       if (isEditMode) {
         setSaturdaySchools((prev) =>
-          prev.map((s) => (s.id === updatedSaturdaySchool.id ? updatedSaturdaySchool : s))
+          prev.map((s) =>
+            s.id === updatedSaturdaySchool.id ? updatedSaturdaySchool : s
+          )
         );
         setAlert({
-          message: `Sábado letivo ${updatedSaturdaySchool.calendar?.name || updatedSaturdaySchool.date} atualizado com sucesso!`,
+          message: `Sábado letivo ${
+            updatedSaturdaySchool.calendar?.name || updatedSaturdaySchool.date
+          } atualizado com sucesso!`,
           type: "success",
         });
       } else {
         setSaturdaySchools((prev) => [...prev, updatedSaturdaySchool]);
         setAlert({
-          message: `Sábado letivo ${updatedSaturdaySchool.calendar?.name || updatedSaturdaySchool.date} cadastrado com sucesso!`,
+          message: `Sábado letivo ${
+            updatedSaturdaySchool.calendar?.name || updatedSaturdaySchool.date
+          } cadastrado com sucesso!`,
           type: "success",
         });
       }
@@ -98,7 +122,9 @@ const SaturdaySchoolList = () => {
   };
 
   const handleDeleteClick = (saturdaySchoolId) => {
-    const saturdaySchool = saturdaySchools.find((s) => s.id === saturdaySchoolId);
+    const saturdaySchool = saturdaySchools.find(
+      (s) => s.id === saturdaySchoolId
+    );
     console.log("Sábado letivo recebido para exclusão:", saturdaySchool);
     console.log("ID do sábado letivo a ser excluído:", saturdaySchoolId);
     setSaturdaySchoolToDelete(saturdaySchool);
@@ -112,11 +138,17 @@ const SaturdaySchoolList = () => {
         prev.filter((s) => s.id !== saturdaySchoolToDelete.id)
       );
       setAlert({
-        message: `Sábado letivo ${saturdaySchoolToDelete.calendar?.name || saturdaySchoolToDelete.date} excluído com sucesso!`,
+        message: `Sábado letivo ${
+          saturdaySchoolToDelete.calendar?.name || saturdaySchoolToDelete.date
+        } excluído com sucesso!`,
         type: "success",
       });
     } catch (error) {
-      console.error("Erro ao excluir sábado letivo:", error.message, error.response?.data);
+      console.error(
+        "Erro ao excluir sábado letivo:",
+        error.message,
+        error.response?.data
+      );
       const errorMessage =
         error.response?.status === 401
           ? "Você não está autorizado a excluir sábados letivos."
@@ -192,24 +224,33 @@ const SaturdaySchoolList = () => {
           mb: 2,
         }}
       >
-        <IconButton
-          onClick={handleBackClick}
-          sx={{
-            position: "absolute",
-            left: 0,
-            color: "#087619",
-            "&:hover": {
-              backgroundColor: "rgba(8, 118, 25, 0.08)",
-            },
-          }}
-        >
-          <ArrowBack />
-        </IconButton>
+        {/* Lógica para esconder o botão de voltar em telas móveis */}
+        {!isMobile && (
+          <IconButton
+            onClick={handleBackClick}
+            sx={{
+              position: "absolute",
+              left: 0,
+              color: "#087619",
+              "&:hover": {
+                backgroundColor: "rgba(8, 118, 25, 0.08)",
+              },
+            }}
+          >
+            <ArrowBack />
+          </IconButton>
+        )}
         <Typography
           variant="h5"
           align="center"
           gutterBottom
-          sx={{ mt: 2, mb: 2, fontWeight: "bold", color: "#000000" }}
+          sx={{
+            fontWeight: "bold",
+            color: "#000000",
+            flexGrow: 1,
+            mt: { xs: 2, sm: 0 }, // Adicionado margem superior apenas em mobile
+            mb: 2,
+          }}
         >
           Sábados Letivos
         </Typography>
@@ -246,7 +287,11 @@ const SaturdaySchoolList = () => {
           setOpenDeleteDialog(false);
           setSaturdaySchoolToDelete(null);
         }}
-        message={`Deseja realmente excluir o sábado letivo "${saturdaySchoolToDelete?.calendar?.name || saturdaySchoolToDelete?.date || "Desconhecido"}"?`}
+        message={`Deseja realmente excluir o sábado letivo "${
+          saturdaySchoolToDelete?.calendar?.name ||
+          saturdaySchoolToDelete?.date ||
+          "Desconhecido"
+        }"?`}
         onConfirm={handleConfirmDelete}
       />
       {alert && (

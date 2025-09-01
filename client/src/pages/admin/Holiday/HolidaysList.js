@@ -7,6 +7,8 @@ import {
   MenuItem,
   Button,
   IconButton,
+  useMediaQuery, // Adicionado para a lógica responsiva
+  useTheme, // Adicionado para acessar os temas de breakpoints
 } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -28,6 +30,10 @@ const HolidaysList = () => {
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
   const navigate = useNavigate();
+
+  // Usando useMediaQuery para detectar o tamanho da tela
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const handleAlertClose = () => {
     setAlert(null);
@@ -139,7 +145,7 @@ const HolidaysList = () => {
   return (
     <Box
       sx={{
-        p: { xs: 2, sm: 3 },
+        p: { xs: 4, sm: 3 },
         width: "100%",
         maxWidth: { xs: "100%", sm: "1200px" },
         margin: "0 auto",
@@ -157,30 +163,33 @@ const HolidaysList = () => {
           mb: { xs: 1, sm: 2 },
         }}
       >
-        <IconButton
-          onClick={handleBackClick}
-          sx={{
-            position: "absolute",
-            left: 0,
-            color: "#087619",
-            "&:hover": {
-              backgroundColor: "rgba(8, 118, 25, 0.08)",
-            },
-            fontSize: { xs: "1.2rem", sm: "1.5rem" },
-          }}
-        >
-          <ArrowBack fontSize="inherit" />
-        </IconButton>
+        {/* Lógica para esconder o botão de voltar em telas móveis */}
+        {!isMobile && (
+          <IconButton
+            onClick={handleBackClick}
+            sx={{
+              position: "absolute",
+              left: 0,
+              color: "#087619",
+              "&:hover": {
+                backgroundColor: "rgba(8, 118, 25, 0.08)",
+              },
+              fontSize: { xs: "1.2rem", sm: "1.5rem" },
+            }}
+          >
+            <ArrowBack fontSize="inherit" />
+          </IconButton>
+        )}
         <Typography
           variant="h5"
           align="center"
           gutterBottom
           sx={{
             fontWeight: "bold",
-            mt: { xs: 1, sm: 2 },
-            mb: { xs: 1, sm: 2 },
             color: "#000000",
             fontSize: { xs: "1.2rem", sm: "1.5rem" },
+            flexGrow: 1,
+            mt: { xs: 2, sm: 0 }, // Adicionado margem superior apenas em mobile
           }}
         >
           Feriados

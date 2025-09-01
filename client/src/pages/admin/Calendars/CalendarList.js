@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, IconButton } from "@mui/material";
-import { ArrowBack } from "@mui/icons-material"; // Importação do ícone ArrowBack
-import { useNavigate } from "react-router-dom"; // Importação do useNavigate
+import {
+  Box,
+  Typography,
+  IconButton,
+  useMediaQuery, // Adicionado para a lógica responsiva
+  useTheme, // Adicionado para acessar os temas de breakpoints
+} from "@mui/material";
+import { ArrowBack } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 import SearchAndCreateBar from "../../../components/homeScreen/SearchAndCreateBar";
 import api from "../../../service/api";
 import CalendarTable from "./CalendarTable";
@@ -30,7 +36,11 @@ const CalendarList = () => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [calendarToEdit, setCalendarToEdit] = useState(null);
   const [calendarToDelete, setCalendarToDelete] = useState(null);
-  const navigate = useNavigate(); // Hook para navegação
+  const navigate = useNavigate();
+
+  // Usando useMediaQuery para detectar o tamanho da tela
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
     fetchCalendars();
@@ -122,7 +132,7 @@ const CalendarList = () => {
   };
 
   const handleBackClick = () => {
-    navigate(-1); // Navega para a página anterior
+    navigate(-1);
   };
 
   const filteredCalendars = Array.isArray(calendars)
@@ -173,24 +183,33 @@ const CalendarList = () => {
           mb: 2,
         }}
       >
-        <IconButton
-          onClick={handleBackClick}
-          sx={{
-            position: "absolute",
-            left: 0,
-            color: "#087619",
-            "&:hover": {
-              backgroundColor: "rgba(8, 118, 25, 0.08)",
-            },
-          }}
-        >
-          <ArrowBack />
-        </IconButton>
+        {/* Lógica para esconder o botão de voltar em telas móveis */}
+        {!isMobile && (
+          <IconButton
+            onClick={handleBackClick}
+            sx={{
+              position: "absolute",
+              left: 0,
+              color: "#087619",
+              "&:hover": {
+                backgroundColor: "rgba(8, 118, 25, 0.08)",
+              },
+            }}
+          >
+            <ArrowBack />
+          </IconButton>
+        )}
         <Typography
           variant="h5"
           align="center"
           gutterBottom
-          sx={{ mt: 2, mb: 2, fontWeight: "bold", color: "#000000" }}
+          sx={{
+            fontWeight: "bold",
+            color: "#000000",
+            flexGrow: 1,
+            mt: { xs: 2, sm: 0 }, // Adicionado margem superior apenas em mobile
+            mb: 2,
+          }}
         >
           Calendário
         </Typography>

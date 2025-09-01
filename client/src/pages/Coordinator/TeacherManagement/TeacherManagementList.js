@@ -153,6 +153,7 @@ const TeacherManagementList = () => {
           alignItems: "center",
           gap: 1,
           mb: 3,
+          mt: 3
         }}
       >
         {!isMobile && (
@@ -191,6 +192,7 @@ const TeacherManagementList = () => {
           flexDirection: { xs: "column", sm: "row" },
           gap: 1,
           mb: 1,
+          mt: 3
         }}
       >
         <SearchAndCreateBar

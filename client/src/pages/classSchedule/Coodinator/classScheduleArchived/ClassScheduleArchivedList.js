@@ -6,7 +6,9 @@ import {
   FormControl,
   InputLabel,
   MenuItem,
-  CssBaseline
+  CssBaseline,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { ArrowBack, Visibility } from "@mui/icons-material";
 import { CustomAlert } from "../../../../components/alert/CustomAlert";
@@ -26,6 +28,8 @@ const ClassScheduleListArchived = ({ setAuthenticated }) => {
   const [calendars, setCalendars] = useState([]);
   const [classes, setClasses] = useState([]);
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
     const fetchArchivedSchedules = async () => {
@@ -131,11 +135,13 @@ const ClassScheduleListArchived = ({ setAuthenticated }) => {
             mb: 3,
           }}
         >
-          <IconButton onClick={() => navigate("/class-schedule/options")}
-            sx={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)", mt: 4, ml: -1 }}  
-          >
-            <ArrowBack sx={{ color: "green", fontSize: "2.2rem" }} />
-          </IconButton>
+          {!isMobile && (
+            <IconButton onClick={() => navigate("/class-schedule/options")}
+              sx={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)", mt: 4, ml: -1 }}  
+            >
+              <ArrowBack sx={{ color: "green", fontSize: "2.2rem" }} />
+            </IconButton>
+          )}
           <Typography variant="h5" align="center" sx={{ fontWeight: "bold", mt: "47px" }}>
             Grade de Turmas Arquivadas
           </Typography>

@@ -13,7 +13,6 @@ import {
   CssBaseline,
   useTheme,
   useMediaQuery,
-  Button,
   Accordion,
   AccordionSummary,
   AccordionDetails,
@@ -45,7 +44,11 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const { userId: userIdFromState } = location.state || {};
-  const userId = userIdFromState ? Number(userIdFromState) : (professorId ? Number(professorId) : null);
+  const userId = userIdFromState
+    ? Number(userIdFromState)
+    : professorId
+    ? Number(professorId)
+    : null;
 
   const handleAlertClose = () => {
     setAlert(null);
@@ -62,10 +65,15 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
       const name = response.data.user?.username || "Desconhecido";
       setProfessorName(name);
     } catch (error) {
-      console.error("Erro ao carregar nome do professor:", error.response?.data || error.message);
-      setAlert({ 
-        message: error.response?.data?.error || "Erro ao carregar nome do professor. Verifique se o ID do professor é válido.", 
-        type: "error" 
+      console.error(
+        "Erro ao carregar nome do professor:",
+        error.response?.data || error.message
+      );
+      setAlert({
+        message:
+          error.response?.data?.error ||
+          "Erro ao carregar nome do professor. Verifique se o ID do professor é válido.",
+        type: "error",
       });
       setProfessorName("Desconhecido");
     }
@@ -77,7 +85,8 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
 
       if (!professorId) {
         setAlert({
-          message: "ID do professor não fornecido. Por favor, retorne e selecione um professor.",
+          message:
+            "ID do professor não fornecido. Por favor, retorne e selecione um professor.",
           type: "error",
         });
         setFrequencies([]);
@@ -87,7 +96,7 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
       }
 
       const params = {
-        status: filterStatus !== "" ? filterStatus : undefined,
+        status: filterStatus !== "" ? filterStatus.toLowerCase() : undefined,
       };
 
       if (filterPeriod !== "") {
@@ -112,7 +121,8 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
         } else if (filterPeriod === "custom") {
           if (!customStartDate || !customEndDate) {
             setAlert({
-              message: "Por favor, selecione datas inicial e final válidas para o período personalizado.",
+              message:
+                "Por favor, selecione datas inicial e final válidas para o período personalizado.",
               type: "error",
             });
             setFrequencies([]);
@@ -123,7 +133,8 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
           const end = new Date(customEndDate);
           if (isNaN(start) || isNaN(end) || start > end) {
             setAlert({
-              message: "Datas inválidas. A data inicial deve ser anterior ou igual à data final.",
+              message:
+                "Datas inválidas. A data inicial deve ser anterior ou igual à data final.",
               type: "error",
             });
             setFrequencies([]);
@@ -137,7 +148,9 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
 
       console.log("Parâmetros enviados à API:", params);
 
-      const response = await api.get(`/absences/professor/${professorId}`, { params });
+      const response = await api.get(`/absences/professor/${professorId}`, {
+        params,
+      });
 
       let formattedData = Array.isArray(response.data.absence_details)
         ? response.data.absence_details.map((item, idx) => ({
@@ -147,23 +160,16 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
               ? new Date(item.data + "T00:00:00").toLocaleDateString("pt-BR")
               : "N/A",
             class: item["curso-turma"],
+            disciplina: item.disciplina || "N/A",
             turno: item.turno || "N/A",
             status: item.status,
             justification: item.justificativa || "N/A",
+            quantidade_faltas: item.quantidade_faltas || 0,
           }))
         : [];
 
-      if (filterPeriod === "custom" && customStartDate && customEndDate) {
-        const start = new Date(customStartDate + "T00:00:00");
-        const end = new Date(customEndDate + "T23:59:59");
-        formattedData = formattedData.filter((item) => {
-          if (!item.date) return false;
-          const itemDate = new Date(item.date + "T00:00:00");
-          return itemDate >= start && itemDate <= end;
-        });
-      }
-
-      console.log("Dados formatados após filtragem:", formattedData);
+      // Ordena os dados por data, da mais recente para a mais antiga
+      formattedData.sort((a, b) => new Date(b.date) - new Date(a.date));
 
       setFrequencies(formattedData);
     } catch (error) {
@@ -172,7 +178,8 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
         setFrequencies([]);
       } else {
         setAlert({
-          message: error.response?.data?.error || "Erro ao carregar frequências.",
+          message:
+            error.response?.data?.error || "Erro ao carregar frequências.",
           type: "error",
         });
         setFrequencies([]);
@@ -207,39 +214,8 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
     setPage(1);
   }, [filterStatus, filterPeriod, customStartDate, customEndDate]);
 
-  const handleApplyCustomFilter = () => {
-    if (!customStartDate || !customEndDate) {
-      setAlert({
-        message: "Por favor, selecione datas inicial e final válidas.",
-        type: "error",
-      });
-      return;
-    }
-    fetchFrequencies();
-  };
-
-  const groupFrequencies = (data) => {
-    const grouped = data.reduce((acc, frequency) => {
-      const key = `${frequency.class}-${frequency.status}`;
-      if (!acc[key]) {
-        acc[key] = {
-          class: frequency.class,
-          status: frequency.status,
-          frequencies: [],
-        };
-      }
-      acc[key].frequencies.push(frequency);
-      return acc;
-    }, {});
-    return Object.values(grouped).sort((a, b) =>
-      a.class.toLowerCase().localeCompare(b.class.toLowerCase())
-    );
-  };
-
-  const filteredFrequencies = frequencies;
-  const groupedFrequencies = groupFrequencies(filteredFrequencies);
-  const totalPages = Math.ceil(groupedFrequencies.length / rowsPerPage);
-  const paginatedFrequencies = groupedFrequencies.slice(
+  const totalPages = Math.ceil(frequencies.length / rowsPerPage);
+  const paginatedFrequencies = frequencies.slice(
     (page - 1) * rowsPerPage,
     page * rowsPerPage
   );
@@ -307,10 +283,10 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case "Abonada":
+    switch (status.toLowerCase()) {
+      case "abonada":
         return "success";
-      case "Falta":
+      case "falta":
         return "error";
       default:
         return "default";
@@ -419,7 +395,11 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
             </FormControl>
 
             {filterPeriod === "custom" && (
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="center">
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                spacing={1}
+                alignItems="center"
+              >
                 <TextField
                   label="Data Inicial"
                   type="date"
@@ -445,9 +425,9 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
           <Typography align="center">Carregando...</Typography>
         ) : paginatedFrequencies.length > 0 ? (
           <Stack spacing={2}>
-            {paginatedFrequencies.map((group, index) => (
+            {paginatedFrequencies.map((absence, index) => (
               <Accordion
-                key={`${group.class}-${group.status}-${index}`}
+                key={`${absence.class}-${absence.date}-${absence.turno}-${index}`}
                 elevation={3}
               >
                 <AccordionSummary
@@ -461,82 +441,69 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
                     justifyContent="space-between"
                     width="100%"
                   >
-                    <Box display="flex" alignItems="center">
+                    <Box display="flex" alignItems="center" flexWrap="wrap">
                       <School sx={{ mr: 1, fontSize: 32, color: "#087619" }} />
-                      <Typography fontWeight="bold">
-                        {group.class}
-                      </Typography>
+                      <Typography fontWeight="bold">{absence.class}</Typography>
                     </Box>
                     <Chip
-                      label={`${group.frequencies.length} Faltas`}
-                      color="error" 
-                      sx={{ color: '#ffffff' }} 
+                      label={`${absence.quantidade_faltas} Faltas`}
+                      color={getStatusColor(absence.status)}
+                      sx={{
+                        color: "#ffffff",
+                        bgcolor:
+                          getStatusColor(absence.status) === "error"
+                            ? "#ff0000"
+                            : null,
+                      }}
                     />
-                    </Box>
+                  </Box>
                 </AccordionSummary>
                 <AccordionDetails>
-                  {group.frequencies.map((frequency, idx) => (
-                    <Box
-                      key={idx}
-                      sx={{
-                        mb: 2,
-                        p: { xs: 1, sm: 2 },
-                        border: "1px solid #e0e0e0",
-                        borderRadius: 2,
-                        display: "grid",
-                        gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
-                        gap: { xs: 1, sm: 2 },
-                        overflow: "hidden",
-                      }}
-                    >
-                      <Box>
-                        <Typography
-                          variant="subtitle2"
-                          gutterBottom
-                          sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
-                        >
-                          <strong>Data:</strong> {frequency.displayDate}
-                        </Typography>
-                        <Typography
-                          variant="subtitle2"
-                          gutterBottom
-                          sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
-                        >
-                          <strong>Curso/Turma:</strong> {frequency.class}
-                        </Typography>
-                        <Typography
-                          variant="subtitle2"
-                          gutterBottom
-                          sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
-                        >
-                          <strong>Turno:</strong> {frequency.turno}
-                        </Typography>
-                      </Box>
-                      <Box>
-                        <Typography
-                          variant="subtitle2"
-                          gutterBottom
-                          sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
-                        >
-                          <strong>Status:</strong> {frequency.status}
-                        </Typography>
-                        {frequency.justification !== "N/A" && (
-                          <Typography
-                            variant="subtitle2"
-                            gutterBottom
-                            sx={{
-                              fontSize: { xs: "0.9rem", sm: "1rem" },
-                              overflowWrap: "break-word",
-                              wordBreak: "break-word",
-                              maxWidth: "100%",
-                            }}
-                          >
-                            <strong>Justificativa:</strong> {frequency.justification}
-                          </Typography>
-                        )}
-                      </Box>
+                  <Box
+                    sx={{
+                      p: { xs: 1, sm: 2 },
+                      border: "1px solid #e0e0e0",
+                      borderRadius: 2,
+                      display: "grid",
+                      gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+                      gap: { xs: 1, sm: 2 },
+                      overflow: "hidden",
+                    }}
+                  >
+                    <Box>
+                      <Typography variant="subtitle2" gutterBottom>
+                        <strong>Disciplina:</strong> {absence.disciplina}
+                      </Typography>
+                      <Typography variant="subtitle2" gutterBottom>
+                        <strong>Data:</strong> {absence.displayDate}
+                      </Typography>
+                      <Typography variant="subtitle2" gutterBottom>
+                        <strong>Turno:</strong> {absence.turno}
+                      </Typography>
                     </Box>
-                  ))}
+                    <Box>
+                      <Typography variant="subtitle2" gutterBottom>
+                        <strong>Status:</strong>{" "}
+                        <Chip
+                          label={absence.status}
+                          size="small"
+                          color={getStatusColor(absence.status)}
+                        />
+                      </Typography>
+                      {absence.justification !== "N/A" && (
+                        <Typography
+                          variant="subtitle2"
+                          sx={{
+                            overflowWrap: "break-word",
+                            wordBreak: "break-word",
+                          }}
+                        >
+                          <strong>Justificativa:</strong>{" "}
+                          {absence.justification}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
                 </AccordionDetails>
               </Accordion>
             ))}

@@ -53,6 +53,8 @@ const CalendarOptionsList = () => {
         sx={{
           fontWeight: "bold",
           textAlign: "center",
+          // Ajuste para ter uma margem superior maior em telas menores (mobile)
+          mt: { xs: 3, sm: 6 },
         }}
       >
         Opções de Calendário

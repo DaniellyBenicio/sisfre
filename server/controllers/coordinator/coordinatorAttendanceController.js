@@ -227,6 +227,7 @@ export const getTotalAbsencesByTeacher = async (req, res) => {
   }
 };
 
+
 export const getProfessorAbsenceDetails = async (req, res) => {
   try {
     const user = await db.User.findByPk(req.userId);
@@ -302,18 +303,32 @@ export const getProfessorAbsenceDetails = async (req, res) => {
       });
     }
 
-    const absenceDetails = attendances.map((attendance) => {
+    const groupedAbsences = {};
+
+    attendances.forEach((attendance) => {
       const classSchedule = attendance.detail.schedule;
       const discipline = attendance.detail.discipline;
-      return {
-        data: attendance.date,
-        disciplina: discipline.name,
-        "curso-turma": `${classSchedule.course.acronym} - ${classSchedule.class.semester}`,
-        turno: attendance.detail.turn,
-        status: attendance.status,
-        justificativa: attendance.justification || null,
-      };
+      const courseClass = `${classSchedule.course.acronym} - ${classSchedule.class.semester}`;
+      const turn = attendance.detail.turn;
+
+      const key = `${attendance.date}-${discipline.name}-${courseClass}-${turn}`;
+
+      if (!groupedAbsences[key]) {
+        groupedAbsences[key] = {
+          data: attendance.date,
+          disciplina: discipline.name,
+          "curso-turma": courseClass,
+          turno: turn,
+          status: attendance.status,
+          justificativa: attendance.justification || null,
+          quantidade_faltas: 1, 
+        };
+      } else {
+        groupedAbsences[key].quantidade_faltas++;
+      }
     });
+
+    const absenceDetails = Object.values(groupedAbsences);
 
     return res.status(200).json({
       message: "Detalhes das faltas do professor recuperados com sucesso.",

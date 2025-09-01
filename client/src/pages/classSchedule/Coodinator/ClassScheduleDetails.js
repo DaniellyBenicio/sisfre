@@ -13,6 +13,8 @@ import {
   Divider,
   Button,
   CircularProgress,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { ArrowBack, School, History, Edit } from "@mui/icons-material";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
@@ -30,6 +32,8 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(!initialSchedule);
   const accessType = localStorage.getItem("accessType") || "";
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const greenLight = "#E8F5E9";
   const greenPrimary = "#087619";
@@ -205,25 +209,24 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
             mb: 3,
           }}
         >
-          <IconButton
-            onClick={() =>
-              navigate(
-                accessType === "Admin"
-                  ? "/classSchedule"
-                  : schedule?.isActive
-                  ? "/class-schedule"
-                  : "/class-schedule/archived"
-              )
-            }
-            sx={{
-              position: "absolute",
-              left: 0,
-              top: "50%",
-              transform: "translateY(-50%)",
-            }}
-          >
-            <ArrowBack sx={{ color: "green", fontSize: "2.2rem" }} />
-          </IconButton>
+          {!isMobile && (
+            <IconButton
+              onClick={() =>
+                navigate(
+                  accessType === "Admin" ? "/classSchedule" : schedule?.isActive
+                    ? "/class-schedule" : "/class-schedule/archived"
+                )
+              }
+              sx={{
+                position: "absolute",
+                left: 0,
+                top: "50%",
+                transform: "translateY(-50%)",
+              }}
+            >
+              <ArrowBack sx={{ color: "green", fontSize: "2.2rem" }} />
+            </IconButton>
+          )}
           <Typography
             variant="h5"
             align="center"

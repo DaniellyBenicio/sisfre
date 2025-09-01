@@ -56,7 +56,7 @@ const ClassScheduleOptions = ({ setAuthenticated }) => {
 					sx={{
 						fontWeight: "bold",
 						textAlign: "center",
-						mt: "40px"
+						mt: "55px"
 					}}
 				>
 					Opções de Grade de Turmas

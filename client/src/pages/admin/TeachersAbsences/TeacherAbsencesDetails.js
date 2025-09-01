@@ -14,11 +14,14 @@ import {
   useTheme,
   useMediaQuery,
   Button,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Chip,
 } from "@mui/material";
-import { ArrowBack } from "@mui/icons-material";
+import { ArrowBack, ExpandMore, School } from "@mui/icons-material";
 import { CustomAlert } from "../../../components/alert/CustomAlert";
 import { StyledSelect } from "../../../components/inputs/Input";
-import TeacherAbsencesDetailsTable from "./TeacherAbsencesDetailsTable";
 import api from "../../../service/api";
 import Sidebar from "../../../components/SideBar";
 
@@ -215,8 +218,28 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
     fetchFrequencies();
   };
 
-  const totalPages = Math.ceil(frequencies.length / rowsPerPage);
-  const paginatedFrequencies = frequencies.slice(
+  const groupFrequencies = (data) => {
+    const grouped = data.reduce((acc, frequency) => {
+      const key = `${frequency.class}-${frequency.status}`;
+      if (!acc[key]) {
+        acc[key] = {
+          class: frequency.class,
+          status: frequency.status,
+          frequencies: [],
+        };
+      }
+      acc[key].frequencies.push(frequency);
+      return acc;
+    }, {});
+    return Object.values(grouped).sort((a, b) =>
+      a.class.toLowerCase().localeCompare(b.class.toLowerCase())
+    );
+  };
+
+  const filteredFrequencies = frequencies;
+  const groupedFrequencies = groupFrequencies(filteredFrequencies);
+  const totalPages = Math.ceil(groupedFrequencies.length / rowsPerPage);
+  const paginatedFrequencies = groupedFrequencies.slice(
     (page - 1) * rowsPerPage,
     page * rowsPerPage
   );
@@ -258,18 +281,15 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
         overflowY: "auto",
         width: "auto",
         "& .MuiMenuItem-root": {
-          minHeight: "36px",
-          display: "flex",
-          alignItems: "center",
-        },
-        "& .MuiMenuItem-root.Mui-selected": {
-          backgroundColor: "#D5FFDB",
           "&:hover": {
-            backgroundColor: "#C5F5CB",
+            backgroundColor: "#D5FFDB",
           },
-        },
-        "& .MuiMenuItem-root:hover": {
-          backgroundColor: "#D5FFDB",
+          "&.Mui-selected": {
+            backgroundColor: "#E8F5E9",
+            "&:hover": {
+              backgroundColor: "#D5FFDB",
+            },
+          },
         },
       },
     },
@@ -286,19 +306,31 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
     },
   };
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Abonada":
+        return "success";
+      case "Falta":
+        return "error";
+      default:
+        return "default";
+    }
+  };
+
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box sx={{ display: "flex", minHeight: "100vh" }}>
       <CssBaseline />
       <Sidebar setAuthenticated={setAuthenticated} />
       <Box
         sx={{
-          p: 3,
+          p: { xs: 2, sm: 3 },
           width: "100%",
           maxWidth: "1200px",
           margin: "0 auto",
           display: "flex",
           flexDirection: "column",
           gap: 2,
+          flexGrow: 1,
         }}
       >
         <Box
@@ -308,25 +340,31 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
             justifyContent: "center",
             position: "relative",
             mb: 3,
-            mt: 5,
+            mt: { xs: 3, sm: 5 },
           }}
         >
-          <IconButton
-            onClick={() => navigate("/teacher-absences")}
-            sx={{
-              position: "absolute",
-              left: 0,
-              color: INSTITUTIONAL_COLOR,
-              "&:hover": { backgroundColor: "transparent" },
-            }}
-          >
-            <ArrowBack sx={{ fontSize: 35 }} />
-          </IconButton>
+          {!isMobile && (
+            <IconButton
+              onClick={() => navigate("/teacher-absences")}
+              sx={{
+                position: "absolute",
+                left: 0,
+                color: INSTITUTIONAL_COLOR,
+                "&:hover": { backgroundColor: "transparent" },
+              }}
+            >
+              <ArrowBack sx={{ fontSize: 35 }} />
+            </IconButton>
+          )}
           <Typography
             variant="h5"
             align="center"
             gutterBottom
-            sx={{ fontWeight: "bold", flexGrow: 1 }}
+            sx={{
+              fontWeight: "bold",
+              flexGrow: 1,
+              fontSize: { xs: "1.2rem", sm: "1.5rem" },
+            }}
           >
             Faltas de {professorName}
           </Typography>
@@ -398,17 +436,6 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
                   onChange={(e) => setCustomEndDate(e.target.value)}
                   sx={commonDateInputSx}
                 />
-                <Button
-                  variant="contained"
-                  onClick={handleApplyCustomFilter}
-                  sx={{
-                    height: { xs: 40, sm: 36 },
-                    backgroundColor: INSTITUTIONAL_COLOR,
-                    "&:hover": { backgroundColor: "#265628" },
-                  }}
-                >
-                  Aplicar
-                </Button>
               </Stack>
             )}
           </Stack>
@@ -416,16 +443,113 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
 
         {loading ? (
           <Typography align="center">Carregando...</Typography>
+        ) : paginatedFrequencies.length > 0 ? (
+          <Stack spacing={2}>
+            {paginatedFrequencies.map((group, index) => (
+              <Accordion
+                key={`${group.class}-${group.status}-${index}`}
+                elevation={3}
+              >
+                <AccordionSummary
+                  expandIcon={<ExpandMore />}
+                  aria-controls={`panel-${index}-content`}
+                  id={`panel-${index}-header`}
+                >
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    width="100%"
+                  >
+                    <Box display="flex" alignItems="center">
+                      <School sx={{ mr: 1, fontSize: 32, color: "#087619" }} />
+                      <Typography fontWeight="bold">
+                        {group.class}
+                      </Typography>
+                    </Box>
+                    <Chip
+                      label={`${group.frequencies.length} Faltas`}
+                      color="error" 
+                      sx={{ color: '#ffffff' }} 
+                    />
+                    </Box>
+                </AccordionSummary>
+                <AccordionDetails>
+                  {group.frequencies.map((frequency, idx) => (
+                    <Box
+                      key={idx}
+                      sx={{
+                        mb: 2,
+                        p: { xs: 1, sm: 2 },
+                        border: "1px solid #e0e0e0",
+                        borderRadius: 2,
+                        display: "grid",
+                        gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+                        gap: { xs: 1, sm: 2 },
+                        overflow: "hidden",
+                      }}
+                    >
+                      <Box>
+                        <Typography
+                          variant="subtitle2"
+                          gutterBottom
+                          sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
+                        >
+                          <strong>Data:</strong> {frequency.displayDate}
+                        </Typography>
+                        <Typography
+                          variant="subtitle2"
+                          gutterBottom
+                          sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
+                        >
+                          <strong>Curso/Turma:</strong> {frequency.class}
+                        </Typography>
+                        <Typography
+                          variant="subtitle2"
+                          gutterBottom
+                          sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
+                        >
+                          <strong>Turno:</strong> {frequency.turno}
+                        </Typography>
+                      </Box>
+                      <Box>
+                        <Typography
+                          variant="subtitle2"
+                          gutterBottom
+                          sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
+                        >
+                          <strong>Status:</strong> {frequency.status}
+                        </Typography>
+                        {frequency.justification !== "N/A" && (
+                          <Typography
+                            variant="subtitle2"
+                            gutterBottom
+                            sx={{
+                              fontSize: { xs: "0.9rem", sm: "1rem" },
+                              overflowWrap: "break-word",
+                              wordBreak: "break-word",
+                              maxWidth: "100%",
+                            }}
+                          >
+                            <strong>Justificativa:</strong> {frequency.justification}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
+                  ))}
+                </AccordionDetails>
+              </Accordion>
+            ))}
+          </Stack>
         ) : (
-          <TeacherAbsencesDetailsTable
-            frequencies={paginatedFrequencies || []}
-            isFiltered={
-              filterStatus !== "" ||
-              filterPeriod !== "" ||
-              (filterPeriod === "custom" && customStartDate && customEndDate)
-            }
-            setAlert={setAlert}
-          />
+          <Typography
+            variant="body"
+            color="text.secondary"
+            align="center"
+            sx={{ mt: 20, mb: 4, fontSize: "1.2rem" }}
+          >
+            Não foram encontradas faltas.
+          </Typography>
         )}
 
         {totalPages > 1 && (

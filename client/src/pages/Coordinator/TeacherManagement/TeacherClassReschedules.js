@@ -496,12 +496,13 @@ const TeacherClassReschedulesList = ({ setAuthenticated }) => {
                       key={idx}
                       sx={{
                         mb: 2,
-                        p: 2,
+                        p: { xs: 1, sm: 2 },
                         border: "1px solid #e0e0e0",
                         borderRadius: 2,
                         display: "grid",
                         gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
-                        gap: 2,
+                        gap: { xs: 1, sm: 2 },
+                        overflow: "hidden",
                       }}
                     >
                       <Box>
@@ -588,7 +589,11 @@ const TeacherClassReschedulesList = ({ setAuthenticated }) => {
                           <Typography
                             variant="subtitle2"
                             gutterBottom
-                            sx={{ fontSize: "1rem" }}
+                            sx={{ fontSize: "1rem", 
+                              overflowWrap: "break-word",
+                              wordBreak: "break-word",
+                              maxWidth: "100%",
+                            }}
                           >
                             <strong>Observação:</strong> {request.observacao}
                           </Typography>
@@ -597,7 +602,11 @@ const TeacherClassReschedulesList = ({ setAuthenticated }) => {
                           <Typography
                             variant="subtitle2"
                             gutterBottom
-                            sx={{ fontSize: "1rem" }}
+                            sx={{ fontSize: "1rem",
+                              overflowWrap: "break-word",
+                              wordBreak: "break-word",
+                              maxWidth: "100%",
+                            }}
                           >
                             <strong>Justificativa:</strong>{" "}
                             {request.observationCoordinator}

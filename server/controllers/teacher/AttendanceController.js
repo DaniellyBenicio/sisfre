@@ -243,7 +243,7 @@ export const registerAttendanceByTurn = async (req, res) => {
 
 export const getAttendanceByTurn = async (req, res) => {
   const { turno, date, status } = req.query;
-  const loggedUserId = req.user?.id; 
+  const loggedUserId = req.user?.id;
 
   const now = new Date();
   const currentDate = now.toLocaleDateString("en-CA", {
@@ -278,7 +278,7 @@ export const getAttendanceByTurn = async (req, res) => {
       registeredBy: loggedUserId,
       ...(date && { date }),
       ...(status && { status }),
-    }; 
+    };
 
     if (date) {
       const calendar = await db.Calendar.findOne({
@@ -319,7 +319,11 @@ export const getAttendanceByTurn = async (req, res) => {
       ],
       order: [
         ["date", "DESC"],
-        [{ model: db.ClassScheduleDetail, as: "detail" }, "turn", "ASC"],
+        [
+          { model: db.ClassScheduleDetail, as: "detail" },
+          "turn",
+          "DESC", 
+        ],
         [
           { model: db.ClassScheduleDetail, as: "detail" },
           { model: db.Hour, as: "hour" },
@@ -327,8 +331,7 @@ export const getAttendanceByTurn = async (req, res) => {
           "ASC",
         ],
       ],
-    });
-
+    }); 
     const groupedAttendances = attendances.reduce((acc, attendance) => {
       const [year, month, day] = attendance.date.split("-");
       const date = `${day}/${month}/${year}`;
@@ -354,7 +357,7 @@ export const getAttendanceByTurn = async (req, res) => {
         const dateA = new Date(`${yearA}-${monthA}-${dayA}`);
         const dateB = new Date(`${yearB}-${monthB}-${dayB}`);
         if (dateA.getTime() !== dateB.getTime()) return dateB - dateA;
-        const turnOrder = ["Matutino", "Vespertino", "Noturno"];
+        const turnOrder = ["Noturno", "Vespertino", "Matutino"];
         return turnOrder.indexOf(a.turn) - turnOrder.indexOf(b.turn);
       }
     );
@@ -370,7 +373,6 @@ export const getAttendanceByTurn = async (req, res) => {
       .json({ error: "Erro interno do servidor.", details: error.message });
   }
 };
-
 export const getTeacherAbsences = async (req, res) => {
   const { courseAcronym, disciplineName } = req.query;
 

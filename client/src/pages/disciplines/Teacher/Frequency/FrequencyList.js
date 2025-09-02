@@ -140,7 +140,22 @@ const FrequencyList = () => {
             justification: freq.justification,
           }))
         : [];
-      setFrequencies(formattedData);
+
+      const sortedData = formattedData.sort((a, b) => {
+        const [dayA, monthA, yearA] = a.date.split("/");
+        const [dayB, monthB, yearB] = b.date.split("/");
+        const dateA = new Date(`${yearA}-${monthA}-${dayA}`);
+        const dateB = new Date(`${yearB}-${monthB}-${dayB}`);
+
+        if (dateA.getTime() !== dateB.getTime()) {
+          return dateB - dateA;
+        }
+
+        const turnOrder = ["Noturno", "Vespertino", "Matutino"];
+        return turnOrder.indexOf(a.turn) - turnOrder.indexOf(b.turn);
+      });
+
+      setFrequencies(sortedData);
     } catch (error) {
       console.error("Erro ao buscar frequências:", error);
       setAlert({

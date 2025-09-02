@@ -253,9 +253,16 @@ const Reports = ({ setAuthenticated }) => {
       if (active && payload && payload.length) {
         const data = payload[0].payload;
 
-        const label = data.status || data.acronym || data.name || "N/A";
+        const label =
+          data.course || data.status || data.acronym || data.name || "N/A";
+
+        const getValueOrDefault = (val) =>
+          val !== null && val !== undefined ? val : 0;
+
         const value =
-          data.count || data.totalDisciplines || data.value || "N/A";
+          getValueOrDefault(data.totalDisciplines) ||
+          getValueOrDefault(data.count) ||
+          getValueOrDefault(data.value);
 
         return (
           <Box
@@ -270,7 +277,7 @@ const Reports = ({ setAuthenticated }) => {
             <Typography variant="body2" sx={{ fontWeight: "bold" }}>
               {label}
             </Typography>
-            <Typography variant="body2">{`Valor: ${value}`}</Typography>
+            <Typography variant="body2">{`Quantidade: ${value}`}</Typography>
             {data.percent && (
               <Typography variant="body2">{`Porcentagem: ${(
                 data.percent * 100

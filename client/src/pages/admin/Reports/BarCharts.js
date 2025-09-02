@@ -1,5 +1,4 @@
 import { Box, Typography, Grid, Card, CardContent } from "@mui/material";
-
 import {
   ResponsiveContainer,
   BarChart,
@@ -24,7 +23,6 @@ const BarCharts = ({
       {/* GRÁFICO: Gráfico de Barras para Status de Requisições */}
       <Grid item xs={12} md={6}>
         <Card sx={{ p: 2, height: "100%" }}>
-          {/* Adiciona overflow: visible para o tooltip não ser cortado */}
           <CardContent sx={{ overflow: "visible" }}>
             <Typography
               variant="h6"
@@ -42,13 +40,12 @@ const BarCharts = ({
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="status" />
-                {/* Define o YAxis para o tipo "number" e a chave de dados "count" */}
                 <YAxis type="number" dataKey="count" />
                 <Tooltip />
                 <Legend />
                 <Bar
                   dataKey="count"
-                  name="Total de Requisições"
+                  name="Total"
                   fill={customTheme.palette.primary.main}
                 />
               </BarChart>
@@ -57,10 +54,9 @@ const BarCharts = ({
         </Card>
       </Grid>
 
-      {/* GRÁFICO: Gráfico de Barras para Disciplinas por Curso */}
-      <Grid item xs={12}>
-        <Card sx={{ p: 2 }}>
-          {/* Adiciona overflow: visible para o tooltip não ser cortado */}
+      {/* GRÁFICO: Gráfico de Barras para Disciplinas por Curso - OTIMIZADO */}
+      <Grid item xs={12} md={6}>
+        <Card sx={{ p: 2, height: "100%" }}>
           <CardContent sx={{ overflow: "visible" }}>
             <Typography
               variant="h6"
@@ -78,7 +74,7 @@ const BarCharts = ({
               <BarChart
                 layout="vertical"
                 data={disciplinesByCourse}
-                margin={{ top: 20, right: 30, left: 100, bottom: 20 }}
+                margin={{ top: 20, right: 30, left: 30, bottom: 20 }} // Margem esquerda reduzida para 30
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis type="number" dataKey="totalDisciplines" />
@@ -86,11 +82,10 @@ const BarCharts = ({
                   type="category"
                   dataKey="acronym"
                   tick={{ fontSize: 12 }}
-                  width={100}
+                  width={80} // Largura do eixo ajustada para 80
                   interval={0}
-                  padding={{ left: 10 }}
+                  // padding={{ left: 10 }} REMOVIDO para evitar espaço extra
                 />
-                {/* O CustomTooltip é passado como prop e irá renderizar corretamente */}
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
                 <Bar

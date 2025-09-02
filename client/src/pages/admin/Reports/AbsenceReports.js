@@ -29,7 +29,13 @@ import {
 import React from "react";
 import { red, blue } from "@mui/material/colors";
 
-const AbsenceReports = ({ monthlyAbsences, absencesByShift, absencesByCourse, teacherAbsences, customTheme }) => {
+const AbsenceReports = ({
+  monthlyAbsences,
+  absencesByShift,
+  absencesByCourse,
+  teacherAbsences,
+  customTheme,
+}) => {
   return (
     <>
       {/* GRÁFICO: Histórico de Faltas Mensais */}
@@ -58,7 +64,7 @@ const AbsenceReports = ({ monthlyAbsences, absencesByShift, absencesByCourse, te
                 <Line
                   type="monotone"
                   dataKey="totalAbsences"
-                  name="Total de Faltas"
+                  name="Total"
                   stroke={red[500]}
                   activeDot={{ r: 8 }}
                 />
@@ -91,17 +97,13 @@ const AbsenceReports = ({ monthlyAbsences, absencesByShift, absencesByCourse, te
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar
-                  dataKey="total_faltas"
-                  name="Total de Faltas"
-                  fill={blue[500]}
-                />
+                <Bar dataKey="total_faltas" name="Total" fill={blue[500]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       </Grid>
-      
+
       {/* Tabela de Faltas por Curso */}
       <Grid item xs={12}>
         <Card sx={{ p: 2 }}>
@@ -127,7 +129,7 @@ const AbsenceReports = ({ monthlyAbsences, absencesByShift, absencesByCourse, te
                 <Legend />
                 <Bar
                   dataKey="totalAbsences"
-                  name="Total de Faltas"
+                  name="Total "
                   fill={customTheme.palette.special.main}
                 />
               </BarChart>
@@ -135,7 +137,7 @@ const AbsenceReports = ({ monthlyAbsences, absencesByShift, absencesByCourse, te
           </CardContent>
         </Card>
       </Grid>
-      
+
       {/* Tabela de Faltas por Professor */}
       <Grid item xs={12}>
         <Card sx={{ p: 2 }}>

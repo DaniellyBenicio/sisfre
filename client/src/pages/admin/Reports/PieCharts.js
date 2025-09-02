@@ -40,7 +40,7 @@ const PieCharts = ({ dashboardData, repositionAntepositionData }) => {
           <Typography variant="body2" sx={{ fontWeight: "bold" }}>
             {data.name}
           </Typography>
-          <Typography variant="body2">{`Valor: ${data.value}`}</Typography>
+          <Typography variant="body2">{`Quantidade: ${data.value}`}</Typography>
           {data.percent && (
             <Typography variant="body2">{`Porcentagem: ${(
               data.percent * 100

@@ -67,7 +67,6 @@ const FrequencyList = () => {
   const [frequencies, setFrequencies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
-  // Alterado o estado inicial para string vazia
   const [filterStatus, setFilterStatus] = useState("");
   const [filterPeriod, setFilterPeriod] = useState("");
   const [customStartDate, setCustomStartDate] = useState("");
@@ -88,24 +87,50 @@ const FrequencyList = () => {
   const fetchFrequencies = async () => {
     try {
       setLoading(true);
+
       const params = {
-        // Agora verifica se o valor é uma string vazia para enviar undefined
         status: filterStatus === "" ? undefined : filterStatus.toLowerCase(),
-        startDate:
-          filterPeriod === "custom" && customStartDate
-            ? customStartDate
-            : undefined,
-        endDate:
-          filterPeriod === "custom" && customEndDate
-            ? customEndDate
-            : undefined,
       };
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      switch (filterPeriod) {
+        case "yesterday":
+          const yesterday = new Date(today);
+          yesterday.setDate(today.getDate() - 1);
+          params.startDate = yesterday.toLocaleDateString("en-CA");
+          params.endDate = yesterday.toLocaleDateString("en-CA");
+          break;
+        case "lastWeek":
+          const lastWeek = new Date(today);
+          lastWeek.setDate(today.getDate() - 7);
+          params.startDate = lastWeek.toLocaleDateString("en-CA");
+          params.endDate = today.toLocaleDateString("en-CA");
+          break;
+        case "lastMonth":
+          const lastMonth = new Date(today);
+          lastMonth.setMonth(today.getMonth() - 1);
+          params.startDate = lastMonth.toLocaleDateString("en-CA");
+          params.endDate = today.toLocaleDateString("en-CA");
+          break;
+        case "custom":
+          if (customStartDate && customEndDate) {
+            params.startDate = customStartDate;
+            params.endDate = customEndDate;
+          }
+          break;
+        default:
+          break;
+      }
+
       console.log("Parâmetros enviados para GET /register-by-turn:", params);
       const response = await api.get("/register-by-turn", { params });
       console.log(
         "Resposta do backend (GET /register-by-turn):",
         response.data
       );
+
       const formattedData = Array.isArray(response.data.attendances)
         ? response.data.attendances.map((freq, index) => ({
             id: index.toString(),
@@ -139,41 +164,9 @@ const FrequencyList = () => {
   const applyFilters = (data) => {
     let filtered = Array.isArray(data) ? [...data] : [];
 
-    // Altera a verificação para string vazia
     if (filterStatus !== "") {
       filtered = filtered.filter((freq) => freq.status === filterStatus);
     }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    filtered = filtered.filter((freq) => {
-      if (!freq.date) return false;
-      const freqDate = new Date(freq.date.split("/").reverse().join("-"));
-      switch (filterPeriod) {
-        case "yesterday":
-          const yesterday = new Date(today);
-          yesterday.setDate(today.getDate() - 1);
-          return freqDate.toDateString() === yesterday.toDateString();
-        case "lastWeek":
-          const lastWeek = new Date(today);
-          lastWeek.setDate(today.getDate() - 7);
-          return freqDate >= lastWeek && freqDate <= today;
-        case "lastMonth":
-          const lastMonth = new Date(today);
-          lastMonth.setMonth(today.getMonth() - 1);
-          return freqDate >= lastMonth && freqDate <= today;
-        case "custom":
-          if (customStartDate && customEndDate) {
-            const start = new Date(customStartDate + "T00:00:00");
-            const end = new Date(customEndDate + "T23:59:59");
-            return freqDate >= start && freqDate <= end;
-          }
-          return true;
-        default:
-          return true;
-      }
-    });
 
     return filtered;
   };
@@ -225,13 +218,13 @@ const FrequencyList = () => {
           "Nenhuma aula encontrada para o turno atual.";
       } else if (error.code === "ERR_NETWORK") {
         errorMessage = "Erro de rede. Verifique sua conexão e tente novamente.";
-      } else if (error.code === "PERMISSION_DENIED") {
+      } else if (error.code === 1) {
         errorMessage =
           "Permissão de geolocalização negada. Ative a geolocalização no navegador.";
-      } else if (error.code === "POSITION_UNAVAILABLE") {
+      } else if (error.code === 2) {
         errorMessage =
           "Não foi possível obter a localização. Verifique sua conexão ou configurações.";
-      } else if (error.code === "TIMEOUT") {
+      } else if (error.code === 3) {
         errorMessage =
           "Tempo esgotado ao obter a localização. Tente novamente.";
       } else if (error.response?.data?.error) {
@@ -391,8 +384,7 @@ const FrequencyList = () => {
                   sx={commonSelectSx}
                   MenuProps={commonMenuProps}
                 >
-                  {/* Alterado para um valor vazio para que o placeholder funcione */}
-                  <MenuItem value="">Todas</MenuItem> 
+                  <MenuItem value="">Todas</MenuItem>
                   <MenuItem value="Presença">Presenças</MenuItem>
                   <MenuItem value="Falta">Faltas</MenuItem>
                   <MenuItem value="Abonada">Abonadas</MenuItem>
@@ -412,7 +404,6 @@ const FrequencyList = () => {
                   sx={commonSelectSx}
                   MenuProps={commonMenuProps}
                 >
-                  {/* Alterado para um valor vazio para que o placeholder funcione */}
                   <MenuItem value="">Todas</MenuItem>
                   <MenuItem value="yesterday">Dia Anterior</MenuItem>
                   <MenuItem value="lastWeek">Última Semana</MenuItem>

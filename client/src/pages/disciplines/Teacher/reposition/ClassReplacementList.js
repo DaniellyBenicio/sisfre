@@ -37,10 +37,10 @@ const ClassReplacementList = () => {
   const [replacements, setReplacements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
-  const [filterTurma, setFilterTurma] = useState("all");
-  const [filterDisciplina, setFilterDisciplina] = useState("all");
-  const [filterPeriod, setFilterPeriod] = useState("all");
-  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterTurma, setFilterTurma] = useState("");
+  const [filterDisciplina, setFilterDisciplina] = useState("");
+  const [filterPeriod, setFilterPeriod] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
   const [page, setPage] = useState(1);
   const rowsPerPage = 7;
   const navigate = useNavigate();
@@ -127,15 +127,13 @@ const ClassReplacementList = () => {
   const applyFilters = (data) => {
     let filtered = Array.isArray(data) ? [...data] : [];
 
-    if (filterTurma !== "all") {
+    if (filterTurma !== "") {
       filtered = filtered.filter((rep) => rep.turma === filterTurma);
     }
-
-    if (filterDisciplina !== "all") {
+    if (filterDisciplina !== "") {
       filtered = filtered.filter((rep) => rep.disciplina === filterDisciplina);
     }
-
-    if (filterStatus !== "all") {
+    if (filterStatus !== "") {
       filtered = filtered.filter((rep) => rep.status === filterStatus);
     }
 
@@ -146,6 +144,10 @@ const ClassReplacementList = () => {
       if (!rep.data) return false;
       const repDate = new Date(rep.data + "T00:00:00");
       repDate.setHours(0, 0, 0, 0);
+
+      if (filterPeriod === "") {
+        return true;
+      }
 
       switch (filterPeriod) {
         case "yesterday":
@@ -280,7 +282,7 @@ const ClassReplacementList = () => {
           sx={{
             fontWeight: "bold",
             flexGrow: 1,
-            mt: { xs: 3, sm: 0 }, 
+            mt: { xs: 3, sm: 0 },
           }}
         >
           Reposições de Aula
@@ -310,7 +312,7 @@ const ClassReplacementList = () => {
               sx={commonSelectSx}
               MenuProps={commonMenuProps}
             >
-              <MenuItem value="all">Todas</MenuItem>
+              <MenuItem value="">Todos</MenuItem>
               {turmas.map((turma) => (
                 <MenuItem key={turma} value={turma}>
                   {turma}
@@ -330,7 +332,7 @@ const ClassReplacementList = () => {
               sx={commonSelectSx}
               MenuProps={commonMenuProps}
             >
-              <MenuItem value="all">Todas</MenuItem>
+              <MenuItem value="">Todos</MenuItem>
               {disciplinas.map((disciplina) => (
                 <MenuItem key={disciplina} value={disciplina}>
                   {disciplina}
@@ -350,7 +352,7 @@ const ClassReplacementList = () => {
               sx={commonSelectSx}
               MenuProps={commonMenuProps}
             >
-              <MenuItem value="all">Todos</MenuItem>
+              <MenuItem value="">Todos</MenuItem>
               <MenuItem value="Pendente">Pendente</MenuItem>
               <MenuItem value="Aprovado">Aprovado</MenuItem>
               <MenuItem value="Rejeitado">Rejeitado</MenuItem>
@@ -368,7 +370,7 @@ const ClassReplacementList = () => {
               sx={commonSelectSx}
               MenuProps={commonMenuProps}
             >
-              <MenuItem value="all">Todas</MenuItem>
+              <MenuItem value="">Todos</MenuItem>
               <MenuItem value="yesterday">Dia Anterior</MenuItem>
               <MenuItem value="lastWeek">Última Semana</MenuItem>
               <MenuItem value="lastMonth">Último Mês</MenuItem>

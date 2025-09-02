@@ -168,7 +168,6 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
           }))
         : [];
 
-      // Ordena os dados por data, da mais recente para a mais antiga
       formattedData.sort((a, b) => new Date(b.date) - new Date(a.date));
 
       setFrequencies(formattedData);
@@ -482,13 +481,22 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
                       </Typography>
                     </Box>
                     <Box>
-                      <Typography variant="subtitle2" gutterBottom>
-                        <strong>Status:</strong>{" "}
-                        <Chip
-                          label={absence.status}
-                          size="small"
-                          color={getStatusColor(absence.status)}
-                        />
+                      <Typography variant="subtitle2" gutterBottom sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}>
+                        <strong>Status: </strong>
+                        <Box
+                          component="span"
+                          sx={{
+                            color:
+                              absence.status.toLowerCase() === "falta"
+                                ? "#ff0000"
+                                : absence.status.toLowerCase() === "abonada"
+                                ? "#ffeb3b"
+                                : "inherit",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {absence.status}
+                        </Box>
                       </Typography>
                       {absence.justification !== "N/A" && (
                         <Typography

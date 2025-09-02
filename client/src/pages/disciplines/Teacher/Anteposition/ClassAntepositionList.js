@@ -14,8 +14,8 @@ import {
   IconButton,
   Pagination,
   MenuItem,
-  useMediaQuery, // Adicionado para a lógica responsiva
-  useTheme, // Adicionado para acessar os temas de breakpoints
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import {
   ArrowBack,
@@ -49,10 +49,10 @@ const ClassAntepositionList = () => {
   const [antepositions, setAntepositions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
-  const [filterTurma, setFilterTurma] = useState("all");
-  const [filterDisciplina, setFilterDisciplina] = useState("all");
-  const [filterPeriod, setFilterPeriod] = useState("all");
-  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterTurma, setFilterTurma] = useState("");
+  const [filterDisciplina, setFilterDisciplina] = useState("");
+  const [filterPeriod, setFilterPeriod] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
   const [page, setPage] = useState(1);
   const rowsPerPage = 7;
   const navigate = useNavigate();
@@ -239,15 +239,15 @@ const ClassAntepositionList = () => {
   const applyFilters = (data) => {
     let filtered = Array.isArray(data) ? [...data] : [];
 
-    if (filterTurma !== "all") {
+    if (filterTurma !== "") {
       filtered = filtered.filter((rep) => rep.turma === filterTurma);
     }
 
-    if (filterDisciplina !== "all") {
+    if (filterDisciplina !== "") {
       filtered = filtered.filter((rep) => rep.discipline === filterDisciplina);
     }
 
-    if (filterStatus !== "all") {
+    if (filterStatus !== "") {
       filtered = filtered.filter((rep) => rep.status === filterStatus);
     }
 
@@ -443,7 +443,7 @@ const ClassAntepositionList = () => {
               sx={commonSelectSx}
               MenuProps={commonMenuProps}
             >
-              <MenuItem value="all">Todas</MenuItem>
+              <MenuItem value="">Todas</MenuItem>
               {turmas.map((turma) => (
                 <MenuItem key={turma} value={turma}>
                   {turma}
@@ -463,7 +463,7 @@ const ClassAntepositionList = () => {
               sx={commonSelectSx}
               MenuProps={commonMenuProps}
             >
-              <MenuItem value="all">Todas</MenuItem>
+              <MenuItem value="">Todas</MenuItem>
               {disciplinas.map((disciplina) => (
                 <MenuItem key={disciplina} value={disciplina}>
                   {disciplina}
@@ -483,7 +483,7 @@ const ClassAntepositionList = () => {
               sx={commonSelectSx}
               MenuProps={commonMenuProps}
             >
-              <MenuItem value="all">Todos</MenuItem>
+              <MenuItem value="">Todos</MenuItem>
               <MenuItem value="Pendente">Pendente</MenuItem>
               <MenuItem value="Aprovado">Aprovado</MenuItem>
               <MenuItem value="Rejeitado">Rejeitado</MenuItem>
@@ -501,7 +501,7 @@ const ClassAntepositionList = () => {
               sx={commonSelectSx}
               MenuProps={commonMenuProps}
             >
-              <MenuItem value="all">Todas</MenuItem>
+              <MenuItem value="">Todas</MenuItem>
               <MenuItem value="yesterday">Dia Anterior</MenuItem>
               <MenuItem value="lastWeek">Última Semana</MenuItem>
               <MenuItem value="lastMonth">Último Mês</MenuItem>

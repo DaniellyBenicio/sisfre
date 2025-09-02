@@ -23,11 +23,6 @@ import React, { useState, useEffect } from "react";
 
 import {
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  Legend,
   BarChart,
   Bar,
   LineChart,
@@ -35,11 +30,16 @@ import {
   CartesianGrid,
   XAxis,
   YAxis,
+  Tooltip,
+  Legend,
 } from "recharts";
 
 import MetricCards from "./MetricCards.js";
 import Sidebar from "../../../components/SideBar.js";
 import api from "../../../service/api";
+import PieCharts from "./PieCharts.js";
+import BarCharts from "./BarCharts.js";
+import AbsenceReports from "./AbsenceReports.js";
 
 const customTheme = createTheme({
   palette: {
@@ -92,15 +92,6 @@ const customTheme = createTheme({
     },
   },
 });
-
-const COLORS = [
-  green[500],
-  blue[300],
-  grey[400],
-  grey[600],
-  green[300],
-  blue[500],
-];
 
 const Reports = ({ setAuthenticated }) => {
   const [dashboardData, setDashboardData] = useState(null);
@@ -240,7 +231,7 @@ const Reports = ({ setAuthenticated }) => {
           alignItems="center"
           height="50vh"
         >
-          <CircularProgress color="primary" />
+                    <CircularProgress color="primary" />       {" "}
         </Box>
       );
     }
@@ -253,7 +244,7 @@ const Reports = ({ setAuthenticated }) => {
           alignItems="center"
           height="50vh"
         >
-          <Alert severity="error">{error}</Alert>
+                    <Alert severity="error">{error}</Alert>       {" "}
         </Box>
       );
     }
@@ -271,499 +262,65 @@ const Reports = ({ setAuthenticated }) => {
               boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
             }}
           >
+                       {" "}
             <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-              {data.name}
+                            {data.name}           {" "}
             </Typography>
-            <Typography variant="body2">{`Valor: ${data.value}`}</Typography>
+                       {" "}
+            <Typography variant="body2">{`Valor: ${data.value}`}</Typography>   
+                   {" "}
             {data.percent && (
               <Typography variant="body2">{`Porcentagem: ${(
                 data.percent * 100
               ).toFixed(2)}%`}</Typography>
             )}
+                     {" "}
           </Box>
         );
       }
       return null;
     };
 
-    const renderCustomizedLabel = ({
-      cx,
-      cy,
-      midAngle,
-      innerRadius,
-      outerRadius,
-      percent,
-      name, // Adiciona 'name' para usar no rótulo
-    }) => {
-      const RADIAN = Math.PI / 180;
-      // Posiciona o rótulo um pouco mais para fora do centro para evitar corte
-      const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-      const x = cx + radius * Math.cos(-midAngle * RADIAN);
-      const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-      const percentageValue = (percent * 100).toFixed(0);
-
-      // Renderiza o rótulo apenas se a porcentagem for maior que 8% (pode ajustar)
-      if (percentageValue > 8) {
-        return (
-          <text
-            x={x}
-            y={y}
-            fill="white"
-            textAnchor="middle" // Centraliza o texto horizontalmente
-            dominantBaseline="central" // Centraliza o texto verticalmente
-            fontWeight="bold"
-            fontSize="14px" // Ajusta o tamanho da fonte
-          >
-            {`${percentageValue}%`}
-          </text>
-        );
-      }
-      return null;
-    };
-
-    const repositionAntepositionPieData = repositionAntepositionData
-      ? [
-          {
-            name: "Reposições",
-            value: repositionAntepositionData.repositions,
-            color: blue[500],
-          },
-          {
-            name: "Anteposições",
-            value: repositionAntepositionData.antepositions,
-            color: green[500],
-          },
-        ]
-      : [];
-
     return (
       <Grid container spacing={4} mt={4} justifyContent="center">
-        {/* === CONTAINER PARA TODOS OS CARDS DE MÉTRICAS === */}
+                {/* === CONTAINER PARA TODOS OS CARDS DE MÉTRICAS === */}       {" "}
         <MetricCards
           dashboardData={dashboardData}
           repositionAntepositionData={repositionAntepositionData}
           resolutionRate={resolutionRate}
         />
-
-        {/* --- CONTAINER PARA TODOS OS GRÁFICOS DE PIZZA --- */}
-        <Grid item xs={12}>
-          <Grid container spacing={4} justifyContent="center">
-            {/* Gráfico de Usuários */}
-            <Grid item xs={12} md={4}>
-              <Card sx={{ height: "100%", p: 2 }}>
-                <CardContent>
-                  <Typography
-                    variant="h6"
-                    gutterBottom
-                    align="center"
-                    fontWeight="bold"
-                    color="primary"
-                  >
-                    Usuários Ativos vs. Inativos
-                  </Typography>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={dashboardData?.usersData || []}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={90}
-                        fill="#8884d8"
-                        paddingAngle={5}
-                        isAnimationActive={true}
-                        labelLine={false}
-                        label={renderCustomizedLabel}
-                      >
-                        {dashboardData?.usersData?.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={COLORS[index % COLORS.length]}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip content={<CustomTooltip />} />
-                      <Legend
-                        formatter={(value) => (
-                          <span style={{ color: "black" }}>{value}</span>
-                        )}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            {/* Gráfico de Distribuição de Cursos */}
-            <Grid item xs={12} md={4}>
-              <Card sx={{ height: "100%", p: 2 }}>
-                <CardContent>
-                  <Typography
-                    variant="h6"
-                    gutterBottom
-                    align="center"
-                    fontWeight="bold"
-                    color="primary"
-                  >
-                    Distribuição de Cursos
-                  </Typography>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={dashboardData?.coursesData || []}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={90}
-                        fill="#8884d8"
-                        paddingAngle={5}
-                        isAnimationActive={true}
-                        labelLine={false}
-                        label={renderCustomizedLabel}
-                      >
-                        {dashboardData?.coursesData?.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={COLORS[index % COLORS.length]}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip content={<CustomTooltip />} />
-                      <Legend
-                        formatter={(value) => (
-                          <span style={{ color: "black" }}>{value}</span>
-                        )}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            {/* Gráfico de Proporção de Requisições */}
-            <Grid item xs={12} md={4}>
-              <Card sx={{ height: "100%", p: 2 }}>
-                <CardContent>
-                  <Typography
-                    variant="h6"
-                    gutterBottom
-                    align="center"
-                    fontWeight="bold"
-                    color="primary"
-                  >
-                    Proporção de Requisições
-                  </Typography>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={repositionAntepositionPieData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={90}
-                        fill="#8884d8"
-                        paddingAngle={5}
-                        isAnimationActive={true}
-                        labelLine={false}
-                        label={renderCustomizedLabel}
-                      >
-                        {repositionAntepositionPieData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip content={<CustomTooltip />} />
-                      <Legend
-                        formatter={(value) => (
-                          <span style={{ color: "black" }}>{value}</span>
-                        )}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        </Grid>
-
-        {/* GRÁFICO: Gráfico de Barras para Status de Requisições */}
-        <Grid item xs={12} md={6}>
-          <Card sx={{ p: 2, height: "100%" }}>
-            <CardContent>
-              <Typography
-                variant="h6"
-                gutterBottom
-                align="center"
-                fontWeight="bold"
-                color="primary"
-              >
-                Status das Requisições
-              </Typography>
-              <ResponsiveContainer width="100%" height={350}>
-                <BarChart
-                  data={requestsStatus}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="status" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar
-                    dataKey="count"
-                    name="Total de Requisições"
-                    fill="#4caf50"
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* GRÁFICO: Histórico de Faltas Mensais */}
-        <Grid item xs={12}>
-          <Card sx={{ p: 2 }}>
-            <CardContent>
-              <Typography
-                variant="h6"
-                gutterBottom
-                align="center"
-                fontWeight="bold"
-                color="primary"
-              >
-                Histórico Mensal de Faltas
-              </Typography>
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart
-                  data={monthlyAbsences}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="monthName" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="totalAbsences"
-                    name="Total de Faltas"
-                    stroke={red[500]}
-                    activeDot={{ r: 8 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Gráfico de Barras para Faltas por Turno */}
-        <Grid item xs={12}>
-          <Card sx={{ p: 2 }}>
-            <CardContent>
-              <Typography
-                variant="h6"
-                gutterBottom
-                align="center"
-                fontWeight="bold"
-                color="primary"
-              >
-                Faltas por Turno
-              </Typography>
-              <ResponsiveContainer width="100%" height={350}>
-                <BarChart
-                  data={absencesByShift}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="turno" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar
-                    dataKey="total_faltas"
-                    name="Total de Faltas"
-                    fill={blue[500]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Gráfico de Barras para Disciplinas por Curso */}
-        <Grid item xs={12}>
-          <Card sx={{ p: 2 }}>
-            <CardContent>
-              <Typography
-                variant="h6"
-                gutterBottom
-                align="center"
-                fontWeight="bold"
-                color="primary"
-              >
-                Total de Disciplinas por Curso
-              </Typography>
-              <ResponsiveContainer
-                width="100%"
-                height={Math.max(400, disciplinesByCourse.length * 40)}
-              >
-                <BarChart
-                  layout="vertical"
-                  data={disciplinesByCourse}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" dataKey="totalDisciplines" />
-                  <YAxis type="category" dataKey="acronym" />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend />
-                  <Bar
-                    dataKey="totalDisciplines"
-                    name="Total de Disciplinas"
-                    fill={customTheme.palette.special.main}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Tabela de Cursos Existentes */}
-        <Grid item xs={12}>
-          <Card sx={{ p: 2 }}>
-            <CardContent>
-              <Typography
-                variant="h6"
-                gutterBottom
-                align="center"
-                fontWeight="bold"
-                color="primary"
-              >
-                Lista de Cursos
-              </Typography>
-              <TableContainer component={Paper}>
-                <Table sx={{ minWidth: 650 }} aria-label="tabela de cursos">
-                  <TableHead>
-                    <TableRow
-                      sx={{
-                        backgroundColor: customTheme.palette.primary.light,
-                      }}
-                    >
-                      <TableCell>Nome do Curso</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {coursesList.map((course) => (
-                      <TableRow key={course._id || course.id}>
-                        <TableCell component="th" scope="row">
-                          {course.name || "Sem nome"}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Tabela de Faltas por Curso */}
-        <Grid item xs={12}>
-          <Card sx={{ p: 2 }}>
-            <CardContent>
-              <Typography
-                variant="h6"
-                gutterBottom
-                align="center"
-                fontWeight="bold"
-                color="primary"
-              >
-                Total de Faltas por Curso
-              </Typography>
-              <ResponsiveContainer width="100%" height={400}>
-                <BarChart
-                  data={absencesByCourse}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="acronym" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar
-                    dataKey="totalAbsences"
-                    name="Total de Faltas"
-                    fill={customTheme.palette.special.main}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Tabela de Faltas por Professor */}
-        <Grid item xs={12}>
-          <Card sx={{ p: 2 }}>
-            <CardContent>
-              <Typography
-                variant="h6"
-                gutterBottom
-                align="center"
-                fontWeight="bold"
-                color="primary"
-              >
-                Faltas por Professor
-              </Typography>
-              <TableContainer component={Paper}>
-                <Table aria-label="tabela de faltas por professor">
-                  <TableHead>
-                    <TableRow
-                      sx={{
-                        backgroundColor: customTheme.palette.secondary.light,
-                      }}
-                    >
-                      <TableCell>Professor</TableCell>
-                      <TableCell align="right">Total de Faltas</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {teacherAbsences.length > 0 ? (
-                      teacherAbsences.map((teacher, index) => (
-                        <TableRow key={index}>
-                          <TableCell component="th" scope="row">
-                            {teacher.name}
-                          </TableCell>
-                          <TableCell align="right">{teacher.count}</TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={2} align="center">
-                          Nenhuma falta de professor encontrada.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
-          </Card>
-        </Grid>
+                {/* --- CONTAINER PARA TODOS OS GRÁFICOS DE PIZZA --- */}       {" "}
+        <PieCharts
+          dashboardData={dashboardData}
+          repositionAntepositionData={repositionAntepositionData}
+        />
+                {/* Componente externo para os gráficos de barra */}       {" "}
+        <BarCharts
+          requestsStatus={requestsStatus}
+          disciplinesByCourse={disciplinesByCourse}
+          customTheme={customTheme}
+          CustomTooltip={CustomTooltip}
+        />
+                {/* Novo componente para todos os relatórios de faltas */}     
+         {" "}
+        <AbsenceReports
+          monthlyAbsences={monthlyAbsences}
+          absencesByShift={absencesByShift}
+          absencesByCourse={absencesByCourse}
+          teacherAbsences={teacherAbsences}
+          customTheme={customTheme}
+        />
+             {" "}
       </Grid>
     );
   };
 
   return (
     <ThemeProvider theme={customTheme}>
+           {" "}
       <Box sx={{ display: "flex" }}>
-        <CssBaseline />
-        <Sidebar setAuthenticated={setAuthenticated} />
+                <CssBaseline />
+                <Sidebar setAuthenticated={setAuthenticated} />       {" "}
         <Box
           component="main"
           sx={{
@@ -776,6 +333,7 @@ const Reports = ({ setAuthenticated }) => {
             bgcolor: "background.default",
           }}
         >
+                   {" "}
           <Typography
             variant="h4"
             fontWeight="bold"
@@ -784,11 +342,13 @@ const Reports = ({ setAuthenticated }) => {
             align="center"
             color="primary"
           >
-            Painel Administrativo
+                        Painel Administrativo          {" "}
           </Typography>
-          {renderContent()}
+                    {renderContent()}       {" "}
         </Box>
+             {" "}
       </Box>
+         {" "}
     </ThemeProvider>
   );
 };

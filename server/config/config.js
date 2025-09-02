@@ -10,6 +10,7 @@ export default {
     host: process.env.DB_HOST,
     dialect: "mysql",
     logging: console.log,
+    timezone: "-03:00",
   },
   test: {
     username: process.env.DB_USER,
@@ -17,6 +18,7 @@ export default {
     database: process.env.DB_NAME,
     host: process.env.DB_HOST,
     dialect: "mysql",
+    timezone: "-03:00",
   },
   production: {
     username: process.env.DB_USER,
@@ -24,5 +26,6 @@ export default {
     database: process.env.DB_NAME,
     host: process.env.DB_HOST,
     dialect: "mysql",
+    timezone: "-03:00",
   },
 };

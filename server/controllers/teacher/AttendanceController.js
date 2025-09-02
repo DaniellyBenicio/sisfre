@@ -62,19 +62,17 @@ function getTurnFromTime(currentTime) {
 
 export const registerAttendanceByTurn = async (req, res) => {
   const { latitude, longitude } = req.body;
-  const loggedUserId = req.user?.id;
+  const loggedUserId = req.user?.id; 
 
-  const currentDateTime = new Date();
-  const offset = -3 * 60;
-  const localDateTime = new Date(
-    currentDateTime.getTime() +
-      (offset + currentDateTime.getTimezoneOffset()) * 60 * 1000
-  );
-
-  const currentDate = localDateTime.toLocaleDateString("en-CA", {
+  const now = new Date(); 
+  const currentDate = now.toLocaleDateString("en-CA", {
     timeZone: "America/Sao_Paulo",
-  });
+  }); 
+  const localDateTime = new Date(
+    now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })
+  );
   const currentTime = localDateTime;
+
   try {
     if (!loggedUserId) {
       return res.status(401).json({ error: "Usuário não autenticado." });
@@ -134,7 +132,7 @@ export const registerAttendanceByTurn = async (req, res) => {
       });
     }
 
-    let dayOfWeek = getDayOfWeek(currentDateTime);
+    let dayOfWeek = getDayOfWeek(currentTime);
     const schoolSaturday = await db.SchoolSaturday.findOne({
       where: { date: currentDate },
       include: [

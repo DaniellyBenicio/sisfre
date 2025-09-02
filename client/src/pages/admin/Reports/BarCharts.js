@@ -1,4 +1,5 @@
 import { Box, Typography, Grid, Card, CardContent } from "@mui/material";
+
 import {
   ResponsiveContainer,
   BarChart,
@@ -47,6 +48,7 @@ const BarCharts = ({
                   dataKey="count"
                   name="Total"
                   fill={customTheme.palette.primary.main}
+                  barSize={60} 
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -54,7 +56,7 @@ const BarCharts = ({
         </Card>
       </Grid>
 
-      {/* GRÁFICO: Gráfico de Barras para Disciplinas por Curso - OTIMIZADO */}
+      {/* GRÁFICO: Gráfico de Barras para Disciplinas por Curso */}
       <Grid item xs={12} md={6}>
         <Card sx={{ p: 2, height: "100%" }}>
           <CardContent sx={{ overflow: "visible" }}>
@@ -67,14 +69,11 @@ const BarCharts = ({
             >
               Total de Disciplinas por Curso
             </Typography>
-            <ResponsiveContainer
-              width="100%"
-              height={Math.max(350, disciplinesByCourse.length * 40)}
-            >
+            <ResponsiveContainer width="100%" height={350}>
               <BarChart
                 layout="vertical"
                 data={disciplinesByCourse}
-                margin={{ top: 20, right: 30, left: 30, bottom: 20 }} // Margem esquerda reduzida para 30
+                margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis type="number" dataKey="totalDisciplines" />
@@ -82,9 +81,8 @@ const BarCharts = ({
                   type="category"
                   dataKey="acronym"
                   tick={{ fontSize: 12 }}
-                  width={80} // Largura do eixo ajustada para 80
+                  width={80}
                   interval={0}
-                  // padding={{ left: 10 }} REMOVIDO para evitar espaço extra
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
@@ -92,6 +90,7 @@ const BarCharts = ({
                   dataKey="totalDisciplines"
                   name="Total de Disciplinas"
                   fill={customTheme.palette.special.main}
+                  barSize={60} 
                 />
               </BarChart>
             </ResponsiveContainer>

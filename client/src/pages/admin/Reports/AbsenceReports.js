@@ -36,9 +36,31 @@ const AbsenceReports = ({
   teacherAbsences,
   customTheme,
 }) => {
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <Box
+          sx={{
+            backgroundColor: "white",
+            border: "1px solid #ccc",
+            padding: "10px",
+            borderRadius: "5px",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+          }}
+        >
+          <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+            {data.course || data.acronym || data.name || data.turno || "N/A"}
+          </Typography>
+          <Typography variant="body2">{`Quantidade: ${payload[0].value}`}</Typography>
+        </Box>
+      );
+    }
+    return null;
+  };
+
   return (
     <>
-      {/* GRÁFICO: Histórico de Faltas Mensais */}
       <Grid item xs={12}>
         <Card sx={{ p: 2 }}>
           <CardContent>
@@ -74,10 +96,9 @@ const AbsenceReports = ({
         </Card>
       </Grid>
 
-      {/* Gráfico de Barras para Faltas por Turno */}
-      <Grid item xs={12}>
-        <Card sx={{ p: 2 }}>
-          <CardContent>
+      <Grid item xs={12} md={6}>
+        <Card sx={{ p: 2, height: "100%" }}>
+          <CardContent sx={{ overflow: "visible" }}>
             <Typography
               variant="h6"
               gutterBottom
@@ -87,7 +108,7 @@ const AbsenceReports = ({
             >
               Faltas por Turno
             </Typography>
-            <ResponsiveContainer width="100%" height={350}>
+            <ResponsiveContainer width="100%" height={400}>
               <BarChart
                 data={absencesByShift}
                 margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
@@ -95,19 +116,23 @@ const AbsenceReports = ({
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="turno" />
                 <YAxis />
-                <Tooltip />
+                <Tooltip content={<CustomTooltip />} />
                 <Legend />
-                <Bar dataKey="total_faltas" name="Total" fill={blue[500]} />
+                <Bar
+                  dataKey="total_faltas"
+                  name="Total"
+                  fill={blue[500]}
+                  barSize={60}
+                />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       </Grid>
 
-      {/* Tabela de Faltas por Curso */}
-      <Grid item xs={12}>
-        <Card sx={{ p: 2 }}>
-          <CardContent>
+      <Grid item xs={12} md={6}>
+        <Card sx={{ p: 2, height: "100%" }}>
+          <CardContent sx={{ overflow: "visible" }}>
             <Typography
               variant="h6"
               gutterBottom
@@ -125,12 +150,13 @@ const AbsenceReports = ({
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="acronym" />
                 <YAxis />
-                <Tooltip />
+                <Tooltip content={<CustomTooltip />} />
                 <Legend />
                 <Bar
                   dataKey="totalAbsences"
                   name="Total "
                   fill={customTheme.palette.special.main}
+                  barSize={60}
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -138,7 +164,6 @@ const AbsenceReports = ({
         </Card>
       </Grid>
 
-      {/* Tabela de Faltas por Professor */}
       <Grid item xs={12}>
         <Card sx={{ p: 2 }}>
           <CardContent>

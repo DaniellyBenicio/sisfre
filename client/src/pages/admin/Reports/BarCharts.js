@@ -1,10 +1,4 @@
-import {
-  Box,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-} from "@mui/material";
+import { Box, Typography, Grid, Card, CardContent } from "@mui/material";
 
 import {
   ResponsiveContainer,
@@ -19,13 +13,19 @@ import {
 import React from "react";
 import { green, purple } from "@mui/material/colors";
 
-const BarCharts = ({ requestsStatus, disciplinesByCourse, customTheme, CustomTooltip }) => {
+const BarCharts = ({
+  requestsStatus,
+  disciplinesByCourse,
+  customTheme,
+  CustomTooltip,
+}) => {
   return (
     <>
       {/* GRÁFICO: Gráfico de Barras para Status de Requisições */}
       <Grid item xs={12} md={6}>
         <Card sx={{ p: 2, height: "100%" }}>
-          <CardContent>
+          {/* Adiciona overflow: visible para o tooltip não ser cortado */}
+          <CardContent sx={{ overflow: "visible" }}>
             <Typography
               variant="h6"
               gutterBottom
@@ -42,13 +42,14 @@ const BarCharts = ({ requestsStatus, disciplinesByCourse, customTheme, CustomToo
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="status" />
-                <YAxis />
+                {/* Define o YAxis para o tipo "number" e a chave de dados "count" */}
+                <YAxis type="number" dataKey="count" />
                 <Tooltip />
                 <Legend />
                 <Bar
                   dataKey="count"
                   name="Total de Requisições"
-                  fill={green[500]}
+                  fill={customTheme.palette.primary.main}
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -59,7 +60,8 @@ const BarCharts = ({ requestsStatus, disciplinesByCourse, customTheme, CustomToo
       {/* GRÁFICO: Gráfico de Barras para Disciplinas por Curso */}
       <Grid item xs={12}>
         <Card sx={{ p: 2 }}>
-          <CardContent>
+          {/* Adiciona overflow: visible para o tooltip não ser cortado */}
+          <CardContent sx={{ overflow: "visible" }}>
             <Typography
               variant="h6"
               gutterBottom
@@ -71,22 +73,30 @@ const BarCharts = ({ requestsStatus, disciplinesByCourse, customTheme, CustomToo
             </Typography>
             <ResponsiveContainer
               width="100%"
-              height={Math.max(400, disciplinesByCourse.length * 40)}
+              height={Math.max(350, disciplinesByCourse.length * 40)}
             >
               <BarChart
                 layout="vertical"
                 data={disciplinesByCourse}
-                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                margin={{ top: 20, right: 30, left: 100, bottom: 20 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis type="number" dataKey="totalDisciplines" />
-                <YAxis type="category" dataKey="acronym" />
+                <YAxis
+                  type="category"
+                  dataKey="acronym"
+                  tick={{ fontSize: 12 }}
+                  width={100}
+                  interval={0}
+                  padding={{ left: 10 }}
+                />
+                {/* O CustomTooltip é passado como prop e irá renderizar corretamente */}
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
                 <Bar
                   dataKey="totalDisciplines"
                   name="Total de Disciplinas"
-                  fill={purple[500]}
+                  fill={customTheme.palette.special.main}
                 />
               </BarChart>
             </ResponsiveContainer>

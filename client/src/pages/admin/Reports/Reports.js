@@ -231,7 +231,7 @@ const Reports = ({ setAuthenticated }) => {
           alignItems="center"
           height="50vh"
         >
-                    <CircularProgress color="primary" />       {" "}
+          <CircularProgress color="primary" />
         </Box>
       );
     }
@@ -244,7 +244,7 @@ const Reports = ({ setAuthenticated }) => {
           alignItems="center"
           height="50vh"
         >
-                    <Alert severity="error">{error}</Alert>       {" "}
+          <Alert severity="error">{error}</Alert>
         </Box>
       );
     }
@@ -252,6 +252,11 @@ const Reports = ({ setAuthenticated }) => {
     const CustomTooltip = ({ active, payload }) => {
       if (active && payload && payload.length) {
         const data = payload[0].payload;
+
+        const label = data.status || data.acronym || data.name || "N/A";
+        const value =
+          data.count || data.totalDisciplines || data.value || "N/A";
+
         return (
           <Box
             sx={{
@@ -262,19 +267,15 @@ const Reports = ({ setAuthenticated }) => {
               boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
             }}
           >
-                       {" "}
             <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                            {data.name}           {" "}
+              {label}
             </Typography>
-                       {" "}
-            <Typography variant="body2">{`Valor: ${data.value}`}</Typography>   
-                   {" "}
+            <Typography variant="body2">{`Valor: ${value}`}</Typography>
             {data.percent && (
               <Typography variant="body2">{`Porcentagem: ${(
                 data.percent * 100
               ).toFixed(2)}%`}</Typography>
             )}
-                     {" "}
           </Box>
         );
       }
@@ -283,26 +284,25 @@ const Reports = ({ setAuthenticated }) => {
 
     return (
       <Grid container spacing={4} mt={4} justifyContent="center">
-                {/* === CONTAINER PARA TODOS OS CARDS DE MÉTRICAS === */}       {" "}
+        {/* === CONTAINER PARA TODOS OS CARDS DE MÉTRICAS === */}
         <MetricCards
           dashboardData={dashboardData}
           repositionAntepositionData={repositionAntepositionData}
           resolutionRate={resolutionRate}
         />
-                {/* --- CONTAINER PARA TODOS OS GRÁFICOS DE PIZZA --- */}       {" "}
+        {/* --- CONTAINER PARA TODOS OS GRÁFICOS DE PIZZA --- */}
         <PieCharts
           dashboardData={dashboardData}
           repositionAntepositionData={repositionAntepositionData}
         />
-                {/* Componente externo para os gráficos de barra */}       {" "}
+        {/* Componente externo para os gráficos de barra */}
         <BarCharts
           requestsStatus={requestsStatus}
           disciplinesByCourse={disciplinesByCourse}
           customTheme={customTheme}
           CustomTooltip={CustomTooltip}
         />
-                {/* Novo componente para todos os relatórios de faltas */}     
-         {" "}
+        {/* Novo componente para todos os relatórios de faltas */}
         <AbsenceReports
           monthlyAbsences={monthlyAbsences}
           absencesByShift={absencesByShift}
@@ -310,17 +310,15 @@ const Reports = ({ setAuthenticated }) => {
           teacherAbsences={teacherAbsences}
           customTheme={customTheme}
         />
-             {" "}
       </Grid>
     );
   };
 
   return (
     <ThemeProvider theme={customTheme}>
-           {" "}
       <Box sx={{ display: "flex" }}>
-                <CssBaseline />
-                <Sidebar setAuthenticated={setAuthenticated} />       {" "}
+        <CssBaseline />
+        <Sidebar setAuthenticated={setAuthenticated} />
         <Box
           component="main"
           sx={{
@@ -333,7 +331,6 @@ const Reports = ({ setAuthenticated }) => {
             bgcolor: "background.default",
           }}
         >
-                   {" "}
           <Typography
             variant="h4"
             fontWeight="bold"
@@ -342,13 +339,11 @@ const Reports = ({ setAuthenticated }) => {
             align="center"
             color="primary"
           >
-                        Painel Administrativo          {" "}
+            Painel Administrativo
           </Typography>
-                    {renderContent()}       {" "}
+          {renderContent()}
         </Box>
-             {" "}
       </Box>
-         {" "}
     </ThemeProvider>
   );
 };

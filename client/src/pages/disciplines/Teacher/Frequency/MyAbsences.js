@@ -21,8 +21,8 @@ const MyAbsences = () => {
   const [absences, setAbsences] = useState([]);
   const [courses, setCourses] = useState([]);
   const [disciplines, setDisciplines] = useState([]);
-  const [filterCourseAcronym, setFilterCourseAcronym] = useState("all");
-  const [filterDisciplineName, setFilterDisciplineName] = useState("all");
+  const [filterCourseAcronym, setFilterCourseAcronym] = useState("");
+  const [filterDisciplineName, setFilterDisciplineName] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -82,9 +82,9 @@ const MyAbsences = () => {
       setLoading(true);
       const params = {
         courseAcronym:
-          filterCourseAcronym !== "all" ? filterCourseAcronym : undefined,
+          filterCourseAcronym !== "" ? filterCourseAcronym : undefined,
         disciplineName:
-          filterDisciplineName !== "all" ? filterDisciplineName : undefined,
+          filterDisciplineName !== "" ? filterDisciplineName : undefined,
       };
 
       const response = await api.get("/teacher-absences", { params });
@@ -193,7 +193,7 @@ const MyAbsences = () => {
             sx={commonSelectSx}
             MenuProps={commonMenuProps}
           >
-            <MenuItem value="all">Todos os Cursos</MenuItem>
+            <MenuItem value="">Todos os Cursos</MenuItem>
             {Array.isArray(courses) && courses.length > 0 ? (
               courses.map((course, index) => (
                 <MenuItem key={index} value={course.acronym}>
@@ -217,7 +217,7 @@ const MyAbsences = () => {
             sx={commonSelectSx}
             MenuProps={commonMenuProps}
           >
-            <MenuItem value="all">Todas as Disciplinas</MenuItem>
+            <MenuItem value="">Todas as Disciplinas</MenuItem>
             {Array.isArray(disciplines) && disciplines.length > 0 ? (
               disciplines.map((discipline, index) => (
                 <MenuItem key={index} value={discipline.name}>

@@ -38,15 +38,20 @@ export default (sequelize) => {
       });
 
       Course.belongsToMany(models.Calendar, {
-        through: "calendarCourses", 
+        through: "calendarCourses",
         foreignKey: "courseId",
         otherKey: "calendarId",
-        as: "calendar", 
+        as: "calendar",
       });
 
-      Course.hasMany(models.ClassSchedule, { 
-        foreignKey: "courseId", 
-        as: "classSchedules", 
+      Course.hasMany(models.ClassSchedule, {
+        foreignKey: "courseId",
+        as: "classSchedules",
+      });
+
+      Course.hasMany(models.CourseDiscipline, {
+        foreignKey: "courseId",
+        as: "CourseDisciplines",
       });
     }
   }

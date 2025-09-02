@@ -1,243 +1,571 @@
 import React, { useState, useEffect } from "react";
 import {
-	Box,
-	Typography,
-	Grid,
-	Card,
-	CardContent,
-	CardActionArea,
-	CssBaseline,
-	Badge,
+  Box,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  CssBaseline,
+  CircularProgress,
+  Alert,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from "recharts";
 import Sidebar from "../../../components/SideBar";
-import { Folder, Group } from "@mui/icons-material";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { green, grey, blue, orange, purple } from "@mui/material/colors";
 import api from "../../../service/api";
 
+const customTheme = createTheme({
+  palette: {
+    primary: {
+      main: green[700],
+      light: green[100],
+    },
+    secondary: {
+      main: blue[200],
+      light: blue[50],
+    },
+    info: {
+      main: orange[500],
+      light: orange[100],
+    },
+    special: {
+      main: purple[500],
+      light: purple[100],
+    },
+    background: {
+      default: grey[50],
+      paper: "#FFFFFF",
+    },
+    text: {
+      primary: grey[900],
+      secondary: grey[600],
+    },
+  },
+  components: {
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+          borderRadius: "12px",
+        },
+      },
+    },
+    typography: {
+      h4: {
+        fontWeight: 700,
+      },
+      h6: {
+        fontWeight: 600,
+      },
+    },
+  },
+});
+
+const COLORS = [
+  green[500],
+  blue[300],
+  grey[400],
+  grey[600],
+  green[300],
+  blue[500],
+];
+
 const Reports = ({ setAuthenticated }) => {
-	const navigate = useNavigate();
-	const accessType = localStorage.getItem("accessType") || "";
-	const [pendingRquestsCount, setPendingRequestsCount] = useState(0);
+  const [dashboardData, setDashboardData] = useState(null);
+  const [coursesList, setCoursesList] = useState([]);
+  const [disciplinesByCourse, setDisciplinesByCourse] = useState([]);
+  const [teacherAbsences, setTeacherAbsences] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-	const calendarOptions = [
-		{
-			title: "Faltas",
-			icon: <Group sx={{ fontSize: 60, color: "#087619" }} />,
-			path: "/teacher-absences/options"
-		},
-		{
-			title: "Reposição e Anteposição",
-			icon: <Folder sx={{ fontSize: 60, color: "#087619" }} />,
-			path: "class-schedule/options"
-		}
-	];
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const accessType = localStorage.getItem("accessType");
+        if (accessType !== "Admin") {
+          throw new Error(
+            "Você não tem permissão para visualizar esta página."
+          );
+        }
 
-	const handleCardClick = (option) => {
-		const targetPath = accessType === "Admin" && option.adminPath ? option.adminPath : option.path;
-		navigate(targetPath);
-	};
+        const headers = {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        };
 
-	const fetchPendingRequests = async () => {
-		try {
-			const token = localStorage.getItem("token");
-			if (!token) {
-				console.error("Usuário não autenticado.");
-				return;
-			}
+        const usersResponse = await api.get("/users/all", { headers });
+        const users = usersResponse.data.users;
+        const totalUsers = users.length;
+        const activeUsers = users.filter((user) => user.isActive).length;
+        const inactiveUsers = users.filter((user) => !user.isActive).length;
+        const usersData = [
+          { name: "Ativos", value: activeUsers },
+          { name: "Inativos", value: inactiveUsers },
+        ];
 
-			const response = await api.get("/request", {
-				params: {
-					validated: false,
-					observationCoordinator: null,
-				},
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Cache-Control": "no-cache",
-				},
-			});
+        const coursesResponse = await api.get("/courses", {
+          headers,
+          params: { limit: 1000 },
+        });
+        const courses = coursesResponse.data.courses;
+        const totalCourses = courses.length;
+        setCoursesList(courses);
+        const courseTypes = courses.reduce((acc, course) => {
+          const type = course.type || "Desconhecido";
+          acc[type] = (acc[type] || 0) + 1;
+          return acc;
+        }, {});
+        const coursesData = Object.entries(courseTypes).map(
+          ([name, value]) => ({
+            name,
+            value,
+          })
+        );
 
-			const requests = response.data.requests || [];
+        const disciplinesResponse = await api.get("/disciplines", { headers });
+        const totalDisciplines = disciplinesResponse.data.total;
 
-			const pendingRequests = requests.filter(
-				(request) =>
-					!request.validated &&
-					(!request.observationCoordinator || request.observationCoordinator.trim() === "")
-			);
-			console.log("Requisições pendentes:", pendingRequests);
-			setPendingRequestsCount(pendingRequests.length);
-		} catch (error) {
-			console.error("Erro ao buscar justificativas pendentes:", error.response?.data || error.message);
-			setPendingRequestsCount(0);
-		}
-	};
+        const disciplinesByCourseResponse = await api.get(
+          "/reports/courses/disciplines-count",
+          { headers }
+        );
+        const sortedDisciplinesByCourse = disciplinesByCourseResponse.data.sort(
+          (a, b) => b.acronym.length - a.acronym.length
+        );
+        setDisciplinesByCourse(sortedDisciplinesByCourse);
 
-		useEffect(() => {
-				const accessType = localStorage.getItem("accessType");
-				if (accessType === "Coordenador") {
-					fetchPendingRequests();
-				}
-		}, []);
+        const absencesResponse = await api.get(
+          "/reports/absences/teacher-count",
+          { headers }
+        );
+        const totalAbsences = absencesResponse.data.reduce(
+          (sum, item) => sum + item.count,
+          0
+        );
+        setTeacherAbsences(absencesResponse.data);
 
-	return (
-		<Box sx={{ display: "flex" }}>
-			<CssBaseline />
-			<Sidebar setAuthenticated={setAuthenticated} />
-			<Box
-				padding={3}
-				sx={{
-					width: "100%",
-					margin: "0 auto",
-					display: "flex",
-					flexDirection: "column",
-					alignItems: "center",
-					gap: 10,
-				}}
-			>
-				<Typography
-					variant="h5"
-					gutterBottom
-					sx={{
-						fontWeight: "bold",
-						textAlign: "center",
-						mt: "40px"
-					}}
-				>
-					Relatórios
-				</Typography>
+        setDashboardData({
+          usersData,
+          coursesData,
+          totalCourses,
+          totalUsers,
+          totalDisciplines,
+          totalAbsences,
+        });
+        setLoading(false);
+      } catch (err) {
+        console.error("Erro ao buscar dados do painel:", err);
+        setError(
+          err.response?.data?.error ||
+            "Falha ao carregar dados do painel. Por favor, tente novamente."
+        );
+        setLoading(false);
+      }
+    };
 
-				<Grid
-					container
-					spacing={5}
-					justifyContent="center"
-					sx={{
-						width: "100%",
-						overflow: "visible",
-						display: "flex",
-						flexWrap: "wrap",
-					}}
-				>
-					{calendarOptions.map((option, index) => (
-						<Grid item xs={12} sm={6} md={4} key={index}>
-							<Card
-								sx={{
-									width: { xs: 300, sm: 300 },
-									height: { xs: 250, sm: 300 },
-									backgroundColor: "#FFFFFF",
-									boxShadow:
-										"0 6px 12px rgba(8, 118, 25, 0.1), 0 3px 6px rgba(8, 118, 25, 0.05)",
-									display: "flex",
-									flexDirection: "column",
-									justifyContent: "center",
-									alignItems: "center",
-									textAlign: "center",
-									borderRadius: 3,
-									border: "2px solid #087619",
-									position: "relative",
-									overflow: "visible",
-									transition: "all 0.4s ease-in-out",
-									"&:hover": {
-										transform: "translateY(-10px)",
-										boxShadow:
-											"0 10px 20px rgba(8, 118, 25, 0.3), 0 0 10px rgba(8, 118, 25, 0.5)",
-										border: "3px solid #0A8C1F",
-									},
-								}}
-							>
-								<Box
-									sx={{
-										position: "absolute",
-										top: -2,
-										left: 0,
-										right: 0,
-										height: "10px",
-										backgroundColor: "#087619",
-										borderTopLeftRadius: "12px",
-										borderTopRightRadius: "12px",
-										zIndex: 1,
-										transition: "background-color 0.4s ease-in-out",
-										"&:hover": {
-											backgroundColor: "#0A8C1F",
-										},
-									}}
-								/>
+    fetchDashboardData();
+  }, []);
 
-								{option.title === "Solicitações de Reposição e Anteposição" && pendingRquestsCount > 0 && (
-									<Badge
-										badgeContent={pendingRquestsCount}
-										color="error"
-										sx={{
-											position: "absolute",
-											top: -1,
-											right: 3,
-											zIndex: 1000,
-											"& .MuiBadge-badge": {
-												minWidth: 30,
-												height: 30,
-												borderRadius: "50%",
-												fontSize: "0.75rem",
-												padding: "0 4px",
-												border: "2px solid #FFFFFF",
-											},
-										}}
-									/>
-								)}
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          height="50vh"
+        >
+          <CircularProgress color="primary" />
+        </Box>
+      );
+    }
 
-								<CardActionArea
-									onClick={() => handleCardClick(option)}
-									sx={{
-										height: "100%",
-										width: "100%",
-										display: "flex",
-										flexDirection: "column",
-										justifyContent: "center",
-										alignItems: "center",
-										p: 2,
-										zIndex: 2,
-										"&:hover": {
-											backgroundColor: "transparent",
-										},
-									}}
-								>
-									<CardContent
-										sx={{ padding: 0, transition: "transform 0.4s ease-in-out" }}
-									>
-										<Box
-											sx={{
-												mb: 2,
-												transition: "transform 0.4s ease-in-out",
-												"&:hover": {
-													transform: "scale(1.1)",
-												},
-											}}
-										>
-											{option.icon}
-										</Box>
-										<Typography
-											variant="h6"
-											sx={{
-												fontWeight: "bold",
-												wordWrap: "break-word",
-												color: "#087619",
-												transition:
-													"transform 0.4s ease-in-out, color 0.4s ease-in-out",
-												"&:hover": {
-													transform: "scale(1.05)",
-													color: "#0A8C1F",
-													fontSize: "1.3rem",
-												},
-											}}
-										>
-											{option.title}
-										</Typography>
-									</CardContent>
-								</CardActionArea>
-							</Card>
-						</Grid>
-					))}
-				</Grid>
-			</Box>
-		</Box>
-	);
+    if (error) {
+      return (
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          height="50vh"
+        >
+          <Alert severity="error">{error}</Alert>
+        </Box>
+      );
+    }
+
+    const CustomTooltip = ({ active, payload, label }) => {
+      if (active && payload && payload.length) {
+        const fullCourseName = payload[0].payload.name;
+        const disciplineCount = payload[0].value;
+        return (
+          <Box
+            sx={{
+              backgroundColor: "white",
+              border: "1px solid #ccc",
+              padding: "10px",
+              borderRadius: "5px",
+              boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+            }}
+          >
+            <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+              {fullCourseName}
+            </Typography>
+            <Typography variant="body2">
+              Total de Disciplinas: {disciplineCount}
+            </Typography>
+          </Box>
+        );
+      }
+      return null;
+    };
+
+    return (
+      <Grid container spacing={4} mt={4} justifyContent="center">
+        {/* Agrupamento dos Cards de Métricas */}
+        <Grid item xs={12}>
+          <Grid container spacing={4} justifyContent="center">
+            {/* Métrica de Total de Usuários */}
+            <Grid item xs={12} sm={6} md={4}>
+              <Card
+                sx={{
+                  height: "100%",
+                  p: 2,
+                  backgroundColor: customTheme.palette.secondary.light,
+                }}
+              >
+                <CardContent>
+                  <Typography
+                    variant="h6"
+                    gutterBottom
+                    align="center"
+                    fontWeight="bold"
+                    color="text.primary"
+                  >
+                    Total de Usuários
+                  </Typography>
+                  <Typography
+                    variant="h3"
+                    component="div"
+                    fontWeight="bold"
+                    align="center"
+                    color="primary"
+                  >
+                    {dashboardData?.totalUsers || 0}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* Métrica de Total de Cursos */}
+            <Grid item xs={12} sm={6} md={4}>
+              <Card
+                sx={{
+                  height: "100%",
+                  p: 2,
+                  backgroundColor: customTheme.palette.primary.light,
+                }}
+              >
+                <CardContent>
+                  <Typography
+                    variant="h6"
+                    gutterBottom
+                    align="center"
+                    fontWeight="bold"
+                    color="text.primary"
+                  >
+                    Total de Cursos
+                  </Typography>
+                  <Typography
+                    variant="h3"
+                    component="div"
+                    fontWeight="bold"
+                    align="center"
+                    color="primary"
+                  >
+                    {dashboardData?.totalCourses || 0}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* Métrica de Total de Disciplinas */}
+            <Grid item xs={12} sm={6} md={4}>
+              <Card
+                sx={{
+                  height: "100%",
+                  p: 2,
+                  backgroundColor: customTheme.palette.info.light,
+                }}
+              >
+                <CardContent>
+                  <Typography
+                    variant="h6"
+                    gutterBottom
+                    align="center"
+                    fontWeight="bold"
+                    color="text.primary"
+                  >
+                    Total de Disciplinas
+                  </Typography>
+                  <Typography
+                    variant="h3"
+                    component="div"
+                    fontWeight="bold"
+                    align="center"
+                    color="primary"
+                  >
+                    {dashboardData?.totalDisciplines || 0}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* Métrica de Total de Faltas */}
+            <Grid item xs={12} sm={6} md={4}>
+              <Card
+                sx={{
+                  height: "100%",
+                  p: 2,
+                  backgroundColor: customTheme.palette.special.light,
+                }}
+              >
+                <CardContent>
+                  <Typography
+                    variant="h6"
+                    gutterBottom
+                    align="center"
+                    fontWeight="bold"
+                    color="text.primary"
+                  >
+                    Total de Faltas
+                  </Typography>
+                  <Typography
+                    variant="h3"
+                    component="div"
+                    fontWeight="bold"
+                    align="center"
+                    color="primary"
+                  >
+                    {dashboardData?.totalAbsences || 0}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </Grid>
+
+        {/* Gráficos de Usuários e Cursos */}
+        <Grid item xs={12} md={6}>
+          <Card sx={{ height: "100%", p: 2 }}>
+            <CardContent>
+              <Typography
+                variant="h6"
+                gutterBottom
+                align="center"
+                fontWeight="bold"
+                color="primary"
+              >
+                Usuários Ativos vs. Inativos
+              </Typography>
+              <ResponsiveContainer width="100%" height={350}>
+                <PieChart>
+                  <Pie
+                    data={dashboardData?.usersData || []}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    label
+                  >
+                    {dashboardData?.usersData?.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <Card sx={{ height: "100%", p: 2 }}>
+            <CardContent>
+              <Typography
+                variant="h6"
+                gutterBottom
+                align="center"
+                fontWeight="bold"
+                color="primary"
+              >
+                Distribuição de Cursos por Tipo
+              </Typography>
+              <ResponsiveContainer width="100%" height={350}>
+                <PieChart>
+                  <Pie
+                    data={dashboardData?.coursesData || []}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    label
+                  >
+                    {dashboardData?.coursesData?.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Gráfico de Barras Vertical para Disciplinas por Curso */}
+        <Grid item xs={12}>
+          <Card sx={{ p: 2 }}>
+            <CardContent>
+              <Typography
+                variant="h6"
+                gutterBottom
+                align="center"
+                fontWeight="bold"
+                color="primary"
+              >
+                Total de Disciplinas por Curso
+              </Typography>
+              <ResponsiveContainer
+                width="100%"
+                height={Math.max(400, disciplinesByCourse.length * 40)}
+              >
+                <BarChart
+                  data={disciplinesByCourse}
+                  margin={{
+                    top: 20,
+                    right: 30,
+                    left: 20,
+                    bottom: 20,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="acronym" />
+                  <YAxis dataKey="totalDisciplines" />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend />
+                  <Bar
+                    dataKey="totalDisciplines"
+                    name="Total de Disciplinas"
+                    fill={customTheme.palette.special.main}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Tabela de Cursos Existentes */}
+        <Grid item xs={12}>
+          <Card sx={{ p: 2 }}>
+            <CardContent>
+              <Typography
+                variant="h6"
+                gutterBottom
+                align="center"
+                fontWeight="bold"
+                color="primary"
+              >
+                Lista de Cursos
+              </Typography>
+              <TableContainer component={Paper}>
+                <Table sx={{ minWidth: 650 }} aria-label="tabela de cursos">
+                  <TableHead>
+                    <TableRow
+                      sx={{
+                        backgroundColor: customTheme.palette.primary.light,
+                      }}
+                    >
+                      <TableCell>Nome do Curso</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {coursesList.map((course) => (
+                      <TableRow key={course._id || course.id}>
+                        <TableCell component="th" scope="row">
+                          {course.name || "Sem nome"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+    );
+  };
+
+  return (
+    <ThemeProvider theme={customTheme}>
+      <Box sx={{ display: "flex" }}>
+        <CssBaseline />
+        <Sidebar setAuthenticated={setAuthenticated} />
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: 3,
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            bgcolor: "background.default",
+          }}
+        >
+          <Typography
+            variant="h4"
+            fontWeight="bold"
+            mt={4}
+            mb={2}
+            align="center"
+            color="primary"
+          >
+            Painel Administrativo
+          </Typography>
+          {renderContent()}
+        </Box>
+      </Box>
+    </ThemeProvider>
+  );
 };
 
 export default Reports;

@@ -1,4 +1,3 @@
-import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -16,25 +15,31 @@ import {
   TableRow,
   Paper,
 } from "@mui/material";
+
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+
+import { green, blue, orange, purple, grey, red } from "@mui/material/colors";
+import React, { useState, useEffect } from "react";
+
 import {
+  ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
   Tooltip,
   Legend,
-  ResponsiveContainer,
   BarChart,
   Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
   LineChart,
   Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
 } from "recharts";
-import Sidebar from "../../../components/SideBar";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { green, grey, blue, orange, purple, red } from "@mui/material/colors";
-import api from "../../../service/api";
+
+import MetricCards from "../../../pages/admin/Reports/MetricCards.js";
+import Sidebar from "../../../components/SideBar.js";
+import api from '../../../service/api';
 
 const customTheme = createTheme({
   palette: {
@@ -279,7 +284,6 @@ const Reports = ({ setAuthenticated }) => {
       return null;
     };
 
-
     const repositionAntepositionPieData = repositionAntepositionData
       ? [
           {
@@ -298,204 +302,11 @@ const Reports = ({ setAuthenticated }) => {
     return (
       <Grid container spacing={4} mt={4} justifyContent="center">
         {/* === CONTAINER PARA TODOS OS CARDS DE MÉTRICAS === */}
-        <Grid item xs={12}>
-          <Grid container spacing={4} justifyContent="center">
-            {/* Métrica de Total de Usuários */}
-            <Grid item xs={12} sm={6} md={2}>
-              <Card
-                sx={{
-                  height: "100%",
-                  p: 2,
-                  backgroundColor: customTheme.palette.secondary.light,
-                }}
-              >
-                <CardContent>
-                  <Typography
-                    variant="h6"
-                    gutterBottom
-                    align="center"
-                    fontWeight="bold"
-                    color="text.primary"
-                  >
-                    Total de Usuários
-                  </Typography>
-                  <Typography
-                    variant="h3"
-                    component="div"
-                    fontWeight="bold"
-                    align="center"
-                    color="primary"
-                  >
-                    {dashboardData?.totalUsers || 0}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            {/* Métrica de Total de Cursos */}
-            <Grid item xs={12} sm={6} md={2}>
-              <Card
-                sx={{
-                  height: "100%",
-                  p: 2,
-                  backgroundColor: customTheme.palette.primary.light,
-                }}
-              >
-                <CardContent>
-                  <Typography
-                    variant="h6"
-                    gutterBottom
-                    align="center"
-                    fontWeight="bold"
-                    color="text.primary"
-                  >
-                    Total de Cursos
-                  </Typography>
-                  <Typography
-                    variant="h3"
-                    component="div"
-                    fontWeight="bold"
-                    align="center"
-                    color="primary"
-                  >
-                    {dashboardData?.totalCourses || 0}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            {/* Métrica de Total de Disciplinas */}
-            <Grid item xs={12} sm={6} md={2}>
-              <Card
-                sx={{
-                  height: "100%",
-                  p: 2,
-                  backgroundColor: customTheme.palette.info.light,
-                }}
-              >
-                <CardContent>
-                  <Typography
-                    variant="h6"
-                    gutterBottom
-                    align="center"
-                    fontWeight="bold"
-                    color="text.primary"
-                  >
-                    Total de Disciplinas
-                  </Typography>
-                  <Typography
-                    variant="h3"
-                    component="div"
-                    fontWeight="bold"
-                    align="center"
-                    color="primary"
-                  >
-                    {dashboardData?.totalDisciplines || 0}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            {/* Métrica de Total de Faltas (Geral) */}
-            <Grid item xs={12} sm={6} md={2}>
-              <Card
-                sx={{
-                  height: "100%",
-                  p: 2,
-                  backgroundColor: customTheme.palette.special.light,
-                }}
-              >
-                <CardContent>
-                  <Typography
-                    variant="h6"
-                    gutterBottom
-                    align="center"
-                    fontWeight="bold"
-                    color="text.primary"
-                  >
-                    Total de Faltas
-                  </Typography>
-                  <Typography
-                    variant="h3"
-                    component="div"
-                    fontWeight="bold"
-                    align="center"
-                    color="primary"
-                  >
-                    {dashboardData?.totalAbsences || 0}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            {/* NOVO CARD: Total de Requisições (com a chamada correta) */}
-            <Grid item xs={12} sm={6} md={2}>
-              <Card
-                sx={{
-                  height: "100%",
-                  p: 2,
-                  backgroundColor: customTheme.palette.info.light,
-                }}
-              >
-                <CardContent>
-                  <Typography
-                    variant="h6"
-                    gutterBottom
-                    align="center"
-                    fontWeight="bold"
-                    color="text.primary"
-                  >
-                    Total de Requisições
-                  </Typography>
-                  <Typography
-                    variant="h3"
-                    component="div"
-                    fontWeight="bold"
-                    align="center"
-                    color="primary"
-                  >
-                    {repositionAntepositionData
-                      ? repositionAntepositionData.repositions +
-                        repositionAntepositionData.antepositions
-                      : 0}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            {/* NOVO CARD: Taxa de Resolução */}
-            <Grid item xs={12} sm={6} md={2}>
-              <Card
-                sx={{
-                  height: "100%",
-                  p: 2,
-                  backgroundColor: customTheme.palette.secondary.light,
-                }}
-              >
-                <CardContent>
-                  <Typography
-                    variant="h6"
-                    gutterBottom
-                    align="center"
-                    fontWeight="bold"
-                    color="text.primary"
-                  >
-                    Taxa de Resolução
-                  </Typography>
-                  <Typography
-                    variant="h3"
-                    component="div"
-                    fontWeight="bold"
-                    align="center"
-                    color="primary"
-                  >
-                    {resolutionRate}%
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        </Grid>
+        <MetricCards
+          dashboardData={dashboardData}
+          repositionAntepositionData={repositionAntepositionData}
+          resolutionRate={resolutionRate}
+        />
 
         {/* --- CONTAINER PARA TODOS OS GRÁFICOS DE PIZZA --- */}
         <Grid item xs={12}>
@@ -616,7 +427,7 @@ const Reports = ({ setAuthenticated }) => {
           </Grid>
         </Grid>
 
-        {/* NOVO GRÁFICO: Gráfico de Barras para Status de Requisições */}
+        {/* GRÁFICO: Gráfico de Barras para Status de Requisições */}
         <Grid item xs={12} md={6}>
           <Card sx={{ p: 2, height: "100%" }}>
             <CardContent>
@@ -650,7 +461,7 @@ const Reports = ({ setAuthenticated }) => {
           </Card>
         </Grid>
 
-        {/* NOVO GRÁFICO: Histórico de Faltas Mensais */}
+        {/* GRÁFICO: Histórico de Faltas Mensais */}
         <Grid item xs={12}>
           <Card sx={{ p: 2 }}>
             <CardContent>

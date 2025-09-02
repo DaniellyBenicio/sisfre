@@ -37,9 +37,9 @@ import {
   YAxis,
 } from "recharts";
 
-import MetricCards from "../../../pages/admin/Reports/MetricCards.js";
+import MetricCards from "./MetricCards.js";
 import Sidebar from "../../../components/SideBar.js";
-import api from '../../../service/api';
+import api from "../../../service/api";
 
 const customTheme = createTheme({
   palette: {
@@ -258,10 +258,9 @@ const Reports = ({ setAuthenticated }) => {
       );
     }
 
-    const CustomTooltip = ({ active, payload, label }) => {
+    const CustomTooltip = ({ active, payload }) => {
       if (active && payload && payload.length) {
-        const fullCourseName = payload[0].payload.name;
-        const disciplineCount = payload[0].value;
+        const data = payload[0].payload;
         return (
           <Box
             sx={{
@@ -273,12 +272,51 @@ const Reports = ({ setAuthenticated }) => {
             }}
           >
             <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-              {fullCourseName}
+              {data.name}
             </Typography>
-            <Typography variant="body2">
-              Total de Disciplinas: {disciplineCount}
-            </Typography>
+            <Typography variant="body2">{`Valor: ${data.value}`}</Typography>
+            {data.percent && (
+              <Typography variant="body2">{`Porcentagem: ${(
+                data.percent * 100
+              ).toFixed(2)}%`}</Typography>
+            )}
           </Box>
+        );
+      }
+      return null;
+    };
+
+    const renderCustomizedLabel = ({
+      cx,
+      cy,
+      midAngle,
+      innerRadius,
+      outerRadius,
+      percent,
+      name, // Adiciona 'name' para usar no rótulo
+    }) => {
+      const RADIAN = Math.PI / 180;
+      // Posiciona o rótulo um pouco mais para fora do centro para evitar corte
+      const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+      const x = cx + radius * Math.cos(-midAngle * RADIAN);
+      const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+      const percentageValue = (percent * 100).toFixed(0);
+
+      // Renderiza o rótulo apenas se a porcentagem for maior que 8% (pode ajustar)
+      if (percentageValue > 8) {
+        return (
+          <text
+            x={x}
+            y={y}
+            fill="white"
+            textAnchor="middle" // Centraliza o texto horizontalmente
+            dominantBaseline="central" // Centraliza o texto verticalmente
+            fontWeight="bold"
+            fontSize="14px" // Ajusta o tamanho da fonte
+          >
+            {`${percentageValue}%`}
+          </text>
         );
       }
       return null;
@@ -324,7 +362,7 @@ const Reports = ({ setAuthenticated }) => {
                   >
                     Usuários Ativos vs. Inativos
                   </Typography>
-                  <ResponsiveContainer width="100%" height={350}>
+                  <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
                         data={dashboardData?.usersData || []}
@@ -332,8 +370,13 @@ const Reports = ({ setAuthenticated }) => {
                         nameKey="name"
                         cx="50%"
                         cy="50%"
-                        outerRadius={100}
-                        label
+                        innerRadius={60}
+                        outerRadius={90}
+                        fill="#8884d8"
+                        paddingAngle={5}
+                        isAnimationActive={true}
+                        labelLine={false}
+                        label={renderCustomizedLabel}
                       >
                         {dashboardData?.usersData?.map((entry, index) => (
                           <Cell
@@ -342,8 +385,12 @@ const Reports = ({ setAuthenticated }) => {
                           />
                         ))}
                       </Pie>
-                      <Tooltip />
-                      <Legend />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend
+                        formatter={(value) => (
+                          <span style={{ color: "black" }}>{value}</span>
+                        )}
+                      />
                     </PieChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -363,7 +410,7 @@ const Reports = ({ setAuthenticated }) => {
                   >
                     Distribuição de Cursos
                   </Typography>
-                  <ResponsiveContainer width="100%" height={350}>
+                  <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
                         data={dashboardData?.coursesData || []}
@@ -371,8 +418,13 @@ const Reports = ({ setAuthenticated }) => {
                         nameKey="name"
                         cx="50%"
                         cy="50%"
-                        outerRadius={100}
-                        label
+                        innerRadius={60}
+                        outerRadius={90}
+                        fill="#8884d8"
+                        paddingAngle={5}
+                        isAnimationActive={true}
+                        labelLine={false}
+                        label={renderCustomizedLabel}
                       >
                         {dashboardData?.coursesData?.map((entry, index) => (
                           <Cell
@@ -381,8 +433,12 @@ const Reports = ({ setAuthenticated }) => {
                           />
                         ))}
                       </Pie>
-                      <Tooltip />
-                      <Legend />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend
+                        formatter={(value) => (
+                          <span style={{ color: "black" }}>{value}</span>
+                        )}
+                      />
                     </PieChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -402,7 +458,7 @@ const Reports = ({ setAuthenticated }) => {
                   >
                     Proporção de Requisições
                   </Typography>
-                  <ResponsiveContainer width="100%" height={350}>
+                  <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
                         data={repositionAntepositionPieData}
@@ -410,15 +466,24 @@ const Reports = ({ setAuthenticated }) => {
                         nameKey="name"
                         cx="50%"
                         cy="50%"
-                        outerRadius={100}
-                        label
+                        innerRadius={60}
+                        outerRadius={90}
+                        fill="#8884d8"
+                        paddingAngle={5}
+                        isAnimationActive={true}
+                        labelLine={false}
+                        label={renderCustomizedLabel}
                       >
                         {repositionAntepositionPieData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip />
-                      <Legend />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend
+                        formatter={(value) => (
+                          <span style={{ color: "black" }}>{value}</span>
+                        )}
+                      />
                     </PieChart>
                   </ResponsiveContainer>
                 </CardContent>

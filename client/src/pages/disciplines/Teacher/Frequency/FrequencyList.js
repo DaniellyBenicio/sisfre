@@ -67,8 +67,9 @@ const FrequencyList = () => {
   const [frequencies, setFrequencies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
-  const [filterStatus, setFilterStatus] = useState("all");
-  const [filterPeriod, setFilterPeriod] = useState("all");
+  // Alterado o estado inicial para string vazia
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterPeriod, setFilterPeriod] = useState("");
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
   const [page, setPage] = useState(1);
@@ -88,7 +89,8 @@ const FrequencyList = () => {
     try {
       setLoading(true);
       const params = {
-        status: filterStatus === "all" ? undefined : filterStatus.toLowerCase(),
+        // Agora verifica se o valor é uma string vazia para enviar undefined
+        status: filterStatus === "" ? undefined : filterStatus.toLowerCase(),
         startDate:
           filterPeriod === "custom" && customStartDate
             ? customStartDate
@@ -137,7 +139,8 @@ const FrequencyList = () => {
   const applyFilters = (data) => {
     let filtered = Array.isArray(data) ? [...data] : [];
 
-    if (filterStatus !== "all") {
+    // Altera a verificação para string vazia
+    if (filterStatus !== "") {
       filtered = filtered.filter((freq) => freq.status === filterStatus);
     }
 
@@ -388,7 +391,8 @@ const FrequencyList = () => {
                   sx={commonSelectSx}
                   MenuProps={commonMenuProps}
                 >
-                  <MenuItem value="all">Todas</MenuItem>
+                  {/* Alterado para um valor vazio para que o placeholder funcione */}
+                  <MenuItem value="">Todas</MenuItem> 
                   <MenuItem value="Presença">Presenças</MenuItem>
                   <MenuItem value="Falta">Faltas</MenuItem>
                   <MenuItem value="Abonada">Abonadas</MenuItem>
@@ -408,7 +412,8 @@ const FrequencyList = () => {
                   sx={commonSelectSx}
                   MenuProps={commonMenuProps}
                 >
-                  <MenuItem value="all">Todas</MenuItem>
+                  {/* Alterado para um valor vazio para que o placeholder funcione */}
+                  <MenuItem value="">Todas</MenuItem>
                   <MenuItem value="yesterday">Dia Anterior</MenuItem>
                   <MenuItem value="lastWeek">Última Semana</MenuItem>
                   <MenuItem value="lastMonth">Último Mês</MenuItem>
@@ -467,8 +472,8 @@ const FrequencyList = () => {
               setAlert={setAlert}
               onRegisterAbsenceWithCredit={handleRegisterAbsenceWithCredit}
               isFiltered={
-                filterStatus !== "all" ||
-                filterPeriod !== "all" ||
+                filterStatus !== "" ||
+                filterPeriod !== "" ||
                 (filterPeriod === "custom" &&
                   (customStartDate || customEndDate))
               }

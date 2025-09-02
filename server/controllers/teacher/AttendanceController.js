@@ -62,12 +62,12 @@ function getTurnFromTime(currentTime) {
 
 export const registerAttendanceByTurn = async (req, res) => {
   const { latitude, longitude } = req.body;
-  const loggedUserId = req.user?.id; 
+  const loggedUserId = req.user?.id;
 
-  const now = new Date(); 
+  const now = new Date();
   const currentDate = now.toLocaleDateString("en-CA", {
     timeZone: "America/Sao_Paulo",
-  }); 
+  });
   const localDateTime = new Date(
     now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })
   );
@@ -243,14 +243,10 @@ export const registerAttendanceByTurn = async (req, res) => {
 
 export const getAttendanceByTurn = async (req, res) => {
   const { turno, date, status } = req.query;
-  const loggedUserId = req.user?.id;
-  const currentDateTime = new Date();
-  const offset = -3 * 60;
-  const localDateTime = new Date(
-    currentDateTime.getTime() +
-      (offset + currentDateTime.getTimezoneOffset()) * 60 * 1000
-  );
-  const currentDate = localDateTime.toLocaleDateString("en-CA", {
+  const loggedUserId = req.user?.id; 
+
+  const now = new Date();
+  const currentDate = now.toLocaleDateString("en-CA", {
     timeZone: "America/Sao_Paulo",
   });
 
@@ -278,25 +274,25 @@ export const getAttendanceByTurn = async (req, res) => {
       });
     }
 
-    const filterDate = date || currentDate;
-
-    const calendar = await db.Calendar.findOne({
-      where: {
-        startDate: { [Op.lte]: filterDate },
-        endDate: { [Op.gte]: filterDate },
-      },
-    });
-    if (!calendar) {
-      return res
-        .status(404)
-        .json({ error: "Nenhum calendário ativo encontrado para a data." });
-    }
-
     const whereClause = {
       registeredBy: loggedUserId,
-      ...(date && { date: filterDate }),
-      ...(status !== undefined && { status }),
-    };
+      ...(date && { date }),
+      ...(status && { status }),
+    }; 
+
+    if (date) {
+      const calendar = await db.Calendar.findOne({
+        where: {
+          startDate: { [Op.lte]: date },
+          endDate: { [Op.gte]: date },
+        },
+      });
+      if (!calendar) {
+        return res
+          .status(404)
+          .json({ error: "Nenhum calendário ativo encontrado para a data." });
+      }
+    }
 
     const attendances = await db.Attendance.findAll({
       where: whereClause,
@@ -310,7 +306,7 @@ export const getAttendanceByTurn = async (req, res) => {
             {
               model: db.ClassSchedule,
               as: "schedule",
-              where: { calendarId: calendar.id, isActive: true },
+              where: { isActive: true },
               include: [
                 { model: db.Class, as: "class" },
                 { model: db.Course, as: "course" },
@@ -357,7 +353,7 @@ export const getAttendanceByTurn = async (req, res) => {
         const [dayB, monthB, yearB] = b.date.split("/");
         const dateA = new Date(`${yearA}-${monthA}-${dayA}`);
         const dateB = new Date(`${yearB}-${monthB}-${dayB}`);
-        if (dateA !== dateB) return dateB - dateA;
+        if (dateA.getTime() !== dateB.getTime()) return dateB - dateA;
         const turnOrder = ["Matutino", "Vespertino", "Noturno"];
         return turnOrder.indexOf(a.turn) - turnOrder.indexOf(b.turn);
       }

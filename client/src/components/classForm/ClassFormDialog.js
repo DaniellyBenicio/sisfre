@@ -24,14 +24,18 @@ import PropTypes from 'prop-types';
 const INSTITUTIONAL_COLOR = '#307c34';
 
 const StyledButton = styled(Button)(({ theme }) => ({
-  borderRadius: '8px',
-  padding: theme.spacing(1, 3),
-  textTransform: 'none',
-  fontWeight: 'bold',
-  fontSize: '0.875rem',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
+  width: "fit-content",
+  minWidth: 100,
+  padding: "8px 28px",
+  borderRadius: "8px",
+  textTransform: "none",
+  fontWeight: "bold",
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+  [theme.breakpoints.down("sm")]: {
+    gap: "3px",
+  }
 }));
 
 const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMode, setAlert }) => {

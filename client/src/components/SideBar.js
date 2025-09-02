@@ -98,10 +98,23 @@ const Sidebar = ({ setAuthenticated }) => {
       }
 
       const response = await api.get("/request", {
-        headers: { Authorization: `Bearer ${token}` },
+        params: {
+          validated: false,
+          observationCoordinator: null,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
       const requests = response.data.requests || [];
-      setPendingRequestsCount(requests.length);
+
+      const pendingRequests = requests.filter(
+				(request) =>
+					!request.validated &&
+					(!request.observationCoordinator || request.observationCoordinator.trim() === "")
+			);
+      console.log("Requisições pendentes:", pendingRequests);
+			setPendingRequestsCount(pendingRequests.length);
     } catch (error) {
       console.error("Erro ao buscar solicitações pendentes:", error);
       setPendingRequestsCount(0);

@@ -150,7 +150,7 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
           </Typography>
         </Box>
 
-        <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
+        <Box component={Paper} elevation={3} sx={{ p: 5, m: { xs: 1, sm: 4 }, borderRadius: 3,  width: { xs: "95%", sm: "auto" }, }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
             <Description sx={{ fontSize: "33px", color: "green" }} />
             <Typography variant="h5" color="green">{cardData.title}</Typography>
@@ -175,7 +175,7 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
           </Box>
         </Box>
 
-        <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
+        <Box component={Paper} elevation={3} sx={{ p: 5, m: { xs: 1, sm: 4 }, borderRadius: 3, width: { xs: "95%", sm: "auto" }, }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
             <Box
               sx={{
@@ -234,7 +234,7 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
           </Typography>
         </Box>
 
-        <Box component={Paper} elevation={3} sx={{ p: 5, m: 4, borderRadius: 3 }}>
+        <Box component={Paper} elevation={3} sx={{ p: 5, m: { xs: 1, sm: 4 }, borderRadius: 3, width: { xs: "95%", sm: "auto" }, }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
             <Box
               sx={{
@@ -274,7 +274,7 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
         </Box>
 
         {accessType === "Coordenador" && (
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 2, mr: 4, gap: 2 }}>
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 4, mr: 4, gap: 2, ml: { xs: 4, sm: 4 }, }}>
             <Button
               variant="contained"
               startIcon={<Close />}

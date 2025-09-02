@@ -197,11 +197,13 @@ const ClassReplacementRegister = ({ setAlert }) => {
         );
         if (selectedSchedule && selectedSchedule.absenceDates) {
           const filteredDates = selectedSchedule.absenceDates.filter((date) => {
+            // Novo filtro: exclui apenas se existe request NÃO rejeitada (validated !== 2)
             return !existingRequests.some(
               (req) =>
                 req.course === course &&
                 req.discipline === discipline &&
-                req.dateAbsence === date
+                req.dateAbsence === date &&
+                req.validated !== 2 // Ignora rejeitadas
             );
           });
           setAvailableDates(filteredDates);

@@ -18,13 +18,6 @@ export default (sequelize) => {
         as: "teachers",
       });
 
-      Discipline.belongsToMany(models.Course, {
-        through: "teacherCourseDisciplines",
-        foreignKey: "disciplineId",
-        otherKey: "courseId",
-        as: "coursesTaught",
-      });
-
       Discipline.hasMany(models.ClassScheduleDetail, {
         foreignKey: "disciplineId",
         as: "scheduleDetails",

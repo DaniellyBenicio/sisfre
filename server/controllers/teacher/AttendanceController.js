@@ -369,6 +369,7 @@ export const getAttendanceByTurn = async (req, res) => {
       .json({ error: "Erro interno do servidor.", details: error.message });
   }
 };
+
 export const getTeacherAbsences = async (req, res) => {
   const { courseAcronym, disciplineName } = req.query;
 

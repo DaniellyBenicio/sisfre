@@ -107,7 +107,7 @@ export const createClassSchedule = async (req, res) => {
     const existingClassSchedule = await db.ClassSchedule.findOne({
       where: { classId, calendarId, courseId },
     });
-    
+
     if (existingClassSchedule) {
       return res.status(409).json({
         message: `Já existe uma grade de horário para a turma ${classRecord.semester} no calendário ${calendar.year}/${calendar.period}.`,
@@ -801,19 +801,69 @@ export const updateClassSchedule = async (req, res) => {
         }
       }
 
-      await db.ClassScheduleDetail.destroy({
+      // Busca os detalhes existentes
+      const existingDetails = await db.ClassScheduleDetail.findAll({
         where: { classScheduleId },
         transaction: t,
       });
 
-      const detailsToCreate = details.map((detail) => ({
-        ...detail,
-        classScheduleId,
-      }));
-
-      await db.ClassScheduleDetail.bulkCreate(detailsToCreate, {
-        transaction: t,
+      // Mapeia os detalhes existentes por uma chave única (ex.: disciplineId + hourId + dayOfWeek + turn)
+      const existingDetailMap = new Map();
+      existingDetails.forEach((detail) => {
+        const key = `${detail.disciplineId}-${detail.hourId}-${detail.dayOfWeek}-${detail.turn}`;
+        existingDetailMap.set(key, detail);
       });
+
+      const detailsToUpdate = [];
+      const detailsToCreate = [];
+
+      for (const detail of details) {
+        const key = `${detail.disciplineId}-${detail.hourId}-${detail.dayOfWeek}-${detail.turn}`;
+        if (existingDetailMap.has(key)) {
+          const existingDetail = existingDetailMap.get(key);
+          detailsToUpdate.push({
+            id: existingDetail.id,
+            userId: detail.userId || existingDetail.userId, // Preserva userId se não fornecido
+            classScheduleId,
+            disciplineId: detail.disciplineId,
+            hourId: detail.hourId,
+            dayOfWeek: detail.dayOfWeek,
+            turn: detail.turn,
+          });
+          existingDetailMap.delete(key); // Remove do mapa para identificar os que sobraram
+        } else {
+          detailsToCreate.push({
+            ...detail,
+            classScheduleId,
+          });
+        }
+      }
+
+      // Deleta apenas os detalhes que não foram atualizados ou recriados
+      const detailsToDelete = Array.from(existingDetailMap.values()).map(
+        (detail) => detail.id
+      );
+      if (detailsToDelete.length > 0) {
+        await db.ClassScheduleDetail.destroy({
+          where: { id: { [Op.in]: detailsToDelete } },
+          transaction: t,
+        });
+      }
+
+      // Atualiza os detalhes existentes
+      for (const detail of detailsToUpdate) {
+        await db.ClassScheduleDetail.update(
+          { userId: detail.userId },
+          { where: { id: detail.id }, transaction: t }
+        );
+      }
+
+      // Cria novos detalhes
+      if (detailsToCreate.length > 0) {
+        await db.ClassScheduleDetail.bulkCreate(detailsToCreate, {
+          transaction: t,
+        });
+      }
 
       return classSchedule;
     });

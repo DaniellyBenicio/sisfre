@@ -150,14 +150,15 @@ export async function autoAbsenceAttendance(turno) {
       const classStartSeconds = startH * 3600 + startM * 60 + startS;
       const classEndSeconds = endH * 3600 + endM * 60 + endS;
 
-      const isWithinTurn =
-        classStartSeconds >= totalStartSeconds &&
-        classEndSeconds <= totalEndSeconds;
-      if (!isWithinTurn) {
+      // NOVO: overlap parcial em vez de dentro do turno estrito
+      const isOverlappingTurn =
+        classEndSeconds > totalStartSeconds &&
+        classStartSeconds < totalEndSeconds;
+
+      if (!isOverlappingTurn) {
         console.log(
-          `Aula ${classScheduleDetailId} fora do turno ${turnoToProcess} (${hourStart}-${hourEnd}). Pulando.`
+          `Aula ${classScheduleDetailId} fora do turno ${turnoToProcess} (${hourStart}-${hourEnd}). Será considerada para registro de falta.`
         );
-        continue;
       }
 
       const attendance = await db.Attendance.findOne({
@@ -167,6 +168,7 @@ export async function autoAbsenceAttendance(turno) {
         },
         transaction,
       });
+
       const detailDisciplineId = String(detail.disciplineId);
       const detailDisciplineName = detail.discipline?.name;
       const detailCourseId = String(detail.schedule?.courseId);
@@ -203,42 +205,32 @@ export async function autoAbsenceAttendance(turno) {
         transaction,
       });
 
-      if (anteposicao) {
-        if (!attendance) {
-          await db.Attendance.create(
-            {
-              classScheduleDetailId,
-              date: dateStr,
-              status: "presenca",
-              justification: "Anteposição aprovada",
-              registeredBy: userId,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
-            { transaction }
-          );
-          if (
-            typeof anteposicao.quantity === "number" &&
-            anteposicao.quantity > 1
-          ) {
-            anteposicao.quantity -= 1;
-            await anteposicao.save({ transaction });
-            console.log(
-              `Presença automática registrada por anteposição para professor ${userId} em ${dateStr} (${turnoToProcess}, aula ${hourStart}-${hourEnd}). Anteposição quantity agora: ${anteposicao.quantity}`
-            );
-          } else {
-            anteposicao.quantity = 0;
-            anteposicao.validated = 4;
-            await anteposicao.save({ transaction });
-            console.log(
-              `Presença automática registrada por anteposição para professor ${userId} em ${dateStr} (${turnoToProcess}, aula ${hourStart}-${hourEnd}). Anteposição marcada como usada (quantity esgotado).`
-            );
-          }
+      if (anteposicao && !attendance) {
+        await db.Attendance.create(
+          {
+            classScheduleDetailId,
+            date: dateStr,
+            status: "presenca",
+            justification: "Anteposição aprovada",
+            registeredBy: userId,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+          { transaction }
+        );
+        if (
+          typeof anteposicao.quantity === "number" &&
+          anteposicao.quantity > 1
+        ) {
+          anteposicao.quantity -= 1;
         } else {
-          console.log(
-            `Anteposição aprovada encontrada para professor ${userId}, disciplina ${detailDiscipline}, curso ${detailCourse} em ${dateStr}. Frequência já registrada.`
-          );
+          anteposicao.quantity = 0;
+          anteposicao.validated = 4;
         }
+        await anteposicao.save({ transaction });
+        console.log(
+          `Presença automática registrada por anteposição para professor ${userId} em ${dateStr} (${turnoToProcess}, aula ${hourStart}-${hourEnd})`
+        );
         continue;
       }
 

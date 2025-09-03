@@ -530,6 +530,56 @@ const Reports = ({ setAuthenticated }) => {
             </CardContent>
           </Card>
         </Grid>
+
+        {/* --- NOVA SEÇÃO ADICIONADA: Tabela de Faltas por Professor --- */}
+        <Grid item xs={12}>
+          <Card sx={{ p: 2 }}>
+            <CardContent>
+              <Typography
+                variant="h6"
+                gutterBottom
+                align="center"
+                fontWeight="bold"
+                color="primary"
+              >
+                Faltas por Professor
+              </Typography>
+              <TableContainer component={Paper}>
+                <Table aria-label="tabela de faltas por professor">
+                  <TableHead>
+                    <TableRow
+                      sx={{
+                        backgroundColor: customTheme.palette.secondary.light,
+                      }}
+                    >
+                      <TableCell>Professor</TableCell>
+                      <TableCell align="right">Total de Faltas</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {teacherAbsences.length > 0 ? (
+                      teacherAbsences.map((teacher, index) => (
+                        <TableRow key={index}>
+                          <TableCell component="th" scope="row">
+                            {teacher.name}
+                          </TableCell>
+                          <TableCell align="right">{teacher.count}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={2} align="center">
+                          Nenhuma falta de professor encontrada.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+        </Grid>
+        {/* --- FIM DA NOVA SEÇÃO --- */}
       </Grid>
     );
   };

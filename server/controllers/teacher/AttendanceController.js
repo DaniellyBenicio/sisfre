@@ -319,11 +319,7 @@ export const getAttendanceByTurn = async (req, res) => {
       ],
       order: [
         ["date", "DESC"],
-        [
-          { model: db.ClassScheduleDetail, as: "detail" },
-          "turn",
-          "DESC", 
-        ],
+        [{ model: db.ClassScheduleDetail, as: "detail" }, "turn", "DESC"],
         [
           { model: db.ClassScheduleDetail, as: "detail" },
           { model: db.Hour, as: "hour" },
@@ -331,7 +327,7 @@ export const getAttendanceByTurn = async (req, res) => {
           "ASC",
         ],
       ],
-    }); 
+    });
     const groupedAttendances = attendances.reduce((acc, attendance) => {
       const [year, month, day] = attendance.date.split("-");
       const date = `${day}/${month}/${year}`;

@@ -52,7 +52,10 @@ const Sidebar = ({ setAuthenticated }) => {
 
   useEffect(() => {
     const name = localStorage.getItem("username");
-    if (name) setUsername(name);
+    if (name) {
+      const firstName = name.split(" ")[0];
+      setUsername(firstName);
+    }
 
     const type = localStorage.getItem("accessType");
     if (type) setAccessType(type);
@@ -196,6 +199,14 @@ const Sidebar = ({ setAuthenticated }) => {
             <>
               <ListItem
                 button
+                onClick={() => handleItemClick("/reports", "reports")}
+                sx={getListItemStyle(selectedItem, "reports")}
+              >
+                <Assessment sx={{ mr: 1 }} />
+                <ListItemText primary="Dashboard" />
+              </ListItem>
+              <ListItem
+                button
                 onClick={() => handleItemClick("/users", "users")}
                 sx={getListItemStyle(selectedItem, "users")}
               >
@@ -271,14 +282,6 @@ const Sidebar = ({ setAuthenticated }) => {
                   )}
                 </Box>
               </ListItem>
-              <ListItem
-                button
-                onClick={() => handleItemClick("/reports", "reports")}
-                sx={getListItemStyle(selectedItem, "reports")}
-              >
-                <Assessment sx={{ mr: 1 }} />
-                <ListItemText primary="Relatórios" />
-              </ListItem>
             </>
           )}
 
@@ -309,7 +312,7 @@ const Sidebar = ({ setAuthenticated }) => {
                 }
                 sx={getListItemStyle(selectedItem, "teachers-management/options")}
               >
-                <EventBusy sx={{ mr: 1 }} />
+                <Group sx={{ mr: 1 }} />
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <ListItemText primary="Gestão de Docentes" />
                   {pendingRequestsCount > 0 && (

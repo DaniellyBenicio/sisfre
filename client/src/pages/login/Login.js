@@ -41,7 +41,7 @@ const Login = ({ onLogin = () => {} }) => {
         localStorage.setItem("accessType", decoded.accessType);
 
         if (decoded.accessType === 'Admin') {
-          navigate('/users');
+          navigate('/reports');
         } else {
           navigate('/MainScreen');
         }

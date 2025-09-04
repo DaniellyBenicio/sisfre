@@ -914,7 +914,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
         </Paper>
 
         {/* Horários */}
-        <Paper elevation={3} sx={{ p: 5, mt: 2, position: 'relative', m: 4, borderRadius: 3 }}>
+        <Paper elevation={3} sx={{ p: 5, mt: 2, m: 4, borderRadius: 3 }}>
           <Stack spacing={3}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
               <Box
@@ -931,8 +931,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                 <History sx={{ color: 'white', fontSize: 25 }} />
               </Box>
               <Typography variant="h5" color="green">
-                {" "}
-                Horários{" "}
+                Horários
               </Typography>
             </Box>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
@@ -941,12 +940,11 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                 name="professorId"
                 value={formData.details[0].professorId}
                 onChange={(e) => handleChange(e, 0)}
-                selectSx={{ width: { xs: "600px", sm: "360px", md: "145px", lg: "520px" } }}
+                selectSx={{ width: '100%', flex: 1 }}
               >
                 {professors.map((prof) => (
                   <MenuItem key={prof.id} value={prof.id}>
-                    {" "}
-                    {prof.username}{" "}
+                    {prof.username}
                   </MenuItem>
                 ))}
               </CustomSelect>
@@ -975,7 +973,7 @@ const ClassScheduleEdit = ({ setAuthenticated }) => {
                 isOptionEqualToValue={(option, value) =>
                   option.disciplineId === value.disciplineId
                 }
-                selectSx={{ width: { xs: "600px", sm: "360px", md: "145px", lg: "520px" } }}
+                selectSx={{ width: '100%', flex: 1 }}
               />
             </Stack>
             {formData.details.map((detail, index) => (

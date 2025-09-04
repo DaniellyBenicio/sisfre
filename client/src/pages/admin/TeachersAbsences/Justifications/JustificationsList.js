@@ -8,6 +8,8 @@ import {
   Divider,
   Button,
   CircularProgress,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { ArrowBack, Close, Check } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -21,6 +23,8 @@ const JustificationsList = ({ setAuthenticated }) => {
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
   const accessType = localStorage.getItem("accessType") || "";
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const greenPrimary = "#087619";
   const greenLight = "#E8F5E9";
@@ -134,17 +138,19 @@ const JustificationsList = ({ setAuthenticated }) => {
             mb: 3,
           }}
         >
-          <IconButton
-            onClick={() => navigate("/teacher-absences/options")}
-            sx={{
-              position: "absolute",
-              left: 0,
-              top: "50%",
-              transform: "translateY(-50%)",
-            }}
-          >
-            <ArrowBack sx={{ color: greenPrimary, fontSize: "2.2rem" }} />
-          </IconButton>
+          {!isMobile && (
+            <IconButton
+              onClick={() => navigate("/teacher-absences/options")}
+              sx={{
+                position: "absolute",
+                left: 0,
+                top: "50%",
+                transform: "translateY(-50%)",
+              }}
+            >
+              <ArrowBack sx={{ color: greenPrimary, fontSize: "2.2rem" }} />
+            </IconButton>
+          )}
           <Typography
             variant="h5"
             align="center"

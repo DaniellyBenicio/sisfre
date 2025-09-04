@@ -107,17 +107,19 @@ const TeacherAbsences = ({ setAuthenticated }) => {
             mt: 5,
           }}
         >
-          <IconButton
-            onClick={() => navigate("/teacher-absences/options")}
-            sx={{
-              position: "absolute",
-              left: 0,
-              color: INSTITUTIONAL_COLOR,
-              "&:hover": { backgroundColor: "transparent" },
-            }}
-          >
-            <ArrowBack sx={{ fontSize: 35 }} />
-          </IconButton>
+          {!isMobile && (
+            <IconButton
+              onClick={() => navigate("/teacher-absences/options")}
+              sx={{
+                position: "absolute",
+                left: 0,
+                color: INSTITUTIONAL_COLOR,
+                "&:hover": { backgroundColor: "transparent" },
+              }}
+            >
+              <ArrowBack sx={{ fontSize: 35 }} />
+            </IconButton>
+          )}
           <Typography
             variant="h5"
             align="center"

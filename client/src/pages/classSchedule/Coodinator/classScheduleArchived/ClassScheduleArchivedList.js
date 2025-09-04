@@ -22,9 +22,11 @@ const ClassScheduleListArchived = ({ setAuthenticated }) => {
   const [schedules, setSchedules] = useState([]);
   const [search, setSearch] = useState("");
   const [alert, setAlert] = useState(null);
+  const [selectedCourse, setSelectedCourse] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedCalendar, setSelectedCalendar] = useState("");
   const [selectedClass, setSelectedClass] = useState("");
+  const [courses, setCourses] = useState([]);
   const [calendars, setCalendars] = useState([]);
   const [classes, setClasses] = useState([]);
   const navigate = useNavigate();
@@ -44,6 +46,8 @@ const ClassScheduleListArchived = ({ setAuthenticated }) => {
               calendar: schedule.calendar,
               calendarType: schedule.calendarType,
               class: schedule.turma,
+              nome_curso: schedule.nome_curso || "N/A",
+        			course: schedule.sigla_curso || "N/A",
               turn: determineTurn(schedule.turnCounts),
               details: schedule.details,
             }))
@@ -56,8 +60,12 @@ const ClassScheduleListArchived = ({ setAuthenticated }) => {
         } else {
           const uniqueCalendars = [...new Set(schedules.map((item) => item.calendar))].filter((cal) => cal);
           const uniqueClasses = [...new Set(schedules.map((item) => item.class))].filter((cls) => cls);
+          const uniqueCourses = [
+					...new Set(schedules.map((item) => item.course)),
+				  ].filter((course) => course && course !== "N/A");
           setCalendars(uniqueCalendars);
           setClasses(uniqueClasses);
+          setCourses(uniqueCourses);
         }
       } catch (error) {
         console.error("API Error:", error.response || error);
@@ -109,7 +117,8 @@ const ClassScheduleListArchived = ({ setAuthenticated }) => {
     );
     const matchesCalendar = selectedCalendar ? item.calendar === selectedCalendar : true;
     const matchesClass = selectedClass ? item.class === selectedClass : true;
-    return matchesSearch && matchesCalendar && matchesClass;
+    const matchesCourse = selectedCourse ? item.course === selectedCourse : true;
+    return matchesSearch && matchesCalendar && matchesClass && matchesCourse;
   });
 
   return (
@@ -273,6 +282,75 @@ const ClassScheduleListArchived = ({ setAuthenticated }) => {
                   ))}
                 </StyledSelect>
               </FormControl>
+              <FormControl
+                sx={{
+                  minWidth: { xs: "100%", sm: 200 },
+                  "& .MuiInputBase-root": {
+                    height: 36,
+                    display: "flex",
+                    alignItems: "center",
+                  },
+                  "& .MuiInputLabel-root": {
+                    transform: "translate(14px, 7px) scale(1)",
+                    "&.Mui-focused, &.MuiInputLabel-shrink": {
+                      transform: "translate(14px, -6px) scale(0.75)",
+                      color: "#000000",
+                    },
+                  },
+                  "& .MuiSelect-select": {
+                    display: "flex",
+                    alignItems: "center",
+                    height: "100% !important",
+                  },
+                }}
+              >
+                <InputLabel id="course-filter-label">Curso</InputLabel>
+                <StyledSelect
+                  labelId="course-filter-label"
+                  value={selectedCourse}
+                  label="Curso"
+                  onChange={(e) => setSelectedCourse(e.target.value)}
+                  sx={{
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "rgba(0, 0, 0, 0.23)",
+                    },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#000000",
+                    },
+                  }}
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        maxHeight: "200px",
+                        overflowY: "auto",
+                        width: "auto",
+                        "& .MuiMenuItem-root": {
+                          minHeight: "36px",
+                          display: "flex",
+                          alignItems: "center",
+                        },
+                        "& .MuiMenuItem-root.Mui-selected": {
+                          backgroundColor: "#D5FFDB",
+                          "&:hover": {
+                            backgroundColor: "#C5F5CB",
+                          },
+                        },
+                        "& .MuiMenuItem-root:hover": {
+                          backgroundColor: "#D5FFDB",
+                        },
+                      },
+                    },
+                  }}
+                >
+                  <MenuItem value="">Todos</MenuItem>
+                  {courses.map((course) => (
+                    <MenuItem key={course} value={course}>
+                      {course}
+                    </MenuItem>
+                  ))}
+                </StyledSelect>
+              </FormControl>
+              
             </Box>
           </Box>
         </Box>

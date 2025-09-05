@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Drawer,
   List,
@@ -71,6 +71,7 @@ const Sidebar = ({ setAuthenticated }) => {
     else if (path === "/class-reschedule-options") setSelectedItem("class-reschedule");
     else if (path === "/teachers-management/options") setSelectedItem("teachers-management/options");
     else if (path === "/teacher-absences/options" || path === "/justifications-list") setSelectedItem("teacher-absences");
+    else if (path === "/reports") setSelectedItem("reports");
   }, [location.pathname]);
 
   const fetchPendingJustifications = async () => {
@@ -125,11 +126,54 @@ const Sidebar = ({ setAuthenticated }) => {
   };
 
   useEffect(() => {
-    if (accessType === "Admin") {
-      fetchPendingJustifications();
-    } else if (accessType === "Coordenador") {
-      fetchPendingRescheduleRequest();
-    }
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.error("Usuário não autenticado.");
+          return;
+        }
+
+        if (accessType === "Admin") {
+          const response = await api.get("/justifications-by-turn", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const justifications = response.data.justifications || [];
+          setPendingJustificationsCount(justifications.length);
+        } else if (accessType === "Coordenador") {
+          const response = await api.get("/request", {
+            params: {
+              validated: false,
+              observationCoordinator: null,
+            },
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          const requests = response.data.requests || [];
+          const pendingRequests = requests.filter(
+            (request) =>
+              !request.validated &&
+              (!request.observationCoordinator || request.observationCoordinator.trim() === "")
+          );
+          setPendingRequestsCount(pendingRequests.length);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar dados:", error);
+        setPendingJustificationsCount(0);
+        setPendingRequestsCount(0);
+      }
+    };
+
+    fetchData();
+
+    const intervalId = setInterval(() => {
+      if (accessType) {
+        fetchData();
+      }
+    }, 10000);
+
+    return () => clearInterval(intervalId);
   }, [accessType]);
 
   const handleOpenConfirmDialog = () => setOpenConfirmDialog(true);
@@ -339,6 +383,14 @@ const Sidebar = ({ setAuthenticated }) => {
             <>
               <ListItem
                 button
+                onClick={() => handleItemClick("/frequency", "frequency")}
+                sx={getListItemStyle(selectedItem, "frequency")}
+              >
+                <EventAvailable sx={{ mr: 1 }} />
+                <ListItemText primary="Frequências" />
+              </ListItem>
+              <ListItem
+                button
                 onClick={() => handleItemClick("/disciplines", "disciplines")}
                 sx={getListItemStyle(selectedItem, "disciplines")}
               >
@@ -362,14 +414,6 @@ const Sidebar = ({ setAuthenticated }) => {
               >
                 <EventNote sx={{ mr: 1 }} />
                 <ListItemText primary="Organização de Aulas" />
-              </ListItem>
-              <ListItem
-                button
-                onClick={() => handleItemClick("/frequency", "frequency")}
-                sx={getListItemStyle(selectedItem, "frequency")}
-              >
-                <EventAvailable sx={{ mr: 1 }} />
-                <ListItemText primary="Frequências" />
               </ListItem>
             </>
           )}

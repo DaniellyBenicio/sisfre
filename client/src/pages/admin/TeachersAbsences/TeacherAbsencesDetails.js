@@ -449,10 +449,7 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
                       color={getStatusColor(absence.status)}
                       sx={{
                         color: "#ffffff",
-                        bgcolor:
-                          getStatusColor(absence.status) === "error"
-                            ? "#ff0000"
-                            : null,
+                        bgcolor:"#ff0000ff"
                       }}
                     />
                   </Box>
@@ -490,9 +487,10 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
                               absence.status.toLowerCase() === "falta"
                                 ? "#ff0000"
                                 : absence.status.toLowerCase() === "abonada"
-                                ? "#ffeb3b"
+                                ? "#fbc000ff"
                                 : "inherit",
                             fontWeight: "bold",
+                            textTransform: 'capitalize',
                           }}
                         >
                           {absence.status}

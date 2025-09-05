@@ -42,6 +42,8 @@ const Login = ({ onLogin = () => {} }) => {
 
         if (decoded.accessType === 'Admin') {
           navigate('/reports');
+        } else if (decoded.accessType === 'Professor') {
+          navigate('/frequency');
         } else {
           navigate('/MainScreen');
         }

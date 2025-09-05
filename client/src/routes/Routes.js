@@ -104,7 +104,9 @@ const AppRoutes = () => {
     const access = localStorage.getItem("accessType");
     setAccessType(access);
     if (access === "Admin") {
-      navigate("/users");
+      navigate("/reports");
+    } else if (access === "Professor") {
+      navigate("/frequency");
     } else {
       navigate("/disciplines");
     }

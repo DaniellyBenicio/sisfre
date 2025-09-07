@@ -20,7 +20,7 @@ import {
 } from "@mui/material";
 import { ArrowBack, ExpandMore, School } from "@mui/icons-material";
 import { CustomAlert } from "../../../components/alert/CustomAlert";
-import { StyledSelect } from "../../../components/inputs/Input";
+import { StyledSelect, StyledDateFilter } from "../../../components/inputs/Input";
 import api from "../../../service/api";
 import Sidebar from "../../../components/SideBar";
 
@@ -399,18 +399,16 @@ const TeacherAbsencesDetails = ({ setAuthenticated }) => {
                 spacing={1}
                 alignItems="center"
               >
-                <TextField
+                <StyledDateFilter
                   label="Data Inicial"
                   type="date"
-                  InputLabelProps={{ shrink: true }}
                   value={customStartDate}
                   onChange={(e) => setCustomStartDate(e.target.value)}
                   sx={commonDateInputSx}
                 />
-                <TextField
+                <StyledDateFilter
                   label="Data Final"
                   type="date"
-                  InputLabelProps={{ shrink: true }}
                   value={customEndDate}
                   onChange={(e) => setCustomEndDate(e.target.value)}
                   sx={commonDateInputSx}

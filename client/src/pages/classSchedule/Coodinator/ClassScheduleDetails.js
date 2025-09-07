@@ -15,6 +15,7 @@ import {
   CircularProgress,
   useMediaQuery,
   useTheme,
+  Tooltip,
 } from "@mui/material";
 import { ArrowBack, School, History, Edit } from "@mui/icons-material";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
@@ -318,9 +319,13 @@ const ClassScheduleDetails = ({ setAuthenticated }) => {
                     <ScheduleTable
                       scheduleMatrix={turnoMatrix}
                       daysOfWeek={daysOfWeek}
-                      disableTooltips={true}
+                      disableTooltips={false}
                       sx={{
                         border: `1px solid ${greyBorder}`,
+                      }}
+                      additionalTooltipInfo={{
+                        semester: schedule.class?.semester || "N/A",
+                        turn: determineTurn(schedule)
                       }}
                     />
                   </Box>

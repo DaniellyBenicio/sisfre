@@ -232,7 +232,7 @@ const Sidebar = ({ setAuthenticated }) => {
             variant="subtitle1"
             sx={{ color: "white", marginTop: "10px", textAlign: "center" }}
           >
-            Bem vindo(a), {username}!
+            Bem vindo(a), {accessType === "Admin" ? "DIREN" : username}!
           </Typography>
 
           <Divider

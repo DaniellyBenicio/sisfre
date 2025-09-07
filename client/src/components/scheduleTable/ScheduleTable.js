@@ -20,6 +20,19 @@ const ScheduleTable = ({ scheduleMatrix, daysOfWeek, handleDeleteDetail, sx, dis
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+  const getTooltipContent = (cellData) => {
+    return (
+      <Box>
+        <Typography variant="subtitle2" fontWeight="bold">
+          {cellData.disciplineName || 'N/A'}
+        </Typography>
+        <Typography variant="body2">
+          Professor(a): {cellData.professorName || 'Sem professor'}
+        </Typography>
+      </Box>
+    );
+  };
+
   if (isMobile) {
     return (
       <Box
@@ -76,21 +89,11 @@ const ScheduleTable = ({ scheduleMatrix, daysOfWeek, handleDeleteDetail, sx, dis
                       </Typography>
                     ) : (
                       <Tooltip
-                        title={row[day].disciplineName || 'N/A'}
+                        title={getTooltipContent(row[day])}
                         arrow
                         placement="top"
                         enterDelay={200}
                         leaveDelay={200}
-                        slotProps={{
-                          popper: {
-                            modifiers: [
-                              {
-                                name: 'offset',
-                                options: { offset: [20, -8] },
-                              },
-                            ],
-                          },
-                        }}
                       >
                         <Typography variant="body2">
                           {row[day].disciplineAcronym || 'N/A'}
@@ -98,32 +101,9 @@ const ScheduleTable = ({ scheduleMatrix, daysOfWeek, handleDeleteDetail, sx, dis
                       </Tooltip>
                     )}
                     {row[day].professorName && (
-                      disableTooltips ? (
-                        <Typography variant="body2" color="text.secondary">
-                          {row[day].professorAcronym || 'N/A'}
-                        </Typography>
-                      ) : (
-                        <Tooltip
-                          title={row[day].professorName}
-                          arrow
-                          enterDelay={200}
-                          leaveDelay={200}
-                          slotProps={{
-                            popper: {
-                              modifiers: [
-                                {
-                                  name: 'offset',
-                                  options: { offset: [-5, -15] },
-                                },
-                              ],
-                            },
-                          }}
-                        >
-                          <Typography variant="body2" color="text.secondary">
-                            {row[day].professorAcronym || 'N/A'}
-                          </Typography>
-                        </Tooltip>
-                      )
+                      <Typography variant="body2" color="text.secondary">
+                        {row[day].professorAcronym || 'N/A'}
+                      </Typography>
                     )}
                   </Box>
                   {handleDeleteDetail && row[day]?.hourId && (
@@ -198,21 +178,11 @@ const ScheduleTable = ({ scheduleMatrix, daysOfWeek, handleDeleteDetail, sx, dis
                         </Typography>
                       ) : (
                         <Tooltip
-                          title={row[day].disciplineName || 'N/A'}
+                          title={getTooltipContent(row[day])}
                           arrow
                           placement="top"
                           enterDelay={200}
                           leaveDelay={200}
-                          slotProps={{
-                            popper: {
-                              modifiers: [
-                                {
-                                  name: 'offset',
-                                  options: { offset: [20, -8] },
-                                },
-                              ],
-                            },
-                          }}
                         >
                           <Typography variant="body2">
                             {row[day].disciplineAcronym || 'N/A'}
@@ -220,32 +190,9 @@ const ScheduleTable = ({ scheduleMatrix, daysOfWeek, handleDeleteDetail, sx, dis
                         </Tooltip>
                       )}
                       {row[day].professorName && (
-                        disableTooltips ? (
-                          <Typography variant="body2" color="text.secondary">
-                            {row[day].professorAcronym || 'N/A'}
-                          </Typography>
-                        ) : (
-                          <Tooltip
-                            title={row[day].professorName}
-                            arrow
-                            enterDelay={200}
-                            leaveDelay={200}
-                            slotProps={{
-                              popper: {
-                                modifiers: [
-                                  {
-                                    name: 'offset',
-                                    options: { offset: [-5, -15] },
-                                  },
-                                ],
-                              },
-                            }}
-                          >
-                            <Typography variant="body2" color="text.secondary">
-                              {row[day].professorAcronym || 'N/A'}
-                            </Typography>
-                          </Tooltip>
-                        )
+                        <Typography variant="body2" color="text.secondary">
+                          {row[day].professorAcronym || 'N/A'}
+                        </Typography>
                       )}
                       {handleDeleteDetail && row[day]?.hourId && (
                         <IconButton

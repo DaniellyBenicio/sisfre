@@ -17,7 +17,7 @@ import {
 import { ArrowBack } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 import { CustomAlert } from "../../../../components/alert/CustomAlert";
-import { StyledSelect } from "../../../../components/inputs/Input";
+import { StyledSelect, StyledDateFilter } from "../../../../components/inputs/Input";
 import FrequenciesTable from "./FrequenciesTable";
 import MyAbsences from "./MyAbsences";
 import api from "../../../../service/api";
@@ -429,7 +429,7 @@ const FrequencyList = () => {
 
               {filterPeriod === "custom" && (
                 <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-                  <TextField
+                  <StyledDateFilter
                     label="Data Inicial"
                     type="date"
                     InputLabelProps={{ shrink: true }}
@@ -439,7 +439,7 @@ const FrequencyList = () => {
                     }}
                     sx={commonDateInputSx}
                   />
-                  <TextField
+                  <StyledDateFilter
                     label="Data Final"
                     type="date"
                     InputLabelProps={{ shrink: true }}

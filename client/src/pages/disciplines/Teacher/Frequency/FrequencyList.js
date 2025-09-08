@@ -8,7 +8,6 @@ import {
   Button,
   Stack,
   MenuItem,
-  Pagination,
   IconButton,
   TextField,
   Tabs,
@@ -21,6 +20,7 @@ import { StyledSelect, StyledDateFilter } from "../../../../components/inputs/In
 import FrequenciesTable from "./FrequenciesTable";
 import MyAbsences from "./MyAbsences";
 import api from "../../../../service/api";
+import Paginate from "../../../../components/paginate/Paginate";
 
 const INSTITUTIONAL_COLOR = "#307c34";
 
@@ -488,7 +488,7 @@ const FrequencyList = () => {
 
           {totalPages > 1 && (
             <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-              <Pagination
+              <Paginate
                 count={totalPages}
                 page={page}
                 onChange={(_, newPage) => setPage(newPage)}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
   DialogActions,
@@ -43,10 +43,20 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
     courseId: '',
     semester: '',
   });
+  const [initialClassData, setInitialClassData] = useState(null);
   const [courses, setCourses] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
   const isFormFilled = classData.courseId && classData.semester;
+  const [loadingCourses, setLoadingCourses] = useState(false);
   const isInactive = isEditMode && classToEdit?.isActive === false;
+
+  const hasChanges = useMemo(() => {
+    if (!isEditMode || !initialClassData) return true;
+    return (
+      classData.courseId !== initialClassData.courseId ||
+      classData.semester !== initialClassData.semester
+    );
+  }, [classData, initialClassData, isEditMode]);
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -84,16 +94,19 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
 
   useEffect(() => {
     if (classToEdit) {
-      setClassData({
+      const initialData = {
         courseId: classToEdit.course?.id || classToEdit.courseId || '',
         semester: classToEdit.semester || '',
-      });
+      };
+      setClassData(initialData);
+      setInitialClassData(initialData);
       setErrorMessage(null);
     } else {
       setClassData({
         courseId: '',
         semester: '',
       });
+      setInitialClassData(null);
       setErrorMessage(null);
     }
   }, [classToEdit, open]);
@@ -353,7 +366,7 @@ const ClassFormDialog = ({ open, onClose, classToEdit, onSubmitSuccess, isEditMo
               <StyledButton
                 type="submit"
                 variant="contained"
-                disabled={!isFormFilled || isInactive}
+                disabled={isEditMode ? !isFormFilled || isInactive || !hasChanges : !isFormFilled}
                 sx={{
                   backgroundColor: !isFormFilled || isInactive ? '#E0E0E0' : INSTITUTIONAL_COLOR,
                   '&:hover': { backgroundColor: !isFormFilled || isInactive ? '#E0E0E0' : '#26692b' },

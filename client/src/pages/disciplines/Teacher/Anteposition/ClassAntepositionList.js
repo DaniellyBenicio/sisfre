@@ -329,6 +329,27 @@ const ClassAntepositionList = () => {
     },
   };
 
+  const disciplineFormControlSx = {
+    width: { xs: "100%", sm: "220px" },
+    "& .MuiInputBase-root": {
+      height: { xs: 40, sm: 36 },
+      display: "flex",
+      alignItems: "center",
+    },
+    "& .MuiInputLabel-root": {
+      transform: "translate(14px, 7px) scale(1)",
+      "&.Mui-focused, &.MuiInputLabel-shrink": {
+        transform: "translate(14px, -6px) scale(0.75)",
+        color: "#000000",
+      },
+    },
+    "& .MuiSelect-select": {
+      display: "flex",
+      alignItems: "center",
+      height: "100% !important",
+    },
+  };
+
   const commonSelectSx = {
     "& .MuiOutlinedInput-notchedOutline": {
       borderColor: "rgba(0, 0, 0, 0.23)",
@@ -452,6 +473,24 @@ const ClassAntepositionList = () => {
           </FormControl>
 
           <FormControl sx={commonFormControlSx}>
+            <InputLabel id="filter-period-label">Período</InputLabel>
+            <StyledSelect
+              labelId="filter-period-label"
+              id="filter-period"
+              value={filterPeriod}
+              label="Período"
+              onChange={(e) => setFilterPeriod(e.target.value)}
+              sx={commonSelectSx}
+              MenuProps={commonMenuProps}
+            >
+              <MenuItem value="">Todas</MenuItem>
+              <MenuItem value="yesterday">Dia Anterior</MenuItem>
+              <MenuItem value="lastWeek">Última Semana</MenuItem>
+              <MenuItem value="lastMonth">Último Mês</MenuItem>
+            </StyledSelect>
+          </FormControl>
+
+          <FormControl sx={disciplineFormControlSx}>
             <InputLabel id="filter-disciplina-label">Disciplina</InputLabel>
             <StyledSelect
               labelId="filter-disciplina-label"
@@ -486,24 +525,6 @@ const ClassAntepositionList = () => {
               <MenuItem value="Pendente">Pendente</MenuItem>
               <MenuItem value="Aprovado">Aprovado</MenuItem>
               <MenuItem value="Rejeitado">Rejeitado</MenuItem>
-            </StyledSelect>
-          </FormControl>
-
-          <FormControl sx={commonFormControlSx}>
-            <InputLabel id="filter-period-label">Período</InputLabel>
-            <StyledSelect
-              labelId="filter-period-label"
-              id="filter-period"
-              value={filterPeriod}
-              label="Período"
-              onChange={(e) => setFilterPeriod(e.target.value)}
-              sx={commonSelectSx}
-              MenuProps={commonMenuProps}
-            >
-              <MenuItem value="">Todas</MenuItem>
-              <MenuItem value="yesterday">Dia Anterior</MenuItem>
-              <MenuItem value="lastWeek">Última Semana</MenuItem>
-              <MenuItem value="lastMonth">Último Mês</MenuItem>
             </StyledSelect>
           </FormControl>
         </Stack>

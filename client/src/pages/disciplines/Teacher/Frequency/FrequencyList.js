@@ -309,6 +309,27 @@ const FrequencyList = () => {
     },
   };
 
+  const periodFormControlSx = {
+    width: { xs: "100%", sm: "200px" },
+    "& .MuiInputBase-root": {
+      height: { xs: 40, sm: 36 },
+      display: "flex",
+      alignItems: "center",
+    },
+    "& .MuiInputLabel-root": {
+      transform: "translate(14px, 7px) scale(1)",
+      "&.Mui-focused, &.MuiInputLabel-shrink": {
+        transform: "translate(14px, -6px) scale(0.75)",
+        color: "#000000",
+      },
+    },
+    "& .MuiSelect-select": {
+      display: "flex",
+      alignItems: "center",
+      height: "100% !important",
+    },
+  };
+
   const commonMenuProps = {
     PaperProps: {
       sx: {
@@ -406,7 +427,7 @@ const FrequencyList = () => {
                 </StyledSelect>
               </FormControl>
 
-              <FormControl sx={commonFormControlSx}>
+              <FormControl sx={periodFormControlSx}>
                 <InputLabel id="filter-period-label">Período</InputLabel>
                 <StyledSelect
                   labelId="filter-period-label"

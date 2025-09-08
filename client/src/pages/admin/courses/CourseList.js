@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, useMediaQuery } from "@mui/material";
 import DeleteConfirmationDialog from "../../../components/DeleteConfirmationDialog";
 import api from "../../../service/api";
 import SearchAndCreateBar from "../../../components/homeScreen/SearchAndCreateBar";
@@ -17,6 +17,8 @@ const CourseList = () => {
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
   const [courseToEdit, setCourseToEdit] = useState(null);
+  const isLargeScreen = useMediaQuery("(min-width:1400px)");
+  const isUltraWideScreen = useMediaQuery("(min-width:1920px)");
 
   const handleAlertClose = () => {
     setAlert(null);
@@ -45,12 +47,17 @@ const CourseList = () => {
           users = users.users || users.data || [];
         }
 
-        const coursesWithCoordinators = courses.map((course) => ({
-          ...course,
-          coordinatorName:
-            users.find((user) => user.id === course.coordinatorId)?.username ||
-            "N/A",
-        }));
+        const coursesWithCoordinators = courses
+          .map((course) => ({
+            ...course,
+            name: course.name || "",
+            acronym: course.acronym || "",
+            type: course.type || "",
+            coordinatorName:
+              users.find((user) => user.id === course.coordinatorId)?.username ||
+              "N/A",
+          }))
+          .filter((course) => course.id);
 
         setCourses(coursesWithCoordinators);
       } catch (error) {
@@ -180,9 +187,9 @@ const CourseList = () => {
   return (
     <Box
       sx={{
-        p: 3,
+        p: 2,
         width: "100%",
-        maxWidth: "1200px",
+        maxWidth: isUltraWideScreen ? "95vw" : isLargeScreen ? "90vw" : "1200px",
         margin: "0 auto",
         display: "flex",
         flexDirection: "column",

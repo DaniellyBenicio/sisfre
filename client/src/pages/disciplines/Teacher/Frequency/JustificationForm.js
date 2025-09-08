@@ -9,6 +9,8 @@ import {
   Stack,
   IconButton,
   CssBaseline,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { ArrowBack, Close, Save } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
@@ -85,6 +87,8 @@ const JustificationForm = ({ setAuthenticated }) => {
   const [justification, setJustification] = useState("");
   const [alert, setAlert] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false); // Estado para rastrear envio
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -106,10 +110,10 @@ const JustificationForm = ({ setAuthenticated }) => {
         type: "success",
       });
       setIsSubmitted(true); // Marca como enviado
-      // Aguarda 1.5 segundos para exibir a mensagem antes de redirecionar
+
       setTimeout(() => {
         navigate("/frequency");
-      }, 1500);
+      }, 1000);
     } catch (error) {
       console.error("Erro ao enviar justificativa:", error);
       setAlert({
@@ -131,9 +135,10 @@ const JustificationForm = ({ setAuthenticated }) => {
     <Box
       sx={{
         display: "flex",
-        minHeight: "100vh",
+        minHeight: "90vh",
         overflowX: "hidden",
         width: "100%",
+        mt: 8,
       }}
     >
       <CssBaseline />
@@ -148,7 +153,7 @@ const JustificationForm = ({ setAuthenticated }) => {
           alignItems: "center",
           overflowY: "auto",
           overflowX: "hidden",
-          backgroundColor: "#f5f5f5",
+          backgroundColor: "#fff",
           width: "100%",
           boxSizing: "border-box",
         }}
@@ -164,29 +169,32 @@ const JustificationForm = ({ setAuthenticated }) => {
             mb: { xs: 1.5, sm: 2 },
             mt: { xs: 1, sm: 1.5 },
             px: { xs: 1, sm: 0 },
+            gap: 1,
           }}
         >
-          <IconButton
-            onClick={handleGoBack}
-            sx={{
-              position: "absolute",
-              left: { xs: 4, sm: 0 },
-              color: INSTITUTIONAL_COLOR,
-              top: "50%",
-              transform: "translateY(-50%)",
-              "&:hover": { backgroundColor: "transparent" },
-              p: { xs: 0.5, sm: 1 },
-            }}
-          >
-            <ArrowBack sx={{ fontSize: { xs: 20, sm: 24, md: 30 } }} />
-          </IconButton>
+          {!isMobile && (
+            <IconButton
+              onClick={handleGoBack}
+              sx={{
+                position: "absolute",
+                left: -55,
+                color: INSTITUTIONAL_COLOR,
+                top: "50%",
+                transform: "translateY(-50%)",
+                "&:hover": { backgroundColor: "transparent" },
+                p: 1,
+              }}
+            >
+              <ArrowBack sx={{ fontSize: { xs: 20, sm: 30, md: 33 } }} />
+            </IconButton>
+          )}
           <Typography
             variant="h5"
             sx={{
               fontWeight: "bold",
               textAlign: "center",
               flexGrow: 1,
-              fontSize: { xs: "0.9rem", sm: "1.1rem", md: "1.3rem" },
+              fontSize: { xs: "1rem", sm: "1.1rem", md: "1.3rem" },
               overflowWrap: "break-word",
               wordBreak: "break-word",
               width: "100%",
@@ -205,7 +213,7 @@ const JustificationForm = ({ setAuthenticated }) => {
             p: { xs: 1.5, sm: 2, md: 3 },
             mt: 1.5,
             width: "100%",
-            maxWidth: { xs: "100%", sm: "700px", md: "900px" },
+            maxWidth: { xs: "100%", sm: "900px", md: "1000px", lg: "1000px" },
             boxShadow: {
               xs: "0 1px 3px rgba(0, 0, 0, 0.1)",
               sm: "0 2px 4px rgba(0, 0, 0, 0.1)",

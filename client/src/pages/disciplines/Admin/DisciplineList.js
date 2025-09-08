@@ -31,7 +31,6 @@ const DisciplineList = () => {
         if (!response.data || !Array.isArray(response.data.disciplines)) {
           throw new Error("Erro ao buscar disciplinas: Dados inválidos");
         }
-        // Sort disciplines alphabetically by name when fetched
         const sortedDisciplines = response.data.disciplines.sort((a, b) =>
           a.name.localeCompare(b.name)
         );

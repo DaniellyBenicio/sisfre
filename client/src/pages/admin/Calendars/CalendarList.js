@@ -3,8 +3,8 @@ import {
   Box,
   Typography,
   IconButton,
-  useMediaQuery, // Adicionado para a lógica responsiva
-  useTheme, // Adicionado para acessar os temas de breakpoints
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -15,16 +15,14 @@ import CalendarRegistrationPopup from "./CalendarRegistrationPopup";
 import CalendarUpdatePopup from "./CalendarUpdatePopup";
 import CalendarDelete from "./CalendarDelete";
 
-// Utility function to format date from YYYY-MM-DD to DD/MM/YYYY
 const formatDate = (dateString) => {
   if (!dateString) return "";
   try {
-    // Assuming dateString is in YYYY-MM-DD format
     const [year, month, day] = dateString.split("-");
     return `${day}/${month}/${year}`;
   } catch (error) {
     console.error("Erro ao formatar data:", dateString, error);
-    return dateString; // Return original string if parsing fails
+    return dateString;
   }
 };
 
@@ -38,7 +36,6 @@ const CalendarList = () => {
   const [calendarToDelete, setCalendarToDelete] = useState(null);
   const navigate = useNavigate();
 
-  // Usando useMediaQuery para detectar o tamanho da tela
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -58,7 +55,6 @@ const CalendarList = () => {
         : [];
       console.log("Dados processados (calendarData):", calendarData);
 
-      // Format dates before setting state
       const formattedCalendars = calendarData.map((calendar) => ({
         ...calendar,
         startDate: formatDate(calendar.startDate),
@@ -196,7 +192,7 @@ const CalendarList = () => {
               },
             }}
           >
-            <ArrowBack />
+            <ArrowBack sx={{ fontSize: "2.2rem" }}/>
           </IconButton>
         )}
         <Typography

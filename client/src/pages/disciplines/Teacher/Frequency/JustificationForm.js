@@ -181,7 +181,6 @@ const JustificationForm = ({ setAuthenticated }) => {
                 color: INSTITUTIONAL_COLOR,
                 top: "50%",
                 transform: "translateY(-50%)",
-                "&:hover": { backgroundColor: "transparent" },
                 p: 1,
               }}
             >

@@ -3,8 +3,8 @@ import {
   Box,
   Typography,
   IconButton,
-  useMediaQuery, // Adicionado para a lógica responsiva
-  useTheme, // Adicionado para acessar os temas de breakpoints
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -32,7 +32,6 @@ const SaturdaySchoolList = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Usando useMediaQuery para detectar o tamanho da tela
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -237,7 +236,7 @@ const SaturdaySchoolList = () => {
               },
             }}
           >
-            <ArrowBack />
+            <ArrowBack sx={{ fontSize: "2.1rem" }}/>
           </IconButton>
         )}
         <Typography

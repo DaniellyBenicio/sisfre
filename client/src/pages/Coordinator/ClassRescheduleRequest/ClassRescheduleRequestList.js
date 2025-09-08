@@ -108,12 +108,18 @@ const ClassRecheduleRequestList = ({ setAuthenticated }) => {
             sx={{
               position: "absolute",
               left: 40,
-              top: 68,
-              zIndex: 10,
+              top: 67,
               cursor: "pointer",
-              transition: "transform 0.3s",
+              width: 40,
+              height: 40,
+              display: "flex",
+              borderRadius: "50%",
+              padding: "18px",
+              alignItems: "center",
+              justifyContent: "center",
               "&:hover": {
-                transform: "scale(1.2)",
+                backgroundColor: "rgba(8, 118, 25, 0.08)",
+                borderRadius: "50%",
               },
             }}
             onClick={handleBackClick}

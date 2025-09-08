@@ -627,7 +627,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
               onClick={() => navigate("/class-schedule")}
               sx={{
                 position: "absolute",
-                left: 0,
+                left: 28,
                 top: "50%",
                 transform: "translateY(-50%)",
               }}

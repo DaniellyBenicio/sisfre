@@ -140,7 +140,7 @@ const ClassRescheduleRequestDetails = ({ setAuthenticated }) => {
           {!isMobile && (
             <IconButton
               onClick={() => navigate("/class-reschedule-request")}
-              sx={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)" }}
+              sx={{ position: "absolute", left: 29, top: "50%", transform: "translateY(-50%)" }}
             >
               <ArrowBack sx={{ color: "green", fontSize: "2.2rem" }} />
             </IconButton>

@@ -400,7 +400,6 @@ const ClassAntepositionList = () => {
               position: "absolute",
               left: 0,
               color: INSTITUTIONAL_COLOR,
-              "&:hover": { backgroundColor: "transparent" },
             }}
           >
             <ArrowBack sx={{ fontSize: 35 }} />

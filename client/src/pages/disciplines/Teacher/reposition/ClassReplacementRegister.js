@@ -13,6 +13,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { Close, Save, CloudUpload, ArrowBack } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
@@ -144,6 +146,9 @@ const ClassReplacementRegister = ({ setAlert }) => {
   const [localAlert, setLocalAlert] = useState(null);
   const [availableDates, setAvailableDates] = useState([]);
   const navigate = useNavigate();
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
     const fetchScheduleAndRequests = async () => {
@@ -390,8 +395,9 @@ const ClassReplacementRegister = ({ setAlert }) => {
             flexDirection: "column",
             alignItems: "center",
             overflowY: "auto",
-            backgroundColor: "#f5f5f5",
+            backgroundColor: "#fff",
             py: { xs: 2, md: 4 },
+            mt: 5,
           }}
         >
           <Box
@@ -406,22 +412,23 @@ const ClassReplacementRegister = ({ setAlert }) => {
               mt: 2,
             }}
           >
-            <IconButton
-              onClick={handleGoBack}
-              sx={{
-                position: "absolute",
-                left: 0,
-                color: INSTITUTIONAL_COLOR,
-                top: "50%",
-                transform: "translateY(-50%)",
-                "&:hover": { backgroundColor: "transparent" },
-              }}
-            >
-              <ArrowBack sx={{ fontSize: 35 }} />
-            </IconButton>
+            {!isMobile && (
+              <IconButton
+                onClick={handleGoBack}
+                sx={{
+                  position: "absolute",
+                  left: 0,
+                  color: INSTITUTIONAL_COLOR,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                }}
+              >
+                <ArrowBack sx={{ fontSize: 35 }} />
+              </IconButton>
+            )}
             <Typography
               variant="h5"
-              sx={{ fontWeight: "bold", textAlign: "center", flexGrow: 1 }}
+              sx={{ fontWeight: "bold", textAlign: "center", flexGrow: 1, fontSize: { xs: "1.1rem", sm: "1.5rem" } }}
             >
               Cadastrar Reposição
             </Typography>

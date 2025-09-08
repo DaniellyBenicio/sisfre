@@ -7,18 +7,18 @@ import CourseModal from "../../../components/CourseModal";
 import CoursesTable from "./CoursesTable";
 import { CustomAlert } from "../../../components/alert/CustomAlert";
 
-
 const CourseList = () => {
   const [courses, setCourses] = useState([]);
   const [search, setSearch] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [alert, setAlert] = useState(null);
   const [courseToEdit, setCourseToEdit] = useState(null);
+  const [alert, setAlert] = useState(null);
+  const [loading, setLoading] = useState(false);
   const isLargeScreen = useMediaQuery("(min-width:1400px)");
   const isUltraWideScreen = useMediaQuery("(min-width:1920px)");
+  const accessType = localStorage.getItem("accessType");
 
   const handleAlertClose = () => {
     setAlert(null);
@@ -32,20 +32,13 @@ const CourseList = () => {
           api.get("/courses?limit=1000"),
           api.get("/users?limit=1000"),
         ]);
-        console.log("Resposta da API /courses:", coursesResponse.data);
-        console.log("Resposta da API /users:", usersResponse.data);
 
-        let courses = coursesResponse.data;
-        if (!Array.isArray(courses)) {
-          console.warn("coursesResponse.data não é um array:", courses);
-          courses = courses.courses || courses.data || [];
-        }
-
-        let users = usersResponse.data;
-        if (!Array.isArray(users)) {
-          console.warn("usersResponse.data não é um array:", users);
-          users = users.users || users.data || [];
-        }
+        let courses = Array.isArray(coursesResponse.data)
+          ? coursesResponse.data
+          : coursesResponse.data.courses || coursesResponse.data.data || [];
+        let users = Array.isArray(usersResponse.data)
+          ? usersResponse.data
+          : usersResponse.data.users || usersResponse.data.data || [];
 
         const coursesWithCoordinators = courses
           .map((course) => ({
@@ -57,15 +50,13 @@ const CourseList = () => {
               users.find((user) => user.id === course.coordinatorId)?.username ||
               "N/A",
           }))
-          .filter((course) => course.id);
+          .filter((course) => course.id)
+          .sort((a, b) => a.name.localeCompare(b.name));
 
         setCourses(coursesWithCoordinators);
       } catch (error) {
-        console.error(
-          "Erro ao buscar cursos:",
-          error.message,
-          error.response?.data
-        );
+        console.error("Erro ao buscar cursos:", error);
+        setAlert({ message: "Erro ao carregar cursos.", type: "error" });
         setCourses([]);
       } finally {
         setLoading(false);
@@ -79,87 +70,67 @@ const CourseList = () => {
     ? courses.filter(
         (course) =>
           course.name?.toLowerCase().includes(search.trim().toLowerCase()) ||
-          course.type?.toLowerCase().includes(search.trim().toLowerCase())
+          course.type?.toLowerCase().includes(search.trim().toLowerCase()) ||
+          course.acronym?.toLowerCase().includes(search.trim().toLowerCase())
       )
     : [];
 
-  const handleRegister = async (newCourse) => {
-    console.log("Novo curso registrado:", newCourse);
+  const handleSaveCourse = (data) => {
+    const { course, isEditMode } = data;
+    console.log("CourseList - Dados recebidos para salvar:", data);
+
     try {
-      const [coursesResponse, usersResponse] = await Promise.all([
-        api.get("/courses"),
-        api.get("/users"),
-      ]);
-      console.log(
-        "Resposta da API /courses após registro:",
-        coursesResponse.data
-      );
-      console.log("Resposta da API /users após registro:", usersResponse.data);
-
-      let courses = coursesResponse.data;
-      if (!Array.isArray(courses)) {
-        console.warn("coursesResponse.data não é um array:", courses);
-        courses = courses.courses || courses.data || [];
+      if (isEditMode) {
+        setCourses(
+          courses.map((c) =>
+            c.id === course.id ? { ...c, ...course } : c
+          ).sort((a, b) => a.name.localeCompare(b.name))
+        );
+      } else {
+        const updatedCourses = [...courses, course].sort((a, b) =>
+          a.name.localeCompare(b.name)
+        );
+        setCourses(updatedCourses);
       }
-
-      let users = usersResponse.data;
-      if (!Array.isArray(users)) {
-        console.warn("usersResponse.data não é um array:", users);
-        users = users.users || users.data || [];
-      }
-
-      const coursesWithCoordinators = courses.map((course) => ({
-        ...course,
-        coordinatorName:
-          users.find((user) => user.id === course.coordinatorId)?.username ||
-          "N/A",
-      }));
-      setCourses(coursesWithCoordinators);
+      setAlert({
+        message: isEditMode
+          ? `Curso "${course.name}" atualizado com sucesso!`
+          : `Curso "${course.name}" cadastrado com sucesso!`,
+        type: "success",
+      });
     } catch (error) {
       console.error(
-        "Erro ao refetch cursos após registro:",
-        error.message,
-        error.response?.data
+        `Erro ao ${isEditMode ? "atualizar" : "cadastrar"} curso no estado:`,
+        error
       );
-      setCourses((prev) => [
-        ...prev,
-        {
-          ...newCourse,
-          coordinatorName: newCourse.coordinatorId
-            ? prev.find((c) => c.coordinatorId === newCourse.coordinatorId)
-                ?.coordinatorName || "N/A"
-            : "N/A",
-        },
-      ]);
-    }
-  };
-
-  const handleUpdate = async (updatedCourse) => {
-    try {
-      const response = await api.get(`/courses/${updatedCourse.id}`);
-      const freshCourse = response.data.course;
-
-      setCourses((prevCourses) =>
-        prevCourses.map((course) =>
-          String(course.id) === String(freshCourse.id) ? freshCourse : course
-        )
-      );
+      setAlert({
+        message: `Erro ao ${isEditMode ? "atualizar" : "cadastrar"} curso.`,
+        type: "error",
+      });
+    } finally {
       setOpenDialog(false);
       setCourseToEdit(null);
-    } catch (error) {
-      console.error("Erro ao buscar curso atualizado:", error);
     }
   };
 
   const handleEditCourse = (course) => {
+    console.log("CourseList - Curso para editar:", course);
     setCourseToEdit(course);
     setOpenDialog(true);
   };
 
   const handleDeleteClick = (courseId) => {
-    const course = courses.find(c => c.id === courseId);
-    console.log("Curso recebido para exclusão:", course);
-    console.log("ID do curso a ser excluído:", courseId);
+    console.log("CourseList - ID do curso para exclusão:", courseId);
+    console.log("Lista de cursos atual:", courses);
+    const course = courses.find((c) => String(c.id) === String(courseId));
+    console.log("Curso encontrado para exclusão:", course);
+    if (!course) {
+      setAlert({
+        message: `Curso com ID ${courseId} não encontrado.`,
+        type: "error",
+      });
+      return;
+    }
     setCourseToDelete(course);
     setOpenDeleteDialog(true);
   };
@@ -169,13 +140,13 @@ const CourseList = () => {
       await api.delete(`/courses/${courseToDelete.id}`);
       setCourses(courses.filter((c) => c.id !== courseToDelete.id));
       setAlert({
-        message: `Curso ${courseToDelete.name} excluído com sucesso!`,
+        message: `Curso "${courseToDelete.name}" excluído com sucesso!`,
         type: "success",
       });
     } catch (error) {
       console.error("Erro ao excluir curso:", error);
       setAlert({
-        message: "Erro ao excluir curso.",
+        message: error.response?.data?.mensagem || "Erro ao excluir curso.",
         type: "error",
       });
     } finally {
@@ -187,7 +158,7 @@ const CourseList = () => {
   return (
     <Box
       sx={{
-        p: 2,
+        p: 3,
         width: "100%",
         maxWidth: isUltraWideScreen ? "95vw" : isLargeScreen ? "90vw" : "1200px",
         margin: "0 auto",
@@ -209,14 +180,17 @@ const CourseList = () => {
       <SearchAndCreateBar
         searchValue={search}
         onSearchChange={(e) => setSearch(e.target.value)}
-        createButtonLabel="Cadastrar Curso"
-        onCreateClick={() => {
-          setCourseToEdit(null);
-          setOpenDialog(true);
-        }}
+        {...(accessType === "Admin" && {
+          createButtonLabel: "Cadastrar Curso",
+          onCreateClick: () => {
+            setCourseToEdit(null);
+            setOpenDialog(true);
+          },
+        })}
       />
 
       <CoursesTable
+        key={courses.length}
         courses={filteredCourses}
         onDelete={handleDeleteClick}
         onUpdate={handleEditCourse}
@@ -230,15 +204,22 @@ const CourseList = () => {
           setOpenDialog(false);
           setCourseToEdit(null);
         }}
-        onUpdate={handleRegister}
+        onUpdate={handleSaveCourse}
         courseToEdit={courseToEdit}
       />
 
       <DeleteConfirmationDialog
         open={openDeleteDialog}
-        onClose={() => setOpenDeleteDialog(false)}
+        onClose={() => {
+          setOpenDeleteDialog(false);
+          setCourseToDelete(null);
+        }}
         onConfirm={handleConfirmDelete}
-        message={`Deseja realmente excluir o curso "${courseToDelete?.name}"?`}
+        message={
+          courseToDelete
+            ? `Deseja realmente excluir o curso "${courseToDelete.name}"?`
+            : "Deseja realmente excluir este curso?"
+        }
       />
 
       {alert && (

@@ -12,6 +12,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { Close, Save, CloudUpload, ArrowBack } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
@@ -26,7 +28,6 @@ import { CustomAlert } from "../../../../components/alert/CustomAlert";
 
 const INSTITUTIONAL_COLOR = "#307c34";
 
-// Regras do Multer replicadas no frontend
 const ALLOWED_FILE_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -130,6 +131,10 @@ const ClassAntepositionRegister = ({ setAlert }) => {
   const [selectedClassLabel, setSelectedClassLabel] = useState("");
   const [localAlert, setLocalAlert] = useState(null);
   const navigate = useNavigate();
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
 
   useEffect(() => {
     const fetchScheduleAndRequests = async () => {
@@ -323,28 +328,30 @@ const ClassAntepositionRegister = ({ setAlert }) => {
             justifyContent: "center",
             position: "relative",
             mb: 2,
+            mt: 5,
           }}
         >
-          <IconButton
-            onClick={handleGoBack}
-            sx={{
-              position: "absolute",
-              left: 0,
-              color: INSTITUTIONAL_COLOR,
-              "&:hover": { backgroundColor: "transparent" },
-            }}
-          >
-            <ArrowBack sx={{ fontSize: 30 }} />
-          </IconButton>
+          {!isMobile && (
+            <IconButton
+              onClick={handleGoBack}
+              sx={{
+                position: "absolute",
+                left: 0,
+                color: INSTITUTIONAL_COLOR,
+              }}
+            >
+              <ArrowBack sx={{ fontSize: 35 }} />
+            </IconButton>
+          )}
           <Typography
-            variant="h6"
+            variant="h5"
             sx={{ fontWeight: "bold", textAlign: "center", flexGrow: 1 }}
           >
             Cadastrar Anteposição
           </Typography>
         </Box>
 
-        <Paper elevation={2} sx={{ p: 2, mt: 1 }}>
+        <Paper elevation={2} sx={{ p: 2, mt: 3 }}>
           <Box component="form">
             <Box sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}>
               <TextField

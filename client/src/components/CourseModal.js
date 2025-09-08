@@ -57,22 +57,12 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
       course.type !== initialCourse.type ||
       course.coordinatorId !== initialCourse.coordinatorId);
 
-  const handleSubmitSuccess = (newCourse) => {
-    setAlert({
-      message: courseToEdit
-        ? "Curso atualizado com sucesso!"
-        : "Curso cadastrado com sucesso!",
-      type: "success",
-    });
-    onClose();
-  };
-
   const handleAlertClose = () => {
     setAlert(null);
   };
 
   useEffect(() => {
-    console.log("courseToEdit:", courseToEdit);
+    console.log("CourseModal - courseToEdit:", courseToEdit);
     if (open) {
       setIsEditMode(!!courseToEdit);
       if (courseToEdit) {
@@ -81,7 +71,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
               (type) => type.toUpperCase() === courseToEdit.type.toUpperCase()
             ) || ""
           : "";
-        console.log("Type normalizado:", normalizedType);
+        console.log("CourseModal - Type normalizado:", normalizedType);
         const courseData = {
           acronym: courseToEdit.acronym || "",
           name: courseToEdit.name || "",
@@ -114,12 +104,12 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
           ? `/coordinators?courseId=${courseToEdit.id}`
           : "/coordinators";
         const response = await api.get(url);
-        console.log("Resposta da API /coordinators:", response.data);
+        console.log("CourseModal - Resposta da API /coordinators:", response.data);
         let coordinatorsData = response.data;
 
         if (!Array.isArray(coordinatorsData)) {
           console.warn(
-            "coordinatorsResponse.data não é um array:",
+            "CourseModal - coordinatorsResponse.data não é um array:",
             coordinatorsData
           );
           coordinatorsData = coordinatorsData.users || [];
@@ -127,7 +117,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 
         setCoordinators(coordinatorsData);
       } catch (err) {
-        console.error("Erro ao carregar coordenadores:", err);
+        console.error("CourseModal - Erro ao carregar coordenadores:", err);
         setError("Erro ao carregar coordenadores");
       } finally {
         setLoading(false);
@@ -140,9 +130,9 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    console.log(`Input change - ${name}: ${value}`);
+    console.log(`CourseModal - Input change - ${name}: ${value}`);
     if (name === "type" && !VALID_COURSE_TYPES.includes(value)) {
-      console.warn(`Valor inválido para type: ${value}`);
+      console.warn(`CourseModal - Valor inválido para type: ${value}`);
       return;
     }
     setCourse({ ...course, [name]: value });
@@ -158,6 +148,7 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
     }
 
     try {
+      setLoading(true);
       const payload = {
         acronym: course.acronym,
         name: course.name,
@@ -166,24 +157,53 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
           course.coordinatorId === "none" ? null : Number(course.coordinatorId),
       };
 
-      console.log("Payload enviado:", payload);
+      console.log("CourseModal - Payload enviado:", payload);
 
       let response;
-      if (courseToEdit) {
-        console.log(`Enviando PUT para /courses/${courseToEdit.id}`);
+      if (isEditMode) {
+        console.log(`CourseModal - Enviando PUT para /courses/${courseToEdit.id}`);
         response = await api.put(`/courses/${courseToEdit.id}`, payload);
-        console.log("Resposta da API (PUT):", response.data);
+        console.log("CourseModal - Resposta da API (PUT):", response.data);
       } else {
-        console.log("Enviando POST para /courses");
+        console.log("CourseModal - Enviando POST para /courses");
         response = await api.post("/courses", payload);
-        console.log("Resposta da API (POST):", response.data);
+        console.log("CourseModal - Resposta da API (POST):", response.data);
       }
 
-      onUpdate(response.data);
-      handleSubmitSuccess();
+      const newCourse = response.data.course || response.data;
+      if (!newCourse.id) {
+        throw new Error("CourseModal - ID do curso não retornado pela API");
+      }
+
+      const coordinatorName =
+        coordinators.find((user) => user.id === newCourse.coordinatorId)?.username || "N/A";
+
+      const formattedCourse = {
+        id: newCourse.id,
+        acronym: newCourse.acronym || course.acronym,
+        name: newCourse.name || course.name,
+        type: newCourse.type || course.type,
+        coordinatorId: newCourse.coordinatorId || null,
+        coordinatorName,
+      };
+
+      console.log("CourseModal - Curso formatado para onUpdate:", formattedCourse);
+
+      onUpdate({
+        course: formattedCourse,
+        isEditMode,
+      });
+
+      setAlert({
+        message: isEditMode
+          ? "Curso atualizado com sucesso!"
+          : "Curso cadastrado com sucesso!",
+        type: "success",
+      });
+      onClose();
     } catch (err) {
-      console.error("Erro ao salvar curso:", err);
-      console.log("Erro completo:", err.response?.data);
+      console.error("CourseModal - Erro ao salvar curso:", err);
+      console.log("CourseModal - Erro completo:", err.response?.data);
       setError(
         err.response?.data?.error || "Erro ao salvar curso: " + err.message
       );
@@ -329,19 +349,11 @@ const CourseModal = ({ open, onClose, courseToEdit, onUpdate }) => {
                     },
                   }}
                 >
-                  <MenuItem value="CURSO LIVRE">Curso Livre</MenuItem>
-                  <MenuItem value="DOUTORADO">Doutorado</MenuItem>
-                  <MenuItem value="EAD">EAD</MenuItem>
-                  <MenuItem value="ESPECIALIZAÇÃO">Especialização</MenuItem>
-                  <MenuItem value="EXTENSÃO">Extensão</MenuItem>
-                  <MenuItem value="GRADUAÇÃO">Graduação</MenuItem>
-                  <MenuItem value="INTEGRADO">Integrado</MenuItem>
-                  <MenuItem value="MESTRADO">Mestrado</MenuItem>
-                  <MenuItem value="PROEJA">PROEJA</MenuItem>
-                  <MenuItem value="PÓS-DOUTORADO">Pós-Doutorado</MenuItem>
-                  <MenuItem value="RESIDÊNCIA">Residência</MenuItem>
-                  <MenuItem value="SEQUENCIAL">Sequencial</MenuItem>
-                  <MenuItem value="TÉCNICO">Técnico</MenuItem>
+                  {VALID_COURSE_TYPES.map((type) => (
+                    <MenuItem key={type} value={type}>
+                      {type.charAt(0) + type.slice(1).toLowerCase()}
+                    </MenuItem>
+                  ))}
                 </StyledSelect>
               </FormControl>
 

@@ -7,8 +7,8 @@ import {
   MenuItem,
   Button,
   IconButton,
-  useMediaQuery, // Adicionado para a lógica responsiva
-  useTheme, // Adicionado para acessar os temas de breakpoints
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -31,7 +31,6 @@ const HolidaysList = () => {
   const [alert, setAlert] = useState(null);
   const navigate = useNavigate();
 
-  // Usando useMediaQuery para detectar o tamanho da tela
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -177,7 +176,7 @@ const HolidaysList = () => {
               fontSize: { xs: "1.2rem", sm: "1.5rem" },
             }}
           >
-            <ArrowBack fontSize="inherit" />
+            <ArrowBack fontSize="inherit" sx={{ fontSize: "2.1rem" }}/>
           </IconButton>
         )}
         <Typography

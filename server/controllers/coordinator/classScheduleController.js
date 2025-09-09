@@ -328,7 +328,8 @@ export const createClassSchedule = async (req, res) => {
             {
               model: db.ClassSchedule,
               as: "schedule",
-              attributes: ["classId", "courseId"],
+              attributes: ["classId", "courseId", "isActive"],
+              where: { isActive: true },
               include: [
                 { model: db.Class, as: "class", attributes: ["semester"] },
                 { model: db.Course, as: "course", attributes: ["name"] },
@@ -764,7 +765,8 @@ export const updateClassSchedule = async (req, res) => {
             {
               model: db.ClassSchedule,
               as: "schedule",
-              attributes: ["classId", "courseId"],
+              attributes: ["classId", "courseId", "isActive"],
+              where: { isActive: true },
               include: [
                 { model: db.Class, as: "class", attributes: ["semester"] },
                 { model: db.Course, as: "course", attributes: ["name"] },

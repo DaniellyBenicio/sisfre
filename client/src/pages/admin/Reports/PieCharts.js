@@ -1,12 +1,11 @@
-import React from "react";
+import React from 'react';
 import {
   Box,
   Typography,
   Grid,
   Card,
   CardContent,
-} from "@mui/material";
-
+} from '@mui/material';
 import {
   ResponsiveContainer,
   PieChart,
@@ -14,13 +13,17 @@ import {
   Cell,
   Tooltip,
   Legend,
-} from "recharts";
+} from 'recharts';
+import { green, blue } from '@mui/material/colors';
+import { Doughnut } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip as ChartTooltip, Legend as ChartLegend } from 'chart.js';
 
-import { green, blue } from "@mui/material/colors";
+ChartJS.register(ArcElement, ChartTooltip, ChartLegend);
 
 const COLORS = [
-  green[500],
-  blue[300],
+  '#4CAF50', '#2196F3', '#F44336', '#FF9800', '#9C27B0',
+  '#00BCD4', '#FFC107', '#E91E63', '#8BC34A', '#673AB7',
+  '#FF5722', '#607D8B', '#CDDC39', '#03A9F4', '#795548',
 ];
 
 const PieCharts = ({ dashboardData, repositionAntepositionData }) => {
@@ -30,21 +33,19 @@ const PieCharts = ({ dashboardData, repositionAntepositionData }) => {
       return (
         <Box
           sx={{
-            backgroundColor: "white",
-            border: "1px solid #ccc",
-            padding: "10px",
-            borderRadius: "5px",
-            boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+            backgroundColor: 'white',
+            border: '1px solid #ccc',
+            padding: '10px',
+            borderRadius: '5px',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
           }}
         >
-          <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
             {data.name}
           </Typography>
           <Typography variant="body2">{`Quantidade: ${data.value}`}</Typography>
           {data.percent && (
-            <Typography variant="body2">{`Porcentagem: ${(
-              data.percent * 100
-            ).toFixed(2)}%`}</Typography>
+            <Typography variant="body2">{`Porcentagem: ${(data.percent * 100).toFixed(2)}%`}</Typography>
           )}
         </Box>
       );
@@ -88,24 +89,65 @@ const PieCharts = ({ dashboardData, repositionAntepositionData }) => {
   const repositionAntepositionPieData = repositionAntepositionData
     ? [
         {
-          name: "Reposições",
+          name: 'Reposições',
           value: repositionAntepositionData.repositions,
           color: blue[500],
         },
         {
-          name: "Anteposições",
+          name: 'Anteposições',
           value: repositionAntepositionData.antepositions,
           color: green[500],
         },
       ]
     : [];
 
+  const coursesChartData = {
+    labels: dashboardData?.coursesData?.map((entry) => entry.name) || [],
+    datasets: [
+      {
+        data: dashboardData?.coursesData?.map((entry) => entry.value) || [],
+        backgroundColor: COLORS.slice(0, dashboardData?.coursesData?.length || 0),
+        borderColor: COLORS.slice(0, dashboardData?.coursesData?.length || 0),
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          boxWidth: 20,
+          padding: 20,
+          font: {
+            size: 12,
+          },
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: (context) => {
+            const label = context.label || '';
+            const value = context.raw || 0;
+            const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+            const percentage = ((value / total) * 100).toFixed(2);
+            return `${label}: ${value} (${percentage}%)`;
+          },
+        },
+      },
+    },
+    cutout: '60%',
+  };
+
   return (
     <Grid item xs={12}>
       <Grid container spacing={4} justifyContent="center">
         {/* Gráfico de Usuários */}
         <Grid item xs={12} md={4}>
-          <Card sx={{ height: "100%", p: 2 }}>
+          <Card sx={{ height: '100%', p: 2 }}>
             <CardContent>
               <Typography
                 variant="h6"
@@ -135,14 +177,14 @@ const PieCharts = ({ dashboardData, repositionAntepositionData }) => {
                     {dashboardData?.usersData?.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
+                        fill={[green[500], blue[300]][index % 2]}
                       />
                     ))}
                   </Pie>
                   <Tooltip content={<CustomTooltip />} />
                   <Legend
                     formatter={(value) => (
-                      <span style={{ color: "black" }}>{value}</span>
+                      <span style={{ color: 'black' }}>{value}</span>
                     )}
                   />
                 </PieChart>
@@ -153,7 +195,7 @@ const PieCharts = ({ dashboardData, repositionAntepositionData }) => {
 
         {/* Gráfico de Distribuição de Cursos */}
         <Grid item xs={12} md={4}>
-          <Card sx={{ height: "100%", p: 2 }}>
+          <Card sx={{ height: '100%', p: 2 }}>
             <CardContent>
               <Typography
                 variant="h6"
@@ -164,44 +206,16 @@ const PieCharts = ({ dashboardData, repositionAntepositionData }) => {
               >
                 Distribuição de Cursos
               </Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={dashboardData?.coursesData || []}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
-                    fill="#8884d8"
-                    paddingAngle={5}
-                    isAnimationActive={true}
-                    labelLine={false}
-                    label={renderCustomizedLabel}
-                  >
-                    {dashboardData?.coursesData?.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend
-                    formatter={(value) => (
-                      <span style={{ color: "black" }}>{value}</span>
-                    )}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+              <Box sx={{ height: 350 }}>
+                <Doughnut data={coursesChartData} options={chartOptions} />
+              </Box>
             </CardContent>
           </Card>
         </Grid>
 
         {/* Gráfico de Proporção de Requisições */}
         <Grid item xs={12} md={4}>
-          <Card sx={{ height: "100%", p: 2 }}>
+          <Card sx={{ height: '100%', p: 2 }}>
             <CardContent>
               <Typography
                 variant="h6"
@@ -235,7 +249,7 @@ const PieCharts = ({ dashboardData, repositionAntepositionData }) => {
                   <Tooltip content={<CustomTooltip />} />
                   <Legend
                     formatter={(value) => (
-                      <span style={{ color: "black" }}>{value}</span>
+                      <span style={{ color: 'black' }}>{value}</span>
                     )}
                   />
                 </PieChart>

@@ -347,7 +347,7 @@ const ClassAntepositionRegister = ({ setAlert }) => {
             variant="h5"
             sx={{ fontWeight: "bold", textAlign: "center", flexGrow: 1 }}
           >
-            Cadastrar Anteposição
+            Solicitar Anteposição
           </Typography>
         </Box>
 

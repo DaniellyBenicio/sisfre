@@ -88,10 +88,29 @@ export const createRequest = async (req, res) => {
 };
 
 export const getRequest = async (req, res) => {
-  const { type } = req.query; // Adicionado: filtro por type (ex: 'anteposicao')
+  const { type } = req.query; // Filtro por type (ex: 'anteposicao')
+  const coordinatorId = req.user.id; // ID do coordenador logado
 
   try {
-    const whereClause = type ? { type } : {}; // Filtra se type for passado
+    // Buscar todos os cursos onde o usuário é coordenador
+    const coordinatorCourses = await db.Course.findAll({
+      where: { coordinatorId: coordinatorId },
+      attributes: ["name"],
+    });
+
+    // Extrair os nomes dos cursos do coordenador
+    const courseNames = coordinatorCourses.map((course) => course.name);
+
+    // Se não houver cursos associados ao coordenador, retornar vazio
+    if (!courseNames.length) {
+      return res.status(200).json({ requests: [] });
+    }
+
+    const whereClause = {
+      course: { [db.Sequelize.Op.in]: courseNames }, // Filtra pelo nome do curso
+      ...(type && { type }),
+    };
+
     const requests = await db.ClassChangeRequest.findAll({
       where: whereClause,
       include: [

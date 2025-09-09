@@ -430,7 +430,7 @@ const ClassReplacementRegister = ({ setAlert }) => {
               variant="h5"
               sx={{ fontWeight: "bold", textAlign: "center", flexGrow: 1, fontSize: { xs: "1.1rem", sm: "1.5rem" } }}
             >
-              Cadastrar Reposição
+              Solicitar Reposição
             </Typography>
           </Box>
 

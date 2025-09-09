@@ -434,7 +434,7 @@ const ClassReplacementList = () => {
             whiteSpace: "nowrap",
           }}
         >
-          Cadastrar Reposição
+          Solicitar Reposição
         </StyledButton>
       </Stack>
 

@@ -541,7 +541,7 @@ const ClassAntepositionList = () => {
             whiteSpace: "nowrap",
           }}
         >
-          Cadastrar anteposição
+          Solicitar anteposição
         </StyledButton>
       </Stack>
 

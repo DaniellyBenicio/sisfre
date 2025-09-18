@@ -113,9 +113,7 @@ const Reports = ({ setAuthenticated }) => {
       try {
         const accessType = localStorage.getItem("accessType");
         if (accessType !== "Admin") {
-          throw new Error(
-            "Você não tem permissão para visualizar esta página."
-          );
+          throw new Error("Você não tem permissão para visualizar esta página.");
         }
 
         const headers = {
@@ -139,12 +137,12 @@ const Reports = ({ setAuthenticated }) => {
           api.get("/courses", { headers, params: { limit: 1000 } }),
           api.get("/disciplines", { headers }),
           api.get("/reports/courses/disciplines-count", { headers }),
-          api.get("/reports/absences/teacher-count", { headers }),
-          api.get("/reports/absences/course-count", { headers }),
+          api.get("/reports/absences/teacher-count", { headers }).catch(() => ({ data: [] })),
+          api.get("/reports/absences/course-count", { headers }).catch(() => ({ data: [] })),
           api.get("/reports/reposition-anteposition-counts", { headers }),
           api.get("/reports/resolution-rate", { headers }),
-          api.get("/reports/monthly-absences", { headers }),
-          api.get("/reports/absences-by-shift", { headers }),
+          api.get("/reports/monthly-absences", { headers }).catch(() => ({ data: { data: [] } })),
+          api.get("/reports/absences-by-shift", { headers }).catch(() => ({ data: [] })),
           api.get("/reports/requests/status", { headers }),
         ]);
 
@@ -165,12 +163,10 @@ const Reports = ({ setAuthenticated }) => {
           acc[type] = (acc[type] || 0) + 1;
           return acc;
         }, {});
-        const coursesData = Object.entries(courseTypes).map(
-          ([name, value]) => ({
-            name,
-            value,
-          })
-        );
+        const coursesData = Object.entries(courseTypes).map(([name, value]) => ({
+          name,
+          value,
+        }));
 
         const totalDisciplines = disciplinesResponse.data.total;
 
@@ -179,14 +175,15 @@ const Reports = ({ setAuthenticated }) => {
         );
         setDisciplinesByCourse(sortedDisciplinesByCourse);
 
-        const totalAbsences = absencesResponse.data.reduce(
-          (sum, item) => sum + item.count,
-          0
-        );
-        setTeacherAbsences(absencesResponse.data);
+        const totalAbsences = Array.isArray(absencesResponse.data)
+          ? absencesResponse.data.reduce((sum, item) => sum + (item.count || 0), 0)
+          : 0;
+        setTeacherAbsences(Array.isArray(absencesResponse.data) ? absencesResponse.data : []);
 
-        const absencesData = absencesByCourseResponse.data;
-        setAbsencesByCourse(absencesData);
+        setAbsencesByCourse(absencesByCourseResponse.data || []);
+        setMonthlyAbsences(monthlyAbsencesResponse.data.data || []);
+        setAbsencesByShift(absencesByShiftResponse.data || []);
+        setRequestsStatus(requestsStatusResponse.data.requestsStatus || []);
 
         const repAntData = repositionAntepositionResponse.data;
         setRepositionAntepositionData(repAntData);
@@ -195,10 +192,6 @@ const Reports = ({ setAuthenticated }) => {
           resolutionRateResponse.data.resolutionRate
         ).toFixed(2);
         setResolutionRate(resolvedRate);
-
-        setMonthlyAbsences(monthlyAbsencesResponse.data.data);
-        setAbsencesByShift(absencesByShiftResponse.data);
-        setRequestsStatus(requestsStatusResponse.data.requestsStatus);
 
         setDashboardData({
           usersData,

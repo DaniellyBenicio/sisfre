@@ -536,7 +536,7 @@ const ClassScheduleCreate = ({ setAuthenticated }) => {
         navigate("/class-schedule", {
           state: { success: "Grade de turma criada com sucesso!" },
         });
-      }, 3000);
+      }, 900);
     } catch (error) {
       setErrors((prev) => ({
         ...prev,

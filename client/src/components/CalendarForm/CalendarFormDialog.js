@@ -508,7 +508,7 @@ const CalendarFormDialog = ({
             </FormControl>
 
             <Box
-              sx={{ display: "flex", gap: 2, my: 1.5, alignItems: "center" }}
+              sx={{ display: "flex", gap: 2, alignItems: "center" }}
             >
               <FormControl
                 fullWidth

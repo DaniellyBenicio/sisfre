@@ -45,9 +45,7 @@ export const getAdminTeacherAbsences = async (req, res) => {
     });
 
     if (!allAbsences.length) {
-      return res
-        .status(200)
-        .json({ message: "Nenhuma falta encontrada no sistema." });
+      return res.status(200).json([]);
     }
 
     const detailIdsWithAbsences = [

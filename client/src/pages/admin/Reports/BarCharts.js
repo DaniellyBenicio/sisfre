@@ -37,10 +37,16 @@ const BarCharts = ({
             <ResponsiveContainer width="100%" height={350}>
               <BarChart
                 data={requestsStatus}
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                margin={{ top: 20, right: 30, left: 20 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="status" />
+                <XAxis dataKey="status" 
+                  angle={-45}
+                  textAnchor="end"
+                  height={70} 
+                  tick={{ fontSize: 12 }}
+                  interval={0}
+                />
                 <YAxis type="number" dataKey="count" />
                 <Tooltip />
                 <Legend />

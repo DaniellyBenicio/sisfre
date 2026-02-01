@@ -242,6 +242,7 @@ const ClassesTeacher = () => {
                     width: { xs: "100%", sm: "40px" },
                     minHeight: { xs: "auto", sm: "100px" },
                     flexShrink: 0,
+                    alignSelf: { sm: "stretch" },
                   }}
                 >
                   <Typography

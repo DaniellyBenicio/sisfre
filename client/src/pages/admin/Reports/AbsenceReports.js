@@ -114,7 +114,13 @@ const AbsenceReports = ({
                 margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="turno" />
+                <XAxis dataKey="turno" 
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                  tick={{ fontSize: 12 }}
+                  interval={0}
+                />
                 <YAxis />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
@@ -122,7 +128,7 @@ const AbsenceReports = ({
                   dataKey="total_faltas"
                   name="Total"
                   fill={blue[500]}
-                  barSize={60}
+                  barSize={40}
                 />
               </BarChart>
             </ResponsiveContainer>

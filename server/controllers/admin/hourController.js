@@ -7,7 +7,7 @@ export const getHours = async (req, res) => {
     const turnIntervals = {
       MATUTINO: { start: "07:00:00", end: "11:59:59" },
       VESPERTINO: { start: "12:59:59", end: "17:39:59" },
-      NOTURNO: { start: "18:20:00", end: "23:59:59" },
+      NOTURNO: { start: "18:20:00", end: "22:59:59" },
       INTEGRADO: { start: "07:00:00", end: "17:59:59" },
     };
 

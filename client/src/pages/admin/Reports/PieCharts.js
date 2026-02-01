@@ -17,8 +17,9 @@ import {
 import { green, blue } from '@mui/material/colors';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip as ChartTooltip, Legend as ChartLegend } from 'chart.js';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
-ChartJS.register(ArcElement, ChartTooltip, ChartLegend);
+ChartJS.register(ArcElement, ChartTooltip, ChartLegend, ChartDataLabels);
 
 const COLORS = [
   '#4CAF50', '#2196F3', '#F44336', '#FF9800', '#9C27B0',
@@ -136,6 +137,19 @@ const PieCharts = ({ dashboardData, repositionAntepositionData }) => {
             const percentage = ((value / total) * 100).toFixed(2);
             return `${label}: ${value} (${percentage}%)`;
           },
+        },
+      },
+      datalabels: {
+        color: '#fff',
+        font: {
+          weight: 'bold',
+          size: 13,
+        },
+        formatter: (value, context) => {
+          const data = context.chart.data.datasets[0].data;
+          const total = data.reduce((sum, val) => sum + val, 0);
+          const percentage = ((value / total) * 100).toFixed(0);
+          return percentage > 5 ? `${value}` : ''; // evita poluição visual
         },
       },
     },
